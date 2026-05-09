@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.ruff_cache/
+.mypy_cache/
+
+# Reference material kept locally, not in repo
+project_files/
+
+# SLURM outputs
+slurm-*.out
+/logs/*
+!/logs/.gitkeep
+!/logs/slurm/
+/logs/slurm/*
+!/logs/slurm/.gitkeep
+
+# Training artifacts
+/ckpts/
+/checkpoints/
+/runs/
+/tb_logs/
+/wandb/
+
+# Data (top-level dataset dir; keep aaf/data/ as source)
+/data/
+*.h5
+*.hdf5
+*.npz
+*.npy
+*.wav
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Local env
+.env
+*.local.yml
