@@ -1,0 +1,977 @@
+[
+  {
+    "L": 2.5,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 0.8262247145988028,
+    "schroeder": 574.8824974197084,
+    "n_analytical_full": 1102,
+    "n_analytical_modal": 99,
+    "ism_full": {
+      "mae_hz": 0.4885363872845488,
+      "mae_pct": 0.001290130767272748,
+      "recall_at_tol": 0.056261343012704176,
+      "n_picked": 62,
+      "n_analytical": 1102,
+      "n_matched": 62,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.6408418877949282,
+      "mae_pct": 0.003841395140232956,
+      "recall_at_tol": 0.16161616161616163,
+      "n_picked": 16,
+      "n_analytical": 99,
+      "n_matched": 16,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.5204731093422149,
+        "recall": 0.5,
+        "n_modes": 6,
+        "n_matched": 3
+      },
+      "mid": {
+        "mae_hz": 0.5874999999999915,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.48338309971255083,
+        "recall": 0.052486187845303865,
+        "n_modes": 1086,
+        "n_matched": 57
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.515701008577174,
+      "mae_pct": 0.0012478712300093657,
+      "recall_at_tol": 0.07531760435571688,
+      "n_picked": 83,
+      "n_analytical": 1102,
+      "n_matched": 83,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.7506776892948472,
+      "mae_pct": 0.0038723990941014765,
+      "recall_at_tol": 0.20202020202020202,
+      "n_picked": 20,
+      "n_analytical": 99,
+      "n_matched": 20,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 3.0,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 0.9206503962672374,
+    "schroeder": 553.9706358846221,
+    "n_analytical_full": 1318,
+    "n_analytical_modal": 108,
+    "ism_full": {
+      "mae_hz": 0.45307787147095363,
+      "mae_pct": 0.001013811396580791,
+      "recall_at_tol": 0.05690440060698027,
+      "n_picked": 75,
+      "n_analytical": 1318,
+      "n_matched": 75,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.5525297996869096,
+      "mae_pct": 0.003778249275594445,
+      "recall_at_tol": 0.12037037037037036,
+      "n_picked": 13,
+      "n_analytical": 108,
+      "n_matched": 13,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.5694444444444429,
+        "recall": 0.5,
+        "n_modes": 6,
+        "n_matched": 3
+      },
+      "mid": {
+        "mae_hz": 0.09445585523985756,
+        "recall": 0.1,
+        "n_modes": 10,
+        "n_matched": 1
+      },
+      "high": {
+        "mae_hz": 0.4532119883344836,
+        "recall": 0.054531490015360985,
+        "n_modes": 1302,
+        "n_matched": 71
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.3976197000710549,
+      "mae_pct": 0.0012161910333242324,
+      "recall_at_tol": 0.06980273141122914,
+      "n_picked": 92,
+      "n_analytical": 1318,
+      "n_matched": 92,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.5697567267860855,
+      "mae_pct": 0.004780135651528042,
+      "recall_at_tol": 0.16666666666666666,
+      "n_picked": 18,
+      "n_analytical": 108,
+      "n_matched": 18,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 3.25,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 0.9629791501186047,
+    "schroeder": 544.3356289639423,
+    "n_analytical_full": 1427,
+    "n_analytical_modal": 116,
+    "ism_full": {
+      "mae_hz": 0.41558747066932367,
+      "mae_pct": 0.000862336166903198,
+      "recall_at_tol": 0.0539593552908199,
+      "n_picked": 77,
+      "n_analytical": 1427,
+      "n_matched": 77,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.6053662500273751,
+      "mae_pct": 0.0030945595107207736,
+      "recall_at_tol": 0.1206896551724138,
+      "n_picked": 14,
+      "n_analytical": 116,
+      "n_matched": 14,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.3557692307692264,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 1.1822783778469415,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.3962210962233642,
+        "recall": 0.0517363571934798,
+        "n_modes": 1411,
+        "n_matched": 73
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.3679733181876996,
+      "mae_pct": 0.0010944053764663237,
+      "recall_at_tol": 0.06797477224947442,
+      "n_picked": 97,
+      "n_analytical": 1427,
+      "n_matched": 97,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.48917409982909515,
+      "mae_pct": 0.00393453914058675,
+      "recall_at_tol": 0.1810344827586207,
+      "n_picked": 21,
+      "n_analytical": 116,
+      "n_matched": 21,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 3.5,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.0024859870465475,
+    "schroeder": 535.1864793953459,
+    "n_analytical_full": 1532,
+    "n_analytical_modal": 119,
+    "ism_full": {
+      "mae_hz": 0.3655437883711494,
+      "mae_pct": 0.0007125627773003336,
+      "recall_at_tol": 0.047650130548302874,
+      "n_picked": 73,
+      "n_analytical": 1532,
+      "n_matched": 73,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.5689964609659585,
+      "mae_pct": 0.0024081831307715186,
+      "recall_at_tol": 0.11764705882352941,
+      "n_picked": 14,
+      "n_analytical": 119,
+      "n_matched": 14,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.125,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 1.7046400849400243,
+        "recall": 0.1,
+        "n_modes": 10,
+        "n_matched": 1
+      },
+      "high": {
+        "mae_hz": 0.35328652094505547,
+        "recall": 0.04617414248021108,
+        "n_modes": 1516,
+        "n_matched": 70
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.3640074740731862,
+      "mae_pct": 0.0008074219309611375,
+      "recall_at_tol": 0.060704960835509136,
+      "n_picked": 93,
+      "n_analytical": 1532,
+      "n_matched": 93,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.47830646510037095,
+      "mae_pct": 0.0029340875245097106,
+      "recall_at_tol": 0.15126050420168066,
+      "n_picked": 18,
+      "n_analytical": 119,
+      "n_matched": 18,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 3.75,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.0394439957855905,
+    "schroeder": 526.483680224586,
+    "n_analytical_full": 1643,
+    "n_analytical_modal": 123,
+    "ism_full": {
+      "mae_hz": 0.2902162369361016,
+      "mae_pct": 0.0005597726120919909,
+      "recall_at_tol": 0.04625684723067559,
+      "n_picked": 76,
+      "n_analytical": 1643,
+      "n_matched": 76,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.32735317936247055,
+      "mae_pct": 0.0015761637765888468,
+      "recall_at_tol": 0.13821138211382114,
+      "n_picked": 17,
+      "n_analytical": 123,
+      "n_matched": 17,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.25833333333333286,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 0.16926238494886547,
+        "recall": 0.1,
+        "n_modes": 10,
+        "n_matched": 1
+      },
+      "high": {
+        "mae_hz": 0.2927466432264136,
+        "recall": 0.04486785494775661,
+        "n_modes": 1627,
+        "n_matched": 73
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.3430138491347019,
+      "mae_pct": 0.00074147329757937,
+      "recall_at_tol": 0.05782105903834449,
+      "n_picked": 95,
+      "n_analytical": 1643,
+      "n_matched": 95,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.5484004005374087,
+      "mae_pct": 0.0024197209805885624,
+      "recall_at_tol": 0.17073170731707318,
+      "n_picked": 21,
+      "n_analytical": 123,
+      "n_matched": 21,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 4.0,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.0740921289784435,
+    "schroeder": 518.1920804533884,
+    "n_analytical_full": 1754,
+    "n_analytical_modal": 128,
+    "ism_full": {
+      "mae_hz": 0.5516843702749228,
+      "mae_pct": 0.001185627262263363,
+      "recall_at_tol": 0.03819840364880274,
+      "n_picked": 67,
+      "n_analytical": 1754,
+      "n_matched": 67,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.6683773387408547,
+      "mae_pct": 0.004063399807294834,
+      "recall_at_tol": 0.1015625,
+      "n_picked": 13,
+      "n_analytical": 128,
+      "n_matched": 13,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.6875,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 0.5880109355185255,
+        "recall": 0.1,
+        "n_modes": 10,
+        "n_matched": 1
+      },
+      "high": {
+        "mae_hz": 0.5468725292640828,
+        "recall": 0.03682393555811277,
+        "n_modes": 1738,
+        "n_matched": 64
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.5267713950729835,
+      "mae_pct": 0.0010593499518522702,
+      "recall_at_tol": 0.04846066134549601,
+      "n_picked": 85,
+      "n_analytical": 1754,
+      "n_matched": 85,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.5706766814359181,
+      "mae_pct": 0.003600446084772401,
+      "recall_at_tol": 0.125,
+      "n_picked": 16,
+      "n_analytical": 128,
+      "n_matched": 16,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 4.25,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.1066403753111238,
+    "schroeder": 510.2802863735193,
+    "n_analytical_full": 1865,
+    "n_analytical_modal": 128,
+    "ism_full": {
+      "mae_hz": 0.3083450648533544,
+      "mae_pct": 0.0009201427226080144,
+      "recall_at_tol": 0.0418230563002681,
+      "n_picked": 78,
+      "n_analytical": 1865,
+      "n_matched": 78,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.4419163053902464,
+      "mae_pct": 0.003374262724237258,
+      "recall_at_tol": 0.125,
+      "n_picked": 16,
+      "n_analytical": 128,
+      "n_matched": 16,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.915441176470587,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 0.35195062527915866,
+        "recall": 0.1,
+        "n_modes": 10,
+        "n_matched": 1
+      },
+      "high": {
+        "mae_hz": 0.2915744277378841,
+        "recall": 0.04056246619794483,
+        "n_modes": 1849,
+        "n_matched": 75
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.34629789166672087,
+      "mae_pct": 0.0010431380532019913,
+      "recall_at_tol": 0.054691689008042894,
+      "n_picked": 102,
+      "n_analytical": 1865,
+      "n_matched": 102,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.6549879668776626,
+      "mae_pct": 0.0036520958754918628,
+      "recall_at_tol": 0.1875,
+      "n_picked": 24,
+      "n_analytical": 128,
+      "n_matched": 24,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 4.5,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.1372740189183521,
+    "schroeder": 502.7201604865611,
+    "n_analytical_full": 1970,
+    "n_analytical_modal": 132,
+    "ism_full": {
+      "mae_hz": 0.3500418967039947,
+      "mae_pct": 0.0006695971086698365,
+      "recall_at_tol": 0.04111675126903553,
+      "n_picked": 81,
+      "n_analytical": 1970,
+      "n_matched": 81,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.5456850152941067,
+      "mae_pct": 0.002212679577587099,
+      "recall_at_tol": 0.11363636363636363,
+      "n_picked": 15,
+      "n_analytical": 132,
+      "n_matched": 15,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.23611111111110716,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 0.9166666666666856,
+        "recall": 0.1,
+        "n_modes": 10,
+        "n_matched": 1
+      },
+      "high": {
+        "mae_hz": 0.34569877877095734,
+        "recall": 0.03991811668372569,
+        "n_modes": 1954,
+        "n_matched": 78
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.34106521549243246,
+      "mae_pct": 0.0008304219085538733,
+      "recall_at_tol": 0.05482233502538071,
+      "n_picked": 108,
+      "n_analytical": 1970,
+      "n_matched": 108,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.4195142140633516,
+      "mae_pct": 0.0029102439061528475,
+      "recall_at_tol": 0.1590909090909091,
+      "n_picked": 21,
+      "n_analytical": 132,
+      "n_matched": 21,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 4.75,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.1661571686051673,
+    "schroeder": 495.4863997507196,
+    "n_analytical_full": 2083,
+    "n_analytical_modal": 135,
+    "ism_full": {
+      "mae_hz": 0.34982167514800716,
+      "mae_pct": 0.0013605136336727033,
+      "recall_at_tol": 0.041766682669227076,
+      "n_picked": 87,
+      "n_analytical": 2083,
+      "n_matched": 87,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.6984729161147492,
+      "mae_pct": 0.005554276412218228,
+      "recall_at_tol": 0.13333333333333333,
+      "n_picked": 18,
+      "n_analytical": 135,
+      "n_matched": 18,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.8552631578947327,
+        "recall": 0.5,
+        "n_modes": 6,
+        "n_matched": 3
+      },
+      "mid": {
+        "mae_hz": 0.298019816693575,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.3325933735464058,
+        "recall": 0.03967102080309628,
+        "n_modes": 2067,
+        "n_matched": 82
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.32072462855967326,
+      "mae_pct": 0.0006838036371496309,
+      "recall_at_tol": 0.04896783485357657,
+      "n_picked": 102,
+      "n_analytical": 2083,
+      "n_matched": 102,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.4661449839384747,
+      "mae_pct": 0.0019460499984840238,
+      "recall_at_tol": 0.18518518518518517,
+      "n_picked": 25,
+      "n_analytical": 135,
+      "n_matched": 25,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 5.0,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.1934356988649373,
+    "schroeder": 488.55617872767453,
+    "n_analytical_full": 2186,
+    "n_analytical_modal": 141,
+    "ism_full": {
+      "mae_hz": 0.3512358813535967,
+      "mae_pct": 0.0008197758031126561,
+      "recall_at_tol": 0.042543458371454713,
+      "n_picked": 93,
+      "n_analytical": 2186,
+      "n_matched": 93,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.48102324594396784,
+      "mae_pct": 0.00320991771392062,
+      "recall_at_tol": 0.11347517730496454,
+      "n_picked": 16,
+      "n_analytical": 141,
+      "n_matched": 16,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.42500000000000426,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 0.6975995767247459,
+        "recall": 0.3,
+        "n_modes": 10,
+        "n_matched": 3
+      },
+      "high": {
+        "mae_hz": 0.33775157086034374,
+        "recall": 0.04055299539170507,
+        "n_modes": 2170,
+        "n_matched": 88
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.3025688601971991,
+      "mae_pct": 0.0009184965295747045,
+      "recall_at_tol": 0.05077767612076853,
+      "n_picked": 111,
+      "n_analytical": 2186,
+      "n_matched": 111,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.39055235716924097,
+      "mae_pct": 0.0034033051225707592,
+      "recall_at_tol": 0.16312056737588654,
+      "n_picked": 23,
+      "n_analytical": 141,
+      "n_matched": 23,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 5.25,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.2192397139755307,
+    "schroeder": 481.90884614762905,
+    "n_analytical_full": 2294,
+    "n_analytical_modal": 143,
+    "ism_full": {
+      "mae_hz": 0.26381671283252667,
+      "mae_pct": 0.0006993506333364635,
+      "recall_at_tol": 0.037053182214472534,
+      "n_picked": 85,
+      "n_analytical": 2294,
+      "n_matched": 85,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.47097801771934183,
+      "mae_pct": 0.0029276460406824885,
+      "recall_at_tol": 0.1048951048951049,
+      "n_picked": 15,
+      "n_analytical": 143,
+      "n_matched": 15,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.7916666666666643,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 0.2429139796285682,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.25129949750832475,
+        "recall": 0.03555750658472344,
+        "n_modes": 2278,
+        "n_matched": 81
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.3106174654871782,
+      "mae_pct": 0.0011730961625741312,
+      "recall_at_tol": 0.04882301656495205,
+      "n_picked": 112,
+      "n_analytical": 2294,
+      "n_matched": 112,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.5443700665218849,
+      "mae_pct": 0.005050347018137149,
+      "recall_at_tol": 0.14685314685314685,
+      "n_picked": 21,
+      "n_analytical": 143,
+      "n_matched": 21,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 5.5,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.2436856230276716,
+    "schroeder": 475.5256656925091,
+    "n_analytical_full": 2404,
+    "n_analytical_modal": 145,
+    "ism_full": {
+      "mae_hz": 0.2926265803536375,
+      "mae_pct": 0.0007651719508869598,
+      "recall_at_tol": 0.036605657237936774,
+      "n_picked": 88,
+      "n_analytical": 2404,
+      "n_matched": 88,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.5296607698108411,
+      "mae_pct": 0.0029226668602777726,
+      "recall_at_tol": 0.1103448275862069,
+      "n_picked": 16,
+      "n_analytical": 145,
+      "n_matched": 16,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.36363636363636687,
+        "recall": 0.16666666666666666,
+        "n_modes": 6,
+        "n_matched": 1
+      },
+      "mid": {
+        "mae_hz": 0.7452087760148487,
+        "recall": 0.3,
+        "n_modes": 10,
+        "n_matched": 3
+      },
+      "high": {
+        "mae_hz": 0.27561757594570463,
+        "recall": 0.035175879396984924,
+        "n_modes": 2388,
+        "n_matched": 84
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.2725841093687689,
+      "mae_pct": 0.0010722868860733351,
+      "recall_at_tol": 0.04326123128119801,
+      "n_picked": 104,
+      "n_analytical": 2404,
+      "n_matched": 104,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.41724760187515086,
+      "mae_pct": 0.00445410194174356,
+      "recall_at_tol": 0.13793103448275862,
+      "n_picked": 20,
+      "n_analytical": 145,
+      "n_matched": 20,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 5.75,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.2668778957181643,
+    "schroeder": 469.3895935783843,
+    "n_analytical_full": 2510,
+    "n_analytical_modal": 147,
+    "ism_full": {
+      "mae_hz": 0.27789427971359887,
+      "mae_pct": 0.0007375127552742918,
+      "recall_at_tol": 0.03745019920318725,
+      "n_picked": 94,
+      "n_analytical": 2510,
+      "n_matched": 94,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.458563376675375,
+      "mae_pct": 0.002696975303064965,
+      "recall_at_tol": 0.1292517006802721,
+      "n_picked": 19,
+      "n_analytical": 147,
+      "n_matched": 19,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.4429741855073708,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 0.2681196820176079,
+        "recall": 0.3,
+        "n_modes": 10,
+        "n_matched": 3
+      },
+      "high": {
+        "mae_hz": 0.27451409973045765,
+        "recall": 0.035685645549318364,
+        "n_modes": 2494,
+        "n_matched": 89
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.30604431131864657,
+      "mae_pct": 0.0008691228291158936,
+      "recall_at_tol": 0.04183266932270916,
+      "n_picked": 105,
+      "n_analytical": 2510,
+      "n_matched": 105,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.49798838275508706,
+      "mae_pct": 0.003202709545763767,
+      "recall_at_tol": 0.14285714285714285,
+      "n_picked": 21,
+      "n_analytical": 147,
+      "n_matched": 21,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 6.0,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.2889105547741324,
+    "schroeder": 463.48508691832654,
+    "n_analytical_full": 2618,
+    "n_analytical_modal": 150,
+    "ism_full": {
+      "mae_hz": 0.35802848623140854,
+      "mae_pct": 0.0009441464100664322,
+      "recall_at_tol": 0.03552330022918258,
+      "n_picked": 93,
+      "n_analytical": 2618,
+      "n_matched": 93,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.5930212189819919,
+      "mae_pct": 0.0035717480800599613,
+      "recall_at_tol": 0.12,
+      "n_picked": 18,
+      "n_analytical": 150,
+      "n_matched": 18,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.6527777777777738,
+        "recall": 0.5,
+        "n_modes": 6,
+        "n_matched": 3
+      },
+      "mid": {
+        "mae_hz": 0.10805352682970693,
+        "recall": 0.1,
+        "n_modes": 10,
+        "n_matched": 1
+      },
+      "high": {
+        "mae_hz": 0.35090182426244904,
+        "recall": 0.03420445810914681,
+        "n_modes": 2602,
+        "n_matched": 89
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.36141959469876855,
+      "mae_pct": 0.0010315096892798243,
+      "recall_at_tol": 0.0427807486631016,
+      "n_picked": 112,
+      "n_analytical": 2618,
+      "n_matched": 112,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.4907698471526714,
+      "mae_pct": 0.0037087274470420884,
+      "recall_at_tol": 0.15333333333333332,
+      "n_picked": 23,
+      "n_analytical": 150,
+      "n_matched": 23,
+      "n_spurious": 0
+    }
+  },
+  {
+    "L": 6.5,
+    "W": 4.0,
+    "alpha": 0.15,
+    "T60": 1.3298283501637875,
+    "schroeder": 452.3151301341521,
+    "n_analytical_full": 2834,
+    "n_analytical_modal": 156,
+    "ism_full": {
+      "mae_hz": 0.3124213643620151,
+      "mae_pct": 0.001296555712980052,
+      "recall_at_tol": 0.033168666196189134,
+      "n_picked": 94,
+      "n_analytical": 2834,
+      "n_matched": 94,
+      "n_spurious": 0
+    },
+    "ism_modal": {
+      "mae_hz": 0.6489531562491031,
+      "mae_pct": 0.005210668338468055,
+      "recall_at_tol": 0.1282051282051282,
+      "n_picked": 20,
+      "n_analytical": 156,
+      "n_matched": 20,
+      "n_spurious": 0
+    },
+    "ism_per_band": {
+      "low": {
+        "mae_hz": 0.7692307692307736,
+        "recall": 0.5,
+        "n_modes": 6,
+        "n_matched": 3
+      },
+      "mid": {
+        "mae_hz": 1.2016553336995557,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.2770405087071684,
+        "recall": 0.03158268275372605,
+        "n_modes": 2818,
+        "n_matched": 89
+      }
+    },
+    "analytical_self_full": {
+      "mae_hz": 0.2708778983209754,
+      "mae_pct": 0.0008492610505677687,
+      "recall_at_tol": 0.038108680310515175,
+      "n_picked": 108,
+      "n_analytical": 2834,
+      "n_matched": 108,
+      "n_spurious": 0
+    },
+    "analytical_self_modal": {
+      "mae_hz": 0.3639068520617663,
+      "mae_pct": 0.003158732557508498,
+      "recall_at_tol": 0.14102564102564102,
+      "n_picked": 22,
+      "n_analytical": 156,
+      "n_matched": 22,
+      "n_spurious": 0
+    }
+  }
+]

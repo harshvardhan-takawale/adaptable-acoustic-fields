@@ -1,0 +1,9 @@
+# Extrapolation L sweep — train on the middle, test at the edges.
+# Tests whether the latent manifold extrapolates beyond the training support.
+W: 4.0
+alpha: 0.15
+fs: 4096
+n_time_samples: 2048
+source_pos: [0.5, 0.5]
+train_L: [3.5, 4.0, 4.5, 5.0, 5.5]
+test_L:  [2.5, 3.0, 6.0, 6.5]

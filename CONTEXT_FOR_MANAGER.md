@@ -2,15 +2,15 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk 0 — 2026-05-09
+**Last updated**: Chunk 1 — 2026-05-09
 
 ## Project state
 
 - **Phase**: 1 (2D shoebox sweep, 0–2 kHz, Track A — science).
-- **Chunk completed**: Chunk 0 (recon + scaffolding only).
-- **What exists today**: empty source package skeleton, conda env (`aaf`), canonical docs, working SLURM hello-world. **No models, no data, no training.**
-- **What does not exist**: data generation, model code, renderer code, training loop, eval / eigenfrequency probes.
-- **Next chunk** (manager will write Chunk 1): expected to cover dataset generation (pyroomacoustics 2D ISM sweep over L) + 2D renderer/model port from INFER. See `tasks/CHUNK_0_RESULTS.md` §"2D adaptation needs" for the exhaustive list of touch-points.
+- **Chunks completed**: Chunk 0 (scaffolding) and Chunk 1 (2D simulation pipeline + dataset + noise-floor report).
+- **What exists today**: full 2D simulation pipeline (`aaf/sim/`), analytical modal reference, modal verifier (`aaf/eval/modal_verifier.py`), HDF5 dataset builder (`aaf/data/`), 15 generated room datasets in `data/track_a/`, noise-floor report in `outputs/noise_floor/`, vendored INFER reference classes in `aaf/_inference_ref/`. 32 tests pass.
+- **What does not exist**: model code (`aaf/models/`), renderer code (`aaf/renderers/`), training loop (`aaf/train/`), `ShoeboxDataset` is interface-stub only, no auto-decoder.
+- **Next chunk** (manager will write Chunk 2): expected to port the INFER renderer + model to 2D (drop spherical → circular sampling, `tcnn.Encoding(3, ...)` → `(2, ...)`) and connect to the dataset via the `ShoeboxDataset` stub. See `tasks/CHUNK_0_RESULTS.md` §6 for adaptation needs and `tasks/CHUNK_1_RESULTS.md` for the noise-floor report findings that constrain Chunk 2's eval metrics.
 
 ## Codebase map
 
@@ -24,23 +24,45 @@ adaptable-acoustic-fields/
 ├── README.md                   public-facing intro
 ├── environment.yml             frozen conda env (aaf, Py3.8, torch 2.0.1+cu118)
 ├── pyproject.toml              ruff + black + pytest config
-├── .gitignore                  ignores logs/, ckpts/, data/, project_files/, …
+├── .gitignore
 ├── aaf/                        importable source package
-│   ├── data/                   (chunk 1) dataset & pyroomacoustics simulation
-│   ├── models/                 (chunk 2) 2D INR + auto-decoder
-│   ├── renderers/              (chunk 2) frequency-domain renderers
-│   ├── train/                  (chunk 3) training loop, checkpointing
-│   ├── eval/                   (chunk 4) eigenfrequency probes, metrics
-│   └── utils/                  logging, criteria
-├── configs/                    Hydra configs (chunk 1+)
+│   ├── _inference_ref/         vendored INFER classes (parse-only; do not import)
+│   ├── data/                   dataset_builder.py (HDF5 I/O), loader.py (stub)
+│   ├── eval/                   modal_verifier.py (peak picker + Hungarian matcher)
+│   ├── models/                 (chunk 2) 2D INR + auto-decoder — STUBBED
+│   ├── renderers/              (chunk 2) frequency-domain renderer — STUBBED
+│   ├── sim/                    ism_2d.py + analytical_modal_2d.py
+│   ├── train/                  (chunk 3) training loop — STUBBED
+│   └── utils/                  (logging, criteria) — STUBBED
+├── configs/
+│   └── sweeps/
+│       ├── dense.yaml          7 train + 6 test L values
+│       ├── sparse.yaml         3 train + 4 test
+│       └── extrapolation.yaml  5 train + 4 test (test outside training support)
 ├── scripts/
+│   ├── build_datasets.py       generate 15 HDF5 files (40 s total)
+│   ├── noise_floor_report.py   produce outputs/noise_floor/
 │   └── slurm/
-│       └── hello.sh            verified runnable
-├── tests/
-│   ├── test_env.py             imports + CUDA assert (run via SLURM, see CLAUDE.md)
-│   └── test_smoke.py           trivial assert
+│       ├── hello.sh
+│       ├── run_pytest.sh
+│       ├── build_datasets.sh
+│       └── noise_floor.sh
+├── tests/                      32 tests, all passing on scavenger
+│   ├── test_env.py
+│   ├── test_smoke.py
+│   ├── test_eigenfrequencies.py
+│   ├── test_peak_picker.py
+│   ├── test_modal_matcher.py
+│   ├── test_ism_smoke.py
+│   └── test_dataset_io.py
+├── outputs/                    figures + REPORT.md from noise_floor analysis
+│   └── noise_floor/
+│       ├── REPORT.md           ← the load-bearing science deliverable
+│       ├── metrics.json
+│       └── figures/*.png       (gitignored)
 └── tasks/
-    └── CHUNK_0_RESULTS.md      ← read this for recon details
+    ├── CHUNK_0_RESULTS.md      recon writeup
+    └── CHUNK_1_RESULTS.md      ← read this for Chunk 2 input
 ```
 
 ## What we inherited from AVR / INFER
@@ -63,31 +85,40 @@ adaptable-acoustic-fields/
 
 ## What's working
 
-- **Conda env**: `aaf` exists at `/fs/nexus-scratch/htakawal/miniconda3/envs/aaf` (cloned from `avr_scavenger`, plus `hydra-core` + `gh`). Frozen in `environment.yml`.
-- **pytest**: `tests/test_smoke.py` and `tests/test_env.py` exist. `test_env.py` imports torch/numpy/scipy/h5py/hydra/pyroomacoustics/tinycudann/auraloss/librosa and asserts CUDA. Login-node libstdc++ blocks scipy import; tests run fine on compute nodes via SLURM.
-- **Hello-world SLURM**: `scripts/slurm/hello.sh` submitted as job 6797442 (scavenger partition); confirms env activation + nvidia-smi + torch.cuda.is_available. Result recorded in `tasks/CHUNK_0_RESULTS.md`.
-- **Git + GitHub**: repo public at `https://github.com/harshvardhan-takawale/adaptable-acoustic-fields`. Raw URL pattern: `https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/<file>.md`.
+- **Conda env**: `aaf` exists at `/fs/nexus-scratch/htakawal/miniconda3/envs/aaf`. Frozen in `environment.yml`. The `LD_LIBRARY_PATH` shim is required (CLUSTER_INFO.md, DECISIONS.md).
+- **pytest**: 32 tests pass on the scavenger compute node (`scripts/slurm/run_pytest.sh`). Coverage: env imports, 2D eigenfrequencies, peak picker, modal matcher, ISM smoke, HDF5 round-trip.
+- **Dataset pipeline**: `scripts/build_datasets.py` generates all 15 HDF5 rooms in 40 s on a single CPU. Files in `data/track_a/`, ~2 MB each, total 29 MB. Native `complex64` storage; gzip compression.
+- **Modal verifier**: `aaf.eval.modal_verifier` provides `pick_peaks`, `match_peaks_to_modes`, `modal_error_metrics`, and `plot_modal_overlay`. Reused by `noise_floor_report.py`; will be reused by every Chunk 2-5 evaluator.
+- **Noise-floor report**: `outputs/noise_floor/REPORT.md` and 4 figures answer Q7. Headline: ISM peaks agree with analytical eigenfrequencies to **0.36 Hz MAE** with zero spurious picks; recall is genuinely low (~10–15% modal regime, ~4% full-band) because 2D modal density exceeds the picker's resolution above ~100–150 Hz — this is correct physics, not a failure.
+- **GitHub**: public repo at `https://github.com/harshvardhan-takawale/adaptable-acoustic-fields`. Raw URL pattern: `https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/<file>.md`.
 
 ## What's broken or stubbed
 
-- All `aaf/**/*.py` are empty `__init__.py` files. Source code is intentionally absent for Chunk 0.
-- `configs/` empty. Hydra config tree comes in Chunk 1.
-- No 2D adaptation done yet — recon document only.
+- `aaf/models/`, `aaf/renderers/`, `aaf/train/`, `aaf/utils/`: empty `__init__.py` only. Models and renderers come in Chunk 2; training loop in Chunk 3.
+- `aaf/data/loader.py:ShoeboxDataset`: interface stub. Implementation deferred to Chunk 2 once renderer batch shape is known.
+- `aaf/_inference_ref/`: vendored INFER classes; reference-only, parse-checked but not runnable on the cluster (uses `.cuda()` at module init).
+- No `auraloss` or perceptual loss wired in yet — Chunk 3.
+- No multi-room training loop — Chunk 3.
+- No latent table / auto-decoder — Chunk 3.
 
 ## Recent changes (this chunk)
 
-- Created repo skeleton, `environment.yml`, `pyproject.toml`, `.gitignore`.
-- Wrote canonical docs: `CLAUDE.md`, `CONTEXT_FOR_MANAGER.md`, `DECISIONS.md`, `OPEN_QUESTIONS.md`, `CLUSTER_INFO.md`, `README.md`.
-- Wrote `tasks/CHUNK_0_RESULTS.md` — the recon writeup the manager should read before authoring Chunk 1.
-- Wrote and verified `scripts/slurm/hello.sh`.
-- Cloned `avr_scavenger` → `aaf`, added `hydra-core`, `gh` (via conda-forge). Exported `environment.yml`.
+- Vendored `AVRModel_complex_FD_FreqDep_PhaseCorrection` (lines 752-883 of `unified_models.py`) and `AVRRenderFD_FreqDep_PhaseCorrection_new` (lines 716-790 of `unified_renderers.py`) into `aaf/_inference_ref/` with provenance headers and the auto-decoder injection-point comments.
+- Wrote `aaf/sim/ism_2d.py` (pyroomacoustics 2D ISM wrapper) and `aaf/sim/analytical_modal_2d.py` (independent rigid-wall modal sum, Sabine 2D damping).
+- Wrote `aaf/eval/modal_verifier.py` (scipy.signal peak picker + scipy Hungarian matcher + stratified metrics).
+- Wrote `aaf/data/dataset_builder.py` (h5py 3.11 native complex64 storage) and `aaf/data/loader.py` (stub).
+- Wrote `configs/sweeps/{dense, sparse, extrapolation}.yaml`.
+- Wrote `scripts/build_datasets.py` and `scripts/noise_floor_report.py` plus matching SLURM scripts.
+- Wrote 5 new tests (32 total now passing).
+- Generated all 15 datasets and the noise-floor report.
+- Updated `CHUNK_1_RESULTS.md`, `DECISIONS.md` (8 new entries), `OPEN_QUESTIONS.md` (Q2/Q3/Q4/Q6/Q8 resolved, Q7 resolved, Q9 added).
 
 ## Pointers
 
-- Next-chunk-relevant questions: see `OPEN_QUESTIONS.md`. Numbers 1, 2, 3, 4 directly affect Chunk 1 design.
-- The recon writeup: `tasks/CHUNK_0_RESULTS.md`. Read this before writing Chunk 1.
-- Design log: `DECISIONS.md`. Six initial entries documenting the framework choices.
-- Cluster how-to: `CLUSTER_INFO.md`. Default partition is `scavenger`.
+- **Read for Chunk 2**: `tasks/CHUNK_1_RESULTS.md` (this chunk's writeup, manager input) and `outputs/noise_floor/REPORT.md` (the noise-floor analysis). Then `tasks/CHUNK_0_RESULTS.md` §6 for the 2D adaptation list.
+- Open questions: `OPEN_QUESTIONS.md`. Q1 (ray sampling) and Q9 (degenerate-mode matcher) are the Chunk-2-relevant ones; Q5 is Chunk-3. Q2/Q3/Q4/Q6/Q7/Q8 are resolved.
+- Design log: `DECISIONS.md`. Now has 14 entries.
+- Cluster how-to: `CLUSTER_INFO.md`. Default partition is `scavenger`. Always set `LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}` after `conda activate aaf`.
 
 ## How the manager can read this repo
 

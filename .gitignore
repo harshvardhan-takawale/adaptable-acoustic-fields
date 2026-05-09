@@ -45,3 +45,10 @@ slurm-*.out
 # Local env
 .env
 *.local.yml
+
+# Generated reports — keep markdown but not images.
+/outputs/**/*.png
+/outputs/**/*.pdf
+/outputs/**/*.svg
+/outputs/**/*.jpg
+/outputs/**/*.jpeg
