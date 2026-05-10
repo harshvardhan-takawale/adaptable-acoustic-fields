@@ -1,0 +1,50 @@
+{
+  "L": 6.0,
+  "W": 4.0,
+  "alpha": 0.15,
+  "fs": 4096,
+  "n_freq_bins": 4097,
+  "n_time_samples": 8192,
+  "ckpt_path": "single_room/L6.0/ckpt_iter0010000.pt",
+  "ckpt_iter": 10000,
+  "f_schroeder_hz": 463.48508691832654,
+  "n_receivers": 64,
+  "modal": {
+    "mae_hz": 0.4484425203774422,
+    "recall_at_tol": 0.1721311475409836,
+    "n_picked": 21,
+    "n_analytical": 122,
+    "n_matched": 21,
+    "n_spurious": 0,
+    "per_band": {
+      "low": {
+        "mae_hz": 0.34374999999999734,
+        "recall": 0.6666666666666666,
+        "n_modes": 6,
+        "n_matched": 4
+      },
+      "mid": {
+        "mae_hz": 0.48729713791887264,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.4711799101392368,
+        "recall": 0.14150943396226415,
+        "n_modes": 106,
+        "n_matched": 15
+      }
+    }
+  },
+  "full_band": {
+    "lsd_db": 0.35854223370552063,
+    "complex_l1": 0.03287462890148163,
+    "magnitude_l1": 0.019289560616016388,
+    "phase_l1": 0.0545465350151062,
+    "envelope_lsd_db": 0.09704051166772842,
+    "modal_mae_full_hz": 0.27420282252403794,
+    "modal_recall_full": 0.05245901639344262
+  },
+  "ism_modal_recall_at_centre": 0.1721311475409836
+}

@@ -1,0 +1,35 @@
+{
+  "L": 4.5,
+  "n_iters_target": 10000,
+  "n_iters_actual": 10000,
+  "stopped_early": false,
+  "stop_iter": null,
+  "stop_reason": "",
+  "wall_clock_seconds": 5585.309554338455,
+  "cfg": {
+    "n_iters": 10000,
+    "batch_size": 8,
+    "lr": 0.0002,
+    "eta_min": 5e-05,
+    "grad_clip_max_norm": 1.0,
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      0.1
+    ],
+    "n_azi": 64,
+    "n_pts_per_ray": 32,
+    "near": 0.001,
+    "fs": 4096,
+    "n_time_samples": 8192,
+    "c": 343.0,
+    "val_every": 500,
+    "ckpt_every": 2500,
+    "log_every": 100,
+    "early_stop_patience": 2000,
+    "early_stop_warmup": 2000,
+    "early_stop_min_rel_improvement": 0.01,
+    "seed": 0
+  }
+}

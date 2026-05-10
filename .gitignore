@@ -46,9 +46,20 @@ slurm-*.out
 .env
 *.local.yml
 
+# Claude harness state
+.claude/
+
 # Generated reports — keep markdown and PDFs but not raster images / SVG.
 # (PDFs are small and useful for reviewers.)
 /outputs/**/*.png
 /outputs/**/*.svg
 /outputs/**/*.jpg
 /outputs/**/*.jpeg
+
+# Allow chunk-2 single-room overfit figures (small, useful for reviewers).
+!/outputs/single_room/**/*.png
+
+# Training artifacts under outputs/single_room/L*/
+/outputs/single_room/**/*.pt
+/outputs/single_room/**/tb/
+/outputs/single_room/**/*.tfevents.*

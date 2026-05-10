@@ -225,3 +225,103 @@ Append-only log of non-trivial design choices. Newest entries at the bottom. For
 **Alternatives considered:** n_time_samples=4096 (1.0 s, just barely covers T60 for the largest room — too tight); n_time_samples=16384 (4.0 s, double the storage with no benefit since the IR is already at noise floor by 1.0 s).
 
 **Revisit if:** Track B (fs=48000, where Sabine T60 should be similar but Δf is finer) requires different scaling; or if a future room family has T60 > 1.5 s.
+
+---
+
+## 2026-05-10: Q1 resolved — Stochastic uniform-azimuth ray sampling, n_azi=64
+
+**Decision:** the 2D renderer (`aaf/renderers/freq_2d.py:FreqRenderer2D`) samples `n_azi=64` ray directions per receiver, drawn from `θ_grid + uniform(0, 2π/n_azi)` so the angle set rotates jitter-uniformly each iteration. No elevation, no zenith/nadir, no extra rays.
+
+**Rationale:** the faithful 2D analogue of AVR/INFER's stochastic spherical sampler. Per-iteration jitter prevents aliasing with the 64-receiver grid and ensures every angular position is hit in expectation across iterations. n_azi=64 matches AVR's azimuth resolution; deterministic ISM-aligned sampling (option b in Q1) would generalize poorly to non-shoebox rooms in later phases. Eval uses `model.eval()` to switch off jitter for repeatability.
+
+**Alternatives considered:** stochastic Halton/Sobol sequences (rejected — added complexity, marginal gain for our regime); ISM-aligned sampling (rejected per the spec — phase-2+ portability); higher n_azi with smaller n_pts_per_ray (deferred — memory check chose 64×32 for our 12 GB GPU).
+
+**Revisit if:** scalability or aliasing artefacts surface in Phase 2/3 multi-room training; consider importance sampling toward image-source paths for shoeboxes, with stochastic fallback for irregular geometries.
+
+---
+
+## 2026-05-10: Geometric attenuation OFF — re-confirmed for Phase 1
+
+**Decision:** `FreqRenderer2D.use_geometric_attn=False` is the Phase-1 default. The constructor accepts the flag for forward compatibility (Phase 2+) but training and eval pipelines never set it to True.
+
+**Rationale:** see DECISIONS.md 2026-05-09 (Q8 resolution). 2D Green's function isn't 1/r; the network learns whatever spreading the data exhibits. Hardcoding 1/√r or a Hankel function would inject a wrong physical prior.
+
+**Revisit if:** Chunk-2 reconstructions show systematic amplitude bias growing with distance (would indicate the network can't learn the geometry on its own).
+
+---
+
+## 2026-05-10: Output dim — `n_freq_bins = n_time_samples / 2 + 1 = 4097` for Track A
+
+**Decision:** `INR2D_Single` constructor takes `n_freq_bins`. For the rebuilt 8192-sample dataset that's **4097** complex values per (receiver, frequency) cell. Internally the model outputs `2 * n_freq_bins = 8194` real values per branch (split into `[real, imag]`).
+
+**Rationale:** matches the dataset's RFFT one-sided length; using a smaller `n_freq_bins` would force frequency-domain downsampling on the target before loss, throwing away the modal-frequency resolution that this Phase-1 sweep is designed to study.
+
+**Revisit if:** Track B (fs=48000, n_time=16384 → n_freq=8193) is enabled — at that point the output dim doubles to 16386, and the wide-output decoder MLPs may need narrower hidden layers to fit.
+
+---
+
+## 2026-05-10: Single-room loss — 4-term L1 on (real, imag, log-amp, phase)
+
+**Decision:** `aaf/train/single_room.py` minimises a weighted sum of:
+  - `L_spec_real = L1(H_pred.real, H_target.real)`
+  - `L_spec_imag = L1(H_pred.imag, H_target.imag)`
+  - `L_amp = L1(log10(|H_pred|+ε), log10(|H_target|+ε))`
+  - `L_phase = mean(1 - cos(angle(H_pred) - angle(H_target)))`
+  with weights `(1.0, 1.0, 1.0, 0.1)`.
+
+**Rationale:** AVR's six-term criterion has both time-domain and multi-resolution-STFT terms. We're frequency-native already, and Chunk 1.5 SANITY_NOTES showed pra's EDC differs from Sabine T60 by ~60% — energy/EDC-style losses would chase a mis-calibrated target. The four kept terms cover the magnitude (linear via real+imag, log via L_amp) and the phase (separately, with a low weight because phase is noisy at low magnitudes). The `1 - cos(Δ)` form is bounded in `[0, 2]` and naturally down-weights spurious phase noise at near-zero magnitude.
+
+**Alternatives considered:** AVR's full 6-term battery (rejected — time loss is redundant given freq-domain target; multi-STFT is perceptual, deferred to Phase 4); MSE on complex (rejected — sensitive to outliers, less stable than L1).
+
+**Revisit if:** Chunk 3 finds the auto-decoder's per-room differentiation requires perceptual or energy-decay supervision; consider re-introducing AVR's energy/multi-STFT losses then.
+
+---
+
+## 2026-05-10: Checkpoint cadence — every 2,500 iters, with auto-resume + 3-deep retention
+
+**Decision:** `SingleRoomTrainer` checkpoints every `cfg.ckpt_every = 2500` iterations to `output_dir/ckpt_iter{N:07d}.pt`, and on startup auto-resumes from the highest-iter checkpoint that loads cleanly. Old checkpoints beyond the 3 most recent are pruned to limit disk use. Writes use a `.pt.tmp` rename to avoid leaving partial files when scavenger preemption hits mid-write.
+
+**Rationale:** scavenger preemption is real. At ~0.55 s/iter, 2,500 iters ≈ 23 min of wall-clock work; that's the worst-case loss per preemption. 3-deep retention means a corrupt-most-recent skip still has two viable resume points.
+
+**Alternatives considered:** every 10,000 iters (rejected — preemption loss too large); save only `model.state_dict()` to halve disk (rejected — losing optimizer/scheduler state breaks LR schedule resume).
+
+**Revisit if:** disk usage becomes a concern (per-room dir is ~50 MB at 3 retained ckpts at our model size) or preemption rate is so low that the I/O overhead dominates.
+
+---
+
+## 2026-05-10: HashGrid capacity note — `log2_hashmap_size=18` is over-parameterised for 2D shoeboxes
+
+**Decision (note, not a change):** `INR2D_Single` ships with the INFER hash-grid defaults (`n_levels=20, n_features_per_level=2, log2_hashmap_size=18, base_resolution=16, per_level_scale=1.5`), giving ~20 M parameters per encoder × 6 encoders = ~120 M hash params. For Phase 1 single-room overfit this trivially memorises a 64-receiver grid — which is **intentional** for Chunk 2 (we're measuring the upper bound on what the architecture can fit).
+
+**Rationale (Chunk-3 implication):** if the shared MLP has enough capacity to memorise all rooms' fields without using `z_s`, the auto-decoder will fail to learn meaningful per-room latents — `z_s` would just become noise. Recommend Chunk 3 starts with a downsized grid (try `log2_hashmap_size=14-16`, `n_levels=12-16`) before defaulting to the over-parameterised setting. The memory check + train recommendations in `tasks/CHUNK_2_RESULTS.md` document the explicit numbers.
+
+**Revisit when:** Chunk 3 implements `INR2D_AutoDecoder` — measure whether `z_s` improves per-room fidelity vs. ablation `z_s=0`. If not, downsize the grid.
+
+---
+
+## 2026-05-10: GitHub-tracked figures — allow `outputs/single_room/**/*.png` exception
+
+**Decision:** `.gitignore` keeps `/outputs/**/*.png` ignored generally (the noise-floor figures stay local PNGs since they're not the headline) but adds `!/outputs/single_room/**/*.png` so the four mandatory per-room figures and the cross-room LSD plot are tracked. Tensorboard event files and `*.pt` checkpoints under `outputs/single_room/L*/` remain ignored.
+
+**Rationale:** Chunk 2's headline plots (modal_tracking, spectrum_overlay, receiver_grid, training_curves, lsd_vs_L) are small (≤200 KB each, ~3 MB total) and load-bearing for the manager's review of the upper-bound results. PDFs would also work but are larger and less convenient than PNG.
+
+**Revisit if:** the figure count or size grows significantly (e.g., per-receiver-per-iter videos); switch to compressed PDFs or external storage at that point.
+
+---
+
+## 2026-05-10: Chunk 2 training — 10K iters default with relative-improvement early-stop, replacing initial 50K
+
+**Decision:** `SingleRoomTrainer` defaults to `n_iters=10_000`, `val_every=500`, and a new relative-improvement early-stop:
+- `early_stop_warmup = 2_000` (no check before this iter)
+- `early_stop_patience = 2_000` (window of "recent" val checkpoints)
+- `early_stop_min_rel_improvement = 0.01` (1%)
+- At each val checkpoint past warmup, compare `min(val_total_loss in (iter - patience, iter])` against `min(val_total_loss in [0, iter - patience])`. Stop if the recent best is not at least 1% lower than the prior best.
+- The training SLURM time is reduced from 24h → 6h (10K iters at observed ~1.0 s/iter ≈ 3h, plus margin).
+
+**Rationale:** the first run (cancelled at iter 3100) was on track for 14h to reach 50K iters, with train loss already 3× lower than at iter 1000 and still in clean exponential decay. 50K is overkill for a single-room overfit baseline whose only purpose is to upper-bound per-room reconstruction quality. 10K iters lets us iterate to Chunk 3 fast; the relative-improvement stop also auto-cuts training when a room converges before 10K. The previous absolute-threshold stop (`L_spec_real + L_spec_imag < 1e-3`) was tuned for 50K iters and never triggers in 10K — replacing it with a plateau detector is more useful at this budget.
+
+**Alternatives considered:** keep 50K with auto-resume across SLURM time limits (rejected — 14h occupies the queue with no scientific gain); fixed 5K iters (rejected — too aggressive, doesn't catch easy convergence as a "stop earlier" signal); patience based on a fixed iter count rather than relative improvement (rejected — relative is more robust to absolute loss scale).
+
+**Verification:** `tests/test_early_stop.py` exercises the helper with 5 controlled scenarios (warmup-gated, plateau, improving, missing-history, first-eligible). The smoke test on L=4.5 confirmed val logging at iter 500/1000/1500/2000 and the early-stop check correctly returned "continue" at iter 2500 (improving).
+
+**Revisit if:** Chunk 3 finds the auto-decoder needs longer training to differentiate per-room latents (likely — multi-room conditioning is harder than single-room overfit) and the warmup/patience need rebalancing.

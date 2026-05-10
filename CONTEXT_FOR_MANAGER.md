@@ -2,13 +2,13 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk 1.5 — 2026-05-10
+**Last updated**: Chunk 2 — 2026-05-10
 
 ## Project state
 
 - **Phase**: 1 (2D shoebox sweep, 0–2 kHz, Track A — science).
-- **Chunks completed**: Chunk 0 (scaffolding), Chunk 1 (pipeline + dataset + noise-floor), Chunk 1.5 (Q9 dedup + dataset rebuild at 8192 samples + visual sanity pack).
-- **What exists today**: full 2D simulation pipeline (`aaf/sim/`), analytical modal reference with deduplicated eigenfrequencies, modal verifier (`aaf/eval/modal_verifier.py`), HDF5 dataset builder (`aaf/data/`), **15 regenerated room datasets at 2.0-second IR length** in `data/track_a/` (old 0.5-s versions backed up in `data/track_a_2048/`), updated noise-floor report in `outputs/noise_floor/`, **visual-sanity pack** (16 PDFs + INDEX + SANITY_NOTES) in `outputs/visual_sanity/`, vendored INFER reference classes in `aaf/_inference_ref/`. 40 tests pass.
+- **Chunks completed**: Chunk 0 (scaffolding), Chunk 1 (pipeline + dataset + noise-floor), Chunk 1.5 (Q9 dedup + dataset rebuild + visual sanity), **Chunk 2 (2D model + renderer port + single-room overfit baseline at L ∈ {3.0, 4.5, 6.0} m)**.
+- **What exists today**: everything from Chunks 0/1/1.5 plus the 2D model (`aaf/models/inr_2d.py:INR2D_Single`), 2D renderer (`aaf/renderers/freq_2d.py:FreqRenderer2D`), real `ShoeboxDataset` loader, single-room trainer + evaluator, GPU memory check, full pipeline orchestrator. **3 trained checkpoints + 12 figures + 1 cross-room summary** in `outputs/single_room/`. 62 tests pass.
 - **What does not exist**: model code (`aaf/models/`), renderer code (`aaf/renderers/`), training loop (`aaf/train/`), `ShoeboxDataset` is interface-stub only, no auto-decoder.
 - **Next chunk** (manager will write Chunk 2): expected to port the INFER renderer + model to 2D (drop spherical → circular sampling, `tcnn.Encoding(3, ...)` → `(2, ...)`) and connect to the dataset via the `ShoeboxDataset` stub. See `tasks/CHUNK_0_RESULTS.md` §6 for adaptation needs and `tasks/CHUNK_1_RESULTS.md` for the noise-floor report findings that constrain Chunk 2's eval metrics.
 
@@ -86,22 +86,39 @@ adaptable-acoustic-fields/
 ## What's working
 
 - **Conda env**: `aaf` exists at `/fs/nexus-scratch/htakawal/miniconda3/envs/aaf`. Frozen in `environment.yml`. The `LD_LIBRARY_PATH` shim is required (CLUSTER_INFO.md, DECISIONS.md).
-- **pytest**: 32 tests pass on the scavenger compute node (`scripts/slurm/run_pytest.sh`). Coverage: env imports, 2D eigenfrequencies, peak picker, modal matcher, ISM smoke, HDF5 round-trip.
-- **Dataset pipeline**: `scripts/build_datasets.py` generates all 15 HDF5 rooms in 40 s on a single CPU. Files in `data/track_a/`, ~2 MB each, total 29 MB. Native `complex64` storage; gzip compression.
-- **Modal verifier**: `aaf.eval.modal_verifier` provides `pick_peaks`, `match_peaks_to_modes`, `modal_error_metrics`, and `plot_modal_overlay`. Reused by `noise_floor_report.py`; will be reused by every Chunk 2-5 evaluator.
-- **Noise-floor report**: `outputs/noise_floor/REPORT.md` and 4 figures answer Q7. Headline: ISM peaks agree with analytical eigenfrequencies to **0.36 Hz MAE** with zero spurious picks; recall is genuinely low (~10–15% modal regime, ~4% full-band) because 2D modal density exceeds the picker's resolution above ~100–150 Hz — this is correct physics, not a failure.
+- **pytest**: 62 tests pass on a scavenger GPU compute node (`scripts/slurm/run_pytest.sh`). Coverage: env imports, 2D eigenfrequencies, peak picker, modal matcher, ISM smoke, HDF5 round-trip, ShoeboxDataset, FreqRenderer2D, INR2D_Single, eval metrics, early-stop logic.
+- **Dataset pipeline**: `scripts/build_datasets.py` generates all 15 HDF5 rooms in 60 s on a single CPU. Files in `data/track_a/` (~8 MB each, 113 MB total at 8192-sample IRs).
+- **Modal verifier**: `aaf.eval.modal_verifier` provides `pick_peaks`, `match_peaks_to_modes`, `modal_error_metrics`, and `plot_modal_overlay`. Used by both `noise_floor_report.py` and `single_room_eval.py`.
+- **Noise-floor report**: `outputs/noise_floor/REPORT.md` and 4 figures. ISM-vs-analytical: **0.36 Hz MAE** (full-band) at the centre receiver; recall ~10-15% modal-regime, ~4% full-band (correct 2D physics).
+- **2D model + renderer**: `INR2D_Single` (~44M params) + `FreqRenderer2D` (n_azi=64, stochastic uniform-azimuth sampling). Memory check confirmed `n_pts_per_ray=32, batch=8` fits at 8.09 GB on a 12 GB GTX TITAN X.
+- **Single-room overfit baseline**: 3 rooms trained 10K iters each (~1.5h on scavenger). Achieves modal MAE 0.34-0.58 Hz on matched peaks (parity with the noise floor) and full-band LSD 0.36-0.42 dB. 12 figures + cross-room SUMMARY.md committed.
 - **GitHub**: public repo at `https://github.com/harshvardhan-takawale/adaptable-acoustic-fields`. Raw URL pattern: `https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/<file>.md`.
 
 ## What's broken or stubbed
 
-- `aaf/models/`, `aaf/renderers/`, `aaf/train/`, `aaf/utils/`: empty `__init__.py` only. Models and renderers come in Chunk 2; training loop in Chunk 3.
-- `aaf/data/loader.py:ShoeboxDataset`: interface stub. Implementation deferred to Chunk 2 once renderer batch shape is known.
+- `aaf/train/single_room.py` is the *single-room* trainer only. Multi-room training + auto-decoder is Chunk 3.
+- `aaf/utils/`: empty `__init__.py` only.
 - `aaf/_inference_ref/`: vendored INFER classes; reference-only, parse-checked but not runnable on the cluster (uses `.cuda()` at module init).
-- No `auraloss` or perceptual loss wired in yet — Chunk 3.
-- No multi-room training loop — Chunk 3.
-- No latent table / auto-decoder — Chunk 3.
+- No `auraloss` or perceptual loss wired in — deferred to Phase 4.
+- No latent table / auto-decoder — Chunk 3 will subclass `INR2D_Single` → `INR2D_AutoDecoder` and use the `z_s` argument that's already in the forward signature.
+- **HashGrid is over-parameterised for 2D shoeboxes** (default INFER config is ~120 MB hash params per encoder × 6 encoders). Single-room overfit is trivial; recommended Chunk 3 starts with `log2_hashmap_size=14, n_levels=14` (~16× fewer params) to ensure the auto-decoder's `z_s` actually matters. See `tasks/CHUNK_2_RESULTS.md` §6 + §8.
 
-## Recent changes (this chunk — 1.5)
+## Recent changes (this chunk — 2)
+
+- Wrote `aaf/renderers/freq_2d.py:FreqRenderer2D` (2D port of `AVRRenderFD_FreqDep_PhaseCorrection_new`). Stochastic uniform-azimuth ray sampling with per-iteration jitter (n_azi=64, no elevation, no zenith/nadir). 4-wall slab AABB. σ + jβ decomposition + cumulative transmittance + geometric phase verbatim from the INFER reference. `use_geometric_attn=False` per Phase-1 decision.
+- Wrote `aaf/models/inr_2d.py:INR2D_Single` (2D port of `AVRModel_complex_FD_FreqDep_PhaseCorrection`). Six `tcnn.Encoding(2, ...)` encoders. Sigma branch (complex per-freq attenuation σ + jβ) + signal branch (complex per-freq emission). RFFT symmetry mask on DC + Nyquist imag. `z_s` argument accepted in `forward(...)` but ignored in `INR2D_Single` — Chunk-3 subclass will use it. Inline injection-point comments mark candidate-A concat points.
+- Wrote `aaf/data/loader.py:ShoeboxDataset` (real implementation of the Chunk-1.5 stub). One sample per (room, receiver) pair. `room_filter=[L]` for single-room mode.
+- Wrote `aaf/train/single_room.py:SingleRoomTrainer` with 4-term loss (real, imag, log-amp, phase) weighted (1, 1, 1, 0.1), Adam + cosine LR, gradient clip + NaN/Inf masking, checkpoint every 2.5K iters with auto-resume, validation every 500 iters, **relative-improvement early-stop** (1% improvement window over 2K iters past warmup at 2K).
+- Wrote `aaf/eval/single_room_eval.py:evaluate_single_room` — dual-metric eval (modal regime + full band) + 4 figures (training_curves, modal_tracking, spectrum_overlay, receiver_grid). Reads renderer config from `train_meta.json` to inherit training params.
+- Wrote `scripts/single_room_memory_check.py` with fallback policy: try `(64,64)` → `(64,32)` → `(32,32)`. Confirmed `(64,32)` fits at 8.09 GB on the GTX TITAN X.
+- Wrote `scripts/single_room_summary.py` aggregating per-room `eval.json` into `outputs/single_room/SUMMARY.md` + `lsd_vs_L.png`.
+- Wrote 4 SLURM scripts and `scripts/run_chunk2_pipeline.sh` orchestrator chaining `memory_check → 3× train → 3× eval` via `--dependency=afterok`.
+- Wrote 5 new test files (loader, renderer, model, eval_metrics, early_stop). 62 tests now pass.
+- Trained 3 single-room baselines on L ∈ {3.0, 4.5, 6.0}; all reached 10K iters (no early-stop trigger). Headline metrics in `tasks/CHUNK_2_RESULTS.md` §4.
+- Updated `.gitignore`: allow `outputs/single_room/**/*.png` exception. Ignore `*.pt` checkpoints and TensorBoard event files under `outputs/single_room/L*/`.
+- Appended **9 new entries to DECISIONS.md** covering Q1 (ray sampling), geom-attn re-confirmation, output dim, loss weighting, checkpoint cadence, HashGrid capacity note, png-tracking exception, and the 10K-iter + relative-improvement early-stop change. Closed Q1 in `OPEN_QUESTIONS.md`.
+
+## Recent changes (Chunk 1.5)
 
 - Replaced `Mode` dataclass in `aaf/sim/analytical_modal_2d.py` with `EigenFreq(f, multiplicity, pairs)`. Added internal `_enumerate_pairs()` so `modal_rir_2d` keeps iterating individual `(n_x, n_y)` terms; the public `eigenfrequencies_2d` returns the deduplicated list (Q9 resolution).
 - `aaf/eval/modal_verifier.py` unchanged — already consumed any object with `.f`. Naturally interprets `n_analytical = len(distinct_freqs)` after dedup.
@@ -121,10 +138,10 @@ adaptable-acoustic-fields/
 
 ## Pointers
 
-- **Read for Chunk 2**: `tasks/CHUNK_1_5_RESULTS.md` (latest), `outputs/noise_floor/REPORT.md`, `outputs/visual_sanity/INDEX.md` (browsable PDF index), `outputs/visual_sanity/SANITY_NOTES.md` (eyeball observations). Then `tasks/CHUNK_0_RESULTS.md` §6 for the 2D adaptation list and `tasks/CHUNK_1_RESULTS.md` for context.
-- Open questions: `OPEN_QUESTIONS.md`. Q1 (ray sampling) and Q5 (cluster partition) still open; Q5 doesn't block Chunk 2. Q2/Q3/Q4/Q6/Q7/Q8/Q9 resolved.
-- Design log: `DECISIONS.md`. Now has 16 entries.
-- Cluster how-to: `CLUSTER_INFO.md`. Default partition is `scavenger`. Always set `LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}` after `conda activate aaf`.
+- **Read for Chunk 3**: `tasks/CHUNK_2_RESULTS.md` (latest, contains explicit Chunk-3 recommendations in §8), `outputs/single_room/SUMMARY.md` (cross-room table + LSD-vs-L plot). The `outputs/single_room/L*/figures/` plots are the headline visual reference. Then `tasks/CHUNK_1_5_RESULTS.md` and `outputs/visual_sanity/SANITY_NOTES.md` for ground-truth context.
+- Open questions: `OPEN_QUESTIONS.md`. Only Q5 (cluster partition for long runs) still open; doesn't block Chunk 3 if we stay on scavenger.
+- Design log: `DECISIONS.md`. Now has 25 entries.
+- Cluster how-to: `CLUSTER_INFO.md`. Default partition is `scavenger`. Always set `LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}` after `conda activate aaf`. Chunk-2 pipeline driver is `scripts/run_chunk2_pipeline.sh`.
 
 ## How the manager can read this repo
 

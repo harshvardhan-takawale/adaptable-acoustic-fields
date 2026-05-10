@@ -1,0 +1,30 @@
+{
+  "status": "pass",
+  "chosen": {
+    "status": "pass",
+    "n_azi": 64,
+    "n_pts_per_ray": 32,
+    "batch": 8,
+    "max_memory_gb": 8.093385728,
+    "fwd_bwd_seconds": 0.7504150867462158
+  },
+  "results": [
+    {
+      "status": "oom",
+      "n_azi": 64,
+      "n_pts_per_ray": 64,
+      "batch": 8,
+      "error": "CUDA out of memory. Tried to allocate 1.00 GiB (GPU 0; 11.91 GiB total capacity; 10.87 GiB already allocated; 156.38 MiB free; 11.29 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Managem"
+    },
+    {
+      "status": "pass",
+      "n_azi": 64,
+      "n_pts_per_ray": 32,
+      "batch": 8,
+      "max_memory_gb": 8.093385728,
+      "fwd_bwd_seconds": 0.7504150867462158
+    }
+  ],
+  "gpu": "NVIDIA GeForce GTX TITAN X",
+  "total_gb": 12.792889344
+}
