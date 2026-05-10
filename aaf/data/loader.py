@@ -145,6 +145,14 @@ class ShoeboxDataset(Dataset):
         """Iterate over unique room indices in this dataset."""
         return list(self.room_id_to_L.keys())
 
+    @property
+    def room_id_map(self) -> dict[int, float]:
+        """Alias for ``room_id_to_L`` (matches the Chunk-3 manager-spec wording).
+
+        Maps the dataset-internal ordinal room index → the L value (m).
+        """
+        return self.room_id_to_L
+
     def get_room_attrs(self, room_id: int) -> dict:
         """Return the HDF5 root attrs for a given room (already JSON-decoded)."""
         L = self.room_id_to_L[room_id]

@@ -2,13 +2,14 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk 2 — 2026-05-10
+**Last updated**: Chunk 3 — 2026-05-10
 
 ## Project state
 
 - **Phase**: 1 (2D shoebox sweep, 0–2 kHz, Track A — science).
-- **Chunks completed**: Chunk 0 (scaffolding), Chunk 1 (pipeline + dataset + noise-floor), Chunk 1.5 (Q9 dedup + dataset rebuild + visual sanity), **Chunk 2 (2D model + renderer port + single-room overfit baseline at L ∈ {3.0, 4.5, 6.0} m)**.
-- **What exists today**: everything from Chunks 0/1/1.5 plus the 2D model (`aaf/models/inr_2d.py:INR2D_Single`), 2D renderer (`aaf/renderers/freq_2d.py:FreqRenderer2D`), real `ShoeboxDataset` loader, single-room trainer + evaluator, GPU memory check, full pipeline orchestrator. **3 trained checkpoints + 12 figures + 1 cross-room summary** in `outputs/single_room/`. 62 tests pass.
+- **Chunks completed**: Chunks 0/1/1.5/2 plus **Chunk 3 (auto-decoder + dense-sweep multi-room training + zero-shot adaptation at unseen L + latent probe)**.
+- **What exists today**: everything prior plus `INR2D_AutoDecoder`, `MultiRoomTrainer`, `zero_shot_adapt`, `probe_latents`, plus a complete dense-sweep run on disk: trained checkpoint + scalars + train_meta + 6 zero-shot directories (L ∈ {3.25, 3.75, 4.25, 4.75, 5.25, 5.75}) with metrics + figures + a latent-probe directory + cross-room SUMMARY.md. 70 tests pass.
+- **Headline Chunk-3 result**: training succeeded (per-room val LSD 0.66-0.98 dB; 6 of 7 rooms ≤ 1 dB target met) but **zero-shot adaptation failed** (held-out LSD 5.7-6.0 dB vs ≤ 2 dB target) because the latents collapsed to a non-physical structure (PC1 vs L R² = −0.63, intrinsic_dim = 10/32). The over-parameterisation risk flagged in `CHUNK_2_RESULTS.md` §6 / DECISIONS.md materialised. Documented per spec ("if worse, document as failure mode rather than blocker"). See `tasks/CHUNK_3_RESULTS.md` §10 for recommended fix (HashGrid resize + retrain).
 - **What does not exist**: model code (`aaf/models/`), renderer code (`aaf/renderers/`), training loop (`aaf/train/`), `ShoeboxDataset` is interface-stub only, no auto-decoder.
 - **Next chunk** (manager will write Chunk 2): expected to port the INFER renderer + model to 2D (drop spherical → circular sampling, `tcnn.Encoding(3, ...)` → `(2, ...)`) and connect to the dataset via the `ShoeboxDataset` stub. See `tasks/CHUNK_0_RESULTS.md` §6 for adaptation needs and `tasks/CHUNK_1_RESULTS.md` for the noise-floor report findings that constrain Chunk 2's eval metrics.
 
@@ -86,24 +87,38 @@ adaptable-acoustic-fields/
 ## What's working
 
 - **Conda env**: `aaf` exists at `/fs/nexus-scratch/htakawal/miniconda3/envs/aaf`. Frozen in `environment.yml`. The `LD_LIBRARY_PATH` shim is required (CLUSTER_INFO.md, DECISIONS.md).
-- **pytest**: 62 tests pass on a scavenger GPU compute node (`scripts/slurm/run_pytest.sh`). Coverage: env imports, 2D eigenfrequencies, peak picker, modal matcher, ISM smoke, HDF5 round-trip, ShoeboxDataset, FreqRenderer2D, INR2D_Single, eval metrics, early-stop logic.
+- **pytest**: 70 tests pass on a scavenger GPU compute node (`scripts/slurm/run_pytest.sh`). Coverage: env imports, 2D eigenfrequencies, peak picker, modal matcher, ISM smoke, HDF5 round-trip, ShoeboxDataset, FreqRenderer2D, INR2D_Single, INR2D_AutoDecoder, zero_shot inner loop, latent_probing PCA, eval metrics, early-stop logic.
 - **Dataset pipeline**: `scripts/build_datasets.py` generates all 15 HDF5 rooms in 60 s on a single CPU. Files in `data/track_a/` (~8 MB each, 113 MB total at 8192-sample IRs).
 - **Modal verifier**: `aaf.eval.modal_verifier` provides `pick_peaks`, `match_peaks_to_modes`, `modal_error_metrics`, and `plot_modal_overlay`. Used by both `noise_floor_report.py` and `single_room_eval.py`.
 - **Noise-floor report**: `outputs/noise_floor/REPORT.md` and 4 figures. ISM-vs-analytical: **0.36 Hz MAE** (full-band) at the centre receiver; recall ~10-15% modal-regime, ~4% full-band (correct 2D physics).
 - **2D model + renderer**: `INR2D_Single` (~44M params) + `FreqRenderer2D` (n_azi=64, stochastic uniform-azimuth sampling). Memory check confirmed `n_pts_per_ray=32, batch=8` fits at 8.09 GB on a 12 GB GTX TITAN X.
-- **Single-room overfit baseline**: 3 rooms trained 10K iters each (~1.5h on scavenger). Achieves modal MAE 0.34-0.58 Hz on matched peaks (parity with the noise floor) and full-band LSD 0.36-0.42 dB. 12 figures + cross-room SUMMARY.md committed.
+- **Single-room overfit baseline (Chunk 2)**: 3 rooms trained 10K iters each (~1.5h on scavenger). Achieves modal MAE 0.34-0.58 Hz on matched peaks (parity with the noise floor) and full-band LSD 0.36-0.42 dB. 12 figures + cross-room SUMMARY.md committed.
+- **Multi-room shared training (Chunk 3)**: 7 rooms (dense-sweep `train_L`) trained 30K iters in 2:38 on tron64 RTX 3070. Per-room val LSD 0.66-0.98 dB (6 of 7 rooms ≤ 1 dB target). Latents stayed healthy in magnitude (mean ‖z_s‖ = 0.81; init 0.18; min 0.70 / max 0.95) but collapsed in *structure* — they encode room ID, not L geometry.
+- **Zero-shot eval pipeline**: works mechanically (6 evals, 16-17 min each on scavenger, all completed; 24 PNGs generated). Quality fails per the latent collapse (held-out LSD 5.7-6.0 dB).
+- **Latent probe**: `aaf.eval.latent_probing` produces PCA + linear-fit-to-L diagnostic. The Chunk-3 `latent_pca_1d.png` is the load-bearing diagnostic for capacity decisions in any retrain.
 - **GitHub**: public repo at `https://github.com/harshvardhan-takawale/adaptable-acoustic-fields`. Raw URL pattern: `https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/<file>.md`.
 
 ## What's broken or stubbed
 
-- `aaf/train/single_room.py` is the *single-room* trainer only. Multi-room training + auto-decoder is Chunk 3.
+- **Zero-shot adaptation does NOT work at the current architecture**: held-out LSD 5.7-6.0 dB on all 6 unseen L values. Latents act as room-ID tags (PC1 vs L R² < 0), not as a smooth geometric embedding. **Recommended fix**: shrink HashGrid to `log2_hashmap_size=14, n_levels=14` and retrain (Chunk-2 recommendation, now empirically motivated by Chunk-3 latent_pca_1d.png). See `tasks/CHUNK_3_RESULTS.md` §10.
 - `aaf/utils/`: empty `__init__.py` only.
 - `aaf/_inference_ref/`: vendored INFER classes; reference-only, parse-checked but not runnable on the cluster (uses `.cuda()` at module init).
 - No `auraloss` or perceptual loss wired in — deferred to Phase 4.
-- No latent table / auto-decoder — Chunk 3 will subclass `INR2D_Single` → `INR2D_AutoDecoder` and use the `z_s` argument that's already in the forward signature.
-- **HashGrid is over-parameterised for 2D shoeboxes** (default INFER config is ~120 MB hash params per encoder × 6 encoders). Single-room overfit is trivial; recommended Chunk 3 starts with `log2_hashmap_size=14, n_levels=14` (~16× fewer params) to ensure the auto-decoder's `z_s` actually matters. See `tasks/CHUNK_2_RESULTS.md` §6 + §8.
+- HashGrid capacity per the Chunk-2 capacity warning: training succeeded *too well* on training rooms; the network memorised via hash params rather than via z_s. The retrain at smaller capacity is the next step.
 
-## Recent changes (this chunk — 2)
+## Recent changes (this chunk — 3)
+
+- Added `INR2D_AutoDecoder` to `aaf/models/inr_2d.py`: subclass-style new class with `nn.Embedding(n_rooms, latent_dim)` for per-room learnable latents, widened sigma + signal MLP input dims by `latent_dim`, candidate-A z_s injection at *both* concat points. Added `room_id_map` alias on `ShoeboxDataset`.
+- Wrote `aaf/train/multi_room.py:MultiRoomTrainer` with two-param-group optimizer (network lr=2e-4, latents lr=1e-3), 5-term loss (real + imag + log-amp + phase + λ‖z_s‖² with λ=1e-4), per-L AABB sub-batching inside each step, val every 1K iters with per-room LSD logging + latent-norm histograms.
+- Wrote `aaf/eval/zero_shot.py:zero_shot_adapt`: deterministic 8-of-64 receiver subset, frozen-network + 2K-iter Adam(lr=1e-2) on a fresh `z_star`, then full-grid evaluation. 4 figures per L.
+- Wrote `aaf/eval/latent_probing.py:probe_latents`: extracts trained latents, combines with all `zero_shot/L*/z_star.pt`, runs PCA, fits PC1 vs L linear regression. 3 figures + JSON.
+- Wrote `scripts/multi_room_memory_check.py` and updated `scripts/multi_room_summary.py` to aggregate train + zero-shot + probe into one cross-room SUMMARY.
+- Wrote 4 SLURM scripts (`multi_room_memory_check.sh`, `multi_room_train.sh`, `zero_shot_eval.sh`, `latent_probing.sh`) and `scripts/run_chunk3_pipeline.sh` orchestrator (chains memory_check → train → 6× zero-shot → probe via afterok). Default partition is **tron** for training.
+- Wrote 3 new test files (test_autodecoder_2d, test_zero_shot, test_latent_probing). 70 tests now pass.
+- Ran the full pipeline: training completed 30K iters on tron64 RTX 3070 in 2:38; 6 zero-shot evals completed in parallel on scavenger; latent probe completed.
+- Documented the failure-mode finding in `tasks/CHUNK_3_RESULTS.md`: per-training-room target *met* (6/7 ≤ 1 dB val LSD); zero-shot target *not met* (held-out LSD 5.7-6.0 dB across all 6 unseen L); latent collapse confirmed via PCA (R² = −0.63 with L). Strong recommendation to retrain at smaller HashGrid capacity.
+
+## Recent changes (Chunk 2)
 
 - Wrote `aaf/renderers/freq_2d.py:FreqRenderer2D` (2D port of `AVRRenderFD_FreqDep_PhaseCorrection_new`). Stochastic uniform-azimuth ray sampling with per-iteration jitter (n_azi=64, no elevation, no zenith/nadir). 4-wall slab AABB. σ + jβ decomposition + cumulative transmittance + geometric phase verbatim from the INFER reference. `use_geometric_attn=False` per Phase-1 decision.
 - Wrote `aaf/models/inr_2d.py:INR2D_Single` (2D port of `AVRModel_complex_FD_FreqDep_PhaseCorrection`). Six `tcnn.Encoding(2, ...)` encoders. Sigma branch (complex per-freq attenuation σ + jβ) + signal branch (complex per-freq emission). RFFT symmetry mask on DC + Nyquist imag. `z_s` argument accepted in `forward(...)` but ignored in `INR2D_Single` — Chunk-3 subclass will use it. Inline injection-point comments mark candidate-A concat points.
@@ -138,10 +153,10 @@ adaptable-acoustic-fields/
 
 ## Pointers
 
-- **Read for Chunk 3**: `tasks/CHUNK_2_RESULTS.md` (latest, contains explicit Chunk-3 recommendations in §8), `outputs/single_room/SUMMARY.md` (cross-room table + LSD-vs-L plot). The `outputs/single_room/L*/figures/` plots are the headline visual reference. Then `tasks/CHUNK_1_5_RESULTS.md` and `outputs/visual_sanity/SANITY_NOTES.md` for ground-truth context.
-- Open questions: `OPEN_QUESTIONS.md`. Only Q5 (cluster partition for long runs) still open; doesn't block Chunk 3 if we stay on scavenger.
-- Design log: `DECISIONS.md`. Now has 25 entries.
-- Cluster how-to: `CLUSTER_INFO.md`. Default partition is `scavenger`. Always set `LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}` after `conda activate aaf`. Chunk-2 pipeline driver is `scripts/run_chunk2_pipeline.sh`.
+- **Read for next chunk**: `tasks/CHUNK_3_RESULTS.md` (latest; §10 contains the recommended retrain config), `outputs/multi_room/dense/SUMMARY.md` (cross-train-and-zero-shot table + LSD-vs-L plot), `outputs/multi_room/dense/latent_probe/figures/latent_pca_1d.png` (the diagnostic that says z_s didn't learn L). Then `tasks/CHUNK_2_RESULTS.md` §6 + §8 for the original capacity warning.
+- Open questions: `OPEN_QUESTIONS.md`. Q5 (cluster partition for long runs) closed by Chunk 3 (used 1 tron slot for training). Q10 (new): should the next iteration shrink HashGrid before another training run?
+- Design log: `DECISIONS.md`. Now has 29 entries.
+- Cluster how-to: `CLUSTER_INFO.md`. Default partition is `scavenger`; non-preemptible work goes on `tron`. Always set `LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}` after `conda activate aaf`. Chunk-3 pipeline driver is `scripts/run_chunk3_pipeline.sh`.
 
 ## How the manager can read this repo
 

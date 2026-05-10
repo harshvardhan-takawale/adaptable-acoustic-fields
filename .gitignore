@@ -63,3 +63,13 @@ slurm-*.out
 /outputs/single_room/**/*.pt
 /outputs/single_room/**/tb/
 /outputs/single_room/**/*.tfevents.*
+
+# Allow chunk-3 multi-room + zero-shot + latent-probe figures (small, useful).
+!/outputs/multi_room/**/*.png
+
+# Training artifacts under outputs/multi_room/
+/outputs/multi_room/**/*.pt
+/outputs/multi_room/**/tb/
+/outputs/multi_room/**/*.tfevents.*
+/outputs/multi_room/**/z_star.pt
+/outputs/multi_room/**/loss_curve.json

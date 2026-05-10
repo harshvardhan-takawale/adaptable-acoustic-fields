@@ -114,6 +114,11 @@ srun --pty --partition=scavenger --account=scavenger --qos=scavenger \
 
 ## Open items (move to OPEN_QUESTIONS.md if blocking)
 
-- Are we eligible for the `nexus` account on `tron` for non-preemptible jobs, or do we have to stay on scavenger?
+- Are we eligible for the `nexus` account on `tron` for non-preemptible jobs, or do we have to stay on scavenger? *(Chunk 3 confirmed yes — `--partition=tron --account=nexus --qos=default` works. Used 1 of 4 banked slots for multi-room training; 3 remain.)*
 - Per-GPU-type availability — A4000 / A5000 / A6000 / 2080Ti — not summarized in main wiki.
 - Summer 2026 cluster OS upgrade ([Nexus/ClusterOSUpgrade](https://wiki.umiacs.umd.edu/umiacs/index.php/Nexus/ClusterOSUpgrade)): may invalidate cached tinycudann builds.
+
+## Chunk-2 and Chunk-3 pipeline drivers
+
+- `scripts/run_chunk2_pipeline.sh`: memory_check → 3× single-room train (parallel, scavenger) → 3× single-room eval (parallel, scavenger). Wall ~2 h.
+- `scripts/run_chunk3_pipeline.sh`: memory_check → 1 multi-room train (tron, non-preemptible) → 6× zero-shot eval (parallel, scavenger) → latent probe (scavenger). Wall ~3 h. The training script defaults to `--partition=tron --account=nexus --qos=default`; if tron is unavailable, edit `scripts/slurm/multi_room_train.sh` to swap those three SBATCH lines for `--partition=scavenger --account=scavenger --qos=scavenger`.

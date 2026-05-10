@@ -309,6 +309,48 @@ Append-only log of non-trivial design choices. Newest entries at the bottom. For
 
 ---
 
+## 2026-05-10: Chunk 3 — keep INFER's HashGrid capacity; revisit after meeting the headline target
+
+**Decision:** for the Chunk-3 dense-sweep auto-decoder run, keep INFER's HashGrid defaults (`log2_hashmap_size=18, n_levels=20, n_features_per_level=2`). Mitigations: small L2 reg on z_s (`λ_latent = 1e-4`) + latent-rank PCA diagnostic in eval.
+
+**Rationale:** spec preference for meeting deliverables over latent-quality risk. The Chunk-2 capacity warning (§6 / §8) was acknowledged but de-prioritised.
+
+**Revisit if:** zero-shot at unseen L fails — at which point the latent-probe plot motivates a smaller HashGrid retrain. **(Triggered: Chunk 3 confirmed the failure. Recommended next config: `log2_hashmap_size=14, n_levels=14` — see `tasks/CHUNK_3_RESULTS.md` §10.)**
+
+---
+
+## 2026-05-10: z_s injection — candidate A (concat at both sigma + signal branches)
+
+**Decision:** the `INR2D_AutoDecoder` widens both `sigma_in_dims` and `n_signal_input` by `latent_dim`, broadcasting `z_s` over the per-point batch dimension and concatenating with the existing pos/dir embeddings at both concat points (the two `# CHUNK-3 INJECTION POINT` comments in `aaf/models/inr_2d.py:INR2D_Single.forward`).
+
+**Rationale:** matches `aaf/_inference_ref/inference_model.py` candidate-A guidance from CHUNK_0_RESULTS §7. The sigma branch alone (candidate B) would only let z_s gate absorption/dispersion; including the signal branch lets z_s also modulate the spectral emission, which is where the modal pattern lives.
+
+**Revisit if:** ablation shows the sigma-only or FiLM variants beat candidate A on the smaller-HashGrid retrain.
+
+---
+
+## 2026-05-10: Chunk-3 multi-room training — auto-decoder loss = 4 spec terms + λ‖z_s‖² with λ=1e-4
+
+**Decision:** the multi-room loss adds an L2 reg on z_s with weight `1e-4` to the four spec terms from Chunk 2 (real, imag, log-amp, phase). Two-param-group optimizer: network at lr=2e-4, latents at lr=1e-3 (DeepSDF convention; latents benefit from a higher LR).
+
+**Rationale:** `λ=1e-4` is small enough not to push z_s toward zero against a useful gradient signal but large enough to discourage runaway magnitudes. The 5×-the-network LR for latents matches DeepSDF's standard recipe.
+
+**Verification:** Chunk 3 final-iter latent norms are 0.70-0.95 (init was 0.18) — they grew naturally from initialisation but did not explode. L_latent term hovers at 0.02 throughout training, confirming the reg is not load-bearing on the loss.
+
+**Revisit if:** a smaller-HashGrid retrain shows the L2 reg is too lenient (latents still don't track L) or too aggressive (latents collapse to zero); current value is the conservative middle.
+
+---
+
+## 2026-05-10: Q5 cluster partition closed — tron for training, scavenger for everything else
+
+**Decision:** Chunk 3 used 1 tron slot for the multi-room training (non-preemptible, 12-h time limit) and 6 scavenger slots in parallel for the zero-shot evals. This pattern stays for any future chunk that needs a single long training run plus N parallel evals.
+
+**Rationale:** the multi-room training landed on `tron64` with an RTX 3070 and finished in 2:38 — well under the 12-h limit, with zero preemption. Scavenger evals queued, ran, and completed all 6 within a 17-min window. The 4 banked tron slots remain available for retries / Chunk-4.
+
+**Revisit if:** a future training run exceeds 12 h on tron, or if scavenger preemption rates climb such that even short eval runs miss their wall.
+
+---
+
 ## 2026-05-10: Chunk 2 training — 10K iters default with relative-improvement early-stop, replacing initial 50K
 
 **Decision:** `SingleRoomTrainer` defaults to `n_iters=10_000`, `val_every=500`, and a new relative-improvement early-stop:
