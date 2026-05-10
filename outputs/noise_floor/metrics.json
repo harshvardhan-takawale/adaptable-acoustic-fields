@@ -5,62 +5,62 @@
     "alpha": 0.15,
     "T60": 0.8262247145988028,
     "schroeder": 574.8824974197084,
-    "n_analytical_full": 1102,
-    "n_analytical_modal": 99,
+    "n_analytical_full": 1025,
+    "n_analytical_modal": 97,
     "ism_full": {
-      "mae_hz": 0.4885363872845488,
-      "mae_pct": 0.001290130767272748,
-      "recall_at_tol": 0.056261343012704176,
-      "n_picked": 62,
-      "n_analytical": 1102,
-      "n_matched": 62,
+      "mae_hz": 0.3828418661219401,
+      "mae_pct": 0.0010668447458617662,
+      "recall_at_tol": 0.06341463414634146,
+      "n_picked": 65,
+      "n_analytical": 1025,
+      "n_matched": 65,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.6408418877949282,
-      "mae_pct": 0.003841395140232956,
-      "recall_at_tol": 0.16161616161616163,
-      "n_picked": 16,
-      "n_analytical": 99,
-      "n_matched": 16,
+      "mae_hz": 0.47062943129421925,
+      "mae_pct": 0.003120315286378875,
+      "recall_at_tol": 0.17525773195876287,
+      "n_picked": 17,
+      "n_analytical": 97,
+      "n_matched": 17,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.5204731093422149,
+        "mae_hz": 0.5628602239911183,
         "recall": 0.5,
         "n_modes": 6,
         "n_matched": 3
       },
       "mid": {
-        "mae_hz": 0.5874999999999915,
-        "recall": 0.2,
+        "mae_hz": 0.49647737012691096,
+        "recall": 0.3,
         "n_modes": 10,
-        "n_matched": 2
+        "n_matched": 3
       },
       "high": {
-        "mae_hz": 0.48338309971255083,
-        "recall": 0.052486187845303865,
-        "n_modes": 1086,
-        "n_matched": 57
+        "mae_hz": 0.36791031382325456,
+        "recall": 0.05847373637264618,
+        "n_modes": 1009,
+        "n_matched": 59
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.515701008577174,
-      "mae_pct": 0.0012478712300093657,
-      "recall_at_tol": 0.07531760435571688,
-      "n_picked": 83,
-      "n_analytical": 1102,
-      "n_matched": 83,
+      "mae_hz": 0.4229568105244052,
+      "mae_pct": 0.0006972838043280307,
+      "recall_at_tol": 0.08,
+      "n_picked": 82,
+      "n_analytical": 1025,
+      "n_matched": 82,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.7506776892948472,
-      "mae_pct": 0.0038723990941014765,
-      "recall_at_tol": 0.20202020202020202,
-      "n_picked": 20,
-      "n_analytical": 99,
-      "n_matched": 20,
+      "mae_hz": 0.4585709296124484,
+      "mae_pct": 0.0017772683064079693,
+      "recall_at_tol": 0.18556701030927836,
+      "n_picked": 18,
+      "n_analytical": 97,
+      "n_matched": 18,
       "n_spurious": 0
     }
   },
@@ -70,61 +70,61 @@
     "alpha": 0.15,
     "T60": 0.9206503962672374,
     "schroeder": 553.9706358846221,
-    "n_analytical_full": 1318,
-    "n_analytical_modal": 108,
+    "n_analytical_full": 1015,
+    "n_analytical_modal": 94,
     "ism_full": {
-      "mae_hz": 0.45307787147095363,
-      "mae_pct": 0.001013811396580791,
-      "recall_at_tol": 0.05690440060698027,
-      "n_picked": 75,
-      "n_analytical": 1318,
-      "n_matched": 75,
+      "mae_hz": 0.36670402170755256,
+      "mae_pct": 0.0006985607832848762,
+      "recall_at_tol": 0.07586206896551724,
+      "n_picked": 77,
+      "n_analytical": 1015,
+      "n_matched": 77,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.5525297996869096,
-      "mae_pct": 0.003778249275594445,
-      "recall_at_tol": 0.12037037037037036,
-      "n_picked": 13,
-      "n_analytical": 108,
-      "n_matched": 13,
+      "mae_hz": 0.36659259034958425,
+      "mae_pct": 0.002184441817641619,
+      "recall_at_tol": 0.14893617021276595,
+      "n_picked": 14,
+      "n_analytical": 94,
+      "n_matched": 14,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.5694444444444429,
+        "mae_hz": 0.3472222222222238,
         "recall": 0.5,
         "n_modes": 6,
         "n_matched": 3
       },
       "mid": {
-        "mae_hz": 0.09445585523985756,
-        "recall": 0.1,
+        "mae_hz": 0.12141453530348656,
+        "recall": 0.2,
         "n_modes": 10,
-        "n_matched": 1
+        "n_matched": 2
       },
       "high": {
-        "mae_hz": 0.4532119883344836,
-        "recall": 0.054531490015360985,
-        "n_modes": 1302,
-        "n_matched": 71
+        "mae_hz": 0.374329360197332,
+        "recall": 0.07207207207207207,
+        "n_modes": 999,
+        "n_matched": 72
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.3976197000710549,
-      "mae_pct": 0.0012161910333242324,
-      "recall_at_tol": 0.06980273141122914,
-      "n_picked": 92,
-      "n_analytical": 1318,
-      "n_matched": 92,
+      "mae_hz": 0.3393843662057934,
+      "mae_pct": 0.0007273899402189605,
+      "recall_at_tol": 0.09359605911330049,
+      "n_picked": 95,
+      "n_analytical": 1015,
+      "n_matched": 95,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.5697567267860855,
-      "mae_pct": 0.004780135651528042,
-      "recall_at_tol": 0.16666666666666666,
+      "mae_hz": 0.45534210271270303,
+      "mae_pct": 0.002600383921753132,
+      "recall_at_tol": 0.19148936170212766,
       "n_picked": 18,
-      "n_analytical": 108,
+      "n_analytical": 94,
       "n_matched": 18,
       "n_spurious": 0
     }
@@ -135,20 +135,20 @@
     "alpha": 0.15,
     "T60": 0.9629791501186047,
     "schroeder": 544.3356289639423,
-    "n_analytical_full": 1427,
+    "n_analytical_full": 1416,
     "n_analytical_modal": 116,
     "ism_full": {
-      "mae_hz": 0.41558747066932367,
-      "mae_pct": 0.000862336166903198,
-      "recall_at_tol": 0.0539593552908199,
-      "n_picked": 77,
-      "n_analytical": 1427,
-      "n_matched": 77,
+      "mae_hz": 0.3365786248577678,
+      "mae_pct": 0.0005841815140622817,
+      "recall_at_tol": 0.0557909604519774,
+      "n_picked": 79,
+      "n_analytical": 1416,
+      "n_matched": 79,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.6053662500273751,
-      "mae_pct": 0.0030945595107207736,
+      "mae_hz": 0.41760690156004693,
+      "mae_pct": 0.0018417448205765123,
       "recall_at_tol": 0.1206896551724138,
       "n_picked": 14,
       "n_analytical": 116,
@@ -157,40 +157,40 @@
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.3557692307692264,
+        "mae_hz": 0.1442307692307736,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 1.1822783778469415,
+        "mae_hz": 0.6822783778469415,
         "recall": 0.2,
         "n_modes": 10,
         "n_matched": 2
       },
       "high": {
-        "mae_hz": 0.3962210962233642,
-        "recall": 0.0517363571934798,
-        "n_modes": 1411,
-        "n_matched": 73
+        "mae_hz": 0.33248924092810966,
+        "recall": 0.05357142857142857,
+        "n_modes": 1400,
+        "n_matched": 75
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.3679733181876996,
-      "mae_pct": 0.0010944053764663237,
-      "recall_at_tol": 0.06797477224947442,
-      "n_picked": 97,
-      "n_analytical": 1427,
-      "n_matched": 97,
+      "mae_hz": 0.352693410697628,
+      "mae_pct": 0.0008241810654791966,
+      "recall_at_tol": 0.06779661016949153,
+      "n_picked": 96,
+      "n_analytical": 1416,
+      "n_matched": 96,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.48917409982909515,
-      "mae_pct": 0.00393453914058675,
-      "recall_at_tol": 0.1810344827586207,
-      "n_picked": 21,
+      "mae_hz": 0.4729358283712331,
+      "mae_pct": 0.0025694866413743436,
+      "recall_at_tol": 0.1896551724137931,
+      "n_picked": 22,
       "n_analytical": 116,
-      "n_matched": 21,
+      "n_matched": 22,
       "n_spurious": 0
     }
   },
@@ -200,62 +200,62 @@
     "alpha": 0.15,
     "T60": 1.0024859870465475,
     "schroeder": 535.1864793953459,
-    "n_analytical_full": 1532,
-    "n_analytical_modal": 119,
+    "n_analytical_full": 1459,
+    "n_analytical_modal": 117,
     "ism_full": {
-      "mae_hz": 0.3655437883711494,
-      "mae_pct": 0.0007125627773003336,
-      "recall_at_tol": 0.047650130548302874,
-      "n_picked": 73,
-      "n_analytical": 1532,
-      "n_matched": 73,
+      "mae_hz": 0.36466219364767116,
+      "mae_pct": 0.0006137207854757644,
+      "recall_at_tol": 0.05071967100753941,
+      "n_picked": 74,
+      "n_analytical": 1459,
+      "n_matched": 74,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.5689964609659585,
-      "mae_pct": 0.0024081831307715186,
-      "recall_at_tol": 0.11764705882352941,
+      "mae_hz": 0.4731567487078984,
+      "mae_pct": 0.0019221943932824434,
+      "recall_at_tol": 0.11965811965811966,
       "n_picked": 14,
-      "n_analytical": 119,
+      "n_analytical": 117,
       "n_matched": 14,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.125,
+        "mae_hz": 0.256328708328617,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 1.7046400849400243,
+        "mae_hz": 0.7046400849400243,
         "recall": 0.1,
         "n_modes": 10,
         "n_matched": 1
       },
       "high": {
-        "mae_hz": 0.35328652094505547,
-        "recall": 0.04617414248021108,
-        "n_modes": 1516,
-        "n_matched": 70
+        "mae_hz": 0.3629254201173297,
+        "recall": 0.0492030492030492,
+        "n_modes": 1443,
+        "n_matched": 71
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.3640074740731862,
-      "mae_pct": 0.0008074219309611375,
-      "recall_at_tol": 0.060704960835509136,
-      "n_picked": 93,
-      "n_analytical": 1532,
-      "n_matched": 93,
+      "mae_hz": 0.3180229846755937,
+      "mae_pct": 0.0006854198391573954,
+      "recall_at_tol": 0.06579849211788896,
+      "n_picked": 96,
+      "n_analytical": 1459,
+      "n_matched": 96,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.47830646510037095,
-      "mae_pct": 0.0029340875245097106,
-      "recall_at_tol": 0.15126050420168066,
-      "n_picked": 18,
-      "n_analytical": 119,
-      "n_matched": 18,
+      "mae_hz": 0.4123287417663441,
+      "mae_pct": 0.002274926232947615,
+      "recall_at_tol": 0.1623931623931624,
+      "n_picked": 19,
+      "n_analytical": 117,
+      "n_matched": 19,
       "n_spurious": 0
     }
   },
@@ -265,20 +265,20 @@
     "alpha": 0.15,
     "T60": 1.0394439957855905,
     "schroeder": 526.483680224586,
-    "n_analytical_full": 1643,
+    "n_analytical_full": 1611,
     "n_analytical_modal": 123,
     "ism_full": {
-      "mae_hz": 0.2902162369361016,
-      "mae_pct": 0.0005597726120919909,
-      "recall_at_tol": 0.04625684723067559,
-      "n_picked": 76,
-      "n_analytical": 1643,
-      "n_matched": 76,
+      "mae_hz": 0.3003025793544482,
+      "mae_pct": 0.0007125871436364087,
+      "recall_at_tol": 0.048417132216014895,
+      "n_picked": 78,
+      "n_analytical": 1611,
+      "n_matched": 78,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.32735317936247055,
-      "mae_pct": 0.0015761637765888468,
+      "mae_hz": 0.4204718770956161,
+      "mae_pct": 0.0024144056919875277,
       "recall_at_tol": 0.13821138211382114,
       "n_picked": 17,
       "n_analytical": 123,
@@ -287,40 +287,40 @@
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.25833333333333286,
+        "mae_hz": 0.5083333333333329,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 0.16926238494886547,
+        "mae_hz": 0.3307376150511345,
         "recall": 0.1,
         "n_modes": 10,
         "n_matched": 1
       },
       "high": {
-        "mae_hz": 0.2927466432264136,
-        "recall": 0.04486785494775661,
-        "n_modes": 1627,
-        "n_matched": 73
+        "mae_hz": 0.29434929210572214,
+        "recall": 0.047021943573667714,
+        "n_modes": 1595,
+        "n_matched": 75
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.3430138491347019,
-      "mae_pct": 0.00074147329757937,
-      "recall_at_tol": 0.05782105903834449,
-      "n_picked": 95,
-      "n_analytical": 1643,
-      "n_matched": 95,
+      "mae_hz": 0.30349965591805445,
+      "mae_pct": 0.0005776055595779091,
+      "recall_at_tol": 0.057107386716325266,
+      "n_picked": 92,
+      "n_analytical": 1611,
+      "n_matched": 92,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.5484004005374087,
-      "mae_pct": 0.0024197209805885624,
-      "recall_at_tol": 0.17073170731707318,
-      "n_picked": 21,
+      "mae_hz": 0.4006517196690943,
+      "mae_pct": 0.00177274863415278,
+      "recall_at_tol": 0.16260162601626016,
+      "n_picked": 20,
       "n_analytical": 123,
-      "n_matched": 21,
+      "n_matched": 20,
       "n_spurious": 0
     }
   },
@@ -330,62 +330,62 @@
     "alpha": 0.15,
     "T60": 1.0740921289784435,
     "schroeder": 518.1920804533884,
-    "n_analytical_full": 1754,
-    "n_analytical_modal": 128,
+    "n_analytical_full": 669,
+    "n_analytical_modal": 60,
     "ism_full": {
-      "mae_hz": 0.5516843702749228,
-      "mae_pct": 0.001185627262263363,
-      "recall_at_tol": 0.03819840364880274,
-      "n_picked": 67,
-      "n_analytical": 1754,
-      "n_matched": 67,
+      "mae_hz": 0.3796006941404023,
+      "mae_pct": 0.0007261860488631846,
+      "recall_at_tol": 0.10164424514200299,
+      "n_picked": 68,
+      "n_analytical": 669,
+      "n_matched": 68,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.6683773387408547,
-      "mae_pct": 0.004063399807294834,
-      "recall_at_tol": 0.1015625,
+      "mae_hz": 0.3928298128207731,
+      "mae_pct": 0.002316522209661635,
+      "recall_at_tol": 0.21666666666666667,
       "n_picked": 13,
-      "n_analytical": 128,
+      "n_analytical": 60,
       "n_matched": 13,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.6875,
+        "mae_hz": 0.4375,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 0.5880109355185255,
-        "recall": 0.1,
+        "mae_hz": 0.19124419372368115,
+        "recall": 0.3,
         "n_modes": 10,
-        "n_matched": 1
+        "n_matched": 3
       },
       "high": {
-        "mae_hz": 0.5468725292640828,
-        "recall": 0.03682393555811277,
-        "n_modes": 1738,
-        "n_matched": 64
+        "mae_hz": 0.3867319781012113,
+        "recall": 0.09647779479326186,
+        "n_modes": 653,
+        "n_matched": 63
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.5267713950729835,
-      "mae_pct": 0.0010593499518522702,
-      "recall_at_tol": 0.04846066134549601,
-      "n_picked": 85,
-      "n_analytical": 1754,
-      "n_matched": 85,
+      "mae_hz": 0.3826387791202838,
+      "mae_pct": 0.0005942556167933037,
+      "recall_at_tol": 0.13153961136023917,
+      "n_picked": 88,
+      "n_analytical": 669,
+      "n_matched": 88,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.5706766814359181,
-      "mae_pct": 0.003600446084772401,
-      "recall_at_tol": 0.125,
-      "n_picked": 16,
-      "n_analytical": 128,
-      "n_matched": 16,
+      "mae_hz": 0.38517129405092654,
+      "mae_pct": 0.0015801375900963179,
+      "recall_at_tol": 0.3,
+      "n_picked": 18,
+      "n_analytical": 60,
+      "n_matched": 18,
       "n_spurious": 0
     }
   },
@@ -395,29 +395,29 @@
     "alpha": 0.15,
     "T60": 1.1066403753111238,
     "schroeder": 510.2802863735193,
-    "n_analytical_full": 1865,
+    "n_analytical_full": 1845,
     "n_analytical_modal": 128,
     "ism_full": {
-      "mae_hz": 0.3083450648533544,
-      "mae_pct": 0.0009201427226080144,
-      "recall_at_tol": 0.0418230563002681,
-      "n_picked": 78,
-      "n_analytical": 1865,
-      "n_matched": 78,
+      "mae_hz": 0.2713595441652055,
+      "mae_pct": 0.0006168618490328384,
+      "recall_at_tol": 0.04336043360433604,
+      "n_picked": 80,
+      "n_analytical": 1845,
+      "n_matched": 80,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.4419163053902464,
-      "mae_pct": 0.003374262724237258,
-      "recall_at_tol": 0.125,
-      "n_picked": 16,
+      "mae_hz": 0.3125036427530432,
+      "mae_pct": 0.001972919690628664,
+      "recall_at_tol": 0.1328125,
+      "n_picked": 17,
       "n_analytical": 128,
-      "n_matched": 16,
+      "n_matched": 17,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.915441176470587,
+        "mae_hz": 0.415441176470587,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
@@ -429,24 +429,24 @@
         "n_matched": 1
       },
       "high": {
-        "mae_hz": 0.2915744277378841,
-        "recall": 0.04056246619794483,
-        "n_modes": 1849,
-        "n_matched": 75
+        "mae_hz": 0.26657052668826114,
+        "recall": 0.04209950792782941,
+        "n_modes": 1829,
+        "n_matched": 77
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.34629789166672087,
-      "mae_pct": 0.0010431380532019913,
-      "recall_at_tol": 0.054691689008042894,
+      "mae_hz": 0.3111373568254845,
+      "mae_pct": 0.0006333933292135675,
+      "recall_at_tol": 0.055284552845528454,
       "n_picked": 102,
-      "n_analytical": 1865,
+      "n_analytical": 1845,
       "n_matched": 102,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.6549879668776626,
-      "mae_pct": 0.0036520958754918628,
+      "mae_hz": 0.42688361908431816,
+      "mae_pct": 0.0018204796151472852,
       "recall_at_tol": 0.1875,
       "n_picked": 24,
       "n_analytical": 128,
@@ -460,23 +460,23 @@
     "alpha": 0.15,
     "T60": 1.1372740189183521,
     "schroeder": 502.7201604865611,
-    "n_analytical_full": 1970,
-    "n_analytical_modal": 132,
+    "n_analytical_full": 1869,
+    "n_analytical_modal": 130,
     "ism_full": {
-      "mae_hz": 0.3500418967039947,
-      "mae_pct": 0.0006695971086698365,
-      "recall_at_tol": 0.04111675126903553,
-      "n_picked": 81,
-      "n_analytical": 1970,
-      "n_matched": 81,
+      "mae_hz": 0.23249731545406876,
+      "mae_pct": 0.00042802114999048954,
+      "recall_at_tol": 0.043873729266987696,
+      "n_picked": 82,
+      "n_analytical": 1869,
+      "n_matched": 82,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.5456850152941067,
-      "mae_pct": 0.002212679577587099,
-      "recall_at_tol": 0.11363636363636363,
+      "mae_hz": 0.34138626558579876,
+      "mae_pct": 0.0014525986128806167,
+      "recall_at_tol": 0.11538461538461539,
       "n_picked": 15,
-      "n_analytical": 132,
+      "n_analytical": 130,
       "n_matched": 15,
       "n_spurious": 0
     },
@@ -488,33 +488,33 @@
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 0.9166666666666856,
+        "mae_hz": 0.4166666666666856,
         "recall": 0.1,
         "n_modes": 10,
         "n_matched": 1
       },
       "high": {
-        "mae_hz": 0.34569877877095734,
-        "recall": 0.03991811668372569,
-        "n_modes": 1954,
-        "n_matched": 78
+        "mae_hz": 0.23007456934613593,
+        "recall": 0.04263356718834323,
+        "n_modes": 1853,
+        "n_matched": 79
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.34106521549243246,
-      "mae_pct": 0.0008304219085538733,
-      "recall_at_tol": 0.05482233502538071,
-      "n_picked": 108,
-      "n_analytical": 1970,
-      "n_matched": 108,
+      "mae_hz": 0.2633938152253262,
+      "mae_pct": 0.0006041655680313893,
+      "recall_at_tol": 0.057249866238630286,
+      "n_picked": 107,
+      "n_analytical": 1869,
+      "n_matched": 107,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.4195142140633516,
-      "mae_pct": 0.0029102439061528475,
-      "recall_at_tol": 0.1590909090909091,
+      "mae_hz": 0.37534791770908627,
+      "mae_pct": 0.00223580848286767,
+      "recall_at_tol": 0.16153846153846155,
       "n_picked": 21,
-      "n_analytical": 132,
+      "n_analytical": 130,
       "n_matched": 21,
       "n_spurious": 0
     }
@@ -525,29 +525,29 @@
     "alpha": 0.15,
     "T60": 1.1661571686051673,
     "schroeder": 495.4863997507196,
-    "n_analytical_full": 2083,
-    "n_analytical_modal": 135,
+    "n_analytical_full": 2049,
+    "n_analytical_modal": 134,
     "ism_full": {
-      "mae_hz": 0.34982167514800716,
-      "mae_pct": 0.0013605136336727033,
-      "recall_at_tol": 0.041766682669227076,
-      "n_picked": 87,
-      "n_analytical": 2083,
-      "n_matched": 87,
+      "mae_hz": 0.26501984443257465,
+      "mae_pct": 0.0008604096243923566,
+      "recall_at_tol": 0.041971693509028796,
+      "n_picked": 86,
+      "n_analytical": 2049,
+      "n_matched": 86,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.6984729161147492,
-      "mae_pct": 0.005554276412218228,
-      "recall_at_tol": 0.13333333333333333,
+      "mae_hz": 0.44130792177943534,
+      "mae_pct": 0.003288021128915046,
+      "recall_at_tol": 0.13432835820895522,
       "n_picked": 18,
-      "n_analytical": 135,
+      "n_analytical": 134,
       "n_matched": 18,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.8552631578947327,
+        "mae_hz": 0.5219298245613994,
         "recall": 0.5,
         "n_modes": 6,
         "n_matched": 3
@@ -559,27 +559,27 @@
         "n_matched": 2
       },
       "high": {
-        "mae_hz": 0.3325933735464058,
-        "recall": 0.03967102080309628,
-        "n_modes": 2067,
-        "n_matched": 82
+        "mae_hz": 0.25468984585345766,
+        "recall": 0.03984259714707329,
+        "n_modes": 2033,
+        "n_matched": 81
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.32072462855967326,
-      "mae_pct": 0.0006838036371496309,
-      "recall_at_tol": 0.04896783485357657,
-      "n_picked": 102,
-      "n_analytical": 2083,
-      "n_matched": 102,
+      "mae_hz": 0.28424057585197676,
+      "mae_pct": 0.0006017953253324692,
+      "recall_at_tol": 0.048316251830161056,
+      "n_picked": 99,
+      "n_analytical": 2049,
+      "n_matched": 99,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.4661449839384747,
-      "mae_pct": 0.0019460499984840238,
-      "recall_at_tol": 0.18518518518518517,
+      "mae_hz": 0.3674632959701952,
+      "mae_pct": 0.0016630719501554779,
+      "recall_at_tol": 0.1865671641791045,
       "n_picked": 25,
-      "n_analytical": 135,
+      "n_analytical": 134,
       "n_matched": 25,
       "n_spurious": 0
     }
@@ -590,62 +590,62 @@
     "alpha": 0.15,
     "T60": 1.1934356988649373,
     "schroeder": 488.55617872767453,
-    "n_analytical_full": 2186,
-    "n_analytical_modal": 141,
+    "n_analytical_full": 1873,
+    "n_analytical_modal": 132,
     "ism_full": {
-      "mae_hz": 0.3512358813535967,
-      "mae_pct": 0.0008197758031126561,
-      "recall_at_tol": 0.042543458371454713,
-      "n_picked": 93,
-      "n_analytical": 2186,
-      "n_matched": 93,
+      "mae_hz": 0.2602360624509473,
+      "mae_pct": 0.0006095627447892942,
+      "recall_at_tol": 0.04911906033101975,
+      "n_picked": 92,
+      "n_analytical": 1873,
+      "n_matched": 92,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.48102324594396784,
-      "mae_pct": 0.00320991771392062,
-      "recall_at_tol": 0.11347517730496454,
+      "mae_hz": 0.42906430779127547,
+      "mae_pct": 0.002443971594829694,
+      "recall_at_tol": 0.12121212121212122,
       "n_picked": 16,
-      "n_analytical": 141,
+      "n_analytical": 132,
       "n_matched": 16,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.42500000000000426,
+        "mae_hz": 0.17500000000000426,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 0.6975995767247459,
+        "mae_hz": 0.6395942171812171,
         "recall": 0.3,
         "n_modes": 10,
         "n_matched": 3
       },
       "high": {
-        "mae_hz": 0.33775157086034374,
-        "recall": 0.04055299539170507,
-        "n_modes": 2170,
-        "n_matched": 88
+        "mae_hz": 0.2491141964821091,
+        "recall": 0.046849757673667204,
+        "n_modes": 1857,
+        "n_matched": 87
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.3025688601971991,
-      "mae_pct": 0.0009184965295747045,
-      "recall_at_tol": 0.05077767612076853,
-      "n_picked": 111,
-      "n_analytical": 2186,
-      "n_matched": 111,
+      "mae_hz": 0.264914460101852,
+      "mae_pct": 0.0005922464461684308,
+      "recall_at_tol": 0.060864922584089695,
+      "n_picked": 114,
+      "n_analytical": 1873,
+      "n_matched": 114,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.39055235716924097,
-      "mae_pct": 0.0034033051225707592,
-      "recall_at_tol": 0.16312056737588654,
-      "n_picked": 23,
-      "n_analytical": 141,
-      "n_matched": 23,
+      "mae_hz": 0.41972143293343134,
+      "mae_pct": 0.001933434112149342,
+      "recall_at_tol": 0.18181818181818182,
+      "n_picked": 24,
+      "n_analytical": 132,
+      "n_matched": 24,
       "n_spurious": 0
     }
   },
@@ -655,58 +655,58 @@
     "alpha": 0.15,
     "T60": 1.2192397139755307,
     "schroeder": 481.90884614762905,
-    "n_analytical_full": 2294,
+    "n_analytical_full": 2253,
     "n_analytical_modal": 143,
     "ism_full": {
-      "mae_hz": 0.26381671283252667,
-      "mae_pct": 0.0006993506333364635,
-      "recall_at_tol": 0.037053182214472534,
-      "n_picked": 85,
-      "n_analytical": 2294,
-      "n_matched": 85,
+      "mae_hz": 0.23401199153900026,
+      "mae_pct": 0.0004938788918066268,
+      "recall_at_tol": 0.03817132711939636,
+      "n_picked": 86,
+      "n_analytical": 2253,
+      "n_matched": 86,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.47097801771934183,
-      "mae_pct": 0.0029276460406824885,
-      "recall_at_tol": 0.1048951048951049,
-      "n_picked": 15,
+      "mae_hz": 0.3866426104221733,
+      "mae_pct": 0.0016862597123509077,
+      "recall_at_tol": 0.11888111888111888,
+      "n_picked": 17,
       "n_analytical": 143,
-      "n_matched": 15,
+      "n_matched": 17,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.7916666666666643,
+        "mae_hz": 0.2916666666666643,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 0.2429139796285682,
-        "recall": 0.2,
+        "mae_hz": 0.14386619479982699,
+        "recall": 0.3,
         "n_modes": 10,
-        "n_matched": 2
+        "n_matched": 3
       },
       "high": {
-        "mae_hz": 0.25129949750832475,
-        "recall": 0.03555750658472344,
-        "n_modes": 2278,
+        "mae_hz": 0.23592715252618782,
+        "recall": 0.03620920876173447,
+        "n_modes": 2237,
         "n_matched": 81
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.3106174654871782,
-      "mae_pct": 0.0011730961625741312,
-      "recall_at_tol": 0.04882301656495205,
-      "n_picked": 112,
-      "n_analytical": 2294,
-      "n_matched": 112,
+      "mae_hz": 0.24186805782451334,
+      "mae_pct": 0.0007442554501283368,
+      "recall_at_tol": 0.04660452729693742,
+      "n_picked": 105,
+      "n_analytical": 2253,
+      "n_matched": 105,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.5443700665218849,
-      "mae_pct": 0.005050347018137149,
+      "mae_hz": 0.3369328236919512,
+      "mae_pct": 0.002880692714023355,
       "recall_at_tol": 0.14685314685314685,
       "n_picked": 21,
       "n_analytical": 143,
@@ -720,23 +720,23 @@
     "alpha": 0.15,
     "T60": 1.2436856230276716,
     "schroeder": 475.5256656925091,
-    "n_analytical_full": 2404,
-    "n_analytical_modal": 145,
+    "n_analytical_full": 2346,
+    "n_analytical_modal": 143,
     "ism_full": {
-      "mae_hz": 0.2926265803536375,
-      "mae_pct": 0.0007651719508869598,
-      "recall_at_tol": 0.036605657237936774,
-      "n_picked": 88,
-      "n_analytical": 2404,
-      "n_matched": 88,
+      "mae_hz": 0.21484632936544587,
+      "mae_pct": 0.0004963513339469128,
+      "recall_at_tol": 0.0392156862745098,
+      "n_picked": 92,
+      "n_analytical": 2346,
+      "n_matched": 92,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.5296607698108411,
-      "mae_pct": 0.0029226668602777726,
-      "recall_at_tol": 0.1103448275862069,
+      "mae_hz": 0.2934897662246372,
+      "mae_pct": 0.001796287540523569,
+      "recall_at_tol": 0.11188811188811189,
       "n_picked": 16,
-      "n_analytical": 145,
+      "n_analytical": 143,
       "n_matched": 16,
       "n_spurious": 0
     },
@@ -748,34 +748,34 @@
         "n_matched": 1
       },
       "mid": {
-        "mae_hz": 0.7452087760148487,
+        "mae_hz": 0.4118754426815154,
         "recall": 0.3,
         "n_modes": 10,
         "n_matched": 3
       },
       "high": {
-        "mae_hz": 0.27561757594570463,
-        "recall": 0.035175879396984924,
-        "n_modes": 2388,
-        "n_matched": 84
+        "mae_hz": 0.20643863193113757,
+        "recall": 0.03776824034334764,
+        "n_modes": 2330,
+        "n_matched": 88
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.2725841093687689,
-      "mae_pct": 0.0010722868860733351,
-      "recall_at_tol": 0.04326123128119801,
-      "n_picked": 104,
-      "n_analytical": 2404,
-      "n_matched": 104,
+      "mae_hz": 0.24747834320858678,
+      "mae_pct": 0.0008542104894847627,
+      "recall_at_tol": 0.043478260869565216,
+      "n_picked": 102,
+      "n_analytical": 2346,
+      "n_matched": 102,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.41724760187515086,
-      "mae_pct": 0.00445410194174356,
-      "recall_at_tol": 0.13793103448275862,
-      "n_picked": 20,
-      "n_analytical": 145,
-      "n_matched": 20,
+      "mae_hz": 0.37329935739422193,
+      "mae_pct": 0.0032455492083161186,
+      "recall_at_tol": 0.14685314685314685,
+      "n_picked": 21,
+      "n_analytical": 143,
+      "n_matched": 21,
       "n_spurious": 0
     }
   },
@@ -785,20 +785,20 @@
     "alpha": 0.15,
     "T60": 1.2668778957181643,
     "schroeder": 469.3895935783843,
-    "n_analytical_full": 2510,
+    "n_analytical_full": 2475,
     "n_analytical_modal": 147,
     "ism_full": {
-      "mae_hz": 0.27789427971359887,
-      "mae_pct": 0.0007375127552742918,
-      "recall_at_tol": 0.03745019920318725,
-      "n_picked": 94,
-      "n_analytical": 2510,
-      "n_matched": 94,
+      "mae_hz": 0.25003838433722403,
+      "mae_pct": 0.0005443511263707079,
+      "recall_at_tol": 0.03878787878787879,
+      "n_picked": 96,
+      "n_analytical": 2475,
+      "n_matched": 96,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.458563376675375,
-      "mae_pct": 0.002696975303064965,
+      "mae_hz": 0.3296215463339719,
+      "mae_pct": 0.001810325552503151,
       "recall_at_tol": 0.1292517006802721,
       "n_picked": 19,
       "n_analytical": 147,
@@ -807,40 +807,40 @@
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.4429741855073708,
+        "mae_hz": 0.09514809855084749,
         "recall": 0.3333333333333333,
         "n_modes": 6,
         "n_matched": 2
       },
       "mid": {
-        "mae_hz": 0.2681196820176079,
+        "mae_hz": 0.5139469105536089,
         "recall": 0.3,
         "n_modes": 10,
         "n_matched": 3
       },
       "high": {
-        "mae_hz": 0.27451409973045765,
-        "recall": 0.035685645549318364,
-        "n_modes": 2494,
-        "n_matched": 89
+        "mae_hz": 0.24474228535836248,
+        "recall": 0.03700691337942253,
+        "n_modes": 2459,
+        "n_matched": 91
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.30604431131864657,
-      "mae_pct": 0.0008691228291158936,
-      "recall_at_tol": 0.04183266932270916,
-      "n_picked": 105,
-      "n_analytical": 2510,
-      "n_matched": 105,
+      "mae_hz": 0.2361165727780617,
+      "mae_pct": 0.000593621713241157,
+      "recall_at_tol": 0.041616161616161614,
+      "n_picked": 103,
+      "n_analytical": 2475,
+      "n_matched": 103,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.49798838275508706,
-      "mae_pct": 0.003202709545763767,
-      "recall_at_tol": 0.14285714285714285,
-      "n_picked": 21,
+      "mae_hz": 0.3181753587993734,
+      "mae_pct": 0.002056716657408212,
+      "recall_at_tol": 0.1360544217687075,
+      "n_picked": 20,
       "n_analytical": 147,
-      "n_matched": 21,
+      "n_matched": 20,
       "n_spurious": 0
     }
   },
@@ -850,61 +850,61 @@
     "alpha": 0.15,
     "T60": 1.2889105547741324,
     "schroeder": 463.48508691832654,
-    "n_analytical_full": 2618,
-    "n_analytical_modal": 150,
+    "n_analytical_full": 1830,
+    "n_analytical_modal": 122,
     "ism_full": {
-      "mae_hz": 0.35802848623140854,
-      "mae_pct": 0.0009441464100664322,
-      "recall_at_tol": 0.03552330022918258,
-      "n_picked": 93,
-      "n_analytical": 2618,
-      "n_matched": 93,
+      "mae_hz": 0.23189710667703226,
+      "mae_pct": 0.0004662421689553016,
+      "recall_at_tol": 0.053005464480874315,
+      "n_picked": 97,
+      "n_analytical": 1830,
+      "n_matched": 97,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.5930212189819919,
-      "mae_pct": 0.0035717480800599613,
-      "recall_at_tol": 0.12,
-      "n_picked": 18,
-      "n_analytical": 150,
-      "n_matched": 18,
+      "mae_hz": 0.30175157832210975,
+      "mae_pct": 0.0013916254325614039,
+      "recall_at_tol": 0.1721311475409836,
+      "n_picked": 21,
+      "n_analytical": 122,
+      "n_matched": 21,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.6527777777777738,
+        "mae_hz": 0.15277777777777382,
         "recall": 0.5,
         "n_modes": 6,
         "n_matched": 3
       },
       "mid": {
-        "mae_hz": 0.10805352682970693,
-        "recall": 0.1,
+        "mae_hz": 0.23729713791887264,
+        "recall": 0.2,
         "n_modes": 10,
-        "n_matched": 1
+        "n_matched": 2
       },
       "high": {
-        "mae_hz": 0.35090182426244904,
-        "recall": 0.03420445810914681,
-        "n_modes": 2602,
-        "n_matched": 89
+        "mae_hz": 0.23435969280979416,
+        "recall": 0.050716648291069456,
+        "n_modes": 1814,
+        "n_matched": 92
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.36141959469876855,
-      "mae_pct": 0.0010315096892798243,
-      "recall_at_tol": 0.0427807486631016,
-      "n_picked": 112,
-      "n_analytical": 2618,
-      "n_matched": 112,
+      "mae_hz": 0.24505886687865114,
+      "mae_pct": 0.0005826290257532096,
+      "recall_at_tol": 0.06229508196721312,
+      "n_picked": 114,
+      "n_analytical": 1830,
+      "n_matched": 114,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.4907698471526714,
-      "mae_pct": 0.0037087274470420884,
-      "recall_at_tol": 0.15333333333333332,
+      "mae_hz": 0.303778143463733,
+      "mae_pct": 0.0019530630182036674,
+      "recall_at_tol": 0.1885245901639344,
       "n_picked": 23,
-      "n_analytical": 150,
+      "n_analytical": 122,
       "n_matched": 23,
       "n_spurious": 0
     }
@@ -915,61 +915,61 @@
     "alpha": 0.15,
     "T60": 1.3298283501637875,
     "schroeder": 452.3151301341521,
-    "n_analytical_full": 2834,
-    "n_analytical_modal": 156,
+    "n_analytical_full": 2774,
+    "n_analytical_modal": 154,
     "ism_full": {
-      "mae_hz": 0.3124213643620151,
-      "mae_pct": 0.001296555712980052,
-      "recall_at_tol": 0.033168666196189134,
-      "n_picked": 94,
-      "n_analytical": 2834,
-      "n_matched": 94,
+      "mae_hz": 0.21835130580735188,
+      "mae_pct": 0.0007326123772024986,
+      "recall_at_tol": 0.03316510454217736,
+      "n_picked": 92,
+      "n_analytical": 2774,
+      "n_matched": 92,
       "n_spurious": 0
     },
     "ism_modal": {
-      "mae_hz": 0.6489531562491031,
-      "mae_pct": 0.005210668338468055,
-      "recall_at_tol": 0.1282051282051282,
+      "mae_hz": 0.35437598909161283,
+      "mae_pct": 0.0027103100839226614,
+      "recall_at_tol": 0.12987012987012986,
       "n_picked": 20,
-      "n_analytical": 156,
+      "n_analytical": 154,
       "n_matched": 20,
       "n_spurious": 0
     },
     "ism_per_band": {
       "low": {
-        "mae_hz": 0.7692307692307736,
-        "recall": 0.5,
+        "mae_hz": 0.3076923076923066,
+        "recall": 0.3333333333333333,
         "n_modes": 6,
-        "n_matched": 3
-      },
-      "mid": {
-        "mae_hz": 1.2016553336995557,
-        "recall": 0.2,
-        "n_modes": 10,
         "n_matched": 2
       },
+      "mid": {
+        "mae_hz": 0.49341124810739245,
+        "recall": 0.3,
+        "n_modes": 10,
+        "n_matched": 3
+      },
       "high": {
-        "mae_hz": 0.2770405087071684,
-        "recall": 0.03158268275372605,
-        "n_modes": 2818,
-        "n_matched": 89
+        "mae_hz": 0.20681266407551244,
+        "recall": 0.03154459753444525,
+        "n_modes": 2758,
+        "n_matched": 87
       }
     },
     "analytical_self_full": {
-      "mae_hz": 0.2708778983209754,
-      "mae_pct": 0.0008492610505677687,
-      "recall_at_tol": 0.038108680310515175,
-      "n_picked": 108,
-      "n_analytical": 2834,
-      "n_matched": 108,
+      "mae_hz": 0.24062215534175352,
+      "mae_pct": 0.000693879077905301,
+      "recall_at_tol": 0.03749098774333093,
+      "n_picked": 104,
+      "n_analytical": 2774,
+      "n_matched": 104,
       "n_spurious": 0
     },
     "analytical_self_modal": {
-      "mae_hz": 0.3639068520617663,
-      "mae_pct": 0.003158732557508498,
-      "recall_at_tol": 0.14102564102564102,
+      "mae_hz": 0.3252211033563761,
+      "mae_pct": 0.0023792802616401758,
+      "recall_at_tol": 0.14285714285714285,
       "n_picked": 22,
-      "n_analytical": 156,
+      "n_analytical": 154,
       "n_matched": 22,
       "n_spurious": 0
     }

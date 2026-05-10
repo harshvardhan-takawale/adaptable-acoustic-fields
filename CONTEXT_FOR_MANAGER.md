@@ -2,13 +2,13 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk 1 — 2026-05-09
+**Last updated**: Chunk 1.5 — 2026-05-10
 
 ## Project state
 
 - **Phase**: 1 (2D shoebox sweep, 0–2 kHz, Track A — science).
-- **Chunks completed**: Chunk 0 (scaffolding) and Chunk 1 (2D simulation pipeline + dataset + noise-floor report).
-- **What exists today**: full 2D simulation pipeline (`aaf/sim/`), analytical modal reference, modal verifier (`aaf/eval/modal_verifier.py`), HDF5 dataset builder (`aaf/data/`), 15 generated room datasets in `data/track_a/`, noise-floor report in `outputs/noise_floor/`, vendored INFER reference classes in `aaf/_inference_ref/`. 32 tests pass.
+- **Chunks completed**: Chunk 0 (scaffolding), Chunk 1 (pipeline + dataset + noise-floor), Chunk 1.5 (Q9 dedup + dataset rebuild at 8192 samples + visual sanity pack).
+- **What exists today**: full 2D simulation pipeline (`aaf/sim/`), analytical modal reference with deduplicated eigenfrequencies, modal verifier (`aaf/eval/modal_verifier.py`), HDF5 dataset builder (`aaf/data/`), **15 regenerated room datasets at 2.0-second IR length** in `data/track_a/` (old 0.5-s versions backed up in `data/track_a_2048/`), updated noise-floor report in `outputs/noise_floor/`, **visual-sanity pack** (16 PDFs + INDEX + SANITY_NOTES) in `outputs/visual_sanity/`, vendored INFER reference classes in `aaf/_inference_ref/`. 40 tests pass.
 - **What does not exist**: model code (`aaf/models/`), renderer code (`aaf/renderers/`), training loop (`aaf/train/`), `ShoeboxDataset` is interface-stub only, no auto-decoder.
 - **Next chunk** (manager will write Chunk 2): expected to port the INFER renderer + model to 2D (drop spherical → circular sampling, `tcnn.Encoding(3, ...)` → `(2, ...)`) and connect to the dataset via the `ShoeboxDataset` stub. See `tasks/CHUNK_0_RESULTS.md` §6 for adaptation needs and `tasks/CHUNK_1_RESULTS.md` for the noise-floor report findings that constrain Chunk 2's eval metrics.
 
@@ -101,23 +101,29 @@ adaptable-acoustic-fields/
 - No multi-room training loop — Chunk 3.
 - No latent table / auto-decoder — Chunk 3.
 
-## Recent changes (this chunk)
+## Recent changes (this chunk — 1.5)
 
-- Vendored `AVRModel_complex_FD_FreqDep_PhaseCorrection` (lines 752-883 of `unified_models.py`) and `AVRRenderFD_FreqDep_PhaseCorrection_new` (lines 716-790 of `unified_renderers.py`) into `aaf/_inference_ref/` with provenance headers and the auto-decoder injection-point comments.
-- Wrote `aaf/sim/ism_2d.py` (pyroomacoustics 2D ISM wrapper) and `aaf/sim/analytical_modal_2d.py` (independent rigid-wall modal sum, Sabine 2D damping).
-- Wrote `aaf/eval/modal_verifier.py` (scipy.signal peak picker + scipy Hungarian matcher + stratified metrics).
-- Wrote `aaf/data/dataset_builder.py` (h5py 3.11 native complex64 storage) and `aaf/data/loader.py` (stub).
-- Wrote `configs/sweeps/{dense, sparse, extrapolation}.yaml`.
-- Wrote `scripts/build_datasets.py` and `scripts/noise_floor_report.py` plus matching SLURM scripts.
-- Wrote 5 new tests (32 total now passing).
-- Generated all 15 datasets and the noise-floor report.
-- Updated `CHUNK_1_RESULTS.md`, `DECISIONS.md` (8 new entries), `OPEN_QUESTIONS.md` (Q2/Q3/Q4/Q6/Q8 resolved, Q7 resolved, Q9 added).
+- Replaced `Mode` dataclass in `aaf/sim/analytical_modal_2d.py` with `EigenFreq(f, multiplicity, pairs)`. Added internal `_enumerate_pairs()` so `modal_rir_2d` keeps iterating individual `(n_x, n_y)` terms; the public `eigenfrequencies_2d` returns the deduplicated list (Q9 resolution).
+- `aaf/eval/modal_verifier.py` unchanged — already consumed any object with `.f`. Naturally interprets `n_analytical = len(distinct_freqs)` after dedup.
+- Bumped `n_time_samples: 2048 → 8192` in all three sweep YAMLs. Backed up old dataset to `data/track_a_2048/`; regenerated `data/track_a/` (113 MB total, 2.0 s IRs).
+- Wrote `scripts/visual_sanity.py` + `scripts/slurm/visual_sanity.sh`. Produces 15 per-room PDFs + 1 cross-room PDF + INDEX.md + SANITY_NOTES.md in `outputs/visual_sanity/`.
+- Re-ran `noise_floor_report.py` on the new dataset with dedup applied. Modal-regime recall improved (0.123 → 0.139), MAE improved (0.55 → 0.38 Hz).
+- Updated `tests/test_eigenfrequencies.py` and added `tests/test_modal_dedup.py` (8 new test functions; 40 total now passing).
+- Removed `/outputs/**/*.pdf` from `.gitignore` so the visual-sanity PDFs are tracked (they're small, useful for reviewers; PNG/SVG/JPG remain ignored).
+- Wrote `tasks/CHUNK_1_5_RESULTS.md`. Appended two `DECISIONS.md` entries (Q9 dedup convention; dataset rebuild at 8192 samples). Closed Q9 in `OPEN_QUESTIONS.md`.
+
+## Recent changes (Chunk 1)
+
+- Vendored `AVRModel_complex_FD_FreqDep_PhaseCorrection` + `AVRRenderFD_FreqDep_PhaseCorrection_new` into `aaf/_inference_ref/` (reference-only).
+- Built `aaf/sim/ism_2d.py`, `aaf/sim/analytical_modal_2d.py`, `aaf/eval/modal_verifier.py`, `aaf/data/dataset_builder.py`, `aaf/data/loader.py` (stub).
+- Wrote `configs/sweeps/{dense, sparse, extrapolation}.yaml`, `scripts/build_datasets.py`, `scripts/noise_floor_report.py`.
+- Wrote 5 tests; generated 15 HDF5 datasets; produced first noise-floor REPORT.md.
 
 ## Pointers
 
-- **Read for Chunk 2**: `tasks/CHUNK_1_RESULTS.md` (this chunk's writeup, manager input) and `outputs/noise_floor/REPORT.md` (the noise-floor analysis). Then `tasks/CHUNK_0_RESULTS.md` §6 for the 2D adaptation list.
-- Open questions: `OPEN_QUESTIONS.md`. Q1 (ray sampling) and Q9 (degenerate-mode matcher) are the Chunk-2-relevant ones; Q5 is Chunk-3. Q2/Q3/Q4/Q6/Q7/Q8 are resolved.
-- Design log: `DECISIONS.md`. Now has 14 entries.
+- **Read for Chunk 2**: `tasks/CHUNK_1_5_RESULTS.md` (latest), `outputs/noise_floor/REPORT.md`, `outputs/visual_sanity/INDEX.md` (browsable PDF index), `outputs/visual_sanity/SANITY_NOTES.md` (eyeball observations). Then `tasks/CHUNK_0_RESULTS.md` §6 for the 2D adaptation list and `tasks/CHUNK_1_RESULTS.md` for context.
+- Open questions: `OPEN_QUESTIONS.md`. Q1 (ray sampling) and Q5 (cluster partition) still open; Q5 doesn't block Chunk 2. Q2/Q3/Q4/Q6/Q7/Q8/Q9 resolved.
+- Design log: `DECISIONS.md`. Now has 16 entries.
 - Cluster how-to: `CLUSTER_INFO.md`. Default partition is `scavenger`. Always set `LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}` after `conda activate aaf`.
 
 ## How the manager can read this repo

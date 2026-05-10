@@ -42,20 +42,17 @@ C_DEFAULT = 343.0
 
 
 @dataclass
-class Mode:
-    n_x: int
-    n_y: int
-    f: float  # Hz
-
-
-def eigenfrequencies_2d(
-    L: float, W: float, c: float = C_DEFAULT, f_max: float = 2000.0
-) -> list[Mode]:
-    """Enumerate all 2D modes (n_x, n_y) with f_{n_x, n_y} ≤ f_max.
-
-    Includes the (0, 0) static mode at f=0 (degenerate; not physically
-    excited but useful for completeness checks). Sorted ascending by f.
+class EigenFreq:
+    """One distinct eigenfrequency, possibly with multiple (n_x, n_y) modes
+    sharing it (e.g., (1, 0) and (0, 1) at L=W).
     """
+    f: float                                # Hz
+    multiplicity: int                       # number of (n_x, n_y) pairs at this freq
+    pairs: list[tuple[int, int]]            # (n_x, n_y) for each contributing mode
+
+
+def _enumerate_pairs(L: float, W: float, c: float, f_max: float) -> list[tuple[int, int, float]]:
+    """Internal: every (n_x, n_y, f) with f ≤ f_max. No deduplication. Sorted by f."""
     if L <= 0 or W <= 0:
         raise ValueError(f"L and W must be positive, got L={L}, W={W}")
     if c <= 0 or f_max <= 0:
@@ -64,22 +61,53 @@ def eigenfrequencies_2d(
     n_x_max = int(np.floor(2 * f_max * L / c))
     n_y_max = int(np.floor(2 * f_max * W / c))
 
-    modes: list[Mode] = []
+    pairs: list[tuple[int, int, float]] = []
     for n_x in range(n_x_max + 1):
         for n_y in range(n_y_max + 1):
             f = (c / 2.0) * np.sqrt((n_x / L) ** 2 + (n_y / W) ** 2)
             if f <= f_max:
-                modes.append(Mode(n_x=n_x, n_y=n_y, f=float(f)))
-    modes.sort(key=lambda m: (m.f, m.n_x, m.n_y))
-    return modes
+                pairs.append((n_x, n_y, float(f)))
+    pairs.sort(key=lambda t: (t[2], t[0], t[1]))
+    return pairs
 
 
-def mode_shape(mode: Mode, x: np.ndarray, y: np.ndarray, L: float, W: float) -> np.ndarray:
+def eigenfrequencies_2d(
+    L: float,
+    W: float,
+    c: float = C_DEFAULT,
+    f_max: float = 2000.0,
+    dedup_tol_hz: float = 0.01,
+) -> list[EigenFreq]:
+    """Enumerate distinct 2D eigenfrequencies up to ``f_max``, deduplicated.
+
+    Modes that share a frequency to within ``dedup_tol_hz`` collapse into one
+    ``EigenFreq`` entry; ``multiplicity`` counts them and ``pairs`` lists the
+    underlying ``(n_x, n_y)`` tuples. The (0, 0) DC entry is included so callers
+    can drop it explicitly (it has multiplicity 1, pairs=[(0, 0)]).
+
+    Sorted by ``f`` ascending. Within an entry, ``pairs`` is sorted lexicographically.
+    """
+    raw = _enumerate_pairs(L=L, W=W, c=c, f_max=f_max)
+    out: list[EigenFreq] = []
+    for n_x, n_y, f in raw:
+        if out and abs(f - out[-1].f) <= dedup_tol_hz:
+            out[-1].pairs.append((n_x, n_y))
+            out[-1].multiplicity += 1
+        else:
+            out.append(EigenFreq(f=f, multiplicity=1, pairs=[(n_x, n_y)]))
+    for e in out:
+        e.pairs.sort()
+    return out
+
+
+def _pair_shape(
+    n_x: int, n_y: int, x: np.ndarray, y: np.ndarray, L: float, W: float
+) -> np.ndarray:
     """Φ_{n_x, n_y}(x, y) = cos(n_x π x / L) · cos(n_y π y / W).
 
     Broadcast: if x and y are arrays of equal shape, result has the same shape.
     """
-    return np.cos(mode.n_x * np.pi * x / L) * np.cos(mode.n_y * np.pi * y / W)
+    return np.cos(n_x * np.pi * x / L) * np.cos(n_y * np.pi * y / W)
 
 
 def sabine_damping_2d(L: float, W: float, alpha: float, c: float = C_DEFAULT) -> float:
@@ -131,10 +159,13 @@ def modal_rir_2d(cfg: dict) -> dict:
     n_freq_bins = n_time_samples // 2 + 1
     f_axis = np.arange(n_freq_bins) * (fs / n_time_samples)  # Hz, RFFT axis
 
-    modes = eigenfrequencies_2d(L=L, W=W, c=c, f_max=f_max_modes)
-    # Drop the trivial (0,0) mode — it has zero frequency and infinite Q under the
-    # Lorentzian, and adds a DC pole that swamps the spectrum.
-    modes = [m for m in modes if m.f > 0]
+    # Iterate over individual (n_x, n_y) modes — each contributes its own term
+    # to the modal sum, even when degenerate. The dedup'd `eigenfrequencies_2d`
+    # is the right interface for the *probe* (we want distinct freqs there);
+    # the modal sum needs the full enumeration.
+    pairs = _enumerate_pairs(L=L, W=W, c=c, f_max=f_max_modes)
+    pairs = [p for p in pairs if p[2] > 0]  # drop (0,0) DC mode
+    n_distinct_freqs = len(eigenfrequencies_2d(L=L, W=W, c=c, f_max=f_max_modes))
 
     gamma = sabine_damping_2d(L=L, W=W, alpha=alpha, c=c)  # 1/s
 
@@ -146,13 +177,12 @@ def modal_rir_2d(cfg: dict) -> dict:
     k = omega / c
     eps = 1e-12
 
-    for m in modes:
-        f_m = m.f
+    for n_x, n_y, f_m in pairs:
         k_m = 2 * np.pi * f_m / c
 
-        phi_src = mode_shape(m, np.array(src_x), np.array(src_y), L, W)
-        phi_rx = np.cos(m.n_x * np.pi * receiver_pos[:, 0] / L) * np.cos(
-            m.n_y * np.pi * receiver_pos[:, 1] / W
+        phi_src = _pair_shape(n_x, n_y, np.array(src_x), np.array(src_y), L, W)
+        phi_rx = np.cos(n_x * np.pi * receiver_pos[:, 0] / L) * np.cos(
+            n_y * np.pi * receiver_pos[:, 1] / W
         )
 
         # Lorentzian: H_m(ω) = Φ(r_tx) Φ(r_rx) / (k_m² - k² - 2 j γ k_m / c)
@@ -180,7 +210,8 @@ def modal_rir_2d(cfg: dict) -> dict:
         "c": c,
         "source_pos": source_pos.tolist(),
         "receiver_pos": receiver_pos.tolist(),
-        "n_modes": len(modes),
+        "n_modes": len(pairs),                  # individual (n_x, n_y) terms summed
+        "n_distinct_freqs": n_distinct_freqs,   # entries in dedup'd EigenFreq list
         "f_max_modes": f_max_modes,
         "gamma_sabine_2d": float(gamma),
         "T60_from_gamma": float(6.91 / gamma),

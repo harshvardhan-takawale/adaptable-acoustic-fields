@@ -201,3 +201,27 @@ Append-only log of non-trivial design choices. Newest entries at the bottom. For
 **Alternatives considered:** per-mode wall-projected damping (rejected — over-specified for a reference); zero damping (rejected — gives infinite peaks at eigenfrequencies, breaks the picker).
 
 **Revisit if:** the analytical reference's peak shapes differ noticeably from ISM beyond what Sabine over-uniformity explains (would suggest modal-specific damping matters).
+
+---
+
+## 2026-05-10: Q9 resolved — Deduplicate analytical eigenfrequencies before matching
+
+**Decision:** `eigenfrequencies_2d(L, W, c, f_max, dedup_tol_hz=0.01)` returns a list of `EigenFreq(f, multiplicity, pairs)` entries. Modes within `dedup_tol_hz` of each other collapse into one entry; the matcher computes `recall = n_matched / n_distinct_freqs`. The internal modal sum in `modal_rir_2d` still iterates over individual `(n_x, n_y)` pairs via a private `_enumerate_pairs()` helper — physics is unchanged.
+
+**Rationale:** the previous one-to-one matcher penalised L=W rooms (and any L/W rational) where multiple `(n_x, n_y)` modes share a frequency: the picker sees one peak, the matcher counts it as one match against many "modes", recall caps below 1. Distinct-frequency dedup is the cleanest fix — degenerate pairs are now correctly represented as a single physical resonance with multiplicity, and the recall metric reflects what the spectrum can actually distinguish. `dedup_tol_hz=0.01` is well below our `Δf=2 Hz` so it never accidentally merges genuinely-distinct freqs.
+
+**Alternatives considered:** many-to-one matching (rejected — would credit one peak to multiple modes, double-counting); leave matcher one-to-one and report recall stratified by L=W vs L≠W (rejected — papers over the convention rather than fixing it).
+
+**Revisit if:** dataset evolves toward generic non-rectangular geometries where the notion of "distinct mode frequency" is less well-defined.
+
+---
+
+## 2026-05-10: Dataset rebuild — `n_time_samples=8192` (2.0 s IR length)
+
+**Decision:** all sweep YAMLs use `n_time_samples=8192` at `fs=4096`, giving 2.0-second IRs. The Chunk-1 0.5-second IRs (n_time_samples=2048) were backed up to `data/track_a_2048/` for regression purposes; new dataset lives at `data/track_a/`.
+
+**Rationale:** at α=0.15, EDC-measured T60 ranges from 515 ms (L=2.5 m) to 826 ms (L=6.5 m). The old 0.5-s IRs covered ≤ 1× T60 in the smallest room and ≤ 0.6× T60 in the largest, biasing any energy-based metric (EDC slope, T60 fit, C50). 2.0-second IRs cover 1.5–2.5× T60 — comfortably above the -35 dB EDC fit window. File size doubles to ~7.85 MB per room (113 MB total dataset); negligible.
+
+**Alternatives considered:** n_time_samples=4096 (1.0 s, just barely covers T60 for the largest room — too tight); n_time_samples=16384 (4.0 s, double the storage with no benefit since the IR is already at noise floor by 1.0 s).
+
+**Revisit if:** Track B (fs=48000, where Sabine T60 should be similar but Δf is finer) requires different scaling; or if a future room family has T60 > 1.5 s.

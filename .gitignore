@@ -46,9 +46,9 @@ slurm-*.out
 .env
 *.local.yml
 
-# Generated reports — keep markdown but not images.
+# Generated reports — keep markdown and PDFs but not raster images / SVG.
+# (PDFs are small and useful for reviewers.)
 /outputs/**/*.png
-/outputs/**/*.pdf
 /outputs/**/*.svg
 /outputs/**/*.jpg
 /outputs/**/*.jpeg
