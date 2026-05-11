@@ -34,6 +34,7 @@ RUN_ORDER = [
     "R0_central", "R1_smaller_hash", "R2_larger_latent",
     "R3_no_lhead", "R4_strong_lhead", "R5_strong_l2",
     "R6_tiny_lhead", "R7_medium_hash", "R8_tiny_latent",
+    "C1_film", "C2_latent_jitter",                       # Chunk 3.6
 ]
 
 

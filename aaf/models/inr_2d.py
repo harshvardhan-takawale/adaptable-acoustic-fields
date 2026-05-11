@@ -235,18 +235,30 @@ class INR2D_AutoDecoder(nn.Module):
         sigma_encoder_dim: int = 256,
         l_head_enabled: bool = False,
         l_head_arch: str = "mlp_32",
+        conditioning_type: str = "concat",
+        latent_jitter_sigma: float = 0.0,
     ):
         super().__init__()
         if n_freq_bins <= 1:
             raise ValueError(f"n_freq_bins must be > 1, got {n_freq_bins}")
         if latent_dim <= 0:
             raise ValueError(f"latent_dim must be > 0 in INR2D_AutoDecoder, got {latent_dim}")
+        if conditioning_type not in ("concat", "film"):
+            raise ValueError(
+                f"conditioning_type must be 'concat' or 'film', got {conditioning_type!r}"
+            )
+        if float(latent_jitter_sigma) < 0:
+            raise ValueError(
+                f"latent_jitter_sigma must be >= 0, got {latent_jitter_sigma}"
+            )
         self.n_rooms = int(n_rooms)
         self.latent_dim = int(latent_dim)
         self.n_freq_bins = int(n_freq_bins)
         self.signal_output_dim = 2 * self.n_freq_bins
         self._n_time_samples = 2 * (self.n_freq_bins - 1)
         self.l_head_enabled = bool(l_head_enabled)
+        self.conditioning_type = str(conditioning_type)
+        self.latent_jitter_sigma = float(latent_jitter_sigma)
 
         hg_cfg = hash_grid_config or _default_hash_grid_config()
         mlp_cfg = mlp_config or _default_mlp_config()
@@ -259,12 +271,25 @@ class INR2D_AutoDecoder(nn.Module):
         self._dir_encoding = tcnn.Encoding(2, hg_cfg, dtype=torch.float32)
         self._tx_dir_encoding = tcnn.Encoding(2, hg_cfg, dtype=torch.float32)
 
-        # Sigma branch widened by latent_dim.
-        sigma_in_dims = (
+        # Sigma branch — concat path widens by latent_dim; FiLM path drops z_s
+        # from the cat and modulates the encoded feature instead.
+        # Sigma encoded feature (without z_s): [pos_emb, tx_pos_emb].
+        sigma_feat_dim = (
             self._pos_encoding.n_output_dims
             + self._tx_pos_encoding.n_output_dims
-            + self.latent_dim
         )
+        if self.conditioning_type == "film":
+            sigma_in_dims = sigma_feat_dim
+            # Linear(d -> 2*F) split into (gamma, beta), each F-dim. gamma is
+            # initialised to 1 (no-op) and beta to 0 so untrained FiLM is identity.
+            self.film_sigma = nn.Linear(self.latent_dim, 2 * sigma_feat_dim)
+            nn.init.zeros_(self.film_sigma.weight)
+            with torch.no_grad():
+                self.film_sigma.bias[:sigma_feat_dim].fill_(1.0)         # gamma_init=1
+                self.film_sigma.bias[sigma_feat_dim:].zero_()             # beta_init=0
+        else:
+            sigma_in_dims = sigma_feat_dim + self.latent_dim
+            self.film_sigma = None
         self._model_encoder_sigma = tcnn.Network(
             n_input_dims=sigma_in_dims,
             n_output_dims=sigma_encoder_dim,
@@ -276,15 +301,27 @@ class INR2D_AutoDecoder(nn.Module):
             network_config=mlp_cfg["sigma_decoder"],
         )
 
-        # Signal branch widened by latent_dim.
-        n_signal_input = (
+        # Signal branch — same scheme. Encoded feature (without z_s):
+        # [F.relu(sigma_feature), view_emb, tx_view_emb, signal_pos_emb, tx_signal_pos_emb].
+        signal_feat_dim = (
             sigma_encoder_dim
             + self._dir_encoding.n_output_dims
             + self._tx_dir_encoding.n_output_dims
             + self._pos_signal_encoding.n_output_dims
             + self._tx_pos_signal_encoding.n_output_dims
-            + self.latent_dim
         )
+        if self.conditioning_type == "film":
+            n_signal_input = signal_feat_dim
+            self.film_signal = nn.Linear(self.latent_dim, 2 * signal_feat_dim)
+            nn.init.zeros_(self.film_signal.weight)
+            with torch.no_grad():
+                self.film_signal.bias[:signal_feat_dim].fill_(1.0)
+                self.film_signal.bias[signal_feat_dim:].zero_()
+        else:
+            n_signal_input = signal_feat_dim + self.latent_dim
+            self.film_signal = None
+        self._sigma_feat_dim = sigma_feat_dim
+        self._signal_feat_dim = signal_feat_dim
         self._model_signal = tcnn.Network(
             n_input_dims=n_signal_input,
             n_output_dims=self.signal_output_dim,
@@ -344,11 +381,20 @@ class INR2D_AutoDecoder(nn.Module):
 
         ``room_id`` may be a Python int or a 1-D tensor of ints. Returns shape
         ``[latent_dim]`` for a scalar id or ``[B, latent_dim]`` for a 1-D batch.
+
+        When ``self.training`` AND ``self.latent_jitter_sigma > 0`` (Chunk 3.6
+        Variant C2), additive Gaussian noise is injected — this smooths the
+        loss landscape around each trained z_s so zero-shot adaptation has an
+        easier time navigating the latent-to-spectrum response surface.
         """
         if isinstance(room_id, int):
             t = torch.tensor(room_id, device=self.latents.weight.device)
-            return self.latents(t)
-        return self.latents(room_id.to(self.latents.weight.device))
+            z = self.latents(t)
+        else:
+            z = self.latents(room_id.to(self.latents.weight.device))
+        if self.training and self.latent_jitter_sigma > 0:
+            z = z + torch.randn_like(z) * self.latent_jitter_sigma
+        return z
 
     @staticmethod
     def _expand_z_s(z_s: torch.Tensor, B: int, N: int) -> torch.Tensor:
@@ -397,12 +443,17 @@ class INR2D_AutoDecoder(nn.Module):
         tx_view_flat = self._normalize_unit(tx_view.reshape(-1, 2))
         z_s_flat = self._expand_z_s(z_s, B, N).to(pts_flat.dtype)  # [B*N, latent_dim]
 
-        # Sigma branch — concat z_s with [pos_emb, tx_pos_emb].
+        # Sigma branch.
         pos_emb = self._pos_encoding(pts_flat)
         tx_pos_emb = self._tx_pos_encoding(tx_flat)
-        sigma_feature = self._model_encoder_sigma(
-            torch.cat([pos_emb, tx_pos_emb, z_s_flat], dim=-1)
-        )
+        sigma_feat = torch.cat([pos_emb, tx_pos_emb], dim=-1)       # [B*N, sigma_feat_dim]
+        if self.conditioning_type == "film":
+            gamma_beta = self.film_sigma(z_s_flat)
+            gamma_s, beta_s = gamma_beta.chunk(2, dim=-1)
+            sigma_input = gamma_s * sigma_feat + beta_s
+        else:
+            sigma_input = torch.cat([sigma_feat, z_s_flat], dim=-1)
+        sigma_feature = self._model_encoder_sigma(sigma_input)
 
         attn_raw = self._model_decoder_sigma(F.relu(sigma_feature))
         one_sided = self.n_freq_bins
@@ -410,22 +461,27 @@ class INR2D_AutoDecoder(nn.Module):
         attn_imag = attn_raw[..., one_sided:]
         attn_complex = torch.complex(attn_real, attn_imag)
 
-        # Signal branch — concat z_s with the existing five encodings.
+        # Signal branch.
         view_emb = self._dir_encoding(view_flat)
         tx_view_emb = self._tx_dir_encoding(tx_view_flat)
         signal_pos_emb = self._pos_signal_encoding(pts_flat)
         tx_signal_pos_emb = self._tx_pos_signal_encoding(tx_flat)
-        feature_all = torch.cat(
+        signal_feat = torch.cat(
             [
                 F.relu(sigma_feature),
                 view_emb,
                 tx_view_emb,
                 signal_pos_emb,
                 tx_signal_pos_emb,
-                z_s_flat,
             ],
             dim=-1,
-        )
+        )                                                           # [B*N, signal_feat_dim]
+        if self.conditioning_type == "film":
+            gamma_beta = self.film_signal(z_s_flat)
+            gamma_g, beta_g = gamma_beta.chunk(2, dim=-1)
+            feature_all = gamma_g * signal_feat + beta_g
+        else:
+            feature_all = torch.cat([signal_feat, z_s_flat], dim=-1)
 
         signal_raw = self._model_signal(feature_all)
         signal_re = signal_raw[..., :one_sided]

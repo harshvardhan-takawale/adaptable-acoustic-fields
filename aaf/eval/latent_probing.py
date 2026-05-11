@@ -57,6 +57,8 @@ def _load_train_latents(train_output_dir: Path, device: str = "cuda") -> tuple[n
     }
     l_head_enabled = float(cfg.get("l_head_weight", 0.0)) > 0
     l_head_arch = str(cfg.get("l_head_arch", "mlp_32"))
+    conditioning_type = str(cfg.get("conditioning_type", "concat"))
+    latent_jitter_sigma = float(cfg.get("latent_jitter_sigma", 0.0))
 
     model = INR2D_AutoDecoder(
         n_rooms=n_rooms,
@@ -65,6 +67,8 @@ def _load_train_latents(train_output_dir: Path, device: str = "cuda") -> tuple[n
         hash_grid_config=hg_cfg,
         l_head_enabled=l_head_enabled,
         l_head_arch=l_head_arch,
+        conditioning_type=conditioning_type,
+        latent_jitter_sigma=latent_jitter_sigma,
     ).to(device)
 
     ckpts = sorted(

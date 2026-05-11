@@ -1,0 +1,31 @@
+# Chunk-3.6 — C1: FiLM conditioning instead of concatenation.
+# Architecturally identical to R6_tiny_lhead (linear L-head, 14-bit hash, 8-D
+# latent), except z_s is injected via input-side FiLM (gamma * encoded_feat + beta)
+# rather than concatenated with the encoded features at the MLP input. The FiLM
+# generators are small (latent_dim -> 2*F) Linear layers initialised to identity
+# (gamma=1, beta=0) so the untrained model matches the concat baseline.
+# Hypothesis: low-rank affine modulation of the encoded features produces a
+# smoother latent-to-spectrum response surface, making zero-shot adaptation
+# (which navigates that surface via gradient descent on z_star) easier.
+run_id: C1_film
+data_sweep: configs/sweeps/dense.yaml
+
+log2_hashmap_size: 14
+n_levels: 14
+latent_dim: 8
+l_head_weight: 0.1
+l_head_arch: linear
+lambda_latent_l2: 1e-4
+
+conditioning_type: film
+latent_jitter_sigma: 0.0
+
+n_iters: 30000
+batch_size: 8
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+n_pts_per_ray: 32
+n_azi: 64
+val_every: 1000
+ckpt_every: 2500

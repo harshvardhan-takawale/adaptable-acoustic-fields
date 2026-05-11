@@ -1,0 +1,30 @@
+# Chunk-3.6 — C2: latent jitter during training.
+# Architecturally identical to R6_tiny_lhead (linear L-head, 14-bit hash, 8-D
+# latent), except at training time z_s is replaced with z_s + eps where
+# eps ~ N(0, 0.1^2 * I). At validation and zero-shot test time no jitter is
+# applied (gated on model.training).
+# Hypothesis: training the renderer to be robust to small perturbations of z_s
+# explicitly smooths the loss landscape around each trained latent. The "sharp
+# basin" failure mode of zero-shot adaptation should diminish.
+run_id: C2_latent_jitter
+data_sweep: configs/sweeps/dense.yaml
+
+log2_hashmap_size: 14
+n_levels: 14
+latent_dim: 8
+l_head_weight: 0.1
+l_head_arch: linear
+lambda_latent_l2: 1e-4
+
+conditioning_type: concat
+latent_jitter_sigma: 0.1
+
+n_iters: 30000
+batch_size: 8
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+n_pts_per_ray: 32
+n_azi: 64
+val_every: 1000
+ckpt_every: 2500

@@ -78,6 +78,11 @@ class MultiRoomTrainCfg:
     #   "mlp_32" — Linear(d→32) → ReLU → Linear(32→1)  (R0-R5 default)
     #   "linear" — Linear(d→1)                          (R6-R8: forces linear readability)
     l_head_arch: str = "mlp_32"
+    # Chunk-3.6: smoothness-promoting variants.
+    #   conditioning_type:    "concat" (default; R0-R8 behaviour) or "film" (C1).
+    #   latent_jitter_sigma:  if > 0, additive Gaussian noise on z_s during training (C2).
+    conditioning_type: str = "concat"
+    latent_jitter_sigma: float = 0.0
 
 
 def _losses(H_pred: torch.Tensor, H_target: torch.Tensor) -> dict:
@@ -167,6 +172,8 @@ class MultiRoomTrainer:
             hash_grid_config=hg_cfg,
             l_head_enabled=(self.cfg.l_head_weight > 0),
             l_head_arch=self.cfg.l_head_arch,
+            conditioning_type=self.cfg.conditioning_type,
+            latent_jitter_sigma=self.cfg.latent_jitter_sigma,
         ).to(self.device)
         # Per-sample true L (broadcast lookup; cached on device for fast L_lhead).
         self.L_per_sample = torch.tensor(
@@ -550,6 +557,9 @@ def main():
     ap.add_argument("--l_head_weight", type=float, default=0.0)
     ap.add_argument("--l_head_arch", type=str, default="mlp_32",
                     choices=["mlp_32", "linear"])
+    ap.add_argument("--conditioning_type", type=str, default="concat",
+                    choices=["concat", "film"])
+    ap.add_argument("--latent_jitter_sigma", type=float, default=0.0)
     args = ap.parse_args()
 
     if args.config:
@@ -572,6 +582,8 @@ def main():
             lambda_latent=float(d.get("lambda_latent_l2", 1e-4)),
             l_head_weight=float(d.get("l_head_weight", 0.0)),
             l_head_arch=str(d.get("l_head_arch", "mlp_32")),
+            conditioning_type=str(d.get("conditioning_type", "concat")),
+            latent_jitter_sigma=float(d.get("latent_jitter_sigma", 0.0)),
         )
     else:
         if not args.sweep or not args.output_dir:
@@ -590,6 +602,8 @@ def main():
             lambda_latent=args.lambda_latent_l2,
             l_head_weight=args.l_head_weight,
             l_head_arch=args.l_head_arch,
+            conditioning_type=args.conditioning_type,
+            latent_jitter_sigma=args.latent_jitter_sigma,
         )
 
     trainer = MultiRoomTrainer(sweep_yaml=sweep_yaml, output_dir=out_dir, cfg=cfg)
