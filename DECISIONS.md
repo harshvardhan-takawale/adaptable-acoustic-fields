@@ -409,3 +409,49 @@ R0/R6/R7/R8 ran on tron RTX 2080 Ti (~1:55 each). R1-R5 ran on scavenger TITAN X
 **Verification:** `tests/test_early_stop.py` exercises the helper with 5 controlled scenarios (warmup-gated, plateau, improving, missing-history, first-eligible). The smoke test on L=4.5 confirmed val logging at iter 500/1000/1500/2000 and the early-stop check correctly returned "continue" at iter 2500 (improving).
 
 **Revisit if:** Chunk 3 finds the auto-decoder needs longer training to differentiate per-room latents (likely — multi-room conditioning is harder than single-room overfit) and the warmup/patience need rebalancing.
+
+---
+
+## 2026-05-11: Band-limited LSD is the standard zero-shot eval going forward
+
+**Decision:** every future zero-shot run reports band-limited LSDs (modal 0-250 Hz, transition 250-500 Hz, diffuse 500-2000 Hz, full 0-2000 Hz) alongside the existing full-band held LSD. `aaf.eval.zero_shot.zero_shot_adapt` now writes both `metrics.json` (full + the four band metrics inline under `band_metrics_held` / `band_metrics_obs`) and a sibling `band_limited_metrics.json` (just the bands, for ergonomics). `aaf/eval/band_limited.py` exposes `compute_band_limited_metrics(H_pred, H_target, fs, n_freq_bins, bands) -> dict` and `DEFAULT_BANDS`.
+
+**Rationale:** Chunk-3.5 zero-shot full-band LSDs (5.2-5.9 dB) were uniform across architecturally-diverse runs and visual inspection of overlays suggested the modal regime was tracking correctly. Track A confirmed this quantitatively: modal LSD is ~1.7 dB lower than full across R0/R6/R7/R8 (3.54-3.69 vs 5.27-5.57 dB), demonstrating the failure is *not* uniform across frequency. Reporting only full-band hides the partial win and conflates physically-distinct regimes (sparse modes vs diffuse density). The 0-250 Hz cutoff is conservative — Schroeder frequency for L=4.5, W=4 m at α=0.15 is ~210 Hz; the modal regime is dominated by isolated eigenmodes and is what the analytical 2-D Helmholtz solution covers.
+
+**Alternatives considered:** keep full-band only (rejected — masked the modal-regime success); octave bands (rejected — overkill for the meeting story; can be added later); per-receiver grouping (rejected — receivers are already collapsed in the existing LSD definition).
+
+**Verification:** `tests/test_band_limited_lsd.py` injects a known +6 dB magnitude offset only in the 250-500 Hz band of a synthetic H_pred and asserts (a) the 250-500 Hz LSD comes back at 6.00 ± 0.05 dB, (b) the other bands are < 0.05 dB, (c) the full-band LSD is the expected weighted average (~0.75 dB).
+
+**Revisit if:** future analysis decides we want octave-band breakdowns or perceptually-weighted (A-weighted) LSDs.
+
+---
+
+## 2026-05-11: FiLM conditioning uses input-side γ·feat + β with γ-init=1, β-init=0
+
+**Decision:** when `INR2D_AutoDecoder` is built with `conditioning_type='film'`:
+- The sigma branch input becomes `γ_σ(z_s) · concat(pos_emb, tx_pos_emb) + β_σ(z_s)` (z_s is dropped from the cat). The signal branch input is built the same way: `γ_g(z_s) · concat(F.relu(σ_feature), view_emb, tx_view_emb, signal_pos_emb, tx_signal_pos_emb) + β_g(z_s)`.
+- The FiLM generators are single `nn.Linear(latent_dim, 2*F)` whose output is split via `chunk(2, dim=-1)` into γ (first F) and β (last F). F is computed dynamically from the encoders' `n_output_dims` and matches the dim that would be concatenated under `'concat'` (without z_s).
+- Weights are initialised to 0 and bias to `[1,...,1, 0,...,0]` so γ=1, β=0 at construction → identity modulation (FiLM doesn't perturb the encoded features until the generator weights move).
+- The tcnn `n_input_dims` shrinks by `latent_dim` in the FiLM path so the fused MLP sees only the (modulated) encoded feature, not z_s.
+
+**Rationale:** the natural design of "true FiLM" — applying γ/β between every hidden layer of an MLP — is **infeasible** with our `sigma_mlp` and `signal_mlp` because they're tcnn `FullyFusedMLP`/`CutlassMLP` (fused CUDA kernels with no Python access to intermediates). The tractable design is to FiLM at the **encoded-feature input** of each tcnn block. The hypothesis (smoother latent-to-spectrum response surface → easier zero-shot adaptation) still holds: FiLM modulates the high-rank encoded features through a low-rank affine transform, which is more constrained than the concat path's "anything-goes" first layer. Initialising to identity means the model trains from a well-defined neutral starting point that matches the concat baseline's statistical behaviour at iter 0 (modulo the fact that the tcnn MLP itself is a different fresh network).
+
+**Alternatives considered:** output-side FiLM on the tcnn block's outputs (rejected — modulation acts on a representation already produced without knowing about z, even less expressive than input-side); replacing the tcnn MLPs with torch `nn.Sequential` to enable per-layer FiLM (rejected — ~3-5× slower training, breaks the overnight budget for Chunk 3.6); both input-side AND output-side FiLM (rejected for now — adds parameters without a clear reason to expect a 2× gain).
+
+**Verification:** `tests/test_film_conditioning.py` asserts (a) the FiLM generators have output dim `2*F` matching the encoded-feature dim, (b) the tcnn MLPs' `n_input_dims` shrink by `latent_dim`, (c) γ/β at init are exactly 1/0, (d) gradients flow through the FiLM generators on a forward+backward pass, (e) `conditioning_type='bogus'` raises.
+
+**Revisit if:** C1 underperforms R6 zero-shot — in that case we'd test (a) replacing tcnn with torch MLPs to enable per-layer FiLM despite the speed hit, (b) hyper-networks (z → MLP weights) as a more expressive alternative.
+
+---
+
+## 2026-05-11: Latent jitter applies inside `get_latent`, gated on `self.training`
+
+**Decision:** `INR2D_AutoDecoder.get_latent(room_id)` returns `embedding(room_id) + N(0, σ²I)` when `self.training and self.latent_jitter_sigma > 0`, and the unperturbed embedding otherwise. The default `latent_jitter_sigma=0.0` preserves Chunk-3.5 behaviour exactly. C2 sets it to 0.1 (small relative to ‖z_s‖ ≈ 2-3).
+
+**Rationale:** the failure mode identified in Chunk 3.5 is that the model's latent-to-spectrum response surface has steep curvature outside the trained-latent neighbourhood, so the inner-loop optimiser can't navigate it. Training the decoder to be robust to small perturbations of z_s explicitly smooths that surface around each trained z_s — making zero-shot adaptation an interpolation problem rather than an extrapolation one. Putting the noise inside `get_latent` (not in the trainer's `_step`) means: (a) it composes naturally with the L-head loss (which now sees jittered z_s and so learns to be jitter-robust too — desirable); (b) it's automatically OFF in `validate()` and at zero-shot time because both call `model.eval()`, satisfying the "deterministic at test time" requirement without ad-hoc gating.
+
+**Alternatives considered:** add jitter in `_step` after `z_s = model.get_latent(...)` (rejected — splits the jitter logic across two files); use `nn.Dropout` on z_s (rejected — multiplicative noise has different properties than additive Gaussian and isn't what the literature recommends for representation smoothing); learn σ as a parameter (rejected — adds optimisation surface without clear benefit at this scale).
+
+**Verification:** `tests/test_latent_jitter.py` asserts (a) train mode + σ=0.5 produces different `get_latent` outputs across calls, (b) eval mode + σ=0.5 is deterministic, (c) σ=0.0 is deterministic even in train mode, (d) σ<0 raises.
+
+**Revisit if:** C2 destabilises training (σ=0.1 may be too large vs early-training ‖z_s‖) — in that case we'd anneal σ from 0 to 0.1 across the warmup, or scale σ by `‖z_s‖` to make it relative.

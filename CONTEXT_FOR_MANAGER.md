@@ -2,14 +2,15 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk 3.5 / 3.5+ partial — 2026-05-10
+**Last updated**: Chunk 3.6 in flight — 2026-05-11
 
 ## Project state
 
 - **Phase**: 1 (2D shoebox sweep, 0–2 kHz, Track A — science).
-- **Chunks completed**: Chunks 0/1/1.5/2/3 plus **Chunk 3.5/3.5+ (capacity-reduced retrain + L-head + 9-config sweep R0-R8)**. R0/R6/R7/R8 fully complete; R1-R5 still training on slow scavenger TITAN X nodes (~3 h to go).
-- **What exists today**: everything prior plus `INR2D_AutoDecoder.l_head` (linear OR mlp_32 architectures), the 9 sweep YAML configs, `scripts/sweep_smoke_check.py` + `scripts/addendum_smoke.py`, `scripts/sweep_summary.py`, and `scripts/run_chunk3_5_sweep.sh` + `scripts/run_chunk3_5_addendum.sh` orchestrators. **4 fully-complete sweep runs on disk** (R0/R6/R7/R8) with train_meta + scalars + 6 zero-shot dirs each + latent probes; partial cross-sweep `outputs/multi_room/sweep/SWEEP_SUMMARY.md` + 4 headline figures. **95 tests pass.**
-- **Headline Chunk-3.5/3.5+ result (4 of 9 runs)**: per-training-room reconstruction met the ≤ 1.5 dB target on most rooms (1.29-1.70 dB val LSD) but **zero-shot at unseen L still fails** (held-out LSD 5.21-5.91 dB across all 4 runs; 0/6 unseen L below the 2 dB target). The L-head + smaller hash + smaller latent did NOT fix zero-shot. The latent probe shows R6's train latents almost-monotonic with L (linear L-head IS shaping z_s) but **zero-shot z_star tensors collapse to one region of latent space regardless of true L** — the inner-loop adaptation is the new bottleneck, not the latent geometry. See `tasks/CHUNK_3_5_RESULTS.md` for the full analysis + concrete next-iteration paths.
+- **Chunks completed**: Chunks 0/1/1.5/2/3 plus **Chunk 3.5/3.5+ (R0-R8 sweep)** plus **Chunk 3.6 in flight (band-limited eval + 6 inner-loop variants + FiLM/latent-jitter retrains)**. R0/R6/R7/R8 fully complete; R1-R5 still finishing on scavenger; Chunk 3.6 Track A (band-limited recompute) **landed**, Tracks B (36 variant ZS jobs) and C (C1 FiLM + C2 latent-jitter retrains on tron, plus their ZS evals) are queued / running.
+- **What exists today (Chunk 3.6 additions)**: `aaf/eval/band_limited.py` (band-LSD pure functions); `aaf/eval/zero_shot_variants.py` (SimplexLatent + B1-B6 dispatch); `INR2D_AutoDecoder.conditioning_type ∈ {'concat','film'}` + `latent_jitter_sigma`; generalised `aaf/eval/zero_shot.py` (variable n_obs_receivers, init_strategy, n_restarts, multi-restart, integrated band-limited metrics, saves H_pred_all.pt); `configs/sweep/C{1,2}_*.yaml`; `scripts/{band_limited_recompute,track_a_summary,zero_shot_variant,track_b_summary,zero_shot_with_best_variant,chunk_3_6_final_summary}.py` + matching SLURM wrappers + `scripts/run_chunk3_6.sh` orchestrator (~68 jobs). **121 tests pass.**
+- **Headline Chunk-3.6 Track A result**: modal regime (0-250 Hz) zero-shot LSD is significantly better than full-band across R0/R6/R7/R8 (3.54-3.69 dB modal vs 5.27-5.57 dB full), but still **0/24 (run, L) below the 2 dB modal target**. The visual impression that the modal regime tracks correctly is directionally right (~30% LSD improvement), but the gap to the meeting bar is still ~1.5 dB; Tracks B and C must close it. See `outputs/multi_room/sweep/band_limited_summary.md`.
+- **Headline Chunk-3.5/3.5+ result (4 of 9 runs)**: per-training-room reconstruction met the ≤ 1.5 dB target on most rooms (1.29-1.70 dB val LSD) but **zero-shot at unseen L fails uniformly** (full-band held-out LSD 5.21-5.91 dB across R0/R6/R7/R8; 0/6 unseen L below 2 dB). The L-head + smaller hash + smaller latent did NOT fix zero-shot; the latent probe shows R6's train latents almost-monotonic with L (linear L-head IS shaping z_s) but zero-shot z_star tensors collapse to one region of latent space regardless of true L — **inner-loop adaptation is the bottleneck, not latent geometry**. See `tasks/CHUNK_3_5_RESULTS.md`.
 - **What does not exist**: model code (`aaf/models/`), renderer code (`aaf/renderers/`), training loop (`aaf/train/`), `ShoeboxDataset` is interface-stub only, no auto-decoder.
 - **Next chunk** (manager will write Chunk 2): expected to port the INFER renderer + model to 2D (drop spherical → circular sampling, `tcnn.Encoding(3, ...)` → `(2, ...)`) and connect to the dataset via the `ShoeboxDataset` stub. See `tasks/CHUNK_0_RESULTS.md` §6 for adaptation needs and `tasks/CHUNK_1_RESULTS.md` for the noise-floor report findings that constrain Chunk 2's eval metrics.
 
@@ -108,7 +109,22 @@ adaptable-acoustic-fields/
 - `aaf/_inference_ref/`: vendored INFER classes; reference-only, parse-checked but not runnable on the cluster (uses `.cuda()` at module init).
 - No `auraloss` or perceptual loss wired in — deferred to Phase 4.
 
-## Recent changes (this chunk — 3.5 / 3.5+)
+## Recent changes (this chunk — 3.6, in flight)
+
+- Added `aaf/eval/band_limited.py` (`compute_band_limited_metrics`, `band_indices`, `DEFAULT_BANDS`). LSD per band computed as ``mean |20*log10(|H_pred|/|H_target|)|`` over receivers and the bins inside the band.
+- Generalised `aaf/eval/zero_shot.py`:
+  - Removed the `n_obs_receivers != 8 → NotImplementedError` guard; added `select_obs_indices()` (n=8 keeps the existing 3×3-minus-centre pattern; n=32 uses a checkerboard half of the 8×8 grid; otherwise linspace).
+  - Added params `init_strategy ∈ {random, nearest_train, simplex}`, `n_restarts`, `random_seed`. Multi-restart inner loop keeps the lowest-obs-LSD winner.
+  - Saves `H_pred_all.pt` (additive, ~2 MB) and a separate `band_limited_metrics.json` next to the existing `metrics.json` for every future zero-shot run.
+  - Reads `conditioning_type`, `latent_jitter_sigma` from `train_meta` with `.get(... default)` for backward compat.
+- Added `INR2D_AutoDecoder.conditioning_type ∈ {'concat','film'}` and `latent_jitter_sigma`. FiLM is **input-side** (γ·encoded_feat + β before the tcnn block) because tcnn `FullyFusedMLP`/`CutlassMLP` are fused kernels and don't expose intermediate features. γ initialised to 1, β to 0 for identity at construction. Latent jitter is `z + N(0, σ²I)` inside `get_latent`, gated on `self.training` so eval/zero-shot are deterministic.
+- Plumbed both new model knobs through `MultiRoomTrainCfg`, the YAML loader, and the CLI. Updated `aaf/eval/latent_probing.py` to read them with backward-compat defaults.
+- Added `aaf/eval/zero_shot_variants.py`: `SimplexLatent` module (z_star = softmax(logits) @ Z_train) and `variant_kwargs(B1..B6)` dispatch table.
+- Wrote 6 scripts + matching SLURM wrappers + `scripts/run_chunk3_6.sh` (~68-job orchestrator). Track A produces `outputs/multi_room/sweep/band_limited_summary.md` + a 4-panel band-LSD figure; Track B summary picks the inner-loop winner; final summary writes `tasks/CHUNK_3_6_RESULTS.md` and refreshes `SWEEP_SUMMARY.md` to include C1, C2.
+- Wrote 4 new tests; updated `test_sweep_configs.py` to discover `C*.yaml` and to compute `expected_sigma_in` per `conditioning_type`. 121 tests pass.
+- **Track A landed**: modal regime (0-250 Hz) zero-shot LSD is ~1.7 dB better than full-band across R0/R6/R7/R8 — but still 3.5-3.7 dB modal mean (target ≤ 2 dB), so 0/24 (run, L) below the meeting threshold. Tracks B and C still in flight.
+
+## Recent changes (Chunk 3.5 / 3.5+)
 
 - Added `INR2D_AutoDecoder.l_head` (Chunk-3.5) with two architectures: `mlp_32` (Linear→ReLU→Linear, R0-R5 default) and `linear` (Chunk-3.5+ addendum: single `nn.Linear(d, 1)` for the strongest inductive bias toward 1-D latent manifold, used by R6/R7/R8). Aux loss term `l_head_weight · L1(predict_L(z_s), L_true)` added to `MultiRoomTrainer`. Backward-compat preserved: Chunk-3 train_meta files load via `.get(... default)`.
 - Added `--config <yaml>` CLI to `aaf.train.multi_room`; sweep configs in `configs/sweep/R{0..8}_*.yaml` carry per-run hyperparameters (hash size, n_levels, latent_dim, l_head_weight, l_head_arch, λ_latent_l2). Trainer's `train_meta.json` records all sweep params.
@@ -164,10 +180,11 @@ adaptable-acoustic-fields/
 
 ## Pointers
 
-- **Read for next chunk**: `tasks/CHUNK_3_5_RESULTS.md` (latest, contains the full ablation analysis + §11 next-iteration recommendations), `outputs/multi_room/sweep/SWEEP_SUMMARY.md` (cross-run table + 4 headline figures), `outputs/multi_room/sweep/R6_tiny_lhead/latent_probe/figures/latent_pca_1d.png` (the diagnostic that shows train latents trending monotonic with L while test latents collapse to one region — this is the load-bearing image for understanding the failure).
-- Open questions: `OPEN_QUESTIONS.md`. Q10 (HashGrid resize) was answered by Chunk 3.5 (yes, but doesn't fix zero-shot). Q11 (new): which inner-loop adaptation strategy unblocks zero-shot?
-- Design log: `DECISIONS.md`. Now has 32 entries (3 added in 3.5+: linear L-head architecture; sweep design; final-config decision).
-- Cluster how-to: `CLUSTER_INFO.md`. Tron RTX 2080 Ti (~5× scavenger TITAN X) is the right place for training; scavenger for evals. Pipeline drivers: `scripts/run_chunk3_5_sweep.sh` + `scripts/run_chunk3_5_addendum.sh`.
+- **Read first** (Chunk 3.6): `outputs/multi_room/sweep/band_limited_summary.md` (Track A — modal/transition/diffuse LSD per run), `outputs/inner_loop_experiments/SUMMARY.md` (Track B winner; created when the 36 variant ZS jobs finish), `tasks/CHUNK_3_6_RESULTS.md` (final writeup; created by the chunk's last SLURM job).
+- **Background**: `tasks/CHUNK_3_5_RESULTS.md` (full failure-mode analysis from R0/R6/R7/R8), `outputs/multi_room/sweep/SWEEP_SUMMARY.md` (R0-R8 cross-run table + headline figures), `outputs/multi_room/sweep/R6_tiny_lhead/latent_probe/figures/latent_pca_1d.png` (the diagnostic showing train latents almost-monotonic with L while zero-shot z_star collapses).
+- Open questions: `OPEN_QUESTIONS.md`. Q10 (HashGrid resize) closed by 3.5. Q11 (inner-loop unblock) is partly answered by Track B once it lands.
+- Design log: `DECISIONS.md`. 35 entries after Chunk 3.6 (band-limited eval as standard; FiLM-on-encoded-features design choice; latent jitter at training time only).
+- Cluster how-to: `CLUSTER_INFO.md`. Tron RTX 2080 Ti for training; scavenger for evals. Pipeline drivers: `scripts/run_chunk3_5_sweep.sh`, `scripts/run_chunk3_5_addendum.sh`, **`scripts/run_chunk3_6.sh`** (current).
 
 ## How the manager can read this repo
 
