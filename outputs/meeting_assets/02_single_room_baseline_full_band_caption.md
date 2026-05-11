@@ -1,0 +1,1 @@
+Single-room overfit model — ISM (black) vs predicted (orange) spectra at the room center for L=4.5 m. Top panel covers 0-2000 Hz; bottom panel zooms to 0-500 Hz. Analytical eigenfrequencies marked as small ticks along the bottom. Modal MAE in the 0-250 Hz band: 0.58 Hz.

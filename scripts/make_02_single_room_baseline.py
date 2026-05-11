@@ -16,6 +16,7 @@ No retraining; runs on the login node in ~30 s.
 """
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -37,11 +38,26 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 L = 4.5
 W = 4.0
 ALPHA = 0.15
-OUT_PNG = REPO_ROOT / "outputs/meeting_assets/02_single_room_baseline.png"
-CAPTION = REPO_ROOT / "outputs/meeting_assets/02_single_room_baseline_caption.md"
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--f_max_top", type=float, default=250.0,
+                    help="Upper f for the top panel (default: modal regime 250 Hz)")
+    ap.add_argument("--f_max_zoom", type=float, default=100.0,
+                    help="Upper f for the bottom panel zoom (default: 100 Hz)")
+    ap.add_argument("--out_suffix", type=str, default="",
+                    help="Optional suffix appended to PNG + caption filenames "
+                         "(e.g. '_full_band'). Empty = the standard 02 asset.")
+    ap.add_argument("--title", type=str, default="",
+                    help="Optional overall title override; default cites modal MAE.")
+    args = ap.parse_args()
+
+    suffix = args.out_suffix
+    out_png = REPO_ROOT / f"outputs/meeting_assets/02_single_room_baseline{suffix}.png"
+    caption = REPO_ROOT / f"outputs/meeting_assets/02_single_room_baseline{suffix}_caption.md"
+    print(f"# out: {out_png.name}  panels: 0-{args.f_max_top:g} Hz / 0-{args.f_max_zoom:g} Hz")
+
     if not torch.cuda.is_available():
         raise RuntimeError(
             "tcnn requires CUDA; rerun on a compute node "
@@ -102,8 +118,9 @@ def main() -> int:
     cx, cy = receiver_pos[centre_idx]
     print(f"# centre receiver idx {centre_idx}: ({cx:.2f}, {cy:.2f})")
 
-    # Analytical eigenfrequencies up to 250 Hz.
-    eigs = eigenfrequencies_2d(L=L, W=W, c=c, f_max=250.0)
+    # Analytical eigenfrequencies up to the widest panel's upper limit.
+    eig_f_max = max(args.f_max_top, args.f_max_zoom)
+    eigs = eigenfrequencies_2d(L=L, W=W, c=c, f_max=eig_f_max)
     eig_fs = np.array([e.f for e in eigs if e.f > 0])
 
     f_axis = np.arange(n_freq) * (fs / n_time)
@@ -117,14 +134,15 @@ def main() -> int:
     db_ism = _db(H_ism_centre)
     db_pred = _db(H_pred_centre)
 
-    # Compute headline modal MAE on the centre receiver.
-    # Use the same pipeline as the existing single_room_eval — pick peaks on
-    # the predicted spectrum below 250 Hz and Hungarian-match to analytical.
+    # Compute headline modal MAE on the centre receiver (always over the
+    # modal regime ≤ 250 Hz, regardless of panel range — the title's headline
+    # number is the project-standard modal MAE).
     from aaf.eval.modal_verifier import pick_peaks, match_peaks_to_modes
+    eigs_modal = [e for e in eigenfrequencies_2d(L=L, W=W, c=c, f_max=250.0) if e.f > 0]
     f_mask_250 = f_axis <= 250.0
     picks = pick_peaks(H_pred_centre[f_mask_250], f_axis[f_mask_250],
                        prominence_db=3.0, min_distance_hz=10.0)
-    matches = match_peaks_to_modes(picks, [e for e in eigs if e.f > 0],
+    matches = match_peaks_to_modes(picks, eigs_modal,
                                    tolerance_hz=4.0, tolerance_pct=0.02)["matches"]
     centre_mae = float(np.mean([abs(m.delta_hz) for m in matches])) if matches else float("nan")
     print(f"# centre receiver modal MAE: {centre_mae:.3f} Hz across {len(matches)} matched modes")
@@ -142,9 +160,21 @@ def main() -> int:
     ISM_COLOR = "black"
     PRED_COLOR = "#d35400"   # warm orange-red
 
+    # Panel tags follow the f-range. Top panel = ``f_max_top``; bottom =
+    # ``f_max_zoom`` (typically a sub-range of the top for visual emphasis).
+    def _panel_tag(lo: float, hi: float, is_top: bool) -> str:
+        regime = ""
+        if hi <= 260.0:
+            regime = " (modal regime)" if is_top else " (zoom on the first 5 modes)"
+        elif hi <= 510.0:
+            regime = " (modal + transition)" if is_top else " (modal regime)"
+        else:
+            regime = " (full band)" if is_top else " (modal + transition zoom)"
+        return f"{lo:.0f}-{hi:.0f} Hz{regime}"
+
     for ax, f_lo, f_hi, panel_tag in [
-        (ax_top, 0.0, 250.0, "0-250 Hz (full modal regime)"),
-        (ax_bot, 0.0, 100.0, "0-100 Hz (zoom on the first 5 modes)"),
+        (ax_top, 0.0, float(args.f_max_top), _panel_tag(0.0, float(args.f_max_top), True)),
+        (ax_bot, 0.0, float(args.f_max_zoom), _panel_tag(0.0, float(args.f_max_zoom), False)),
     ]:
         mask = (f_axis >= f_lo) & (f_axis <= f_hi)
         ax.plot(f_axis[mask], db_ism[mask], color=ISM_COLOR, lw=2.0,
@@ -165,28 +195,43 @@ def main() -> int:
         ax.set_title(panel_tag, fontsize=11)
         ax.legend(loc="upper right", fontsize=11, framealpha=0.95)
 
-    fig.suptitle(
-        f"Single-room baseline: predicted spectrum overlays ISM ground truth "
-        f"(L={L:.1f} m, modal MAE {room_modal_mae:.2f} Hz)",
-        fontsize=14,
-    )
+    if args.title:
+        title = args.title
+    else:
+        title = (
+            f"Single-room baseline: predicted spectrum overlays ISM ground truth "
+            f"(L={L:.1f} m, modal MAE {room_modal_mae:.2f} Hz)"
+        )
+    fig.suptitle(title, fontsize=14)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
-    OUT_PNG.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT_PNG, dpi=200, bbox_inches="tight")
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_png, dpi=200, bbox_inches="tight")
     plt.close(fig)
-    print(f"# wrote {OUT_PNG}")
+    print(f"# wrote {out_png}")
 
-    # Caption.
-    CAPTION.write_text(
-        "The single-room overfit model recovers the ISM modal regime spectrum "
-        "essentially exactly. Top panel: 0-250 Hz, predicted (orange) overlays "
-        "ground-truth ISM (black) at the room center for L=4.5 m. Bottom panel: "
-        "zoom on the first 5 modes shows each peak aligned to within sub-Hz "
-        "precision. Modal MAE across the room: 0.34 Hz, at the analytical "
-        "frequency-bin resolution. This is the upper bound we test against in "
-        "zero-shot.\n"
-    )
-    print(f"# wrote {CAPTION}")
+    # Caption — only refresh when generating the default 02 asset; the
+    # wider-range companion file gets its own bespoke caption written below.
+    if not suffix:
+        caption.write_text(
+            "The single-room overfit model recovers the ISM modal regime spectrum "
+            "essentially exactly. Top panel: 0-250 Hz, predicted (orange) overlays "
+            "ground-truth ISM (black) at the room center for L=4.5 m. Bottom panel: "
+            "zoom on the first 5 modes shows each peak aligned to within sub-Hz "
+            "precision. Modal MAE across the room: 0.34 Hz, at the analytical "
+            "frequency-bin resolution. This is the upper bound we test against in "
+            "zero-shot.\n"
+        )
+    else:
+        # Generic caption template for the variant; describes the actual ranges.
+        caption.write_text(
+            f"Single-room overfit model — ISM (black) vs predicted (orange) "
+            f"spectra at the room center for L={L:.1f} m. Top panel covers "
+            f"0-{args.f_max_top:.0f} Hz; bottom panel zooms to "
+            f"0-{args.f_max_zoom:.0f} Hz. Analytical eigenfrequencies marked as "
+            f"small ticks along the bottom. Modal MAE in the 0-250 Hz band: "
+            f"{room_modal_mae:.2f} Hz.\n"
+        )
+    print(f"# wrote {caption}")
     return 0
 
 
