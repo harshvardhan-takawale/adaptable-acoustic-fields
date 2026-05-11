@@ -39,7 +39,12 @@ class SimplexLatent(nn.Module):
         if Z_train.dim() != 2:
             raise ValueError(f"Z_train must be 2-D [n_train, latent_dim], got {Z_train.shape}")
         self.register_buffer("Z_train", Z_train.detach().clone())
-        self.logits = nn.Parameter(torch.zeros(Z_train.size(0), dtype=Z_train.dtype))
+        # logits MUST live on the same device as Z_train, otherwise the forward
+        # `w @ self.Z_train` raises (softmax(logits) ends up on whichever device
+        # logits is on, and that has to match Z_train).
+        self.logits = nn.Parameter(
+            torch.zeros(Z_train.size(0), dtype=Z_train.dtype, device=Z_train.device)
+        )
 
     @property
     def latent_dim(self) -> int:
@@ -78,7 +83,11 @@ def variant_kwargs(variant: str) -> dict[str, Any]:
     if variant == "B3":
         return {**base, "n_adapt_iters": 10000}
     if variant == "B4":
-        return {**base, "n_restarts": 10}
+        # n_restarts=5 (not 10) because the 90-min scavenger wall fits ~5×10min
+        # restarts comfortably; 10 restarts would TIMEOUT and discard ALL work
+        # (the function writes the winner only after the full restart loop).
+        # 5 is still a meaningful test of multi-basin behaviour.
+        return {**base, "n_restarts": 5}
     if variant == "B5":
         return {**base, "init_strategy": "nearest_train"}
     if variant == "B6":

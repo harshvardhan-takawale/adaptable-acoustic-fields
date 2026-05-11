@@ -60,7 +60,7 @@ def test_variant_kwargs_dispatch_table():
     base = variant_kwargs("B1")
     assert variant_kwargs("B2")["n_obs_receivers"] == 32
     assert variant_kwargs("B3")["n_adapt_iters"] == 10000
-    assert variant_kwargs("B4")["n_restarts"] == 10
+    assert variant_kwargs("B4")["n_restarts"] == 5
     assert variant_kwargs("B5")["init_strategy"] == "nearest_train"
     assert variant_kwargs("B6")["init_strategy"] == "simplex"
 
