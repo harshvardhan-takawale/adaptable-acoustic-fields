@@ -9,7 +9,7 @@ Each asset has a corresponding `*_caption.md` with an honest,
 | Asset | Status |
 |---|---|
 | `01_phase_1_recap.png` | generated |
-| `02_single_room_baseline.png` | copied |
+| `02_single_room_baseline.png` | already-present (≥ 1500 px) |
 | `03_multi_room_training.png` | generated |
 | `04_zero_shot_modal_tracking.png` | already-present |
 | `05_spatial_nodes_grid.png` | copied |

@@ -121,27 +121,49 @@ def main():
         "investigates).\n")
     asset_status["01_phase_1_recap.png"] = "generated"
 
-    # 02 — single-room baseline (Chunk 2). Use any single-room overfit modal-tracking
-    # figure if it exists. Fall back to copying the multi-room dense L=4.5 best one.
-    candidates_02 = [
-        REPO_ROOT / "outputs/single_room/figures/modal_tracking_L4.5.png",
-        REPO_ROOT / "outputs/single_room/L4.5/figures/modal_tracking.png",
-        REPO_ROOT / "outputs/multi_room/dense/figures/modal_tracking.png",
-    ]
-    placed_02 = False
-    for src in candidates_02:
-        if _maybe_copy(src, out / "02_single_room_baseline.png"):
-            placed_02 = True
-            break
-    if placed_02:
-        _write_caption(out / "02_single_room_baseline_caption.md",
-            "**Single-room baseline (Chunk 2).** Modal-tracking on the per-room "
-            "overfit shows modal MAE of 0.34–0.58 Hz, confirming the renderer + "
-            "complex-attenuation model can fit individual rooms. This is the "
-            "lowest-error result we have; it sets the upper bound on what the "
-            "shared multi-room model can achieve on its training rooms.\n")
-        asset_status["02_single_room_baseline.png"] = "copied"
+    # 02 — single-room baseline (Chunk 2). Chunk 3.9 generates a 2-panel
+    # ISM-vs-predicted overlay at L=4.5 m directly into the destination via
+    # `scripts/make_02_single_room_baseline.py` at presentation resolution
+    # (≥ 1500 px on the long edge). If that's already on disk, leave it; the
+    # caption was written by the make_02 script too. Otherwise fall back to
+    # the legacy chunk-2 modal_tracking copy.
+    dst_02 = out / "02_single_room_baseline.png"
+    presentation_02 = False
+    if dst_02.exists():
+        try:
+            from PIL import Image
+            w, h = Image.open(dst_02).size
+            if max(w, h) >= 1500:
+                presentation_02 = True
+                asset_status["02_single_room_baseline.png"] = "already-present (≥ 1500 px)"
+        except Exception:
+            pass
+    if presentation_02:
+        # Don't touch the caption — make_02_single_room_baseline.py wrote the
+        # current spec-verbatim text.
+        placed_02 = True
     else:
+        candidates_02 = [
+            REPO_ROOT / "outputs/single_room/figures/modal_tracking_L4.5.png",
+            REPO_ROOT / "outputs/single_room/L4.5/figures/modal_tracking.png",
+            REPO_ROOT / "outputs/multi_room/dense/figures/modal_tracking.png",
+        ]
+        placed_02 = False
+        for src in candidates_02:
+            if _maybe_copy(src, dst_02):
+                placed_02 = True
+                break
+        if placed_02:
+            _write_caption(out / "02_single_room_baseline_caption.md",
+                "**Single-room baseline (Chunk 2).** Modal-tracking on the per-room "
+                "overfit shows modal MAE of 0.34–0.58 Hz, confirming the renderer + "
+                "complex-attenuation model can fit individual rooms. This is the "
+                "lowest-error result we have; it sets the upper bound on what the "
+                "shared multi-room model can achieve on its training rooms.\n")
+            asset_status["02_single_room_baseline.png"] = "copied (legacy chunk-2 modal_tracking)"
+    if placed_02 and not presentation_02:
+        pass
+    elif not placed_02:
         asset_status["02_single_room_baseline.png"] = "missing"
 
     # 03 — multi-room training fit.

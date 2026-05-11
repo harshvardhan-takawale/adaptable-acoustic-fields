@@ -84,6 +84,10 @@ test-time adaptation (8-receiver observation, 2K-step latent inference).*
 - Latent jitter during training smooths the latent-to-spectrum mapping,
   which is what makes test-time adaptation work.
 - The full pipeline is end-to-end differentiable and runs on a single GPU.
+- At inference time, two paths into the system: from observations
+  (inner-loop latent optimization, our Phase 1 evaluation) or from
+  known geometry (direct latent lookup on the manifold). Phase 1 tests
+  the harder, observation-based route.
 
 **Exact numbers ready**:
 - Latent dim: 8.
@@ -186,6 +190,11 @@ variation. PC1-vs-L R² = 0.987.*
   not the latent's ability to represent the room.
 - Chunk 3.6 was the first chunk where this happened (R² > 0.7 target was
   hit for C1 and C2 only); the 9 R-runs all had R² in [-0.32, +0.40].
+- Smooth latent manifold means two adaptation routes: (a) optimize the
+  latent from sparse acoustic observations, which is what Phase 1
+  demonstrates and is the harder problem; (b) given a known room
+  geometry, look up the latent on the manifold directly. Both are made
+  possible by what's shown here.
 
 **Exact numbers ready**:
 - C1 FiLM: PC1-vs-L R² = 0.987 (best of any run).
