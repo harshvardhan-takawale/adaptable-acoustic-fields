@@ -70,6 +70,14 @@ class MultiRoomTrainCfg:
     early_stop_min_rel_improvement: float = 0.01
     seed: int = 0
     latent_dim: int = 32
+    # Chunk-3.5 sweep additions:
+    log2_hashmap_size: int = 18                  # HashGrid hash table size (default INFER)
+    n_levels: int = 20                           # HashGrid pyramid levels (default INFER)
+    l_head_weight: float = 0.0                   # auxiliary L1(predict_L(z_s), L_true); 0 disables
+    # Chunk-3.5+ addendum: which L-head architecture to use.
+    #   "mlp_32" — Linear(d→32) → ReLU → Linear(32→1)  (R0-R5 default)
+    #   "linear" — Linear(d→1)                          (R6-R8: forces linear readability)
+    l_head_arch: str = "mlp_32"
 
 
 def _losses(H_pred: torch.Tensor, H_target: torch.Tensor) -> dict:
@@ -143,11 +151,28 @@ class MultiRoomTrainer:
             [it["room_id"] for it in items], dtype=torch.long, device=self.device
         )
 
+        # Build per-run HashGrid config from sweep params.
+        hg_cfg = {
+            "otype": "HashGrid",
+            "n_levels": self.cfg.n_levels,
+            "n_features_per_level": 2,
+            "log2_hashmap_size": self.cfg.log2_hashmap_size,
+            "base_resolution": 16,
+            "per_level_scale": 1.5,
+        }
         self.model = INR2D_AutoDecoder(
             n_rooms=self.n_rooms,
             latent_dim=self.cfg.latent_dim,
             n_freq_bins=self.n_freq_bins,
+            hash_grid_config=hg_cfg,
+            l_head_enabled=(self.cfg.l_head_weight > 0),
+            l_head_arch=self.cfg.l_head_arch,
         ).to(self.device)
+        # Per-sample true L (broadcast lookup; cached on device for fast L_lhead).
+        self.L_per_sample = torch.tensor(
+            [self.dataset.room_id_to_L[int(r)] for r in self.room_ids_all.tolist()],
+            dtype=torch.float32, device=self.device,
+        )
         self.renderer = FreqRenderer2D(
             n_azi=self.cfg.n_azi,
             n_pts_per_ray=self.cfg.n_pts_per_ray,
@@ -324,11 +349,20 @@ class MultiRoomTrainer:
                 + w_a * losses["L_amp"]
                 + w_p * losses["L_phase"]
                 + cfg.lambda_latent * l_latent
-            ) / accum
+            )
+            l_lhead_val = 0.0
+            if cfg.l_head_weight > 0:
+                L_pred = self.model.predict_L(z_s)
+                L_true = self.L_per_sample[idx]
+                l_lhead = F.l1_loss(L_pred, L_true)
+                loss = loss + cfg.l_head_weight * l_lhead
+                l_lhead_val = float(l_lhead.detach())
+            loss = loss / accum
             loss.backward()
             accum_metrics.append({
                 "loss": float(loss.detach() * accum),
                 "L_latent": float(l_latent.detach()),
+                "L_lhead": l_lhead_val,
                 **{k: float(v.detach()) for k, v in losses.items()},
             })
 
@@ -391,6 +425,17 @@ class MultiRoomTrainer:
             losses = _losses(H_pred_all, H_target_all)
             agg = _full_band_metrics(H_pred_all, H_target_all)
             latent_norms = self.model.latents.weight.norm(dim=-1).detach().cpu().numpy()
+            extras = {}
+            if self.cfg.l_head_weight > 0 and self.model.l_head is not None:
+                # L-head val MAE: predict L for each room, compare to true L.
+                z_table = self.model.latents.weight                    # [n_rooms, latent_dim]
+                L_pred = self.model.predict_L(z_table).detach().cpu().numpy()  # [n_rooms]
+                L_true = np.array(
+                    [self.dataset.room_id_to_L[i] for i in range(self.n_rooms)],
+                    dtype=np.float32,
+                )
+                extras["L_lhead"] = float(np.mean(np.abs(L_pred - L_true)))
+                extras["L_lhead_max_err"] = float(np.max(np.abs(L_pred - L_true)))
             return {
                 **{k: float(v) for k, v in losses.items()},
                 **agg,
@@ -398,6 +443,7 @@ class MultiRoomTrainer:
                 "latent_norm_mean": float(np.mean(latent_norms)),
                 "latent_norm_min": float(np.min(latent_norms)),
                 "latent_norm_max": float(np.max(latent_norms)),
+                **extras,
             }
         finally:
             self.model.train()
@@ -466,25 +512,87 @@ class MultiRoomTrainer:
               f"wall={time.time()-t0:.1f}s output={self.output_dir}")
 
 
+def _load_sweep_yaml(path: str) -> dict:
+    """Load a Chunk-3.5 sweep hyperparameter YAML (e.g. configs/sweep/R0_central.yaml).
+
+    Returns the raw dict; MUST contain ``data_sweep`` (path to dataset sweep YAML) and
+    a ``run_id``. All other fields override MultiRoomTrainCfg defaults.
+    """
+    import yaml as _yaml
+    with open(path) as f:
+        d = _yaml.safe_load(f)
+    if "data_sweep" not in d or "run_id" not in d:
+        raise ValueError(
+            f"sweep YAML {path} must contain `data_sweep` and `run_id` keys"
+        )
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--sweep", type=str, required=True)
-    ap.add_argument("--output_dir", type=str, required=True)
+    # Two ways to invoke: (a) Chunk-3-style with --sweep and explicit args; (b) Chunk-3.5
+    # sweep with --config pointing at a hyperparameter YAML that bundles everything.
+    ap.add_argument("--config", type=str, default=None,
+                    help="path to a Chunk-3.5 hyperparameter YAML (configs/sweep/R*.yaml)")
+    ap.add_argument("--sweep", type=str, default=None,
+                    help="path to dataset sweep YAML (configs/sweeps/dense.yaml). Required "
+                         "unless --config is given (which carries it via data_sweep).")
+    ap.add_argument("--output_dir", type=str, default=None)
     ap.add_argument("--n_iters", type=int, default=30_000)
     ap.add_argument("--batch_size", type=int, default=16)
     ap.add_argument("--grad_accum_steps", type=int, default=1)
     ap.add_argument("--n_pts_per_ray", type=int, default=32)
     ap.add_argument("--n_azi", type=int, default=64)
+    ap.add_argument("--latent_dim", type=int, default=32)
+    ap.add_argument("--log2_hashmap_size", type=int, default=18)
+    ap.add_argument("--n_levels", type=int, default=20)
+    ap.add_argument("--lambda_latent_l2", type=float, default=1e-4)
+    ap.add_argument("--l_head_weight", type=float, default=0.0)
+    ap.add_argument("--l_head_arch", type=str, default="mlp_32",
+                    choices=["mlp_32", "linear"])
     args = ap.parse_args()
 
-    cfg = MultiRoomTrainCfg(
-        n_iters=args.n_iters,
-        batch_size=args.batch_size,
-        grad_accum_steps=args.grad_accum_steps,
-        n_pts_per_ray=args.n_pts_per_ray,
-        n_azi=args.n_azi,
-    )
-    trainer = MultiRoomTrainer(sweep_yaml=args.sweep, output_dir=args.output_dir, cfg=cfg)
+    if args.config:
+        d = _load_sweep_yaml(args.config)
+        sweep_yaml = d.get("data_sweep", "configs/sweeps/dense.yaml")
+        out_dir = args.output_dir or f"outputs/multi_room/sweep/{d['run_id']}"
+        cfg = MultiRoomTrainCfg(
+            n_iters=int(d.get("n_iters", 30_000)),
+            batch_size=int(d.get("batch_size", 16)),
+            grad_accum_steps=int(d.get("grad_accum_steps", 1)),
+            n_azi=int(d.get("n_azi", 64)),
+            n_pts_per_ray=int(d.get("n_pts_per_ray", 32)),
+            lr_network=float(d.get("lr_network", 2e-4)),
+            lr_latent=float(d.get("lr_latent", 1e-3)),
+            val_every=int(d.get("val_every", 1_000)),
+            ckpt_every=int(d.get("ckpt_every", 2_500)),
+            latent_dim=int(d.get("latent_dim", 32)),
+            log2_hashmap_size=int(d.get("log2_hashmap_size", 18)),
+            n_levels=int(d.get("n_levels", 20)),
+            lambda_latent=float(d.get("lambda_latent_l2", 1e-4)),
+            l_head_weight=float(d.get("l_head_weight", 0.0)),
+            l_head_arch=str(d.get("l_head_arch", "mlp_32")),
+        )
+    else:
+        if not args.sweep or not args.output_dir:
+            ap.error("either --config or both (--sweep + --output_dir) required")
+        sweep_yaml = args.sweep
+        out_dir = args.output_dir
+        cfg = MultiRoomTrainCfg(
+            n_iters=args.n_iters,
+            batch_size=args.batch_size,
+            grad_accum_steps=args.grad_accum_steps,
+            n_pts_per_ray=args.n_pts_per_ray,
+            n_azi=args.n_azi,
+            latent_dim=args.latent_dim,
+            log2_hashmap_size=args.log2_hashmap_size,
+            n_levels=args.n_levels,
+            lambda_latent=args.lambda_latent_l2,
+            l_head_weight=args.l_head_weight,
+            l_head_arch=args.l_head_arch,
+        )
+
+    trainer = MultiRoomTrainer(sweep_yaml=sweep_yaml, output_dir=out_dir, cfg=cfg)
     trainer.train()
 
 

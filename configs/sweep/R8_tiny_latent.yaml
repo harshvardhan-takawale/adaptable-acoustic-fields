@@ -1,0 +1,24 @@
+# Chunk-3.5+ addendum — R8: linear L-head + tiny latent (2-D).
+# Extreme latent bottleneck: 2 dimensions literally cannot encode 7
+# orthogonal one-hot codes, forcing the auto-decoder to find a smooth
+# parameterisation. Highest-upside, lowest-fit run. If this works, it's the
+# cleanest "we learned 1-D physics from 2-D latent" story for the meeting.
+run_id: R8_tiny_latent
+data_sweep: configs/sweeps/dense.yaml
+
+log2_hashmap_size: 14
+n_levels: 14
+latent_dim: 2
+l_head_weight: 0.1
+l_head_arch: linear
+lambda_latent_l2: 1e-4
+
+n_iters: 30000
+batch_size: 8
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+n_pts_per_ray: 32
+n_azi: 64
+val_every: 1000
+ckpt_every: 2500

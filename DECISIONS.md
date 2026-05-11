@@ -309,6 +309,48 @@ Append-only log of non-trivial design choices. Newest entries at the bottom. For
 
 ---
 
+## 2026-05-10: Chunk 3.5/3.5+ — auxiliary L-head architecture: `mlp_32` default + `linear` addendum
+
+**Decision:** the `INR2D_AutoDecoder` class supports two L-head architectures via `l_head_arch`:
+- `"mlp_32"` (default): `Linear(d→32) → ReLU → Linear(32→1)`. Used by Chunk-3.5 R0-R5.
+- `"linear"`: `Linear(d→1)`. Used by Chunk-3.5+ addendum R6/R7/R8.
+
+The MLP head is expressive enough to fit `L_predicted` to ANY encoding of `z_s` and so doesn't directly constrain `z_s` to be smooth in L. The linear head forces `z_s` to be linearly readable as L, which IS a structural constraint. Both are exercised in the sweep so we can compare empirically.
+
+**Rationale:** the Chunk-3.5 progress check identified the mlp_32 head as a confound: a sub-millimetre `L_lhead` val MAE doesn't prove `z_s` learned geometry, only that the head can read L from whatever `z_s` ended up being. The linear head closes this loophole.
+
+**Empirical outcome (R0 vs R6 ablation, both on tron RTX 2080 Ti, otherwise identical):** R6 train latents become almost monotonic in PC1 vs L (slope -0.70 vs R0's -0.54); R6 zero-shot mean held LSD is marginally better (5.30 vs 5.42 dB) but **still nowhere near the 2 dB target** — the linear L-head shapes training latents but doesn't unblock zero-shot adaptation. See `tasks/CHUNK_3_5_RESULTS.md` §9 for the full ablation table.
+
+**Revisit if:** future work changes the inner-loop adaptation strategy (the actual bottleneck per Chunk 3.5+ analysis); the L-head architecture choice may matter differently then.
+
+---
+
+## 2026-05-10: Chunk 3.5/3.5+ — 6+3 hyperparameter sweep design
+
+**Decision:** the auto-decoder retrain after Chunk-3's failure was structured as a **9-run hyperparameter sweep**, not a single re-train at one new configuration:
+- Chunk-3.5 R0-R5: central bet (R0) + 5 single-axis ablations (smaller hash, larger latent, no L-head, stronger L-head, stronger L2).
+- Chunk-3.5+ R6-R8: linear L-head variants (R6 = R0 with linear head; R7 = R6 + medium hash; R8 = R6 + tiny 2-D latent).
+
+R0/R6/R7/R8 ran on tron RTX 2080 Ti (~1:55 each). R1-R5 ran on scavenger TITAN X (~5-6 h each).
+
+**Rationale:** rather than commit to one architectural fix and risk another failure mode hidden in our assumptions, sweep around the central bet so the data tells us which axes matter. The 9-run cost is small (~16 GPU-hours total across tron + scavenger). The diagnostic value of the ablations is high: comparing R0 vs R6 isolates the L-head architecture; R6 vs R7 isolates hash size; R6 vs R8 isolates latent dimensionality.
+
+**Outcome:** the sweep produced a **conclusive negative result**: all 4 complete runs (R0/R6/R7/R8) fail zero-shot at 5.21-5.91 dB held-out LSD. None of the architectural axes we varied moved the needle on zero-shot. The bottleneck is in the inner-loop adaptation, not the latent geometry. Without the sweep, we wouldn't have known this; we'd have re-tested only one new config (R0) and concluded its L-head was insufficient — actually all four head/capacity/dim combinations fail equivalently.
+
+**Revisit if:** future iterations need to sweep around different hyperparameters (e.g., inner-loop adaptation strategies). The sweep infrastructure (orchestrator, summary, per-config YAMLs, headline-figure rendering) is reusable.
+
+---
+
+## 2026-05-10: Chunk 3.5/3.5+ — final-config decision (no usable best config)
+
+**Decision:** none of the 4 fully-complete sweep runs (R0/R6/R7/R8) meet the meeting bar (held-out LSD ≤ 2 dB on ≥ 4/6 unseen L, PC1-vs-L R² > 0.7, intrinsic_dim ≤ 3). The "best" by spec priority order (count below 2 dB → mean LSD → R² → train LSD) is R6_tiny_lhead by tie-break (R6 mean 5.30 dB vs R0 5.42, R7 5.59, R8 5.44 — but all sit at 0/6 below the 2 dB threshold). R6 is therefore the recommendation **for diagnostic purposes only** — its `latent_pca_1d` figure is the cleanest visual of "the L-head shapes train latents but zero-shot collapses anyway".
+
+**Rationale for not picking a config to ship:** all 4 architectures fail the meeting bar uniformly. Picking one as "the result" would misrepresent the chunk; the negative finding is itself the result.
+
+**Revisit when:** a future chunk addresses the inner-loop adaptation bottleneck (more observed receivers, multi-restart inner adaptation, longer inner loop, latent-hull-constrained adaptation per `tasks/CHUNK_3_5_RESULTS.md` §11). At that point a NEW best-config decision is needed using whichever architecture the inner-loop fix is implemented around.
+
+---
+
 ## 2026-05-10: Chunk 3 — keep INFER's HashGrid capacity; revisit after meeting the headline target
 
 **Decision:** for the Chunk-3 dense-sweep auto-decoder run, keep INFER's HashGrid defaults (`log2_hashmap_size=18, n_levels=20, n_features_per_level=2`). Mitigations: small L2 reg on z_s (`λ_latent = 1e-4`) + latent-rank PCA diagnostic in eval.

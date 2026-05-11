@@ -1,0 +1,17 @@
+batch_size: 8
+ckpt_every: 200
+data_sweep: configs/sweeps/dense.yaml
+grad_accum_steps: 2
+l_head_arch: linear
+l_head_weight: 0.1
+lambda_latent_l2: 1e-4
+latent_dim: 8
+log2_hashmap_size: 14
+lr_latent: 1e-3
+lr_network: 2e-4
+n_azi: 64
+n_iters: 200
+n_levels: 14
+n_pts_per_ray: 32
+run_id: _smoke_addendum_R6
+val_every: 100

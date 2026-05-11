@@ -46,10 +46,25 @@ def _load_train_latents(train_output_dir: Path, device: str = "cuda") -> tuple[n
     n_freq_bins = int(cfg["n_time_samples"]) // 2 + 1
     Ls_train = list(train_meta["L_list"])
 
+    # Match the trained architecture exactly (Chunk 3.5 sweep configs vary HashGrid + L-head).
+    hg_cfg = {
+        "otype": "HashGrid",
+        "n_levels": int(cfg.get("n_levels", 20)),
+        "n_features_per_level": 2,
+        "log2_hashmap_size": int(cfg.get("log2_hashmap_size", 18)),
+        "base_resolution": 16,
+        "per_level_scale": 1.5,
+    }
+    l_head_enabled = float(cfg.get("l_head_weight", 0.0)) > 0
+    l_head_arch = str(cfg.get("l_head_arch", "mlp_32"))
+
     model = INR2D_AutoDecoder(
         n_rooms=n_rooms,
         latent_dim=int(cfg["latent_dim"]),
         n_freq_bins=n_freq_bins,
+        hash_grid_config=hg_cfg,
+        l_head_enabled=l_head_enabled,
+        l_head_arch=l_head_arch,
     ).to(device)
 
     ckpts = sorted(

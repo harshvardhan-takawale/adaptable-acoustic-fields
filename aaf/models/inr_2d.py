@@ -233,6 +233,8 @@ class INR2D_AutoDecoder(nn.Module):
         hash_grid_config: Optional[dict] = None,
         mlp_config: Optional[dict] = None,
         sigma_encoder_dim: int = 256,
+        l_head_enabled: bool = False,
+        l_head_arch: str = "mlp_32",
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -244,6 +246,7 @@ class INR2D_AutoDecoder(nn.Module):
         self.n_freq_bins = int(n_freq_bins)
         self.signal_output_dim = 2 * self.n_freq_bins
         self._n_time_samples = 2 * (self.n_freq_bins - 1)
+        self.l_head_enabled = bool(l_head_enabled)
 
         hg_cfg = hash_grid_config or _default_hash_grid_config()
         mlp_cfg = mlp_config or _default_mlp_config()
@@ -292,9 +295,49 @@ class INR2D_AutoDecoder(nn.Module):
         self.latents = nn.Embedding(self.n_rooms, self.latent_dim)
         nn.init.normal_(self.latents.weight, mean=0.0, std=1.0 / math.sqrt(self.latent_dim))
 
+        # Optional auxiliary L-prediction head (Chunk-3.5): adds an inductive bias
+        # forcing z_s to encode room length L, mitigating Chunk-3's latent-collapse
+        # failure mode. The head is consulted only when the trainer's
+        # cfg.l_head_weight > 0 (loss term), or as a sanity check at zero-shot time.
+        # Two architectures supported (Chunk-3.5+):
+        #   "mlp_32": Linear(d→32) → ReLU → Linear(32→1) — expressive (R0-R5 default).
+        #   "linear": Linear(d→1) — forces z_s to be linearly readable as L,
+        #             which is the strongest inductive bias toward a 1-D manifold
+        #             (R6-R8).
+        self.l_head_arch = str(l_head_arch)
+        if self.l_head_enabled:
+            if self.l_head_arch == "mlp_32":
+                self.l_head = nn.Sequential(
+                    nn.Linear(self.latent_dim, 32),
+                    nn.ReLU(),
+                    nn.Linear(32, 1),
+                )
+            elif self.l_head_arch == "linear":
+                self.l_head = nn.Linear(self.latent_dim, 1)
+            else:
+                raise ValueError(
+                    f"Unknown l_head_arch={self.l_head_arch!r}; "
+                    "must be 'mlp_32' or 'linear'."
+                )
+        else:
+            self.l_head = None
+
     @staticmethod
     def _normalize_unit(x: torch.Tensor) -> torch.Tensor:
         return (x + 1.0) * 0.5
+
+    def predict_L(self, z_s: torch.Tensor) -> Optional[torch.Tensor]:
+        """Predict L (m) from a [B, latent_dim] latent.
+
+        Returns ``[B]`` predicted L values, or ``None`` if no L-head is wired.
+        Consumed by the trainer when ``cfg.l_head_weight > 0`` and (optionally)
+        by zero-shot eval as a physical-meaning sanity check.
+        """
+        if self.l_head is None:
+            return None
+        if z_s.dim() == 1:
+            z_s = z_s.unsqueeze(0)
+        return self.l_head(z_s).squeeze(-1)
 
     def get_latent(self, room_id: Union[int, torch.Tensor]) -> torch.Tensor:
         """Look up the learnable latent for one or more training rooms.

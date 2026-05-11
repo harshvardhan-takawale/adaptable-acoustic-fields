@@ -1,0 +1,23 @@
+# Chunk-3.5+ addendum — R7: linear L-head + medium hash.
+# Safety net if R6's smaller hash (14 bits) is too constrained for adequate
+# per-room fit. 16-bit hash (4× R6) but still 4× smaller than Chunk 3's 18-bit.
+# Combines linear L-head with more spatial capacity.
+run_id: R7_medium_hash
+data_sweep: configs/sweeps/dense.yaml
+
+log2_hashmap_size: 16
+n_levels: 16
+latent_dim: 8
+l_head_weight: 0.1
+l_head_arch: linear
+lambda_latent_l2: 1e-4
+
+n_iters: 30000
+batch_size: 8
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+n_pts_per_ray: 32
+n_azi: 64
+val_every: 1000
+ckpt_every: 2500

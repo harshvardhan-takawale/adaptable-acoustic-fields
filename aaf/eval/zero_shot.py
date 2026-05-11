@@ -73,16 +73,35 @@ def _losses(H_pred: torch.Tensor, H_target: torch.Tensor) -> dict:
 
 
 def _load_trained_model(train_output_dir: Path, device: str = "cuda") -> tuple[INR2D_AutoDecoder, dict]:
-    """Load the latest checkpoint into a fresh INR2D_AutoDecoder."""
+    """Load the latest checkpoint into a fresh INR2D_AutoDecoder.
+
+    Reads HashGrid + L-head settings from ``train_meta.json["cfg"]`` so the
+    rebuilt model matches the architecture used at training. Uses ``.get(...)``
+    defaults so Chunk-3 train_meta files (which lack these keys) still load.
+    """
     train_meta = json.loads((train_output_dir / "train_meta.json").read_text())
     n_rooms = int(train_meta["n_rooms"])
     cfg = train_meta["cfg"]
     n_freq_bins = int(cfg["n_time_samples"]) // 2 + 1
 
+    hg_cfg = {
+        "otype": "HashGrid",
+        "n_levels": int(cfg.get("n_levels", 20)),
+        "n_features_per_level": 2,
+        "log2_hashmap_size": int(cfg.get("log2_hashmap_size", 18)),
+        "base_resolution": 16,
+        "per_level_scale": 1.5,
+    }
+    l_head_enabled = float(cfg.get("l_head_weight", 0.0)) > 0
+    l_head_arch = str(cfg.get("l_head_arch", "mlp_32"))
+
     model = INR2D_AutoDecoder(
         n_rooms=n_rooms,
         latent_dim=int(cfg["latent_dim"]),
         n_freq_bins=n_freq_bins,
+        hash_grid_config=hg_cfg,
+        l_head_enabled=l_head_enabled,
+        l_head_arch=l_head_arch,
     ).to(device)
 
     ckpts = sorted(
@@ -267,6 +286,14 @@ def zero_shot_adapt(
         "z_star_norm": float(z_star.detach().norm()),
         "loss_curve_first_last": [loss_curve[0], loss_curve[-1]] if loss_curve else [],
     }
+    # L-head sanity check: if the model has an L-head, predict L from z_star and
+    # compare to the true target L. If the latent encodes L well, prediction
+    # error should be small (tens of cm at most).
+    if model.l_head is not None:
+        with torch.no_grad():
+            L_pred = float(model.predict_L(z_star.detach().unsqueeze(0)).item())
+        metrics["lhead_predicted_L"] = L_pred
+        metrics["lhead_L_error_m"] = float(abs(L_pred - L))
     (output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
     (output_dir / "loss_curve.json").write_text(json.dumps(loss_curve, indent=2))
 

@@ -1,0 +1,2 @@
+Chunk-3.5+ addendum smoke failed:
+  - L_lhead trended down or already small: 4.001 → 4.669

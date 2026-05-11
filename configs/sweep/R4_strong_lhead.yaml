@@ -1,0 +1,21 @@
+# Chunk-3.5 sweep — R4: strong L-head. Ablation of R0's L-head weight.
+# Hypothesis: 10× the L-head pressure forces z_s to track L more strongly,
+# at potential cost of spectral reconstruction quality.
+run_id: R4_strong_lhead
+data_sweep: configs/sweeps/dense.yaml
+
+log2_hashmap_size: 14
+n_levels: 14
+latent_dim: 8
+l_head_weight: 1.0
+lambda_latent_l2: 1e-4
+
+n_iters: 30000
+batch_size: 8
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+n_pts_per_ray: 32
+n_azi: 64
+val_every: 1000
+ckpt_every: 2500
