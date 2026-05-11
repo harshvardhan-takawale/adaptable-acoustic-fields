@@ -78,7 +78,14 @@ def _track_c_block(sweep_root: Path, run_id: str, Ls) -> str:
         if vals:
             train_lsd = f"{vals[-1].get('lsd_db', float('nan')):.2f}"
 
-    b1_rows = _load_zs_metrics(run_dir, Ls, subdir="zero_shot")  # C1/C2 baseline
+    # B1 baseline for C1/C2 lives under outputs/inner_loop_experiments/B1/<run>/L*/
+    # (the orchestrator submits B1 via zero_shot_variant.sh, not the legacy
+    # outputs/multi_room/sweep/<run>/zero_shot/ path). Fall back to legacy path
+    # if the variant-style path is empty (preserves backward compat with the
+    # auto-generated R-run hierarchy).
+    b1_var_dir = sweep_root.parent / "inner_loop_experiments" / "B1" / run_id
+    b1_rows = _load_zs_metrics(b1_var_dir, Ls, subdir=".") if b1_var_dir.exists() \
+              else _load_zs_metrics(run_dir, Ls, subdir="zero_shot")
     # The Track-B-winner output dir is zero_shot_<variant>/
     best_dirs = sorted(
         [d for d in run_dir.glob("zero_shot_*") if d.is_dir()],
