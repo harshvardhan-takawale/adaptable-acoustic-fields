@@ -96,29 +96,47 @@ def main():
         lines.append(f"  - per-L grid at `L{L}/figures/all_modes_overview.png`")
     (out_root / "SUMMARY.md").write_text("\n".join(lines))
 
-    # Heatmap figure.
-    fig, ax = plt.subplots(figsize=(1.3 * len(Ls_sorted) + 2, 0.35 * len(all_mode_keys) + 1.5))
+    # Heatmap figure. Chunk 3.8: dpi and figsize bumped for presentation use
+    # (≥ 1920 px on the long edge). Added an explicit contour at the 0.7
+    # GREEN/RED threshold so the meeting cutoff is visible.
+    fig, ax = plt.subplots(figsize=(11.0, 7.0))
     masked = np.ma.masked_invalid(corr_matrix)
     im = ax.imshow(masked, aspect="auto", cmap="RdYlGn", vmin=0, vmax=1)
     ax.set_xticks(range(len(Ls_sorted)))
-    ax.set_xticklabels([f"{L:.2f}" for L in Ls_sorted], rotation=0)
+    ax.set_xticklabels([f"{L:.2f}" for L in Ls_sorted], rotation=0, fontsize=11)
     ax.set_yticks(range(len(all_mode_keys)))
-    ax.set_yticklabels([f"({nx},{ny})" for nx, ny in all_mode_keys], fontsize=8)
-    ax.set_xlabel("Unseen L (m)")
-    ax.set_ylabel("Mode (n_x, n_y)")
-    ax.set_title("Spatial Pearson correlation: predicted vs ISM at first 6 modes per L")
-    plt.colorbar(im, ax=ax, fraction=0.04, pad=0.04)
+    ax.set_yticklabels([f"({nx},{ny})" for nx, ny in all_mode_keys], fontsize=11)
+    ax.set_xlabel("Unseen L (m)", fontsize=12)
+    ax.set_ylabel("Mode (n_x, n_y)", fontsize=12)
+    ax.set_title(
+        "Spatial pressure-field correlation at unseen room lengths\n"
+        "(predicted vs ISM, first 6 modes per room)", fontsize=12,
+    )
+    cbar = plt.colorbar(im, ax=ax, fraction=0.04, pad=0.04)
+    cbar.set_label("Pearson correlation (complex)", fontsize=11)
     # Annotate cells with values.
     for i in range(len(all_mode_keys)):
         for j in range(len(Ls_sorted)):
             v = corr_matrix[i, j]
             if not np.isnan(v):
                 ax.text(j, i, f"{v:.2f}", ha="center", va="center",
-                        fontsize=8, color="black" if 0.3 < v < 0.7 else "white")
+                        fontsize=10, color="black" if 0.3 < v < 0.7 else "white")
+    # GREEN/RED threshold contour at 0.7 — the V0 PASS bar.
+    if np.any(~np.isnan(corr_matrix)):
+        try:
+            cs = ax.contour(
+                np.arange(len(Ls_sorted)), np.arange(len(all_mode_keys)),
+                np.ma.filled(masked, np.nan),
+                levels=[0.7], colors="black", linewidths=1.5,
+            )
+            ax.clabel(cs, fmt={0.7: "0.7"}, fontsize=10, inline=True)
+        except Exception:
+            # Contour fails if there's no isoline through valid cells; OK to skip.
+            pass
     fig_dir = out_root / "figures"
     fig_dir.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    fig.savefig(fig_dir / "correlation_matrix.png", dpi=120, bbox_inches="tight")
+    fig.savefig(fig_dir / "correlation_matrix.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
     print(f"# wrote {out_root/'SUMMARY.md'}")
     print(f"# wrote {fig_dir/'correlation_matrix.png'}")

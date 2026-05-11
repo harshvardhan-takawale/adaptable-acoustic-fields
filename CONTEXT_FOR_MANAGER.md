@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk 3.7 complete — 2026-05-11
+**Last updated**: Chunk 3.8 complete — meeting deck finalised — 2026-05-11
 
 ## Project state
 
@@ -110,7 +110,32 @@ adaptable-acoustic-fields/
 - `aaf/_inference_ref/`: vendored INFER classes; reference-only, parse-checked but not runnable on the cluster (uses `.cuda()` at module init).
 - No `auraloss` or perceptual loss wired in — deferred to Phase 4.
 
-## Recent changes (this chunk — 3.7, complete)
+## Recent changes (this chunk — 3.8, complete)
+
+- **Meeting deck finalised** at `outputs/meeting_assets/` with 10-slide
+  narrative + per-slide reviewer Q&A in
+  [`outputs/meeting_assets/DECK_NARRATIVE.md`](outputs/meeting_assets/DECK_NARRATIVE.md).
+- **Polished three core visuals** to presentation resolution (≥ 1920 px on
+  the long edge): 04 modal-tracking (added the required subtitle "Matched
+  modes only (31/139)..."), 05 spatial-nodes-grid (added 0.7 threshold
+  contour overlay), 06 latent-manifold (regenerated from `latent_probe.json`
+  at 1977×1179 with R² = 0.987 annotated prominently).
+- **Two new visuals**: 05a (`05a_spatial_modes_L5_25.png`, 2365×1725) — the
+  six-mode ISM-vs-predicted headliner at L=5.25 m; 08
+  (`08_progress_trajectory.png`, 2018×1171) — pure-modal LSD trajectory
+  across Chunks 3/3.5/3.6/3.7 (3.70 → 3.66 → 3.51 → 2.55 dB).
+- **Caption honesty audit**: all 9 captions verified. Audio demo caveat
+  updated to the spec's verbatim phrasing ("qualitative, full-band LSD
+  ~4-5 dB; demo shows smooth latent morphing, not faithful reconstruction").
+- **New post-processing scripts**: `scripts/make_05a_spatial_modes.py`,
+  `scripts/make_06_latent_manifold.py`, `scripts/make_08_trajectory.py`.
+  Modifications to `scripts/modal_tracking_plot.py`,
+  `scripts/spatial_nodes_summary.py`, `scripts/assemble_meeting_assets.py`.
+- **No retraining, no new SLURM jobs.** Pure post-processing on existing
+  Chunk-3.7 artefacts. Full asset checklist in
+  [`tasks/CHUNK_3_8_RESULTS.md`](tasks/CHUNK_3_8_RESULTS.md).
+
+## Recent changes (Chunk 3.7, complete)
 
 - **V0 spatial-node alignment check** at L=4.25 produced GREEN: all 6 first eigenfrequencies have complex spatial Pearson correlation ≥ 0.84 between predicted and ISM pressure fields on the 8×8 grid. V1 extended to the other 5 unseen L; ALL 6 L GREEN (6/6 modes ≥ 0.7 per L; mean correlation 0.86-0.94).
 - **V2 modal-tracking**: 31 matched analytical-mode pairs across all 6 L on the centre receiver; MAE = 1.04 Hz; recall 22.3% (we get few but the ones we get are correct).
@@ -194,7 +219,8 @@ adaptable-acoustic-fields/
 
 ## Pointers
 
-- **Read first (Chunk 3.7)**: [tasks/CHUNK_3_7_RESULTS.md](tasks/CHUNK_3_7_RESULTS.md) — V0 GREEN, full V chain, **I1 modal 2.55 dB** (project best), the recommended 7-asset deck order, and the ranked next-iteration recommendations. Then [outputs/spatial_nodes_check/SUMMARY.md](outputs/spatial_nodes_check/SUMMARY.md) (V1 cross-L correlation matrix), [outputs/meeting_assets/00_README.md](outputs/meeting_assets/00_README.md) (deck manifest).
+- **Read first (Chunk 3.8 — meeting deck)**: [outputs/meeting_assets/DECK_NARRATIVE.md](outputs/meeting_assets/DECK_NARRATIVE.md) — 10-slide narrative with per-slide talking points, exact numeric claims, anticipated Dolby reviewer Q&A. Then [tasks/CHUNK_3_8_RESULTS.md](tasks/CHUNK_3_8_RESULTS.md) (asset checklist + honesty audit).
+- **Background (Chunk 3.7)**: [tasks/CHUNK_3_7_RESULTS.md](tasks/CHUNK_3_7_RESULTS.md) — V0/V1 GREEN, **I1 modal 2.55 dB** (project best), ranked next-iteration recommendations. [outputs/spatial_nodes_check/SUMMARY.md](outputs/spatial_nodes_check/SUMMARY.md) (V1 cross-L correlation matrix). [outputs/meeting_assets/00_README.md](outputs/meeting_assets/00_README.md) (deck manifest).
 - **Background**: `tasks/CHUNK_3_6_RESULTS.md` (the negative-result chunk that motivated I1), `tasks/CHUNK_3_5_RESULTS.md`, `outputs/multi_room/sweep/SWEEP_SUMMARY.md` (R0-R8 + C1/C2 cross-run table).
 - Open questions: `OPEN_QUESTIONS.md`. Q11 (zero-shot bottleneck): Chunk 3.7's mechanism finding refines it — modal LSD is data-density-bound (I1 confirms), not info-bound (I3) or capacity-bound (I2 LoRA direction).
 - Design log: `DECISIONS.md`. ≈37 entries after Chunk 3.7 (additions: FiLM-LoRA output-side rank-r design + zero-init proj; chunked-receiver gradient accumulation requires per-chunk `get_z()` for simplex init).

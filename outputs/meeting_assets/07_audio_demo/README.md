@@ -8,4 +8,4 @@ For each unseen L the predicted RIR at the centre receiver was produced by inver
 - `morph_L4.25.wav` — peak/median = 39.78
 - `morph_L5.75.wav` — peak/median = 40.22
 
-Quality caveat: full-band held-LSD ≈ 5 dB on these models. The audio is a qualitative demo, not a faithful RIR — it'll be audibly imperfect. We're shipping it anyway to demonstrate smooth latent morphing across L.
+Quality caveat: qualitative, full-band LSD ~4-5 dB; demo shows smooth latent morphing, not faithful reconstruction.
