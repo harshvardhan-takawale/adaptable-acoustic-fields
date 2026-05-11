@@ -1,0 +1,12 @@
+{
+  "variant": "B6",
+  "kwargs": {
+    "n_obs_receivers": 8,
+    "n_adapt_iters": 2000,
+    "lr": 0.01,
+    "init_strategy": "simplex",
+    "n_restarts": 1,
+    "random_seed": 0
+  },
+  "reason": "lowest mean modal_held_mean=3.523 (modal count \u2264 2 dB: 0)"
+}
