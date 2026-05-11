@@ -66,6 +66,10 @@ slurm-*.out
 
 # Allow chunk-3 multi-room + zero-shot + latent-probe figures (small, useful).
 !/outputs/multi_room/**/*.png
+!/outputs/meeting_assets/**/*.png
+!/outputs/meeting_assets/**/*.wav
+!/outputs/spatial_nodes_check/**/*.png
+!/outputs/inner_loop_experiments/**/*.png
 
 # Training artifacts under outputs/multi_room/
 /outputs/multi_room/**/*.pt
