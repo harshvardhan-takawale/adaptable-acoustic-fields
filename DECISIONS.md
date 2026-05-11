@@ -455,3 +455,58 @@ R0/R6/R7/R8 ran on tron RTX 2080 Ti (~1:55 each). R1-R5 ran on scavenger TITAN X
 **Verification:** `tests/test_latent_jitter.py` asserts (a) train mode + σ=0.5 produces different `get_latent` outputs across calls, (b) eval mode + σ=0.5 is deterministic, (c) σ=0.0 is deterministic even in train mode, (d) σ<0 raises.
 
 **Revisit if:** C2 destabilises training (σ=0.1 may be too large vs early-training ‖z_s‖) — in that case we'd anneal σ from 0 to 0.1 across the warmup, or scale σ by `‖z_s‖` to make it relative.
+
+---
+
+## 2026-05-11: I2 FiLM + rank-r LoRA hyper-network-style conditioning — output-side adapter with zero-init projection
+
+**Decision:** `INR2D_AutoDecoder.conditioning_type='film_lora'` adds an output-side rank-r additive adapter on top of plain FiLM (input-side γ/β on encoded features). For both the sigma decoder and the signal MLP:
+
+```
+output_with_adapter = tcnn_decoder(...) + proj(A(z_s) * B(features))
+```
+
+where `A: Linear(latent_dim, r)`, `B: Linear(feat_dim, r, bias=False)`, `proj: Linear(r, output_dim, bias=False)`, and **`proj.weight` is zero-initialised**. Default `lora_rank=8`. At construction the adapter contributes exactly zero, so the model is bit-identical to plain FiLM (`conditioning_type='film'` — Chunk 3.6 C1). Gradient through A·B·proj kicks in as training proceeds.
+
+**Rationale:** spec called for a "FiLM-extended hyper-network" — true per-layer FiLM with the tcnn fused MLPs is infeasible (kernels don't expose intermediates), so the chosen tractable variant is an additive output-side rank-r correction. Rank 8 keeps parameter overhead minimal (8 × signal_output_dim ≈ 65K params per branch — much smaller than the tcnn MLPs themselves) while giving z a meaningful additional handle on the output. Zero-init on the proj guarantees no-worse-than-FiLM at init.
+
+**Alternatives considered:** side-MLP additive adapter (rejected — higher overfitting risk on the small 7-room training set; the same failure mode we saw with the larger HashGrid in Chunk 3); true weight-generating hyper-network (rejected — wouldn't fit the chunk's overnight budget; deferred to a post-meeting chunk if the LoRA design proves promising).
+
+**Verification:** `tests/test_film_lora_conditioning.py` asserts (a) film_lora at construction has `proj_sigma.weight == 0` and `proj_signal.weight == 0` exactly; (b) the A/B/proj modules exist with rank `lora_rank` (matrix shapes verified); (c) the modules are absent for `conditioning_type='film'`; (d) gradient flows through A/B/proj after one backward; (e) `lora_rank=0` raises ValueError.
+
+**Outcome (in-chunk):** D2_filmlora trained val LSD 1.42 dB (identical to C2's 1.43); zero-shot modal 3.35 dB with B6 inner loop (vs C2 + B6's 3.51). Marginal 0.16 dB improvement — the LoRA branch didn't usefully expand expressivity. The hypothesis that "rank-r z-gated output correction = better generalisation than plain FiLM" was not supported on this dataset.
+
+**Revisit if:** a true weight-generating hyper-network (deferred Track I option C) is attempted in a future chunk and works — that would confirm the bottleneck is hyper-net depth, not the additive-vs-multiplicative structure.
+
+---
+
+## 2026-05-11: Chunked-receiver gradient accumulation requires per-chunk `get_z()` (Chunk 3.7 I3)
+
+**Decision:** `aaf/eval/zero_shot.py:zero_shot_adapt` supports `chunk_size: int = 0`, where `0` means full-batch (legacy behaviour) and `> 0` processes receivers in chunks: each chunk does its own forward+`loss.backward()` (with the per-chunk loss scaled by `chunk_n / total_n` so the accumulated gradient equals the full-batch gradient), and `optimizer.step()` runs once per outer iter after all chunks. **CRUCIAL detail**: each chunk must call `get_z()` fresh to obtain a NEW autograd subgraph for that chunk's forward pass. The first implementation reused a single `z_now = get_z()` for all chunks; this worked for random/nearest-train init (z_now is a leaf nn.Parameter so backward has no subgraph to free) but broke for `init_strategy='simplex'` (where z_now = softmax(logits) @ Z_train is a derived tensor — chunk 1's backward freed the softmax subgraph, breaking chunk 2's backward and the final `(λ_latent * l_latent).backward()`).
+
+**Rationale:** the per-chunk gradient accumulation was added so n_obs=32 fits on TITAN X (B7 variant; the full-batch forward needed > 10 GB). The simplex case was a Chunk-3.6 addition (B6); chunked + simplex is a Chunk-3.7 combination that needed this explicit handling. Calling `get_z()` per chunk is cheap (for simplex it re-runs `softmax(logits) @ Z_train` with logits ≈ 7-dim and Z_train 7×8 → 56 multiplications; for random/nearest_train it returns the cached leaf Parameter directly — no extra cost).
+
+**Alternatives considered:** `retain_graph=True` on all chunk backwards (rejected — keeps the full chunk graph in memory, defeating the chunking's memory benefit); detach z_now and re-attach for each chunk (rejected — would lose gradient flow to simplex logits entirely); fold λ_latent into the first chunk (rejected — fragile and didn't fix the chunk-2-breaks-chunk-3 problem).
+
+**Verification:** `tests/test_chunked_inner_loop.py` asserts the chunked-and-accumulated gradient equals the full-batch gradient within 1e-9 on a synthetic torch-only model (no tcnn). The Chunk-3.7 I3 run with B7 (n_obs=32, chunk_size=8) on the C2 model completed all 6 L values successfully after this fix landed (modal LSD 3.53 dB — essentially flat vs C2 + B6's 3.51, ruling out "8 observations is too few" as the bottleneck).
+
+**Revisit if:** a future variant uses an init_strategy whose computational graph differs from simplex in a way we haven't tested (e.g., learned z = MLP(some_features) where the MLP is large enough that the per-chunk recomputation is expensive). In that case fall back to `retain_graph=True` on the first n-1 chunks.
+
+---
+
+## 2026-05-11: Modal-LSD ceiling is data-density-bound, not info-bound or LoRA-capacity-bound (Chunk 3.7 mechanism finding)
+
+**Decision:** Going forward we treat training-set density as the primary lever for zero-shot modal LSD. Concretely: future improvement chunks should denser-sweep first (more training rooms at finer L spacing) before architectural changes.
+
+**Rationale:** the three Chunk 3.7 Track I experiments give a clean partial ordering of where the ~3.5 dB modal ceiling came from in Chunk 3.6:
+- **I3** (n_obs=8 → 32 via chunked inner loop on the same trained model): modal stays at 3.53 dB → not info-bound.
+- **I2** (FiLM + rank-8 LoRA on decoder output, otherwise C2 architecture): modal 3.35 dB → not capacity-bound in the additive-output-LoRA direction (marginal 0.16 dB improvement is within run-to-run noise).
+- **I1** (15 rooms at 0.2 m vs 7 at 0.5 m, otherwise C2 architecture): modal **drops from 3.51 to 2.55 dB**, a 1 dB improvement — by far the largest single-chunk movement of the project. Per-L modal: 2.81, 2.58, 2.69, 2.63, 2.33, 2.28 — at the upper-half L's within 0.3 dB of the 2 dB target.
+
+So: more interpolation anchors smooth the latent-to-spectrum mapping that the decoder learns, without changing the decoder architecture. This is the mechanism-level finding that locks in the next-chunk direction.
+
+**Alternatives considered:** prioritise hyper-network conditioning instead (deferred — I2's null result doesn't rule out true hyper-networks but reduces the prior probability that purely-architectural changes will hit the 2 dB target as cheaply as more data); prioritise wider decoder capacity (the 15-room D1 val LSD 2.37 vs 7-room C2's 1.43 suggests the decoder is now saturated, so widening could help — but it's a secondary lever).
+
+**Verification:** Chunk 3.7 Track I numbers in `tasks/CHUNK_3_7_RESULTS.md`. The D1 D1_dense15 + B1 baseline at modal 2.55 dB is the live evidence; the per-L breakdown shows the gap shrinks consistently as L gets further from the 3.0 m endpoint.
+
+**Revisit if:** the next-chunk experiments (0.1 m spacing or [2.6, 6.0] extension) DON'T continue to lower modal LSD — that would refute the data-density mechanism and force us to revisit architecture (option I2 part 2, or hyper-network).

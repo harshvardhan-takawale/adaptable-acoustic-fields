@@ -297,13 +297,21 @@ def zero_shot_adapt(
             else [(c0, min(c0 + int(chunk_size), n_obs)) for c0 in range(0, n_obs, int(chunk_size))]
         )
         for step in range(int(n_adapt_iters)):
-            z_now = get_z()                                  # [latent_dim]
             optimizer.zero_grad(set_to_none=True)
             spec_loss_log = 0.0
             real_loss_log = 0.0
             amp_loss_log = 0.0
+            # IMPORTANT: call get_z() once per chunk so each chunk gets a fresh
+            # autograd subgraph. For init_strategy='random'/'nearest_train' this
+            # is a no-op (get_z returns the same leaf nn.Parameter). For
+            # 'simplex' it re-runs softmax(logits) @ Z_train per chunk —
+            # cheap (logits is n_train-dim) but necessary so that each
+            # backward() can free its own subgraph without invalidating the
+            # next chunk's or l_latent's backward. Same reason for the final
+            # l_latent: re-evaluate z via get_z().
             for c0, c1 in chunks:
-                z_s_c = z_now.unsqueeze(0).expand(c1 - c0, -1)
+                z_chunk = get_z()                            # fresh subgraph
+                z_s_c = z_chunk.unsqueeze(0).expand(c1 - c0, -1)
                 H_pred_c = renderer(model, rx_obs_t[c0:c1], tx_obs_t[c0:c1],
                                     room_min, room_max, z_s=z_s_c)
                 losses_c = _losses(H_pred_c, H_obs_t[c0:c1])
@@ -319,8 +327,14 @@ def zero_shot_adapt(
                 real_loss_log += weight * float(losses_c["L_spec_real"].detach())
                 amp_loss_log += weight * float(losses_c["L_amp"].detach())
             # λ_latent applied once per outer step (independent of receivers).
-            l_latent = (z_now ** 2).mean()
+            # Re-evaluate z via get_z() so this also has its own subgraph.
+            z_for_reg = get_z()
+            l_latent = (z_for_reg ** 2).mean()
             (lambda_latent * l_latent).backward()
+            # The z value used for scoring + logging below is the most-recent
+            # post-step z (re-read in the score block); record the iter-end
+            # norm here for the loss curve.
+            z_now = z_for_reg.detach()
             for p in opt_params:
                 if p.grad is not None:
                     p.grad = torch.nan_to_num(p.grad, nan=0.0, posinf=0.0, neginf=0.0)
@@ -336,13 +350,22 @@ def zero_shot_adapt(
                 })
 
         # Score this restart by obs-LSD on the optimised z (in eval mode for
-        # determinism — no ray jitter during scoring).
+        # determinism — no ray jitter during scoring). Chunked forward to match
+        # the inner-loop chunk size when chunk_size > 0: even in eval mode,
+        # 32 receivers × n_freq × tcnn intermediates OOMs on TITAN X. The
+        # bottom-of-function "all 64 receivers" render already uses chunk=8.
         renderer.eval()
         with torch.no_grad():
             z_final = get_z().detach()
-            z_s = z_final.unsqueeze(0).expand(rx_obs_t.size(0), -1)
-            H_obs_pred = renderer(model, rx_obs_t, tx_obs_t, room_min, room_max, z_s=z_s)
-            H_obs_pred_np = H_obs_pred.cpu().numpy()
+            score_chunk = int(chunk_size) if int(chunk_size) > 0 else rx_obs_t.size(0)
+            H_obs_pred_parts = []
+            for c0 in range(0, rx_obs_t.size(0), score_chunk):
+                c1 = min(c0 + score_chunk, rx_obs_t.size(0))
+                z_s_c = z_final.unsqueeze(0).expand(c1 - c0, -1)
+                H_pred_c = renderer(model, rx_obs_t[c0:c1], tx_obs_t[c0:c1],
+                                    room_min, room_max, z_s=z_s_c)
+                H_obs_pred_parts.append(H_pred_c.cpu().numpy())
+            H_obs_pred_np = np.concatenate(H_obs_pred_parts, axis=0)
             obs_lsd_this = float(np.mean(np.abs(20 * np.log10(
                 np.maximum(np.abs(H_obs_pred_np), eps_lsd)
                 / np.maximum(np.abs(H_target_all_np[obs_idx]), eps_lsd)

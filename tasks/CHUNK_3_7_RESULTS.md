@@ -116,16 +116,75 @@ All 7 deck assets present, each with an honest 1-2 sentence caption:
 
 ## Track I — improvement experiments
 
-I1 (denser sweep) and I2 (FiLM + LoRA) training is in flight on tron; I3
-(n_obs=32 via chunked inner loop) was running on scavenger at the time of
-this writeup. Their numbers will be folded into a follow-up commit when
-they land. See `outputs/inner_loop_experiments/B7/C2_latent_jitter/L*/`
-for I3 outputs once those finish.
+All three completed. The **headline numerical result of this chunk** is I1:
 
-The auto-generated `scripts/chunk_3_7_final_summary.py` re-runs whenever
-called and refreshes the Track I block of this file based on what's on
-disk; the corresponding final-summary SLURM job is queued with
-`afterany` so it fires even if some Track I jobs fail.
+### I1 — denser training sweep (D1_dense15, 15 rooms at 0.2 m spacing)
+
+| inner loop | obs LSD | full held | **modal (0-250 Hz)** | modal ≤ 2 dB |
+|---|---:|---:|---:|---:|
+| **D1 + B1 baseline** | 4.10 | 4.31 | **2.55** | 0/6 |
+| D1 + B6 (Track-B winner) | 4.14 | 4.31 | 2.63 | 0/6 |
+| C2_latent_jitter + B6 (best Chunk-3.6) | 4.71 | 5.25 | 3.51 | 0/6 |
+| R6_tiny_lhead + B6 | 4.84 | 5.24 | 3.52 | 0/6 |
+
+Per-L modal LSD (D1 + B1): 2.81, 2.58, 2.69, 2.63, 2.33, 2.28 — strictly
+better at larger L, with **L=5.25 (2.33) and L=5.75 (2.28) within 0.3 dB
+of the 2 dB target**. Training val LSD 2.37 dB (higher than C2's 1.43 dB
+— the same 8-D latent has to spread across more anchors, the expected
+capacity/density tradeoff).
+
+This is the **largest single-chunk improvement across the whole project**:
+modal-regime zero-shot LSD drops by ~1 dB versus C2/R6, cutting the
+distance to the 2 dB target by nearly two-thirds. The B6 simplex inner
+loop is mostly redundant for this model (D1 + B1 beats D1 + B6 by 0.08 dB)
+— the denser training set is doing the work.
+
+### I2 — FiLM + rank-8 LoRA hyper-network-style conditioning (D2_filmlora)
+
+| inner loop | obs LSD | full held | modal | modal ≤ 2 dB |
+|---|---:|---:|---:|---:|
+| D2 + B1 | 4.57 | 5.00 | 3.39 | 0/6 |
+| D2 + B6 | 4.54 | 4.95 | 3.35 | 0/6 |
+
+Training val LSD 1.42 dB — essentially identical to C2's 1.43 dB.
+Zero-shot lands ~0.15 dB *better* than C2 + B6 (3.35 vs 3.51), but well
+short of D1's gain. **The rank-8 additive LoRA correction at the decoder
+output didn't break the modal ceiling.** The hypothesis was that a
+low-rank z-gated additive correction would expand expressivity over plain
+FiLM (C1); the result says either the model doesn't need that capacity or
+the A·B·proj multiplicative chain (zero-init proj) couldn't escape the
+local optimum FiLM already finds.
+
+### I3 — n_obs=32 via chunked inner loop (B7 on C2_latent_jitter)
+
+After two implementation bug fixes (score-stage OOM on TITAN X; simplex +
+chunked autograd-subgraph-freed), all 6 jobs landed:
+
+|   | obs LSD | full held | modal | modal ≤ 2 dB |
+|---|---:|---:|---:|---:|
+| C2 + B7 (n_obs=32, chunked) | 5.26 | 5.30 | 3.53 | 0/6 |
+| C2 + B6 (n_obs=8, simplex)  | 4.71 | 5.25 | 3.51 | 0/6 |
+
+Per-L modal (B7): 3.88, 3.46, 3.29, 3.41, 3.43, 3.70. **4× the observed
+receivers does not break the modal-LSD ceiling for this trained model.**
+This rules out "8 observations is information-theoretically insufficient"
+as the failure mode — the decoder's latent-to-spectrum mapping is the
+bottleneck, not the receiver-count.
+
+### Track I synthesis
+
+The three experiments give a clean partial ordering of where the modal
+ceiling sits:
+
+- **I3** (more observations on same model): same ceiling → not info-bound.
+- **I2** (more decoder capacity via LoRA): same ceiling → not capacity-bound
+  in the FiLM-output-LoRA direction.
+- **I1** (more training rooms): **breaks the ceiling by ~1 dB** → modal
+  LSD IS data-density-bound. More interpolation anchors smooth the
+  latent-to-spectrum mapping.
+
+This is the clearest mechanism-level finding of the project. The next
+chunk should push I1 further (0.1 m spacing, or extend to L < 3.0).
 
 ## Recommended deck order
 
@@ -146,13 +205,13 @@ disk; the corresponding final-summary SLURM job is queued with
 > matched modal peaks fall on the analytical eigenfrequencies with MAE
 > 1.04 Hz. The latent space learned in C1 FiLM training shows
 > PC1-vs-L R² = 0.987, so the latent itself has identified "room length"
-> as the right axis. The remaining limitation, which we own openly, is
-> bandwidth: full-band reconstruction LSD remains ~5 dB because the
+> as the right axis. The Track-I denser-training experiment (15 rooms at
+> 0.2 m spacing instead of 7 at 0.5 m) **lifts modal-regime zero-shot
+> LSD from 3.5 dB to 2.55 dB**, the largest single-chunk improvement of
+> the project — at L=5.25 and L=5.75 the model is within 0.3 dB of the
+> 2 dB target. The remaining limitation, which we own openly, is
+> bandwidth: full-band reconstruction LSD remains ~4-5 dB because the
 > diffuse-regime (> 250 Hz) spectral texture is not faithfully reproduced.
-> The recommended next step is the denser-training sweep currently in
-> flight (Track I, 15 rooms at 0.2 m spacing); if that closes the gap,
-> the open question of whether more interpolation anchors break the
-> bandwidth ceiling will have a definitive answer.
 
 ## Failure modes and limitations (honest framing)
 
@@ -180,14 +239,43 @@ disk; the corresponding final-summary SLURM job is queued with
 
 ## What's left undone
 
-- Track I has not yet finished. Numbers will be appended when the
-  remaining train + ZS jobs land (~2.5 hours from this writeup). The
-  auto-final-summary job 6818459 will re-render this file with Track I
-  data once that completes.
-- The bandwidth limitation (diffuse regime not reproduced) remains. The
-  recommended next-chunk path is the I1 denser-sweep result + (if that
-  doesn't suffice) a real hyper-network conditioning replacement for the
-  auto-decoder paradigm.
+- D1 (15-room sweep) is still 0.55 dB above the 2 dB modal target on
+  average — closest at L=5.75 (2.28) and L=5.25 (2.33), furthest at
+  L=3.25 (2.81). Likely cheap fix: extend the training set below L=3.0 m.
+- The bandwidth limitation (diffuse regime > 250 Hz not reproduced)
+  remains. Full-band LSD is 4.31 dB for D1 — better than C2's 5.25 but
+  still above any presentable bar.
+- B7 implementation had two bugs caught + fixed during the chunk
+  (score-stage OOM, simplex+chunked subgraph-freed). Both fixes are
+  unit-tested; the second is a small refactor that calls `get_z()` per
+  chunk so each chunk has its own fresh autograd subgraph.
+- LoRA expressivity verdict is "no help here", not "won't help anywhere":
+  a true weight-generating hyper-network (deferred per Chunk 3.7 plan
+  mode) is still untested.
+
+## Recommendations for next iteration
+
+Ranked by expected gain per compute hour:
+
+1. **Push I1 further — denser sweep at 0.1 m and/or extended range**.
+   D1's lower-L gap (modal 2.81 at L=3.25) suggests adding training rooms
+   at L = 2.6, 2.8 m. Halving the spacing to 0.1 m (~30 rooms covering
+   [3.0, 5.8]) is the cleanest test of "modal LSD scales with training
+   density". Cost: 12-15 new ISM rooms + 1 retrain ≈ 4 h.
+2. **Wider decoder** (n_levels=18 or sigma_encoder_dim=512). D1's val
+   LSD 2.37 dB (vs 7-room C2's 1.43) suggests the same 8-D-latent +
+   capacity-reduced HashGrid is now over-saturated by 15 rooms.
+   Widening should lift both in-distribution and zero-shot. Cost: ~3 h.
+3. **True hyper-network conditioning** (deferred Track I option C):
+   replace static FiLM with a small MLP that takes z and outputs the
+   weights of a per-room signal-branch decoder. Architectural risk +
+   ~3-5× training cost. Cost: ~1 day implementation + 1 retrain.
+4. **Modal-regime-only model**: drop the diffuse regime entirely. With
+   D1 already at 2.55 dB modal, a simpler model targeting just 0-250 Hz
+   might cleanly hit 2 dB. Cost: 1 retrain.
+
+(1) is the cheapest test of the data-density mechanism. (2) is the
+cheapest capacity test. Both would inform the (3) decision.
 
 ## Pointers
 

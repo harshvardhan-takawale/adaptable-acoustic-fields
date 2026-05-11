@@ -6,32 +6,29 @@ Asker: agent that wrote it. Owner: who can answer (manager, user, or "research c
 
 ---
 
-### Q11 — How to unblock zero-shot adaptation? *(refined in Chunk 3.6)*
+### Q11 — How to close the last 0.55 dB to the 2 dB modal target? *(refined in Chunk 3.7)*
 
 **Asker**: chunk-3.5+ agent. **Owner**: manager / research call.
 
-Chunk 3.5 + 3.5+ swept 4 architecturally-diverse multi-room auto-decoders (R0/R6/R7/R8: mlp_32 vs linear L-head, 14-bit vs 16-bit hash, 2-D vs 8-D latent). All 4 fully-complete runs **fail zero-shot at 5.21-5.91 dB held-out LSD** full-band (target was ≤ 2 dB on ≥ 4/6 unseen L). The architecture choices made no material difference; the bottleneck has shifted from latent collapse (Chunk 3) to inner-loop adaptation.
+**Status as of Chunk 3.7**: substantially de-mystified, and partly answered. The 2 dB modal target is NOT yet met on any single L, but the gap is now 0.28-0.81 dB depending on L (was 1.5+ dB through Chunk 3.6) — and the mechanism is identified.
 
-**Chunk 3.6 Track A refines the picture**: modal-regime (0-250 Hz) LSD is ~1.7 dB lower than full-band — R0/R6/R7/R8 land at 3.54-3.69 dB modal vs 5.27-5.57 dB full. So the failure is *not* uniform across frequency; the diffuse regime (>250 Hz) dominates. Still, modal is 0/24 (run, L) below the 2 dB target — Chunk 3.6 Tracks B and C aim to close that gap.
+**Headline progress**: Chunk 3.7's I1 denser-training sweep (`D1_dense15`, 15 rooms at 0.2 m vs the original 7 at 0.5 m) drops modal-regime zero-shot LSD from 3.51 to **2.55 dB** averaged over the 6 unseen L. Per-L: 2.81 (L=3.25), 2.58 (3.75), 2.69 (4.25), 2.63 (4.75), **2.33 (5.25)**, **2.28 (5.75)** — at the upper-half L's the model is within 0.3 dB of the target.
 
-Diagnostic evidence (Chunk 3.5+):
-- **Even on observed receivers** the inner-loop optimizer can't drive obs LSD below 4.5-5.4 dB (vs training val LSD of 1.3-1.7 dB). 2K iters of Adam(lr=1e-2) on a low-dim z_star can't navigate the model's latent-to-spectrum response surface outside the trained-latent neighbourhood.
-- R6's `latent_pca_1d` shows **train latents nearly monotonic with L** (linear L-head IS shaping z_s), but **zero-shot z_star tensors collapse to one region of latent space** (PC1 ≈ -0.5 for all 6 unseen L). The inner loss surface has a single attractor outside the training region.
-- R8 (2-D latent) has zero-shot z_star with some L-correlation (Pearson r ≈ 0.93 between true L and lhead_predicted_L from optimized z_star) — but the actual reconstruction quality doesn't improve. The latent moves in the right direction but the model doesn't follow.
+**Mechanism identified**: Chunk 3.7 Track I gives a clean partial ordering of the bottleneck. The 3.5 dB modal ceiling from Chunk 3.6 was:
+- NOT info-bound — Chunk 3.7 I3 (n_obs=32 via chunked inner loop) gives modal 3.53 dB, unchanged from C2 + B6's 3.51.
+- NOT capacity-bound (in the FiLM-output-LoRA direction) — Chunk 3.7 I2 (rank-8 LoRA additive correction at decoder output) gives 3.35 dB, marginally better but well short of D1.
+- DATA-DENSITY-BOUND — Chunk 3.7 I1 (denser sweep) breaks the ceiling by ~1 dB.
 
-Chunk 3.6 (in flight) attacks two of the four ranked strategies from below:
-- **Track B** runs all 6 inner-loop variants in parallel on R6: B1 baseline, B2 n_obs=32, B3 10K iters, B4 10 random restarts, B5 nearest-training-latent init, B6 simplex of training latents (convex hull). The winner is identified by mean modal-regime LSD.
-- **Track C** retrains two new models with smoothness-promoting changes: C1 FiLM conditioning (input-side γ·feat+β, identity-init), C2 latent jitter σ=0.1 at training time. Each is evaluated with both B1-baseline ZS and the Track B winner.
+So more interpolation anchors smooth the latent-to-spectrum mapping the decoder learns, without changing the architecture.
 
-Concrete experimental paths still on the table (cheap, ranked by cost):
-1. **More observed receivers** (Track B/B2; running): 32 instead of 8.
-2. **Multi-restart inner adaptation** (Track B/B4; running): 10 random z_star inits.
-3. **Longer inner adaptation** (Track B/B3; running): 10K iters instead of 2K.
-4. **Latent-hull-constrained adaptation** (Track B/B6; running): SimplexLatent over trained latents.
-5. **Nearest-train-latent init** (Track B/B5; running): warm-start from closest training L.
-6. **Smoother decoder** (Track C/C1 FiLM, C2 jitter; queued): retrained models with structurally smoother latent-to-spectrum mapping.
+**Concrete experimental paths still on the table (ranked by expected gain / cost)**:
 
-After Tracks B/C land, this question can close (winner identified) or be refined (if neither track resolves it, the next candidates are hyper-networks, larger hash + per-layer FiLM via torch MLPs, or rethinking the auto-decoder paradigm).
+1. **Push I1 further — denser sweep at 0.1 m and/or extended range** (cheapest, highest-prior). D1's lower-L gap (modal 2.81 at L=3.25) is mostly the boundary effect of having the 3.0 m endpoint. Adding training rooms at L = 2.6, 2.8 m and/or halving the spacing to 0.1 m (∼30 rooms covering [3.0, 5.8]) is the cleanest test of "modal LSD scales with training density". Cost: 12-15 new ISM rooms (~10 min) + 1 retrain (~3 h).
+2. **Wider decoder** (n_levels=18 or sigma_encoder_dim=512). D1's val LSD 2.37 dB (vs 7-room C2's 1.43) suggests the same 8-D-latent + 14-bit HashGrid is now over-saturated by 15 rooms. Widening should lift both in-distribution and zero-shot. Cost: ~3 h.
+3. **True hyper-network conditioning**: replace static FiLM with a small MLP that takes z and emits the weights of a per-room signal-branch decoder. Architectural risk + ~3-5× training cost. Cost: ~1 day implementation + 1 retrain.
+4. **Modal-regime-only model**: drop diffuse training and target just 0-250 Hz. With D1 already at 2.55, a simpler model on the modal band might cleanly hit 2 dB.
+
+This question can close definitively once (1) or (2) lands the 2 dB target. If neither does, the door re-opens for (3).
 
 ---
 
