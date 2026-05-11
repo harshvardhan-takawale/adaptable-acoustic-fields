@@ -27,13 +27,25 @@ from aaf.data.dataset_builder import write_room_to_h5, room_filename
 
 
 def union_L_set(configs_dir: Path) -> tuple[list[float], dict]:
-    """Return sorted unique L values across the three sweep YAMLs + the common
-    cfg fields they all share."""
-    paths = {
+    """Return sorted unique L values across all sweep YAMLs in ``configs_dir``
+    plus the common cfg fields they all share. Picks up the three base sweeps
+    (dense, sparse, extrapolation) and any additional Chunk-3.7+ sweeps such
+    as ``dense_15.yaml``; new sweeps are added to the loop automatically as
+    soon as their YAML lands in this directory.
+    """
+    # Base sweeps that must always exist.
+    base = {
         "dense": configs_dir / "dense.yaml",
         "sparse": configs_dir / "sparse.yaml",
         "extrapolation": configs_dir / "extrapolation.yaml",
     }
+    # Additional sweeps: any other *.yaml in the configs_dir.
+    extra = {
+        p.stem: p
+        for p in sorted(configs_dir.glob("*.yaml"))
+        if p.stem not in base
+    }
+    paths = {**base, **extra}
     union: set[float] = set()
     common: dict = {}
     common_keys = ("W", "alpha", "fs", "n_time_samples", "source_pos")

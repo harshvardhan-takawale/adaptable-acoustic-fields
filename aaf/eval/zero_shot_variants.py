@@ -75,6 +75,7 @@ def variant_kwargs(variant: str) -> dict[str, Any]:
         init_strategy="random",
         n_restarts=1,
         random_seed=0,
+        chunk_size=0,
     )
     if variant == "B1":
         return base
@@ -92,7 +93,13 @@ def variant_kwargs(variant: str) -> dict[str, Any]:
         return {**base, "init_strategy": "nearest_train"}
     if variant == "B6":
         return {**base, "init_strategy": "simplex"}
-    raise ValueError(f"unknown variant {variant!r}; must be one of B1..B6")
+    if variant == "B7":
+        # Chunk 3.7 I3: B2 revisited via chunked-receiver gradient accumulation
+        # so n_obs=32 fits in 10 GB GPU memory. Chunks of 8 → 4 chunks per outer
+        # step, one optimizer.step() per outer step. Gradient is bit-equivalent
+        # to full-batch (tested in test_chunked_inner_loop.py).
+        return {**base, "n_obs_receivers": 32, "chunk_size": 8}
+    raise ValueError(f"unknown variant {variant!r}; must be one of B1..B7")
 
 
 VARIANT_DESCRIPTIONS: dict[str, str] = {
@@ -102,6 +109,7 @@ VARIANT_DESCRIPTIONS: dict[str, str] = {
     "B4": "10 random restarts, keep best obs LSD",
     "B5": "init z_star from nearest-L training latent",
     "B6": "z_star = softmax(logits) @ Z_train (simplex)",
+    "B7": "32 observed receivers via chunked grad accumulation (chunk_size=8)",
 }
 
-ALL_VARIANTS: tuple[str, ...] = ("B1", "B2", "B3", "B4", "B5", "B6")
+ALL_VARIANTS: tuple[str, ...] = ("B1", "B2", "B3", "B4", "B5", "B6", "B7")

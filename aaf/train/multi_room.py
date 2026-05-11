@@ -79,10 +79,14 @@ class MultiRoomTrainCfg:
     #   "linear" — Linear(d→1)                          (R6-R8: forces linear readability)
     l_head_arch: str = "mlp_32"
     # Chunk-3.6: smoothness-promoting variants.
-    #   conditioning_type:    "concat" (default; R0-R8 behaviour) or "film" (C1).
+    #   conditioning_type:    "concat" (default; R0-R8 behaviour), "film" (C1),
+    #                         or "film_lora" (Chunk 3.7 D2 — FiLM + output-side
+    #                         rank-r additive adapter on each tcnn decoder).
     #   latent_jitter_sigma:  if > 0, additive Gaussian noise on z_s during training (C2).
+    #   lora_rank:            rank `r` for the film_lora adapter (default 8).
     conditioning_type: str = "concat"
     latent_jitter_sigma: float = 0.0
+    lora_rank: int = 8
 
 
 def _losses(H_pred: torch.Tensor, H_target: torch.Tensor) -> dict:
@@ -174,6 +178,7 @@ class MultiRoomTrainer:
             l_head_arch=self.cfg.l_head_arch,
             conditioning_type=self.cfg.conditioning_type,
             latent_jitter_sigma=self.cfg.latent_jitter_sigma,
+            lora_rank=self.cfg.lora_rank,
         ).to(self.device)
         # Per-sample true L (broadcast lookup; cached on device for fast L_lhead).
         self.L_per_sample = torch.tensor(
@@ -558,8 +563,9 @@ def main():
     ap.add_argument("--l_head_arch", type=str, default="mlp_32",
                     choices=["mlp_32", "linear"])
     ap.add_argument("--conditioning_type", type=str, default="concat",
-                    choices=["concat", "film"])
+                    choices=["concat", "film", "film_lora"])
     ap.add_argument("--latent_jitter_sigma", type=float, default=0.0)
+    ap.add_argument("--lora_rank", type=int, default=8)
     args = ap.parse_args()
 
     if args.config:
@@ -584,6 +590,7 @@ def main():
             l_head_arch=str(d.get("l_head_arch", "mlp_32")),
             conditioning_type=str(d.get("conditioning_type", "concat")),
             latent_jitter_sigma=float(d.get("latent_jitter_sigma", 0.0)),
+            lora_rank=int(d.get("lora_rank", 8)),
         )
     else:
         if not args.sweep or not args.output_dir:
@@ -604,6 +611,7 @@ def main():
             l_head_arch=args.l_head_arch,
             conditioning_type=args.conditioning_type,
             latent_jitter_sigma=args.latent_jitter_sigma,
+            lora_rank=args.lora_rank,
         )
 
     trainer = MultiRoomTrainer(sweep_yaml=sweep_yaml, output_dir=out_dir, cfg=cfg)

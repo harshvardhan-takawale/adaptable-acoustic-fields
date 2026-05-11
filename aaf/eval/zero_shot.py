@@ -116,6 +116,7 @@ def _load_trained_model(train_output_dir: Path, device: str = "cuda") -> tuple[I
     l_head_arch = str(cfg.get("l_head_arch", "mlp_32"))
     conditioning_type = str(cfg.get("conditioning_type", "concat"))
     latent_jitter_sigma = float(cfg.get("latent_jitter_sigma", 0.0))
+    lora_rank = int(cfg.get("lora_rank", 8))
 
     model = INR2D_AutoDecoder(
         n_rooms=n_rooms,
@@ -126,6 +127,7 @@ def _load_trained_model(train_output_dir: Path, device: str = "cuda") -> tuple[I
         l_head_arch=l_head_arch,
         conditioning_type=conditioning_type,
         latent_jitter_sigma=latent_jitter_sigma,
+        lora_rank=lora_rank,
     ).to(device)
 
     ckpts = sorted(
@@ -198,6 +200,7 @@ def zero_shot_adapt(
     n_restarts: int = 1,
     random_seed: int = 0,
     bands: Optional[tuple] = None,
+    chunk_size: int = 0,
 ) -> dict:
     """Inner-loop adaptation of z_star at an unseen room L.
 
@@ -282,21 +285,42 @@ def zero_shot_adapt(
         )
         optimizer = torch.optim.Adam(opt_params, lr=lr)
         loss_curve: list[dict] = []
+        # chunk_size=0 → full-batch (no chunking). Otherwise the spectrum loss
+        # is computed in chunks of receivers, each `.backward()`-ing its own
+        # contribution to the gradient. Per-chunk loss is scaled by chunk_n /
+        # total_n so the accumulated gradient equals the full-batch gradient
+        # (mean over receivers). λ_latent is added once per outer step, since
+        # it doesn't depend on the receiver axis.
+        n_obs = rx_obs_t.size(0)
+        chunks = (
+            [(0, n_obs)] if int(chunk_size) <= 0
+            else [(c0, min(c0 + int(chunk_size), n_obs)) for c0 in range(0, n_obs, int(chunk_size))]
+        )
         for step in range(int(n_adapt_iters)):
             z_now = get_z()                                  # [latent_dim]
-            z_s = z_now.unsqueeze(0).expand(rx_obs_t.size(0), -1)
-            H_pred = renderer(model, rx_obs_t, tx_obs_t, room_min, room_max, z_s=z_s)
-            losses = _losses(H_pred, H_obs_t)
-            l_latent = (z_now ** 2).mean()
-            loss = (
-                w_r * losses["L_spec_real"]
-                + w_i * losses["L_spec_imag"]
-                + w_a * losses["L_amp"]
-                + w_p * losses["L_phase"]
-                + lambda_latent * l_latent
-            )
             optimizer.zero_grad(set_to_none=True)
-            loss.backward()
+            spec_loss_log = 0.0
+            real_loss_log = 0.0
+            amp_loss_log = 0.0
+            for c0, c1 in chunks:
+                z_s_c = z_now.unsqueeze(0).expand(c1 - c0, -1)
+                H_pred_c = renderer(model, rx_obs_t[c0:c1], tx_obs_t[c0:c1],
+                                    room_min, room_max, z_s=z_s_c)
+                losses_c = _losses(H_pred_c, H_obs_t[c0:c1])
+                weight = (c1 - c0) / n_obs
+                loss_c = weight * (
+                    w_r * losses_c["L_spec_real"]
+                    + w_i * losses_c["L_spec_imag"]
+                    + w_a * losses_c["L_amp"]
+                    + w_p * losses_c["L_phase"]
+                )
+                loss_c.backward()
+                spec_loss_log += float(loss_c.detach())
+                real_loss_log += weight * float(losses_c["L_spec_real"].detach())
+                amp_loss_log += weight * float(losses_c["L_amp"].detach())
+            # λ_latent applied once per outer step (independent of receivers).
+            l_latent = (z_now ** 2).mean()
+            (lambda_latent * l_latent).backward()
             for p in opt_params:
                 if p.grad is not None:
                     p.grad = torch.nan_to_num(p.grad, nan=0.0, posinf=0.0, neginf=0.0)
@@ -305,9 +329,9 @@ def zero_shot_adapt(
             if step % 20 == 0 or step == n_adapt_iters - 1:
                 loss_curve.append({
                     "iter": step,
-                    "loss": float(loss.detach()),
-                    "L_spec_real": float(losses["L_spec_real"].detach()),
-                    "L_amp": float(losses["L_amp"].detach()),
+                    "loss": spec_loss_log + float((lambda_latent * l_latent).detach()),
+                    "L_spec_real": real_loss_log,
+                    "L_amp": amp_loss_log,
                     "z_norm": float(z_now.detach().norm()),
                 })
 
@@ -528,6 +552,8 @@ def main():
                     choices=["random", "nearest_train", "simplex"])
     ap.add_argument("--n_restarts", type=int, default=1)
     ap.add_argument("--random_seed", type=int, default=0)
+    ap.add_argument("--chunk_size", type=int, default=0,
+                    help="receiver chunk size for gradient accumulation; 0 = no chunking")
     args = ap.parse_args()
 
     L = float(args.L)
@@ -545,6 +571,7 @@ def main():
         init_strategy=args.init_strategy,
         n_restarts=args.n_restarts,
         random_seed=args.random_seed,
+        chunk_size=args.chunk_size,
     )
     print(json.dumps({k: v for k, v in out.items() if not isinstance(v, list)}, indent=2))
 

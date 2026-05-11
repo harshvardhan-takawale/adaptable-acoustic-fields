@@ -1,0 +1,34 @@
+# Chunk 3.7 I2 — FiLM + rank-r LoRA hyper-network-style conditioning.
+# Starts from C2_latent_jitter as the baseline (linear L-head, 14-bit hash,
+# 14 levels, 8-D latent, latent jitter σ=0.1) and replaces conditioning_type
+# 'concat' with 'film_lora': input-side FiLM γ/β PLUS an output-side rank-8
+# additive adapter applied to both _model_decoder_sigma and _model_signal.
+# `proj_sigma` / `proj_signal` are zero-initialised so the model starts
+# bit-identical to plain FiLM (C1's architecture).
+# Hypothesis: the LoRA branch lets z_s modulate the decoder output through
+# a low-rank z-gated correction in addition to FiLM's affine-on-input,
+# potentially smoothing the latent-to-spectrum mapping enough to break the
+# ~3.5 dB modal ceiling. Decision documented in DECISIONS.md.
+run_id: D2_filmlora
+data_sweep: configs/sweeps/dense.yaml
+
+log2_hashmap_size: 14
+n_levels: 14
+latent_dim: 8
+l_head_weight: 0.1
+l_head_arch: linear
+lambda_latent_l2: 1e-4
+
+conditioning_type: film_lora
+latent_jitter_sigma: 0.1
+lora_rank: 8
+
+n_iters: 30000
+batch_size: 8
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+n_pts_per_ray: 32
+n_azi: 64
+val_every: 1000
+ckpt_every: 2500

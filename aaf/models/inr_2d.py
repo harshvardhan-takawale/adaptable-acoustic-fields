@@ -237,20 +237,24 @@ class INR2D_AutoDecoder(nn.Module):
         l_head_arch: str = "mlp_32",
         conditioning_type: str = "concat",
         latent_jitter_sigma: float = 0.0,
+        lora_rank: int = 8,
     ):
         super().__init__()
         if n_freq_bins <= 1:
             raise ValueError(f"n_freq_bins must be > 1, got {n_freq_bins}")
         if latent_dim <= 0:
             raise ValueError(f"latent_dim must be > 0 in INR2D_AutoDecoder, got {latent_dim}")
-        if conditioning_type not in ("concat", "film"):
+        if conditioning_type not in ("concat", "film", "film_lora"):
             raise ValueError(
-                f"conditioning_type must be 'concat' or 'film', got {conditioning_type!r}"
+                f"conditioning_type must be 'concat', 'film', or 'film_lora', "
+                f"got {conditioning_type!r}"
             )
         if float(latent_jitter_sigma) < 0:
             raise ValueError(
                 f"latent_jitter_sigma must be >= 0, got {latent_jitter_sigma}"
             )
+        if int(lora_rank) <= 0:
+            raise ValueError(f"lora_rank must be > 0, got {lora_rank}")
         self.n_rooms = int(n_rooms)
         self.latent_dim = int(latent_dim)
         self.n_freq_bins = int(n_freq_bins)
@@ -259,6 +263,7 @@ class INR2D_AutoDecoder(nn.Module):
         self.l_head_enabled = bool(l_head_enabled)
         self.conditioning_type = str(conditioning_type)
         self.latent_jitter_sigma = float(latent_jitter_sigma)
+        self.lora_rank = int(lora_rank)
 
         hg_cfg = hash_grid_config or _default_hash_grid_config()
         mlp_cfg = mlp_config or _default_mlp_config()
@@ -278,7 +283,7 @@ class INR2D_AutoDecoder(nn.Module):
             self._pos_encoding.n_output_dims
             + self._tx_pos_encoding.n_output_dims
         )
-        if self.conditioning_type == "film":
+        if self.conditioning_type in ("film", "film_lora"):
             sigma_in_dims = sigma_feat_dim
             # Linear(d -> 2*F) split into (gamma, beta), each F-dim. gamma is
             # initialised to 1 (no-op) and beta to 0 so untrained FiLM is identity.
@@ -300,6 +305,18 @@ class INR2D_AutoDecoder(nn.Module):
             n_output_dims=self.signal_output_dim,
             network_config=mlp_cfg["sigma_decoder"],
         )
+        # film_lora: output-side rank-r additive adapter on the sigma decoder.
+        # adapter(z, feat) = proj(A(z) * B(feat))  with zero-init on `proj` so
+        # at construction the adapter contributes exactly 0 and behaviour matches
+        # plain FiLM. The hidden rank `r = self.lora_rank` (default 8).
+        if self.conditioning_type == "film_lora":
+            r = self.lora_rank
+            self.A_sigma = nn.Linear(self.latent_dim, r)
+            self.B_sigma = nn.Linear(sigma_encoder_dim, r, bias=False)
+            self.proj_sigma = nn.Linear(r, self.signal_output_dim, bias=False)
+            nn.init.zeros_(self.proj_sigma.weight)
+        else:
+            self.A_sigma = self.B_sigma = self.proj_sigma = None
 
         # Signal branch — same scheme. Encoded feature (without z_s):
         # [F.relu(sigma_feature), view_emb, tx_view_emb, signal_pos_emb, tx_signal_pos_emb].
@@ -310,7 +327,7 @@ class INR2D_AutoDecoder(nn.Module):
             + self._pos_signal_encoding.n_output_dims
             + self._tx_pos_signal_encoding.n_output_dims
         )
-        if self.conditioning_type == "film":
+        if self.conditioning_type in ("film", "film_lora"):
             n_signal_input = signal_feat_dim
             self.film_signal = nn.Linear(self.latent_dim, 2 * signal_feat_dim)
             nn.init.zeros_(self.film_signal.weight)
@@ -327,6 +344,15 @@ class INR2D_AutoDecoder(nn.Module):
             n_output_dims=self.signal_output_dim,
             network_config=mlp_cfg["signal"],
         )
+        # film_lora: output-side rank-r additive adapter on the signal MLP.
+        if self.conditioning_type == "film_lora":
+            r = self.lora_rank
+            self.A_signal = nn.Linear(self.latent_dim, r)
+            self.B_signal = nn.Linear(signal_feat_dim, r, bias=False)
+            self.proj_signal = nn.Linear(r, self.signal_output_dim, bias=False)
+            nn.init.zeros_(self.proj_signal.weight)
+        else:
+            self.A_signal = self.B_signal = self.proj_signal = None
 
         # Per-room latent table (DeepSDF-style auto-decoder).
         self.latents = nn.Embedding(self.n_rooms, self.latent_dim)
@@ -447,7 +473,7 @@ class INR2D_AutoDecoder(nn.Module):
         pos_emb = self._pos_encoding(pts_flat)
         tx_pos_emb = self._tx_pos_encoding(tx_flat)
         sigma_feat = torch.cat([pos_emb, tx_pos_emb], dim=-1)       # [B*N, sigma_feat_dim]
-        if self.conditioning_type == "film":
+        if self.conditioning_type in ("film", "film_lora"):
             gamma_beta = self.film_sigma(z_s_flat)
             gamma_s, beta_s = gamma_beta.chunk(2, dim=-1)
             sigma_input = gamma_s * sigma_feat + beta_s
@@ -456,6 +482,14 @@ class INR2D_AutoDecoder(nn.Module):
         sigma_feature = self._model_encoder_sigma(sigma_input)
 
         attn_raw = self._model_decoder_sigma(F.relu(sigma_feature))
+        # film_lora: output-side rank-r additive z-gated correction. Zero-init
+        # on `proj_sigma` means this is exactly 0 at construction (identical to
+        # plain FiLM). After training, A_sigma(z) * B_sigma(feat) lives in R^r
+        # and is projected back into the decoder's output space.
+        if self.conditioning_type == "film_lora":
+            attn_raw = attn_raw + self.proj_sigma(
+                self.A_sigma(z_s_flat) * self.B_sigma(F.relu(sigma_feature))
+            )
         one_sided = self.n_freq_bins
         attn_real = F.softplus(attn_raw[..., :one_sided]) + 1e-6
         attn_imag = attn_raw[..., one_sided:]
@@ -476,7 +510,7 @@ class INR2D_AutoDecoder(nn.Module):
             ],
             dim=-1,
         )                                                           # [B*N, signal_feat_dim]
-        if self.conditioning_type == "film":
+        if self.conditioning_type in ("film", "film_lora"):
             gamma_beta = self.film_signal(z_s_flat)
             gamma_g, beta_g = gamma_beta.chunk(2, dim=-1)
             feature_all = gamma_g * signal_feat + beta_g
@@ -484,6 +518,11 @@ class INR2D_AutoDecoder(nn.Module):
             feature_all = torch.cat([signal_feat, z_s_flat], dim=-1)
 
         signal_raw = self._model_signal(feature_all)
+        # film_lora: same additive rank-r correction on the signal MLP output.
+        if self.conditioning_type == "film_lora":
+            signal_raw = signal_raw + self.proj_signal(
+                self.A_signal(z_s_flat) * self.B_signal(feature_all)
+            )
         signal_re = signal_raw[..., :one_sided]
         signal_im = signal_raw[..., one_sided:].clone()
         # RFFT symmetry: zero the imaginary part of DC (and Nyquist if even-length).
