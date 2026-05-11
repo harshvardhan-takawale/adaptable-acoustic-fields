@@ -155,8 +155,9 @@ def main():
         "zero-shot, not at in-distribution.\n")
     asset_status["03_multi_room_training.png"] = "generated"
 
-    # 04 — modal tracking polished (V2 output).
-    if _maybe_copy(out / "04_zero_shot_modal_tracking.png", out / "04_zero_shot_modal_tracking.png"):
+    # 04 — modal tracking polished (V2 output). V2 writes directly into the
+    # meeting_assets directory so no copy is needed; just confirm it exists.
+    if (out / "04_zero_shot_modal_tracking.png").exists():
         asset_status["04_zero_shot_modal_tracking.png"] = "already-present"
     else:
         asset_status["04_zero_shot_modal_tracking.png"] = "missing"

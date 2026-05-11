@@ -1,0 +1,1 @@
+**Phase 1 setup.** A single-frequency-domain INR conditioned on a per-room latent embedding, trained on 7 rooms and evaluated at 6 unseen lengths. The spec set two bars: per-room reconstruction ≤ 1.5 dB val LSD (easily met) and zero-shot ≤ 2 dB modal LSD (the open question this chunk investigates).

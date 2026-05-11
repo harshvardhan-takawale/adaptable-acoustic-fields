@@ -1,0 +1,1 @@
+**Single-room baseline (Chunk 2).** Modal-tracking on the per-room overfit shows modal MAE of 0.34–0.58 Hz, confirming the renderer + complex-attenuation model can fit individual rooms. This is the lowest-error result we have; it sets the upper bound on what the shared multi-room model can achieve on its training rooms.
