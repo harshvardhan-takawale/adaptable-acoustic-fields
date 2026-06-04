@@ -31,7 +31,7 @@ import torch
 import yaml
 from torch.utils.data import Dataset
 
-from aaf.data.dataset_builder import read_room_h5, room_filename
+from aaf.data.dataset_builder import read_room_h5, room_filename, room_filename_3d
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -157,3 +157,133 @@ class ShoeboxDataset(Dataset):
         """Return the HDF5 root attrs for a given room (already JSON-decoded)."""
         L = self.room_id_to_L[room_id]
         return self._cache[L]["attrs"]
+
+
+# ----------------------------------------------------------------------
+# 3D dataset (Phase 2)
+# ----------------------------------------------------------------------
+
+
+class Shoebox3DDataset(Dataset):
+    """3D-room (room, receiver) pair iterator.
+
+    Reads a Phase-2 ``configs/sweeps_3d/*.yaml`` config (schema:
+    ``set_name, alpha, fs, n_time_samples, source_offset (3,), rooms: [{L, W, H}, ...]``)
+    and loads the matching HDF5 files from ``data/<track>/`` (default
+    ``track_a_3d``). Each sample is one (room, receiver) pair.
+
+    Yielded dict
+    ------------
+        {
+          "H_complex": Tensor[n_freq_bins] complex64,
+          "rir_time":  Tensor[n_time_samples] float32,
+          "rx_pos":    Tensor[3] float32,
+          "tx_pos":    Tensor[3] float32,
+          "L":         float,
+          "W":         float,
+          "H":         float,
+          "alpha":     float,
+          "room_id":   int,
+        }
+
+    For single-room training (P2-1), pass ``room_filter=[(L, W, H)]`` to
+    restrict to one room's receivers.
+    """
+
+    def __init__(
+        self,
+        rooms_yaml: str | Path,
+        track: str = "track_a_3d",
+        room_filter: Optional[list[tuple[float, float, float]]] = None,
+        data_dir: Optional[str | Path] = None,
+    ):
+        rooms_yaml = Path(rooms_yaml)
+        with open(rooms_yaml) as f:
+            cfg = yaml.safe_load(f)
+        if "rooms" not in cfg:
+            raise ValueError(f"{rooms_yaml}: missing 'rooms' key")
+
+        self.rooms_yaml = rooms_yaml
+        self.cfg = cfg
+        self.alpha = float(cfg["alpha"])
+        self.fs = float(cfg["fs"])
+        self.n_time_samples = int(cfg["n_time_samples"])
+        self.n_freq_bins = self.n_time_samples // 2 + 1
+        self.source_offset = tuple(cfg.get("source_offset", (0.5, 0.5, 0.5)))
+
+        rooms_all = [(float(r["L"]), float(r["W"]), float(r["H"])) for r in cfg["rooms"]]
+        if room_filter is not None:
+            keep = {(round(L, 2), round(W, 2), round(H, 2)) for L, W, H in room_filter}
+            rooms = [(L, W, H) for (L, W, H) in rooms_all
+                     if (round(L, 2), round(W, 2), round(H, 2)) in keep]
+            if not rooms:
+                raise ValueError(
+                    f"room_filter={room_filter} has no overlap with rooms list."
+                )
+        else:
+            rooms = rooms_all
+        self.rooms: list[tuple[float, float, float]] = rooms
+
+        self.data_dir = Path(data_dir) if data_dir else REPO_ROOT / "data" / track
+        self.room_id_to_dims: dict[int, tuple[float, float, float]] = {
+            i: dims for i, dims in enumerate(self.rooms)
+        }
+
+        # Eagerly load each room (3D rooms are ~67 MB each; 50 rooms ≈ 3.4 GB,
+        # fits in compute-node RAM during training).
+        self._cache: dict[tuple[float, float, float], dict[str, Any]] = {}
+        for L, W, H in self.rooms:
+            path = self.data_dir / room_filename_3d(L=L, W=W, H=H)
+            if not path.exists():
+                raise FileNotFoundError(
+                    f"missing 3D dataset file for L={L}, W={W}, H={H}: {path}"
+                )
+            self._cache[(L, W, H)] = read_room_h5(path)
+
+        first = self.rooms[0]
+        self.n_rx_per_room = self._cache[first]["ism_H"].shape[0]
+        for dims in self.rooms[1:]:
+            assert self._cache[dims]["ism_H"].shape[0] == self.n_rx_per_room, (
+                f"{dims} has {self._cache[dims]['ism_H'].shape[0]} receivers; "
+                f"expected {self.n_rx_per_room}"
+            )
+
+        self._index: list[tuple[int, int]] = []
+        for room_id, dims in self.room_id_to_dims.items():
+            for rx_idx in range(self.n_rx_per_room):
+                self._index.append((room_id, rx_idx))
+
+    def __len__(self) -> int:
+        return len(self._index)
+
+    def __getitem__(self, i: int) -> dict:
+        room_id, rx_idx = self._index[i]
+        L, W, H = self.room_id_to_dims[room_id]
+        room = self._cache[(L, W, H)]
+        attrs = room["attrs"]
+
+        src = np.asarray(attrs["source_pos"], dtype=np.float32)
+        rx_all = np.asarray(attrs["receiver_pos"], dtype=np.float32)
+        return {
+            "H_complex": torch.from_numpy(room["ism_H"][rx_idx]),       # complex64
+            "rir_time": torch.from_numpy(room["ism_rir"][rx_idx]),       # float32
+            "rx_pos": torch.from_numpy(rx_all[rx_idx]),                  # float32 (3,)
+            "tx_pos": torch.from_numpy(src),                              # float32 (3,)
+            "L": float(L),
+            "W": float(W),
+            "H": float(H),
+            "alpha": float(attrs["alpha"]),
+            "room_id": int(room_id),
+        }
+
+    def room_ids(self):
+        return list(self.room_id_to_dims.keys())
+
+    @property
+    def room_id_map(self) -> dict[int, tuple[float, float, float]]:
+        """Maps internal ordinal room index → (L, W, H) tuple."""
+        return self.room_id_to_dims
+
+    def get_room_attrs(self, room_id: int) -> dict:
+        dims = self.room_id_to_dims[room_id]
+        return self._cache[dims]["attrs"]

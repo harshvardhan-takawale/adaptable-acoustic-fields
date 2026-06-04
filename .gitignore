@@ -77,3 +77,14 @@ slurm-*.out
 /outputs/multi_room/**/*.tfevents.*
 /outputs/multi_room/**/z_star.pt
 /outputs/multi_room/**/loss_curve.json
+
+# Allow Phase-2 (3D) single-room figures and summary
+!/outputs/single_room_3d/**/*.png
+!/outputs/single_room_3d/**/SUMMARY.md
+!/outputs/budget_check_3d/REPORT.md
+!/outputs/memory_check_3d/REPORT.md
+
+# Training artifacts under outputs/single_room_3d/
+/outputs/single_room_3d/**/*.pt
+/outputs/single_room_3d/**/tb/
+/outputs/single_room_3d/**/*.tfevents.*

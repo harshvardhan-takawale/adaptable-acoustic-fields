@@ -510,3 +510,179 @@ So: more interpolation anchors smooth the latent-to-spectrum mapping that the de
 **Verification:** Chunk 3.7 Track I numbers in `tasks/CHUNK_3_7_RESULTS.md`. The D1 D1_dense15 + B1 baseline at modal 2.55 dB is the live evidence; the per-L breakdown shows the gap shrinks consistently as L gets further from the 3.0 m endpoint.
 
 **Revisit if:** the next-chunk experiments (0.1 m spacing or [2.6, 6.0] extension) DON'T continue to lower modal LSD — that would refute the data-density mechanism and force us to revisit architecture (option I2 part 2, or hyper-network).
+
+---
+
+## 2026-06-04: Phase 2 starts — 3D shoebox port; geometry varies in L, W, H; α fixed at 0.15 (Chunk P2-1, D1-D5)
+
+**Decision:** Phase 2's first chunk (P2-1) ports the core pipeline from 2D to 3D shoeboxes with the following fixed-for-all-of-Phase-2 design choices:
+- **Room dimension ranges**: L ∈ [3.0, 6.0], W ∈ [3.0, 5.0], H ∈ [2.5, 4.0] m (D1).
+- **Receiver layout**: 8×8×8 = 512 receivers per room, regular grid with 0.3 m margin from all walls (D2). Smallest H=2.5 m → usable Z = 1.9 m → 7×0.27 m spacing fits; no adaptive margins needed.
+- **Source position**: fixed at (0.5, 0.5, 0.5) m from the corner (D3).
+- **Absorption**: α = 0.15 uniform on all 6 walls (D4).
+- **Frequency**: fs = 4096 Hz, n_time = 8192, n_freq_bins = 4097, Δf = 0.5 Hz, 0-2 kHz band (D5) — identical to Phase 1 Track A for continuity.
+
+**Rationale:** these are realistic room proportions (rooms get taller as they get wider — H/W ≥ 0.5). The frequency band continuity lets Phase-1 utilities (`band_limited.py`, `modal_verifier.py`) work for 3D without modification.
+
+**Alternatives considered:** wider dim ranges (rejected — manager spec; broader ranges would dilute the LHS sample density needed for P2-2 multi-room conditioning); variable absorption (rejected — disentangle geometry from materials in Phase 2, revisit in Phase 3).
+
+**Revisit if:** Phase 2 results require absorption diversity for downstream applications. The fixed-α design is a clean control for Phase 2's geometry-only conditioning experiments.
+
+---
+
+## 2026-06-04: 3D ISM `max_order` is hard-capped at 17 (Chunk P2-1, D6, D7)
+
+**Decision:** `aaf/sim/ism_3d.py:MAX_ORDER_CAP = 17`. The auto-rule `ceil(c·4·T60/min(L,W,H))` would request ~478 for a 6×5×4 m room at α=0.15 (T60 ≈ 0.87 s), which generates (2·478+1)³ ≈ 8.8×10⁸ image sources — OOM. Capping at 17 keeps the simulation tractable (~42 K image sources, ~5-15 s per room on 4 CPUs) and the IR covers ~108 ms of decay — 4× the 50 ms early-reflection envelope. `analytical_modal_3d` is the deterministic modal ground truth for low-frequency accuracy. We do **NOT** enable `set_ray_tracing` in P2-1 (D7): the stochastic late tail would break array-task idempotency and the analytical modal reference assumes deterministic ISM.
+
+**Rationale:** 3D ISM image-source count scales as the cube of `max_order`, not the square as in 2D — the 2D auto-rule simply doesn't transfer. Tail truncation beyond 108 ms is acceptable for de-risk single-room overfit because (a) low-frequency modes live in the truncation-stable early field and (b) the diffuse late field is incoherent anyway. The ir_truncated warning flag in the meta surfaces this for downstream awareness.
+
+**Alternatives considered:** hybrid ISM + ray-tracing for the late tail (deferred to Phase 3 — non-deterministic in a way that breaks the modal ground-truth comparison); per-room max_order autoselect with an upper cutoff (rejected — fixed cap is simpler and the resulting IRs are still informative for single-room overfit).
+
+**Verification:** `tests/test_ism_3d.py:test_max_order_cap_in_meta` asserts auto-max_order ≤ MAX_ORDER_CAP and T60 falls in the [0.3, 1.5] s range expected for α=0.15. `outputs/budget_check_3d/REPORT.md` records per-room wall-clock + max_order at run time.
+
+**Revisit if:** Phase 2 / Phase 3 work needs the diffuse-tail accuracy (e.g., reverberation-time-based metrics for unseen rooms). Then add ray-tracing with a per-room seed pulled from a hash of (L, W, H) so tasks remain idempotent.
+
+---
+
+## 2026-06-04: 3D ray sampler mirrors vendored INFER pattern: `n_azi × n_ele` + 2 poles (Chunk P2-1, D8, D11)
+
+**Decision:** `aaf/renderers/freq_3d.py:FreqRenderer3D` samples directions on a stratified `n_azi × n_ele` grid with per-iteration azimuth jitter (training mode only), plus two pole rays explicitly added. Defaults `n_azi = 16, n_ele = 16 → 258 rays`. Azimuth uniform on `[0, 2π)`; elevation `arccos(2·u - 1)` for stratified `u ∈ linspace(0, 1)` so the solid-angle weight is uniform. The spec's "n_rays = 256" maps to n_azi = n_ele = 16. `use_geometric_attn=False` carries over from Phase 1.
+
+**Rationale:** mirrors the vendored `aaf/_inference_ref/inference_renderer.py:40-57` pattern that INFER validated, so the 3D forward graph is structurally identical to the validated 2D forward graph. `arccos(2u-1)` stratification gives solid-angle-uniform area weighting that Fibonacci sphere only approximates non-jitterably. Pole rays catch ceiling/floor specular returns most directly — dropping them would cost the first vertical-axis mode.
+
+**Alternatives considered:** Fibonacci sphere (rejected — no clean jitter mechanism); pure equiangular grid (rejected — biases toward poles); larger n_ray budget (rejected without memory-check evidence; the n_pts × n_ray product dominates GPU memory).
+
+**Verification:** `tests/test_renderer_3d.py:test_renderer_3d_ray_directions_unit_norm` and `test_renderer_3d_ray_count` cover the structural invariants. `test_renderer_3d_jitter_in_train_mode_only` verifies that `.eval()` is deterministic and `.train()` jitters.
+
+**Revisit if:** the single-room overfit shows directional bias (e.g., consistent over-reconstruction along one axis) — that would suggest the 16×16 stratification + jitter is under-sampling. Bump to 24×24 or switch to Fibonacci sphere.
+
+---
+
+## 2026-06-04: 3D ray-AABB intersection by 3-axis slab algorithm (Chunk P2-1, D9)
+
+**Decision:** `aaf/renderers/freq_3d.py:_ray_aabb_intersect_3d` — direct port of the 2D slab algorithm over three axes. Returns per-(receiver, ray) `t_far` so `n_pts_per_ray` is packed inside the actual ray-in-room segment.
+
+**Rationale:** the vendored INFER renderer uses fixed `near, far` per ray which wastes ~40% of the sample budget outside the room. AABB slab gives ~2× effective sample density at the same `n_pts_per_ray`. For a 6×5×4 m room, mean ray length ≈ 4.3 m vs fixed-far of 8.8 m → 2× density. Phase 1's 2D version was already this design; D9 just confirms the 3-axis extension.
+
+**Alternatives considered:** fixed `near, far` (rejected — measurable density penalty); per-ray adaptive sampling (rejected — autograd complexity for unclear benefit).
+
+**Verification:** `tests/test_renderer_3d.py:test_renderer_3d_aabb_in_unit_cube` checks per-ray distances on the unit cube fall in `[0.5, √3/2]` (half-side to half-diagonal).
+
+**Revisit if:** ever wanted (no clear trigger; this is correct geometry).
+
+---
+
+## 2026-06-04: HashGrid 3D defaults — log2_hashmap_size=18, n_levels=16, per_level_scale=1.38 (Chunk P2-1, D10; user-approved override of spec's 16/16/1.5)
+
+**Decision:** `aaf/models/inr_3d.py:_default_hash_grid_config_3d()` returns:
+- `log2_hashmap_size = 18` (4× Phase-1's 14)
+- `n_levels = 16`
+- `per_level_scale = 1.38`
+- `base_resolution = 16`
+- `n_features_per_level = 2`
+
+**Rationale:** the spec asked for 16/16/1.5 as a "middle ground", but design-time numerical analysis (Plan-agent + user discussion) showed this under-provisions in 3D:
+- The HashGrid covers a 3D volume; the table size that gives equivalent collision rate as Phase-1's 2D-validated 14/14 is roughly 4× the entries (scales with the room's smaller-dim in meters → 3-4×).
+- At `per_level_scale = 1.5`, finest-level resolution at `n_levels = 16` is 16·1.5¹⁵ ≈ 7700/axis (~0.8 mm in a 6 m room) — 10× finer than λ/2 at 2 kHz, pure collision waste.
+- At `per_level_scale = 1.38`, finest-level resolution is ~1700/axis ≈ 3.5 mm in a 6 m room → ≈ λ/2 at 2 kHz, matched to the highest-resolved freq.
+- Memory cost: 6 encoders × 2¹⁸ × 2 × fp32 ≈ 12 MB total — trivial.
+
+**Alternatives considered:** spec's 16/16/1.5 (rejected after Plan-agent collision-rate analysis; user approved override); INFER reference's exact config (rejected — INFER targets real-world rooms with different sizing).
+
+**Verification:** the model defaults are returned by the helper at construction; `tests/test_model_3d.py` instantiates the model with a smaller HashGrid (n_levels=4, log2=12, scale=1.5) for memory-frugal tests but the production defaults match D10. The empirical test is the single-room overfit quality — if modal MAE > 3 Hz on a clear majority of de-risk rooms, the open question lands in `OPEN_QUESTIONS.md` and we iterate downward.
+
+**Revisit if:** single-room 3D overfit fails at modal MAE > 3 Hz, OR plateaus too quickly suggesting over-provisioning. In either case adjust `per_level_scale` (1.34 for finer / 1.42 for coarser) before changing `log2_hashmap_size`.
+
+---
+
+## 2026-06-04: Memory cascade for 3D single-room training (Chunk P2-1, D12, D13)
+
+**Decision:** `scripts/memory_check_3d.py` tries configurations in this order:
+1. (n_azi=16, n_ele=16, n_pts=32, batch=8) — canonical
+2. (16, 16, 16, 8) — reduce n_pts first
+3. (16, 16, 32, 4) — then reduce batch
+4. (16, 16, 16, 4) — last resort
+
+n_rays stays at 258 — the angular discretization governs modal coverage and shouldn't be reduced. The 5 single-room trainings are pinned to **tron RTX 2080 Ti (24 GB)**; TITAN X (12 GB) is too small for 3D activations.
+
+**Rationale:** Plan-agent memory math at the canonical config: 256 rays × 32 pts × 4097 freq × 8 batch × 8 B (complex64) ≈ 2.0 GB for one intermediate. With ~2-3 live intermediates (signal_with_delays, transmittance_amp, alpha) → ~6 GB activations; plus autograd graph (~2×) → ~14 GB at peak. Won't fit on TITAN X (12 GB). On tron 2080 Ti (24 GB): yes with ~6 GB headroom. Reduce n_pts before batch because n_pts controls the optical-depth integration accuracy more directly.
+
+**Alternatives considered:** mixed-precision (rejected — tcnn HashGrid + complex arithmetic in fp16 has known precision issues for σ-near-zero regions; not worth debugging in P2-1); gradient checkpointing on the renderer (deferred to P2-2 if multi-room training hits memory).
+
+**Verification:** `scripts/memory_check_3d.py` writes `outputs/memory_check_3d/result.json` with the chosen config. The training pipeline gates on this result and passes the chosen `n_pts_per_ray, batch_size` via env vars to `single_room_3d_train.sh`.
+
+**Revisit if:** P2-2 multi-room training pushes the activation footprint higher; consider gradient checkpointing or chunked-receiver gradient accumulation (the chunked-inner-loop pattern from Chunk 3.7 I3 generalizes).
+
+---
+
+## 2026-06-04: 3D room sampling — LHS for train, structured maximin for test, spec-prescribed for derisk (Chunk P2-1, D14, D15)
+
+**Decision:** `aaf/data/sample_rooms_3d.py` provides three sampling routines:
+- `sample_train_rooms_lhs(n=45, seed=42)` — Latin hypercube via `scipy.stats.qmc.LatinHypercube` over (L, W, H) ∈ [3,6]×[3,5]×[2.5,4]. Oversample factor 4× and reject draws with `|L - W| < 0.05` (mitigates 2-axis modal degeneracy). Deterministic for seed=42.
+- `derisk_rooms()` — returns the 5 spec-prescribed coordinates: box center (4.5, 4.0, 3.25) + 4 extreme-corner-ish rooms.
+- `sample_test_rooms(n=8, lhs_rooms=...)` — box center + 7 greedy-maximin selections from a Sobol candidate pool, maximizing min-distance to the LHS draws in normalized [0,1]³ space.
+
+**Rationale:** LHS gives space-filling coverage with reproducibility; reject-near-cubic mitigates the degeneracy where (1,0,0), (0,1,0) modes coincide (which would muddy the modal verifier). The greedy-maximin test selection ensures interpolative interior probes that don't overlap LHS draws — important for P2-2's zero-shot eval validity. The 5 de-risk rooms are dictated by spec and cover the (L, W, H) extreme corners + center.
+
+**Alternatives considered:** Sobol or Halton for training (LHS is preferred for stratified per-axis coverage with small `n`); pure-random test rooms (rejected — could overlap LHS samples).
+
+**Verification:** `tests/test_lhs_sampling.py` asserts the 45-room set is within the ranges, has no near-cubic draws, no duplicates, ≥30% spread per axis, and is reproducible across seed=42 invocations. The test rooms test asserts box center is first and no test room is within 1 mm of any LHS draw.
+
+**Revisit if:** P2-2 multi-room training reveals coverage gaps (e.g., a region of (L, W, H) space where the auto-decoder consistently fails); could augment with active-learning-driven additional draws.
+
+---
+
+## 2026-06-04: 3D dataset HDF5 naming + idempotency via sentinel files (Chunk P2-1, D16)
+
+**Decision:** Each 3D room dataset file is `data/track_a_3d/L{L:.2f}_W{W:.2f}_H{H:.2f}.h5`. The build script (`scripts/build_3d_dataset.py`) writes atomically: simulate → write to `<name>.h5.tmp` → fsync → rename to `<name>.h5` → write `<name>.h5.done` sentinel containing `(L, W, H, wall_clock)`. Skip the simulation entirely if `<name>.h5.done` already exists.
+
+**Rationale:** the dataset is generated by SLURM array jobs (5 de-risk on tron, 45 training on scavenger). Scavenger preempts; we need each array task to be both **idempotent** (re-running re-skips completed work) and **atomic** (partial writes never present a half-built HDF5 to the loader). The sentinel pattern is filesystem-level — no manifest lock contention across the 45 parallel scavenger tasks.
+
+**Alternatives considered:** HDF5 file checksum after write (rejected — too slow + h5py doesn't expose a clean checksum); JSON manifest with file lock (rejected — write contention from 45 parallel tasks is non-trivial); skip-if-exists by file size (rejected — partial writes have non-zero size).
+
+**Verification:** `scripts/build_3d_manifest.py` walks the sentinel files and validates each points to an existing HDF5; emits warnings on mismatches. The pipeline orchestrator runs this after each array completes.
+
+**Revisit if:** scavenger preemption rates become so high that the `data/track_a_3d/manifest.json` falls out of sync more than once per run — then upgrade to per-shard JSON manifests merged at the end.
+
+---
+
+## 2026-06-04: Signal-level eval suite API — 3-layer factoring (Chunk P2-1, D17; Dolby-requested)
+
+**Decision:** `aaf/eval/signal_level.py` follows the same 3-layer factoring as `aaf/eval/band_limited.py`:
+- **Layer 1**: pure component functions (one metric each, testable in isolation): `magnitude_correlation`, `phase_correlation_mag_weighted` (mag-weighted cos), `per_band_lsd` (reuses `compute_band_limited_metrics`), `rir_pearson`, `edc_db` (Schroeder integration), `edc_error` (max-dB, RMSE, T20, T30 deltas), `early_late_corr` (split at 50 ms), `envelope_corr` (Hilbert magnitude).
+- **Layer 2**: `compute_signal_metrics(H_pred, H_target, fs, n_time_samples, ...)` — one-call aggregator returning a flat dict; accepts optional `rir_pred, rir_target` injectables.
+- **Layer 3**: `make_signal_plots(...)` — writes 5 PNGs (`magnitude_overlay`, `phase_overlay`, `rir_time_overlay`, `edc_overlay`, `signal_metrics_summary`) to a directory.
+
+The default bands for per-band LSD are `((0,250), (250,500), (500,1000), (1000,2000))` Hz — sub-divides Phase 1's diffuse band to give Dolby finer resolution above the modal regime.
+
+**Rationale:** Dolby explicitly asked for magnitude/phase correlation + time-domain RIR analysis. The 3-layer factoring matches the Phase-1 utility pattern that proved reusable (Chunk 3.6's `band_limited.py`) and treats the API as stable for all of Phase 2 — P2-2's zero-shot eval will reuse `compute_signal_metrics` directly.
+
+**Alternatives considered:** monolithic `compute_signal_metrics` (rejected — component functions wouldn't be reusable inside the trainer's val loop or modal verifier); per-receiver-then-mean vs flatten-then-mean (kept per-receiver-then-mean for correlation metrics so the per-receiver Pearson stays bounded in `[-1, 1]`).
+
+**Verification:** `tests/test_signal_eval.py` asserts:
+- Identical signals → all correlations ≈ 1.0 and LSD ≈ 0.0.
+- Constant phase shift → magnitude correlation stays ≈ 1.0, phase correlation drops below 0.1.
+- Strong additive noise → all correlations drop below 0.99.
+- EDC is monotone non-increasing in time.
+- `compute_signal_metrics` returns the expected key set.
+
+**Revisit if:** Dolby asks for additional time-domain metrics (e.g., direct-to-reverberant ratio, IACC, clarity C50/C80). Add as Layer-1 components without changing the Layer-2 / Layer-3 contracts.
+
+---
+
+## 2026-06-04: Modal MAE reported only on f < f_Schroeder (Chunk P2-1, D18)
+
+**Decision:** `aaf/eval/single_room_3d_eval.py` reports modal MAE on the band `[0, f_modal_cap]` where `f_modal_cap = clip(f_Schroeder, 100 Hz, 250 Hz)`. Above f_Schroeder, 3D modal density exceeds the RFFT resolution Δf = 0.5 Hz — the modal MAE metric becomes ill-defined (no way to confidently match peaks at >5 modes/Hz when the resolution is 0.5 Hz). Signal-level metrics (LSD, env corr) replace it above.
+
+**Rationale:** For a representative 3D room (4.5, 4.0, 3.25), modal density:
+- ≤ 250 Hz: ~30 distinct modes (manageable, MAE meaningful)
+- ≤ 2 kHz: ~15,000 modes (peak density > 5 modes/Hz at high frequencies)
+
+Phase 1's 2D version reported MAE up to f_max = 2000 Hz because 2D modal density grows linearly with f, not quadratically. In 3D this no longer works above the Schroeder frequency.
+
+**Alternatives considered:** report MAE up to fixed 200 Hz regardless of f_Schroeder (rejected — different rooms have different f_Schroeder, so a fixed cap is misleading); report MAE on all bands but down-weight (rejected — adds methodological complexity for a metric that's still ill-defined at the top).
+
+**Verification:** `aaf/eval/single_room_3d_eval.py:f_modal_cap_hz` is recorded in each `eval.json`; the per-room SUMMARY.md surfaces both `f_schroeder_hz` and `f_modal_cap_hz` so the modal MAE is interpretable in context.
+
+**Revisit if:** an experiment needs modal-MAE-like accuracy on a specific narrow band above f_Schroeder (e.g., a Helmholtz absorber design tunes one mid-freq mode). Then introduce a narrow-band modal MAE on the requested band, not a global one.
+
