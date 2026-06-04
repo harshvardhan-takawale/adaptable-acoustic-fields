@@ -1,0 +1,39 @@
+run_id: C_10rm_b64
+rooms_yaml: configs/sweeps_3d/diag_10rooms.yaml
+
+# P2-2.5 Run C — high-coverage ceiling test on the 10-room subset.
+# Effective batch = 64 via gradient accumulation (micro=8 × accum=8) so we
+# fit on A6000 (48 GB). Mathematically identical to direct batch=64.
+# Per-iter coverage: 64 / 5120 ≈ 1.25% (~70× M1's, ~4× Run A's).
+
+# Architecture identical to M1 (D19-D31).
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+latent_jitter_sigma: 0.1
+l_head_enabled: true
+l_head_weight: 0.1
+
+# Optimization — Run-C variables
+n_iters: 30000
+batch_size: 8                     # micro-batch
+grad_accum_steps: 8               # → effective batch 64
+lr_network: 2e-4
+lr_latent: 1e-3
+lambda_latent: 1e-4
+
+# Renderer — Run-C variables
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+
+# Cadences
+val_every: 1000
+ckpt_every: 2500
+
+# Standard early-stop (matches M1, A).
+early_stop_warmup: 2000
+early_stop_patience: 2000
+early_stop_min_rel_improvement: 0.01

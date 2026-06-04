@@ -1,0 +1,39 @@
+run_id: B_45rm_b32
+rooms_yaml: configs/sweeps_3d/train_rooms.yaml
+
+# P2-2.5 Run B — the agent's proposed fix: bigger batch + bigger renderer on
+# the full 45-room set, with relaxed early-stop so the val curve can keep
+# improving past M1's 24K stop point.
+# Per-iter coverage: 32 / 23040 ≈ 0.14% (8× M1's).
+
+# Architecture identical to M1 (D19-D31).
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+latent_jitter_sigma: 0.1
+l_head_enabled: true
+l_head_weight: 0.1
+
+# Optimization — Run-B variables
+n_iters: 60000
+batch_size: 32
+grad_accum_steps: 1
+lr_network: 2e-4
+lr_latent: 1e-3
+lambda_latent: 1e-4
+
+# Renderer — Run-B variables
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+
+# Cadences
+val_every: 1000
+ckpt_every: 2500
+
+# Relaxed early-stop: 0.5% improvement over a 5K-iter window.
+early_stop_warmup: 2000
+early_stop_patience: 5000
+early_stop_min_rel_improvement: 0.005

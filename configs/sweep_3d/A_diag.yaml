@@ -1,0 +1,37 @@
+run_id: A_10rm_b16
+rooms_yaml: configs/sweeps_3d/diag_10rooms.yaml
+
+# P2-2.5 Run A — capacity check on a 10-room subset at modest compute.
+# Per-iter coverage: 16 / 5120 ≈ 0.31% (vs M1's 0.017%).
+
+# Architecture identical to M1 (D19-D31).
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+latent_jitter_sigma: 0.1
+l_head_enabled: true
+l_head_weight: 0.1
+
+# Optimization — Run-A variables
+n_iters: 30000
+batch_size: 16
+grad_accum_steps: 1
+lr_network: 2e-4
+lr_latent: 1e-3
+lambda_latent: 1e-4
+
+# Renderer — Run-A variables
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 16
+
+# Cadences
+val_every: 1000
+ckpt_every: 2500
+
+# Standard early-stop (matches M1).
+early_stop_warmup: 2000
+early_stop_patience: 2000
+early_stop_min_rel_improvement: 0.01

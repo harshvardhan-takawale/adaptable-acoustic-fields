@@ -213,6 +213,72 @@ def sample_test_rooms(
 
 
 # ----------------------------------------------------------------------
+# Diagnostic subset (P2-2.5): greedy maximin over an existing finite room set
+# ----------------------------------------------------------------------
+
+
+def select_diag_subset_maximin(
+    rooms: Sequence[Room3D],
+    n: int = 10,
+    ranges: Sequence[tuple[float, float]] = DEFAULT_RANGES,
+    box_center_first: bool = True,
+) -> list[Room3D]:
+    """Greedy maximin pick of ``n`` rooms from ``rooms`` (a finite candidate
+    set, typically the 45 LHS training rooms).
+
+    Algorithm:
+      1. Optionally seed the first pick as the room nearest the box center
+         (deterministic; no randomness needed for a finite-set maximin).
+      2. For each remaining slot, pick the unselected room whose minimum
+         distance to the already-picked set (in normalized [0, 1]³ space) is
+         largest.
+
+    Used by Chunk P2-2.5 to construct a 10-room subset of the 45-room LHS
+    training set for diagnostic runs A and C. The same input + parameters
+    always produce the same output (deterministic over a fixed input list).
+    """
+    if n <= 0:
+        raise ValueError(f"n must be > 0, got {n}")
+    rooms_list = list(rooms)
+    if n > len(rooms_list):
+        raise ValueError(
+            f"n={n} exceeds number of candidate rooms ({len(rooms_list)})"
+        )
+
+    norms = [_normalize_room(r, ranges) for r in rooms_list]
+    remaining = set(range(len(rooms_list)))
+    picked_idx: list[int] = []
+
+    if box_center_first:
+        center = np.full(3, 0.5)
+        d2_to_center = np.array(
+            [float(np.sum((norms[i] - center) ** 2)) for i in remaining]
+        )
+        seed_idx = list(remaining)[int(np.argmin(d2_to_center))]
+        picked_idx.append(seed_idx)
+        remaining.remove(seed_idx)
+
+    while len(picked_idx) < n:
+        picked_arr = np.stack([norms[i] for i in picked_idx], axis=0)        # (k, 3)
+        remaining_list = sorted(remaining)
+        cand_arr = np.stack(
+            [norms[i] for i in remaining_list], axis=0
+        )                                                                    # (R, 3)
+        # Pairwise dist²: (R, k)
+        diff = cand_arr[:, None, :] - picked_arr[None, :, :]
+        d2 = np.sum(diff * diff, axis=2)
+        min_d2 = np.min(d2, axis=1)
+        # Pick the candidate whose min-distance to the picked set is largest.
+        # Ties are broken by candidate list order (deterministic).
+        next_local_idx = int(np.argmax(min_d2))
+        next_idx = remaining_list[next_local_idx]
+        picked_idx.append(next_idx)
+        remaining.remove(next_idx)
+
+    return [rooms_list[i] for i in picked_idx]
+
+
+# ----------------------------------------------------------------------
 # YAML I/O
 # ----------------------------------------------------------------------
 

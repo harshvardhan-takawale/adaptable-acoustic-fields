@@ -612,6 +612,13 @@ def main():
             latent_jitter_sigma=float(d.get("latent_jitter_sigma", 0.1)),
             l_head_enabled=bool(d.get("l_head_enabled", True)),
             l_head_weight=float(d.get("l_head_weight", 0.1)),
+            # P2-2.5 diagnostic: expose early-stop knobs to the YAML so we can
+            # relax them for Run B without touching the trainer code.
+            early_stop_warmup=int(d.get("early_stop_warmup", 2_000)),
+            early_stop_patience=int(d.get("early_stop_patience", 2_000)),
+            early_stop_min_rel_improvement=float(
+                d.get("early_stop_min_rel_improvement", 0.01)
+            ),
         )
     else:
         if not args.rooms_yaml or not args.output_dir:

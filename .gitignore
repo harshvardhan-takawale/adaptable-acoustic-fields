@@ -100,3 +100,12 @@ slurm-*.out
 /outputs/multi_room_3d/**/*.pt
 /outputs/multi_room_3d/**/tb/
 /outputs/multi_room_3d/**/*.tfevents.*
+
+# P2-2.5 diagnostic: allow figures + DIAGNOSIS.md + train_meta + scalars
+!/outputs/diag_p2_2_5/**/*.png
+!/outputs/diag_p2_2_5/**/*.md
+!/outputs/diag_p2_2_5/**/*.json
+# Ignore checkpoints + tb logs
+/outputs/diag_p2_2_5/**/*.pt
+/outputs/diag_p2_2_5/**/tb/
+/outputs/diag_p2_2_5/**/*.tfevents.*
