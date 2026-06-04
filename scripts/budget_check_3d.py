@@ -87,10 +87,13 @@ def build_one(
     t0 = time.time()
     ism = simulate_room_3d(cfg)
     t_ism = time.time() - t0
+    print(f"#   ISM ({L}x{W}x{H}) done in {t_ism:.1f}s")
 
     t1 = time.time()
     ana = modal_rir_3d(cfg)
     t_ana = time.time() - t1
+    print(f"#   analytical ({L}x{W}x{H}) done in {t_ana:.1f}s "
+          f"({ana['meta']['n_modes']} modes, {ana['meta']['n_distinct_freqs']} distinct freqs)")
 
     write_room_3d_to_h5(out_path, ism, ana, sweep_meta={"budget_check": True})
     size_mb = out_path.stat().st_size / 1e6
@@ -165,12 +168,13 @@ def main():
           f"- Worst-case wall observed: {max_wall:.1f} s\n",
           f"- Worst-case size observed: {max_size:.1f} MB\n",
           "\n## Per-room measurements\n",
-          "| Label | L | W | H | wall (s) | size (MB) | max_order | T60 (s) | n_modes |\n",
-          "|---|---:|---:|---:|---------:|----------:|----------:|--------:|--------:|\n"]
+          "| Label | L | W | H | wall (s) | t_ISM (s) | t_analytical (s) | size (MB) | max_order | T60 (s) | n_modes |\n",
+          "|---|---:|---:|---:|---------:|---------:|----------------:|----------:|----------:|--------:|--------:|\n"]
     for r in results:
         md.append(
             f"| {r['label']} | {r['L']:.2f} | {r['W']:.2f} | {r['H']:.2f} | "
-            f"{r['wall_clock_s']:.1f} | {r['size_mb']:.1f} | "
+            f"{r['wall_clock_s']:.1f} | {r['t_ism_s']:.1f} | {r['t_analytical_s']:.1f} | "
+            f"{r['size_mb']:.1f} | "
             f"{r['ism_max_order']}{' (capped)' if r['ism_max_order_was_capped'] else ''} | "
             f"{r['T60_sabine_3d']:.2f} | {r['n_analytical_modes']} |\n"
         )

@@ -77,3 +77,5 @@ Decision needed for P2-2 zero-shot eval. Single-room overfit results from P2-1 w
 ---
 
 (Q1 ray sampling, Q2 frequency grid, Q3 L sweep, Q4 latent dim, Q5 cluster partition, Q6 vendoring, Q7 pyroomacoustics 2D sanity, Q8 geometric attenuation, Q9 modal-degeneracy convention, Q10 HashGrid resize have been resolved; see `DECISIONS.md`.)
+
+(P2-1's first budget check failed at per-room wall 2034.7s; resolved in-chunk by vectorizing `modal_rir_3d` to a single complex matmul and lowering `MAX_ORDER_CAP` from 17 → 12. Re-run wall 23.6s/room — see DECISIONS.md D6 revised.)

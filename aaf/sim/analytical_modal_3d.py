@@ -174,15 +174,19 @@ def modal_rir_3d(cfg: dict) -> dict:
     fs = float(cfg["fs"])
     n_time_samples = int(cfg["n_time_samples"])
     c = float(cfg.get("c", C_DEFAULT))
-    f_max_modes = float(cfg.get("f_max_modes", fs / 2.0))
+    # Default modal cap is 2 kHz (Phase-1 convention), not fs/2 = 2048 Hz —
+    # avoids enumerating ~5% extra modes outside the rendered band.
+    f_max_modes = float(cfg.get("f_max_modes", min(2000.0, fs / 2.0)))
 
     n_freq_bins = n_time_samples // 2 + 1
     f_axis = np.arange(n_freq_bins) * (fs / n_time_samples)  # Hz, RFFT axis
 
-    # Iterate individual (n_x, n_y, n_z) modes — each contributes its own term
-    # to the modal sum, even when degenerate. The dedup'd `eigenfrequencies_3d`
-    # is the right interface for the *probe* (distinct freqs); the modal sum
-    # needs the full enumeration.
+    # Vectorized modal sum (P2-1 amendment): the original per-mode loop took
+    # ~30 min on a 6×5×4 m room (111K modes × per-iteration numpy overhead).
+    # Reformulating as a single complex matmul `H_acc = amp.T @ inv_denom`
+    # collapses the loop into BLAS and runs in seconds. Memory peak is
+    # `n_modes × max(N_rx, F_chunk)` complex128 — we chunk over frequency
+    # if the unchunked allocation would exceed ~6 GB.
     triples = _enumerate_triples(L=L, W=W, H=H, c=c, f_max=f_max_modes)
     triples = [t for t in triples if t[3] > 0]  # drop (0,0,0) DC
     n_distinct_freqs = len(
@@ -193,29 +197,58 @@ def modal_rir_3d(cfg: dict) -> dict:
 
     src_x, src_y, src_z = source_pos
     n_rx = receiver_pos.shape[0]
-    H_acc = np.zeros((n_rx, n_freq_bins), dtype=np.complex128)
 
     omega = 2 * np.pi * f_axis  # rad/s
     k = omega / c
     eps = 1e-12
 
-    for n_x, n_y, n_z, f_m in triples:
-        k_m = 2 * np.pi * f_m / c
+    if not triples:
+        H_acc = np.zeros((n_rx, n_freq_bins), dtype=np.complex128)
+    else:
+        # Pack triples into numpy arrays.
+        triples_arr = np.asarray(triples, dtype=np.float64)
+        n_x_arr = triples_arr[:, 0]                                        # (n_modes,)
+        n_y_arr = triples_arr[:, 1]
+        n_z_arr = triples_arr[:, 2]
+        f_arr = triples_arr[:, 3]
 
-        phi_src = float(
-            np.cos(n_x * np.pi * src_x / L)
-            * np.cos(n_y * np.pi * src_y / W)
-            * np.cos(n_z * np.pi * src_z / H)
-        )
+        # phi_src (n_modes,)
+        phi_src = (
+            np.cos(n_x_arr * np.pi * src_x / L)
+            * np.cos(n_y_arr * np.pi * src_y / W)
+            * np.cos(n_z_arr * np.pi * src_z / H)
+        )                                                                   # real
+        # phi_rx (n_modes, N_rx): outer-product-style broadcasting of cosines.
         phi_rx = (
-            np.cos(n_x * np.pi * receiver_pos[:, 0] / L)
-            * np.cos(n_y * np.pi * receiver_pos[:, 1] / W)
-            * np.cos(n_z * np.pi * receiver_pos[:, 2] / H)
-        )
+            np.cos(n_x_arr[:, None] * np.pi * receiver_pos[:, 0][None, :] / L)
+            * np.cos(n_y_arr[:, None] * np.pi * receiver_pos[:, 1][None, :] / W)
+            * np.cos(n_z_arr[:, None] * np.pi * receiver_pos[:, 2][None, :] / H)
+        )                                                                   # real, (n_modes, N_rx)
+        amp = phi_src[:, None] * phi_rx                                     # (n_modes, N_rx)
 
-        denom = k_m**2 - k**2 - 2j * gamma * k_m / c + eps
-        amp = phi_src * phi_rx  # shape (N_rx,)
-        H_acc += amp[:, None] / denom[None, :]
+        k_m_arr = 2 * np.pi * f_arr / c                                     # (n_modes,)
+        # Memory check: inv_denom is (n_modes, n_freq_bins) complex128
+        # ≈ n_modes × n_freq_bins × 16 bytes. For 111K × 4097 ≈ 7.3 GB.
+        # Chunk over frequency if it would exceed ~6 GB.
+        bytes_per_chunk_target = 4 * 1024 ** 3                              # 4 GB
+        bytes_per_mode_per_freq = 16  # complex128
+        f_chunk = max(1, int(bytes_per_chunk_target / max(1, len(triples) * bytes_per_mode_per_freq)))
+        f_chunk = min(f_chunk, n_freq_bins)
+
+        H_acc = np.zeros((n_rx, n_freq_bins), dtype=np.complex128)
+        amp_T = amp.T.copy()                                                # (N_rx, n_modes), C-contig
+        for f_lo in range(0, n_freq_bins, f_chunk):
+            f_hi = min(f_lo + f_chunk, n_freq_bins)
+            k_chunk = k[f_lo:f_hi]                                          # (F_chunk,)
+            denom = (
+                (k_m_arr ** 2)[:, None]
+                - (k_chunk ** 2)[None, :]
+                - 2j * gamma * k_m_arr[:, None] / c
+                + eps
+            )                                                               # (n_modes, F_chunk)
+            inv_denom = 1.0 / denom
+            # H_acc[:, f_lo:f_hi] = amp.T @ inv_denom
+            H_acc[:, f_lo:f_hi] = amp_T @ inv_denom
 
     # Force DC + Nyquist to be real (RFFT convention).
     H_acc[:, 0] = H_acc[:, 0].real

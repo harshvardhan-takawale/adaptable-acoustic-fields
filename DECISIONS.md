@@ -686,3 +686,38 @@ Phase 1's 2D version reported MAE up to f_max = 2000 Hz because 2D modal density
 
 **Revisit if:** an experiment needs modal-MAE-like accuracy on a specific narrow band above f_Schroeder (e.g., a Helmholtz absorber design tunes one mid-freq mode). Then introduce a narrow-band modal MAE on the requested band, not a global one.
 
+
+---
+
+## 2026-06-04: P2-1 amendment — vectorize 3D modal sum + lower MAX_ORDER_CAP 17 → 12 (Chunk P2-1, budget-check-driven)
+
+**Decision:** Two interlocked changes after P2-1's first budget check showed per-room wall-clock 34 min on the largest room (way over the 10 min budget):
+
+1. **`aaf/sim/analytical_modal_3d.py:modal_rir_3d`** rewritten as a single complex matmul:
+   - Pack all eigenmode triples into numpy arrays once.
+   - Compute `amp = phi_src[:, None] * phi_rx` shape `(n_modes, N_rx)`.
+   - Compute `denom = k_m**2 - k**2 - 2j γ k_m / c + eps` shape `(n_modes, F_chunk)` per frequency chunk.
+   - `H_acc[:, f_lo:f_hi] = amp.T @ (1.0 / denom)` — single complex BLAS matmul.
+   - Frequency chunking targets ≤4 GB peak inv_denom allocation (chunk size auto-derived from n_modes).
+2. **`aaf/sim/ism_3d.py:MAX_ORDER_CAP` lowered from 17 to 12** — (2N+1)³ image-source count drops from 42 875 to 15 625 (2.7×). IR still covers ~175 ms of decay (3.5× the 50 ms early-reflection window), still well above the analytical modal regime's resolution requirements.
+
+**Rationale (with measurements):**
+- The original per-mode Python loop was O(n_modes) iterations each allocating a `(N_rx, N_freq) = (512, 4097)` intermediate (~33 MB complex128). For the 111K-mode 6×5×4 m room this dominated at ~30 min.
+- Matmul reformulation collapses the loop into BLAS: 23.6 s on the same room after the change. Smallest room: 5.7 s. Both well within budget.
+- ISM at max_order=17 was a Plan-agent estimate; the empirical measurement showed it's also expensive (~10× the analytical when the analytical is vectorized). Lowering to 12 keeps the early-reflection envelope well-covered for de-risk overfit.
+
+**Alternatives considered:**
+- Keep max_order=17 + only vectorize analytical (rejected — analytical is now 23s but ISM at max_order=17 would dominate the next time we exercise it; D6's original 17 was set before we had measurements).
+- Halve the receiver count (rejected — 8×8×8=512 is the spec-prescribed grid and not the bottleneck).
+- Cap `f_max_modes` more aggressively (rejected — physically the right cap is fs/2 = 2 kHz which we already implicitly use).
+
+**Verification:** `outputs/budget_check_3d/REPORT.md` (PASS), with per-step breakdown:
+- Smallest (3.0, 3.0, 2.5): ISM 1.2 s, analytical 4.5 s, total 5.7 s, 19 978 modes.
+- Largest (6.0, 5.0, 4.0): ISM 1.2 s, analytical 22.4 s, total 23.6 s, 103 611 modes.
+
+`tests/test_eigenfrequencies_3d.py::test_modal_rir_3d_shape_and_rfft_symmetry` continues to pass after the vectorization (correctness preserved by construction — the matmul evaluates the same mathematical sum).
+
+**Revisit if:** P2-2 or beyond needs ISM late-tail accuracy beyond ~175 ms (e.g., for late-corr or T30-from-EDC sub-metrics). At that point either:
+- Raise max_order to 15 (2× wall, still tractable post-vectorization).
+- Add ray-tracing fallback with a deterministic per-room seed.
+

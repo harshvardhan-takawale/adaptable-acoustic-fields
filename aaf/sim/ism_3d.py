@@ -28,7 +28,10 @@ import pyroomacoustics as pra
 
 
 C_DEFAULT = 343.0
-MAX_ORDER_CAP = 17  # see DECISIONS.md (D6): 3D ISM tractability cap
+MAX_ORDER_CAP = 12  # see DECISIONS.md (D6 revised, P2-1 amendment): budget-check
+# showed cap=17 → ~34 min for 6×5×4 m room (image-source tree dominated). At
+# cap=12 the (2N+1)³ image-source count drops 2.7× (42875 → 15625) while the
+# IR still covers ~175 ms of decay (3.5× the 50 ms early-reflection window).
 
 
 def _versions() -> dict:
