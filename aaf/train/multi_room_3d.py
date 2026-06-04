@@ -137,24 +137,25 @@ class MultiRoom3DTrainer:
                 torch.tensor([float(L), float(W), float(H)], device=self.device),
             )
 
-        # Pre-load all (room, rx) tensors onto GPU. With 45 × 512 receivers ×
-        # (3 + 3 + 4097·8 B complex64) ≈ 45·512·(24 + 32776) = 750 MB. Fits 24 GB.
+        # Pin (room, rx) tensors to CPU; index + .to(device) per iter. The
+        # H_target alone is 45 × 512 × 4097 × 8 B ≈ 720 MB; keeping it on GPU
+        # leaves no headroom for the renderer's activation footprint on
+        # 10-12 GB cards. Each iteration only needs `batch_size` receivers
+        # (~130 KB), so the per-step transfer cost is negligible.
         items = [self.dataset[i] for i in range(len(self.dataset))]
-        self.rx_pos_all = torch.stack([it["rx_pos"] for it in items]).to(self.device)
-        self.tx_pos_all = torch.stack([it["tx_pos"] for it in items]).to(self.device)
-        self.H_target_all = torch.stack([it["H_complex"] for it in items]).to(self.device)
+        self.rx_pos_all = torch.stack([it["rx_pos"] for it in items])        # CPU
+        self.tx_pos_all = torch.stack([it["tx_pos"] for it in items])
+        self.H_target_all = torch.stack([it["H_complex"] for it in items])
         self.room_ids_all = torch.tensor(
-            [it["room_id"] for it in items], dtype=torch.long, device=self.device
+            [it["room_id"] for it in items], dtype=torch.long
         )
-        # Per-(room, rx) true (L, W, H) for the geometry-head loss.
         self.geom_per_sample = torch.tensor(
             [
                 [float(it["L"]), float(it["W"]), float(it["H"])]
                 for it in items
             ],
             dtype=torch.float32,
-            device=self.device,
-        )                                                                    # [N_samples, 3]
+        )                                                                    # CPU [N_samples, 3]
 
         # HashGrid config (D23 / P2-1 D10).
         hg_cfg = {
@@ -303,19 +304,23 @@ class MultiRoom3DTrainer:
         self, indices: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Forward all samples in `indices`, sub-batched by room (each room has
-        its own AABB). Returns (H_pred [B, n_freq], z_s [B, latent_dim]).
+        its own AABB). `indices` is a CPU tensor of `room_ids_all`-indices.
+        Returns (H_pred [B, n_freq], z_s [B, latent_dim]) on device.
         """
-        room_ids = self.room_ids_all[indices]
+        indices_cpu = indices.cpu() if indices.device.type != "cpu" else indices
+        room_ids = self.room_ids_all[indices_cpu]
         H_pred_list: list[tuple[int, torch.Tensor]] = []
         z_s_list: list[tuple[int, torch.Tensor]] = []
         unique_rooms = torch.unique(room_ids).tolist()
         for r in unique_rooms:
             mask = (room_ids == r)
-            sub_idx = indices[mask]
-            rx = self.rx_pos_all[sub_idx]
-            tx = self.tx_pos_all[sub_idx]
+            sub_idx = indices_cpu[mask]
+            rx = self.rx_pos_all[sub_idx].to(self.device)
+            tx = self.tx_pos_all[sub_idx].to(self.device)
             z_s = self.model.get_latent(
-                torch.full((sub_idx.size(0),), r, dtype=torch.long, device=self.device)
+                torch.full(
+                    (sub_idx.size(0),), r, dtype=torch.long, device=self.device,
+                )
             )
             room_min, room_max = self.room_aabbs[r]
             H_pred = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z_s)
@@ -339,8 +344,8 @@ class MultiRoom3DTrainer:
         self.optimizer.zero_grad(set_to_none=True)
 
         for _ in range(accum):
-            idx = torch.randint(0, n_samples, (bs_micro,), device=self.device)
-            H_target = self.H_target_all[idx]
+            idx = torch.randint(0, n_samples, (bs_micro,))                   # CPU
+            H_target = self.H_target_all[idx].to(self.device)
             H_pred, z_s = self._render_grouped_by_room(idx)
             losses = _losses(H_pred, H_target)
             l_latent = (z_s ** 2).mean()
@@ -355,7 +360,7 @@ class MultiRoom3DTrainer:
             l_lhead_val = 0.0
             if cfg.l_head_enabled and cfg.l_head_weight > 0 and self.model.l_head is not None:
                 geom_pred = self.model.predict_geometry(z_s)                # [B, 3]
-                geom_true = self.geom_per_sample[idx]                        # [B, 3]
+                geom_true = self.geom_per_sample[idx].to(self.device)        # [B, 3]
                 l_lhead = F.l1_loss(geom_pred, geom_true)
                 loss = loss + cfg.l_head_weight * l_lhead
                 l_lhead_val = float(l_lhead.detach())
@@ -396,10 +401,10 @@ class MultiRoom3DTrainer:
             all_target = []
             per_room_metrics: dict[str, float] = {}
             for r in range(self.n_rooms):
-                room_idxs = (self.room_ids_all == r).nonzero(as_tuple=True)[0]
+                room_idxs = (self.room_ids_all == r).nonzero(as_tuple=True)[0]   # CPU
                 # Subsample VAL_PER_ROOM receivers evenly.
                 step = max(1, room_idxs.size(0) // VAL_PER_ROOM)
-                sub_idxs = room_idxs[::step][:VAL_PER_ROOM]
+                sub_idxs = room_idxs[::step][:VAL_PER_ROOM]                       # CPU
                 room_min, room_max = self.room_aabbs[r]
                 z_one = self.model.get_latent(
                     torch.full((1,), r, dtype=torch.long, device=self.device)
@@ -408,14 +413,14 @@ class MultiRoom3DTrainer:
                 Ht_list = []
                 for s in range(0, sub_idxs.size(0), chunk):
                     sub = sub_idxs[s : s + chunk]
-                    rx = self.rx_pos_all[sub]
-                    tx = self.tx_pos_all[sub]
+                    rx = self.rx_pos_all[sub].to(self.device)
+                    tx = self.tx_pos_all[sub].to(self.device)
                     z_s = z_one.expand(sub.size(0), -1)
                     H_pred = self.renderer(
                         self.model, rx, tx, room_min, room_max, z_s=z_s
                     )
                     Hp_list.append(H_pred)
-                    Ht_list.append(self.H_target_all[sub])
+                    Ht_list.append(self.H_target_all[sub].to(self.device))
                 if not Hp_list:
                     continue
                 Hp = torch.cat(Hp_list, dim=0)
