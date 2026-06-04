@@ -203,7 +203,11 @@ class MultiRoom3DTrainer:
             self.optimizer, T_max=self.cfg.n_iters, eta_min=self.cfg.eta_min
         )
 
-        self.writer = SummaryWriter(str(self.output_dir / "tb"))
+        try:
+            self.writer = SummaryWriter(str(self.output_dir / "tb"))
+        except Exception as e:
+            print(f"[trainer] SummaryWriter init failed ({e!r}); disabling tb.")
+            self.writer = None
         self.scalars: list[dict] = []
         self.start_iter = 0
         self._maybe_resume()
@@ -494,19 +498,29 @@ class MultiRoom3DTrainer:
                     "lr_latent": float(self.optimizer.param_groups[1]["lr"]),
                 }
                 self.scalars.append(row)
-                for k, v in train_log.items():
-                    self.writer.add_scalar(f"train/{k}", v, it)
+                if self.writer is not None:
+                    try:
+                        for k, v in train_log.items():
+                            self.writer.add_scalar(f"train/{k}", v, it)
+                    except Exception as e:
+                        print(f"[trainer] tb add_scalar failed at iter {it}: {e!r}")
+                        self.writer = None
             if (it + 1) % cfg.val_every == 0 or it == cfg.n_iters - 1:
                 val = self.validate()
                 row = {"iter": it + 1, "phase": "val", **val}
                 self.scalars.append(row)
-                for k, v in val.items():
-                    self.writer.add_scalar(f"val/{k}", v, it + 1)
-                self.writer.add_histogram(
-                    "val/latent_norms",
-                    self.model.latents.weight.norm(dim=-1).detach().cpu().numpy(),
-                    it + 1,
-                )
+                if self.writer is not None:
+                    try:
+                        for k, v in val.items():
+                            self.writer.add_scalar(f"val/{k}", v, it + 1)
+                        self.writer.add_histogram(
+                            "val/latent_norms",
+                            self.model.latents.weight.norm(dim=-1).detach().cpu().numpy(),
+                            it + 1,
+                        )
+                    except Exception as e:
+                        print(f"[trainer] tb val write failed at iter {it+1}: {e!r}")
+                        self.writer = None
                 should_stop, why = self._check_early_stop(it + 1)
                 if should_stop:
                     stopped_early = True
