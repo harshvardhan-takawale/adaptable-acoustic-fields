@@ -98,8 +98,10 @@ def evaluate_single_room_3d(
         n_azi = int(train_cfg.get("n_azi", 16))
         n_ele = int(train_cfg.get("n_ele", 16))
         n_pts_per_ray = int(train_cfg.get("n_pts_per_ray", 32))
+        train_batch = int(train_cfg.get("batch_size", 8))
     else:
         n_azi, n_ele, n_pts_per_ray = 16, 16, 32
+        train_batch = 8
     renderer = FreqRenderer3D(
         n_azi=n_azi, n_ele=n_ele, n_pts_per_ray=n_pts_per_ray, near=1e-3,
         fs=fs, n_time_samples=n_time, c=C_DEFAULT, use_geometric_attn=False,
@@ -110,8 +112,10 @@ def evaluate_single_room_3d(
     model.load_state_dict(state["model"])
     model.eval()
 
-    # Forward all receivers in chunks (avoid OOM at 512 receivers).
-    chunk = 8
+    # Forward all receivers in chunks. Use the train_meta batch so we match
+    # what the memory-check cascade picked (no autograd in eval → fits the
+    # same per-iter budget). Default to 4 for safety.
+    chunk = min(train_batch, 4)
     H_pred_chunks = []
     rx_t = torch.from_numpy(rx_pos).to(device)
     tx_t = torch.from_numpy(tx_pos).to(device)
