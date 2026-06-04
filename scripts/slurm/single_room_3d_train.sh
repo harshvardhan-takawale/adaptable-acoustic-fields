@@ -29,13 +29,24 @@ mkdir -p "${OUT}"
 echo "host=$(hostname); job=${SLURM_JOB_ID}; L=${L} W=${W} H=${H}; out=${OUT}"
 nvidia-smi -L || true
 
-# Render config: n_azi/n_ele/n_pts can be overridden via env vars after
-# the memory-check picks a config. Defaults match D8/D12.
-N_AZI="${N_AZI:-16}"
-N_ELE="${N_ELE:-16}"
-N_PTS="${N_PTS:-32}"
-BATCH="${BATCH:-8}"
+# Read the memory check's chosen config so we honor the cascade (D12).
+# Falls back to D8/D12 defaults if no memory-check result is on disk.
+MEM_RESULT="outputs/memory_check_3d/result.json"
+if [[ -f "${MEM_RESULT}" ]]; then
+    eval "$(python -c "
+import json
+r = json.load(open('${MEM_RESULT}'))
+if r.get('status') == 'pass':
+    c = r['chosen']
+    print(f'CHOSEN_N_AZI={c[\"n_azi\"]}; CHOSEN_N_ELE={c[\"n_ele\"]}; CHOSEN_N_PTS={c[\"n_pts_per_ray\"]}; CHOSEN_BATCH={c[\"batch\"]}')
+" 2>/dev/null)"
+fi
+N_AZI="${N_AZI:-${CHOSEN_N_AZI:-16}}"
+N_ELE="${N_ELE:-${CHOSEN_N_ELE:-16}}"
+N_PTS="${N_PTS:-${CHOSEN_N_PTS:-32}}"
+BATCH="${BATCH:-${CHOSEN_BATCH:-8}}"
 N_ITERS="${N_ITERS:-15000}"
+echo "renderer config: n_azi=${N_AZI} n_ele=${N_ELE} n_pts=${N_PTS} batch=${BATCH} (mem-check chosen)"
 
 python -m aaf.train.single_room_3d \
     --L "${L}" --W "${W}" --H "${H}" \
