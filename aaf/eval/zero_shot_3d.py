@@ -218,21 +218,38 @@ def zero_shot_adapt_3d(
     optimizer = torch.optim.Adam([z_star], lr=lr)
     loss_curve: list[dict] = []
 
+    # Chunk the obs receivers so we don't OOM on 12 GB cards. Each chunk does
+    # its own forward+backward; per-chunk loss scaled by (chunk_n / n_obs) so
+    # the accumulated gradient equals the full-batch gradient (mean over rx).
+    # λ_latent is added once per outer step (independent of receivers).
     n_obs = rx_obs_t.size(0)
+    chunks = [(c0, min(c0 + eval_chunk, n_obs)) for c0 in range(0, n_obs, eval_chunk)]
     for step in range(int(n_adapt_iters)):
         optimizer.zero_grad(set_to_none=True)
-        z_s_exp = z_star.unsqueeze(0).expand(n_obs, -1)
-        H_pred = renderer(model, rx_obs_t, tx_obs_t, room_min, room_max, z_s=z_s_exp)
-        losses = _losses(H_pred, H_obs_t)
+        spec_loss_log = 0.0
+        real_loss_log = 0.0
+        amp_loss_log = 0.0
+        for c0, c1 in chunks:
+            z_chunk = z_star
+            z_s_c = z_chunk.unsqueeze(0).expand(c1 - c0, -1)
+            H_pred_c = renderer(
+                model, rx_obs_t[c0:c1], tx_obs_t[c0:c1],
+                room_min, room_max, z_s=z_s_c,
+            )
+            losses_c = _losses(H_pred_c, H_obs_t[c0:c1])
+            weight = (c1 - c0) / n_obs
+            loss_c = weight * (
+                w_r * losses_c["L_spec_real"]
+                + w_i * losses_c["L_spec_imag"]
+                + w_a * losses_c["L_amp"]
+                + w_p * losses_c["L_phase"]
+            )
+            loss_c.backward()
+            spec_loss_log += float(loss_c.detach())
+            real_loss_log += weight * float(losses_c["L_spec_real"].detach())
+            amp_loss_log += weight * float(losses_c["L_amp"].detach())
         l_latent = (z_star ** 2).mean()
-        loss = (
-            w_r * losses["L_spec_real"]
-            + w_i * losses["L_spec_imag"]
-            + w_a * losses["L_amp"]
-            + w_p * losses["L_phase"]
-            + lambda_latent * l_latent
-        )
-        loss.backward()
+        (lambda_latent * l_latent).backward()
         if z_star.grad is not None:
             z_star.grad = torch.nan_to_num(
                 z_star.grad, nan=0.0, posinf=0.0, neginf=0.0
@@ -242,9 +259,9 @@ def zero_shot_adapt_3d(
         if step % 20 == 0 or step == n_adapt_iters - 1:
             loss_curve.append({
                 "iter": step,
-                "loss": float(loss.detach()),
-                "L_spec_real": float(losses["L_spec_real"].detach()),
-                "L_amp": float(losses["L_amp"].detach()),
+                "loss": spec_loss_log + float((lambda_latent * l_latent).detach()),
+                "L_spec_real": real_loss_log,
+                "L_amp": amp_loss_log,
                 "z_norm": float(z_star.detach().norm()),
             })
 
