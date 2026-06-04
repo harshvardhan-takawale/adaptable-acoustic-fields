@@ -2,11 +2,25 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk P2-1 infrastructure landed; pipeline submitted — 2026-06-04.
+**Last updated**: Chunk P2-1 COMPLETE — 2026-06-04.
 
-## Phase 2 — first chunk (P2-1): 3D port (in progress)
+## Phase 2 — first chunk (P2-1): 3D port (complete)
 
-**Status**: code + tests + SLURM all landed. Cluster pipeline submitted. See `tasks/CHUNK_P2_1_RESULTS.md` for live status.
+**Status**: COMPLETE. All 4 deliverables met. See `tasks/CHUNK_P2_1_RESULTS.md` for full numbers.
+
+**Headline (5 de-risk rooms, single-room 3D overfit)**:
+- Modal MAE 0.61-1.18 Hz on f<f_Schroeder (vs spec target ≤3 Hz) ✅
+- Full-band LSD 1.31-1.77 dB (vs Phase-1 2D 0.36-0.42 — 3-4× ratio, in spec) ✅
+- Signal correlations: mag 0.95-0.98, phase (mw) 0.95-0.98, RIR Pearson 0.97-0.99, env 0.98-0.99 ✅
+- 45-room LHS training dataset on disk (2.4 GB, 50 HDF5 files) ✅
+- Signal-level eval suite (Dolby foundation) working end-to-end ✅
+
+**Surprise finding**: per-band LSD *flips direction* in 3D — modal band (0-250 Hz) has the **highest** LSD (~2.1 dB), and LSD *decreases* monotonically with frequency. Opposite of 2D. Cause: 3D modal density at f≤250 Hz is ~11× higher than 2D (136 vs ~12 modes for the box-center room) — modal regime is denser → harder.
+
+**Two pipeline fixes landed during the chunk** (both in DECISIONS.md):
+- **D6 revised** (commit 8b900a6): the per-mode Python loop in `modal_rir_3d` took 30+ min on the largest room. Vectorized into single complex BLAS matmul + lowered ISM `max_order` cap 17 → 12. Now 23 s/room.
+- **SLURM training cascade** (commit 1662aa7): training script now honors the memory-check chosen config (16, 16, 16, 4) instead of defaulting to canonical (32, 8) which OOM'd on smaller tron GPUs.
+- **Eval chunk size** (commit 5dc1710): eval was using receiver-chunk=8 → OOM. Now matches the train_batch (4).
 
 **Scope of P2-1**: port the 2D pipeline (sim, renderer, model, train, eval) to 3D shoeboxes; build 5 single-room de-risk overfits; generate the 45-room LHS training dataset for P2-2; add the signal-level eval suite Dolby requested. NO auto-decoder, NO zero-shot, NO multi-room conditioning — those land in P2-2.
 

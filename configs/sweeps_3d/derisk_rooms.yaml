@@ -1,0 +1,25 @@
+set_name: derisk
+alpha: 0.15
+fs: 4096
+n_time_samples: 8192
+source_offset:
+- 0.5
+- 0.5
+- 0.5
+rooms:
+- L: 4.5
+  W: 4.0
+  H: 3.25
+- L: 3.0
+  W: 3.0
+  H: 2.5
+- L: 6.0
+  W: 5.0
+  H: 4.0
+- L: 3.0
+  W: 5.0
+  H: 2.5
+- L: 6.0
+  W: 3.0
+  H: 4.0
+comment: 5 spec-prescribed rooms for the P2-1 single-room overfit experiment.

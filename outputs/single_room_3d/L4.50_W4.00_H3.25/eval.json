@@ -1,0 +1,71 @@
+{
+  "L": 4.5,
+  "W": 4.0,
+  "H": 3.25,
+  "alpha": 0.15,
+  "fs": 4096,
+  "n_freq_bins": 4097,
+  "n_time_samples": 8192,
+  "ckpt_path": "single_room_3d/L4.50_W4.00_H3.25/ckpt_iter0015000.pt",
+  "ckpt_iter": 15000,
+  "f_schroeder_hz": 216.98730512487688,
+  "f_modal_cap_hz": 216.98730512487688,
+  "n_receivers": 512,
+  "n_modes_total_below_2k": 35130,
+  "n_modes_modal_band": 93,
+  "modal": {
+    "mae_hz": 0.6114269239510974,
+    "recall_at_tol": 0.10752688172043011,
+    "n_picked": 12,
+    "n_analytical": 93,
+    "n_matched": 10,
+    "n_spurious": 2,
+    "per_band": {
+      "low": {
+        "mae_hz": 1.7307692307692264,
+        "recall": 0.16666666666666666,
+        "n_modes": 6,
+        "n_matched": 1
+      },
+      "mid": {
+        "mae_hz": 0.3844236494080775,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.5163789585607991,
+        "recall": 0.09090909090909091,
+        "n_modes": 77,
+        "n_matched": 7
+      }
+    }
+  },
+  "full_band": {
+    "lsd_db": 1.5532028675079346,
+    "complex_l1": 0.2928023636341095,
+    "magnitude_l1": 0.17432385683059692,
+    "phase_l1": 0.23385711014270782
+  },
+  "signal_metrics": {
+    "mag_corr": 0.9665313959121704,
+    "phase_corr_mw": 0.9675208330154419,
+    "lsd_band_0_250_db": 2.10168719291687,
+    "lsd_band_0_250_n_bins": 501,
+    "lsd_band_250_500_db": 1.832680106163025,
+    "lsd_band_250_500_n_bins": 501,
+    "lsd_band_500_1000_db": 1.5714032649993896,
+    "lsd_band_500_1000_n_bins": 1001,
+    "lsd_band_1000_2000_db": 1.339754581451416,
+    "lsd_band_1000_2000_n_bins": 2001,
+    "rir_pearson": 0.9761118778011961,
+    "edc_max_db": 56.166343688964844,
+    "edc_rmse_db": 51.55032730102539,
+    "t20_delta_s": 1.751200795173645,
+    "t30_delta_s": 3.3521674474080405,
+    "early_corr": 0.9879874633219095,
+    "late_corr": 0.9569784509601873,
+    "envelope_corr": 0.987987769395198
+  },
+  "ism_modal_recall_at_centre": 0.0967741935483871
+}

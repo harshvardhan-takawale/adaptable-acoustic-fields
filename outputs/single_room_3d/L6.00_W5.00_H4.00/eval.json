@@ -1,0 +1,71 @@
+{
+  "L": 6.0,
+  "W": 5.0,
+  "H": 4.0,
+  "alpha": 0.15,
+  "fs": 4096,
+  "n_freq_bins": 4097,
+  "n_time_samples": 8192,
+  "ckpt_path": "single_room_3d/L6.00_W5.00_H4.00/ckpt_iter0015000.pt",
+  "ckpt_iter": 15000,
+  "f_schroeder_hz": 170.38051090394111,
+  "f_modal_cap_hz": 170.38051090394111,
+  "n_receivers": 512,
+  "n_modes_total_below_2k": 31379,
+  "n_modes_modal_band": 82,
+  "modal": {
+    "mae_hz": 0.6711966451789171,
+    "recall_at_tol": 0.0975609756097561,
+    "n_picked": 9,
+    "n_analytical": 82,
+    "n_matched": 8,
+    "n_spurious": 1,
+    "per_band": {
+      "low": {
+        "mae_hz": 0.7826303236331906,
+        "recall": 0.3333333333333333,
+        "n_modes": 6,
+        "n_matched": 2
+      },
+      "mid": {
+        "mae_hz": 1.089680334485287,
+        "recall": 0.3,
+        "n_modes": 10,
+        "n_matched": 3
+      },
+      "high": {
+        "mae_hz": 0.17842383690303146,
+        "recall": 0.045454545454545456,
+        "n_modes": 66,
+        "n_matched": 3
+      }
+    }
+  },
+  "full_band": {
+    "lsd_db": 1.6044632196426392,
+    "complex_l1": 0.26763278245925903,
+    "magnitude_l1": 0.1523512750864029,
+    "phase_l1": 0.263297975063324
+  },
+  "signal_metrics": {
+    "mag_corr": 0.9536336660385132,
+    "phase_corr_mw": 0.9547533988952637,
+    "lsd_band_0_250_db": 1.9897456169128418,
+    "lsd_band_0_250_n_bins": 501,
+    "lsd_band_250_500_db": 1.9140483140945435,
+    "lsd_band_250_500_n_bins": 501,
+    "lsd_band_500_1000_db": 1.5675705671310425,
+    "lsd_band_500_1000_n_bins": 1001,
+    "lsd_band_1000_2000_db": 1.4466561079025269,
+    "lsd_band_1000_2000_n_bins": 2001,
+    "rir_pearson": 0.9647652161895559,
+    "edc_max_db": 58.560462951660156,
+    "edc_rmse_db": 52.98509216308594,
+    "t20_delta_s": 3.9479414224624634,
+    "t30_delta_s": 3.294575929641723,
+    "early_corr": 0.9847062580870305,
+    "late_corr": 0.9414382829489063,
+    "envelope_corr": 0.9822627325285112
+  },
+  "ism_modal_recall_at_centre": 0.0975609756097561
+}

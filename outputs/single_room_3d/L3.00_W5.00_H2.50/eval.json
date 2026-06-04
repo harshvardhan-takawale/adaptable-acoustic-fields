@@ -1,0 +1,71 @@
+{
+  "L": 3.0,
+  "W": 5.0,
+  "H": 2.5,
+  "alpha": 0.15,
+  "fs": 4096,
+  "n_freq_bins": 4097,
+  "n_time_samples": 8192,
+  "ckpt_path": "single_room_3d/L3.00_W5.00_H2.50/ckpt_iter0015000.pt",
+  "ckpt_iter": 15000,
+  "f_schroeder_hz": 247.74317287349828,
+  "f_modal_cap_hz": 247.74317287349828,
+  "n_receivers": 512,
+  "n_modes_total_below_2k": 8545,
+  "n_modes_modal_band": 66,
+  "modal": {
+    "mae_hz": 1.1258395873952711,
+    "recall_at_tol": 0.18181818181818182,
+    "n_picked": 15,
+    "n_analytical": 66,
+    "n_matched": 12,
+    "n_spurious": 3,
+    "per_band": {
+      "low": {
+        "mae_hz": 2.299062653733138,
+        "recall": 0.5,
+        "n_modes": 6,
+        "n_matched": 3
+      },
+      "mid": {
+        "mae_hz": 0.61666666666666,
+        "recall": 0.2,
+        "n_modes": 10,
+        "n_matched": 2
+      },
+      "high": {
+        "mae_hz": 0.7685076791729314,
+        "recall": 0.14,
+        "n_modes": 50,
+        "n_matched": 7
+      }
+    }
+  },
+  "full_band": {
+    "lsd_db": 1.708186149597168,
+    "complex_l1": 0.3679557740688324,
+    "magnitude_l1": 0.22085829079151154,
+    "phase_l1": 0.2521468997001648
+  },
+  "signal_metrics": {
+    "mag_corr": 0.9649547338485718,
+    "phase_corr_mw": 0.9632541537284851,
+    "lsd_band_0_250_db": 2.069312572479248,
+    "lsd_band_0_250_n_bins": 501,
+    "lsd_band_250_500_db": 2.224912405014038,
+    "lsd_band_250_500_n_bins": 501,
+    "lsd_band_500_1000_db": 1.7187100648880005,
+    "lsd_band_500_1000_n_bins": 1001,
+    "lsd_band_1000_2000_db": 1.4893178939819336,
+    "lsd_band_1000_2000_n_bins": 2001,
+    "rir_pearson": 0.9731807339090022,
+    "edc_max_db": 56.250389099121094,
+    "edc_rmse_db": 51.850318908691406,
+    "t20_delta_s": 2.1565465927124023,
+    "t30_delta_s": 3.3594443003336587,
+    "early_corr": 0.9863958567007232,
+    "late_corr": 0.9496219106333839,
+    "envelope_corr": 0.9863297179417614
+  },
+  "ism_modal_recall_at_centre": 0.16666666666666666
+}

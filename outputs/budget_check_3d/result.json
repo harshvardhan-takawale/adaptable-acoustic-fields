@@ -1,0 +1,43 @@
+{
+  "status": "pass",
+  "per_room_wall_limit_s": 600.0,
+  "per_room_size_limit_mb": 500.0,
+  "results": [
+    {
+      "L": 3.0,
+      "W": 3.0,
+      "H": 2.5,
+      "t_ism_s": 1.3602104187011719,
+      "t_analytical_s": 4.3891425132751465,
+      "wall_clock_s": 5.749352931976318,
+      "size_mb": 45.937661,
+      "ism_max_order": 12,
+      "ism_max_order_was_capped": true,
+      "T60_sabine_3d": 0.5034806054325585,
+      "schroeder_freq_hz": 299.17831336514075,
+      "ir_pra_length_max": 540,
+      "ir_truncated": false,
+      "n_analytical_modes": 19978,
+      "n_distinct_freqs": 5703,
+      "label": "smallest"
+    },
+    {
+      "L": 6.0,
+      "W": 5.0,
+      "H": 4.0,
+      "t_ism_s": 1.246821403503418,
+      "t_analytical_s": 22.361639738082886,
+      "wall_clock_s": 23.608461141586304,
+      "size_mb": 48.78955,
+      "ism_max_order": 12,
+      "ism_max_order_was_capped": true,
+      "T60_sabine_3d": 0.87088555487664,
+      "schroeder_freq_hz": 170.38051090394111,
+      "ir_pra_length_max": 1007,
+      "ir_truncated": false,
+      "n_analytical_modes": 103611,
+      "n_distinct_freqs": 31380,
+      "label": "largest"
+    }
+  ]
+}
