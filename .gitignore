@@ -88,3 +88,15 @@ slurm-*.out
 /outputs/single_room_3d/**/*.pt
 /outputs/single_room_3d/**/tb/
 /outputs/single_room_3d/**/*.tfevents.*
+
+# Allow Phase-2 (3D) multi-room outputs (P2-2)
+!/outputs/multi_room_3d/**/*.png
+!/outputs/multi_room_3d/**/SUMMARY.md
+!/outputs/multi_room_3d/**/*.json
+!/outputs/memory_check_multi_3d/REPORT.md
+!/outputs/memory_check_multi_3d/result.json
+
+# Training artifacts under outputs/multi_room_3d/
+/outputs/multi_room_3d/**/*.pt
+/outputs/multi_room_3d/**/tb/
+/outputs/multi_room_3d/**/*.tfevents.*

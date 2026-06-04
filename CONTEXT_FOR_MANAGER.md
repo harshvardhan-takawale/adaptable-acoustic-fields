@@ -2,7 +2,29 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk P2-1 COMPLETE — 2026-06-04.
+**Last updated**: Chunk P2-2 infrastructure landed; pipeline submitted — 2026-06-04.
+
+## Phase 2 — second chunk (P2-2): multi-room 3D conditioning + zero-shot (in progress)
+
+**Status**: code + tests + SLURM all landed. Cluster pipeline submitted (M1 d=16 + M2 d=32 in parallel, each with 8 zero-shot evals + a latent probe). See `tasks/CHUNK_P2_2_RESULTS.md` for live status.
+
+**Scope**: train an `INR3D_AutoDecoder` (FiLM + latent jitter + linear geometry head) jointly on 45 LHS training rooms; zero-shot adapt to 8 unseen maximin test rooms; evaluate primarily via `aaf/eval/signal_level.py`. Spec-prescribed acceptance: magnitude correlation ≥ 0.9 in 0-500 Hz on ≥ 5/8 test rooms. **No** dimension-sweep eval (P2-3); **no** EDC fidelity work; **no** conditioning-mechanism sweep (FiLM only).
+
+**Key files (new)**:
+- `aaf/models/inr_3d.py:INR3D_AutoDecoder` — appended; FiLM at sigma + signal branches, per-room latents, linear `predict_geometry(z) → [B, 3]`.
+- `aaf/train/multi_room_3d.py` — joint training; two param groups; 4-spec + λ‖z‖² + 0.1·L1(geom_pred, true) loss.
+- `aaf/eval/zero_shot_3d.py` — inner-loop adaptation; 8 corner-receivers `OBS_INDICES_3D=[0,7,56,63,448,455,504,511]`; 2000 iters; full 504-receiver held-out eval.
+- `aaf/eval/latent_probe_3d.py` — sklearn PCA + per-axis R² (L, W, H) via `_r2_full_latent` and `_r2_per_pc`.
+- `configs/sweep_3d/{M1_45rooms, M2_45rooms_d32}.yaml` — main run + d=32 hedge.
+- `scripts/{multi_room_3d_summary, run_p2_2_pipeline}.py` + 6 new SLURM scripts.
+- 3 new test files (~20 tests). Memory-check `--mode auto_decoder` flag added to `scripts/memory_check_3d.py`.
+
+**D29 hedge enabled (user-approved)**: M1 (d=16) and M2 (d=32) run in parallel on tron. Definitive d=16 vs d=32 comparison at chunk closeout.
+
+**Decisions logged**: D19-D31 (DECISIONS.md to be appended at closeout).
+**Open questions refreshed (P2-1 outcomes folded in)**: Q12 (HashGrid 18/16/1.38 ~right; closes when M1/M2 in-distribution LSD lands), Q13 (max_order=12 covers ~175 ms; EDC T-numbers flagged "not yet calibrated"), Q14 (answer (c) signal mag corr ≥ 0.9 in 0-500 Hz adopted as P2-2 target).
+
+---
 
 ## Phase 2 — first chunk (P2-1): 3D port (complete)
 

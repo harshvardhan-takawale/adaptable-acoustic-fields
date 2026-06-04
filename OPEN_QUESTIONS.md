@@ -36,25 +36,21 @@ This question can close definitively once (1) or (2) lands the 2 dB target. If n
 
 **Asker**: Chunk P2-1 agent. **Owner**: P2-2 manager / research call.
 
-DECISIONS.md D10 picks the 3D HashGrid defaults (`log2_hashmap_size=18`, `n_levels=16`, `per_level_scale=1.38`) based on collision-rate-corrected scaling from Phase 1's 2D-validated 14/14. The 5 de-risk single-room overfits in this chunk give the first empirical signal:
+**P2-1 status (single-room overfit, 5 rooms)**: Capacity is **roughly right**. All 5 de-risk rooms converged 6-7 dB → 1.3-1.8 dB val LSD over 15K iters; modal MAE 0.61-1.18 Hz on f<f_Schroeder (well under the 3 Hz spec target). No early plateau. P2-2 inherits these defaults (D23). P2-2 runs a d=16 vs d=32 hedge (D29) to test whether the latent table — not the HashGrid — is the binding capacity constraint. This question closes when the M1/M2 in-distribution val LSD comparison lands in CHUNK_P2_2_RESULTS.md.
 
-- If modal MAE < 3 Hz on f<f_Schroeder for ≥4 of 5 rooms → capacity is roughly right; P2-2 inherits these defaults.
-- If modal MAE > 3 Hz on a clear majority → undercapacity; iterate downward via `per_level_scale=1.34` (finer finest level) before bumping `log2_hashmap_size`.
-- If single-room val LSD plateaus very early (e.g., flat after 5K iters) → overcapacity; P2-2 should reduce.
-
-This question closes when the single-room 3D summary lands and the diagnosis is clear. The chunk-3.7 Phase-1 lesson was that auto-decoder capacity choices are easier to make once we've seen single-room overfit behaviour first.
+If multi-room M1 in-distribution val LSD > 2.5 dB and M2 (d=32) is meaningfully lower, the latent dim is the lever — P2-3 should adopt d=32 (or larger). If both reach similar LSD, d=16 is preferred for downstream analysis.
 
 ---
 
-### Q13 — ISM `max_order=17` tail truncation tolerance
+### Q13 — ISM `max_order=12` tail truncation tolerance (was 17, revised in P2-1)
 
-**Asker**: Chunk P2-1 agent. **Owner**: research call after first 3D evals.
+**Asker**: Chunk P2-1 agent. **Owner**: research call after Phase 2 evals.
 
-DECISIONS.md D6 hard-caps `max_order` at 17 for 3D tractability. The resulting IR covers ~108 ms of decay (4× the 50 ms early-reflection envelope) but truncates the diffuse tail. For 5 de-risk rooms the `ir_truncated` warning will fire (4·T60·fs ≈ 14000-15000 > 8192).
+**Status update**: D6 was revised in P2-1 from `max_order=17` to `max_order=12` (the budget check showed 17 gave 30+ min/room while the modal sum was Python-bound). At cap=12 the IR covers ~175 ms (3.5× the 50 ms early window). P2-1's signal-level eval showed late-corr 0.94-0.98 across de-risk rooms — the structure is captured, but **T20/T30 deltas blow up to 1.7-3.4 s** because the ISM ground-truth itself is truncated past ~175 ms.
 
-**Sub-question**: does the truncation noticeably affect the signal-level eval suite's late-corr / EDC-error metrics? The early band (≤50 ms) is well-resolved; the late band (50 ms – n_time/fs ≈ 2.0 s) is in the truncated regime.
+**P2-2 deliberately defers EDC/T20/T30 calibration** (per spec). P2-2 will report late-corr and env-corr as the late-field metrics; EDC-derived T20/T30 are flagged "not yet calibrated" wherever they appear.
 
-If late-corr is consistently near zero across de-risk rooms → truncation matters; budget time for max_order=17 + ray-tracing fallback in Phase 3. If late-corr stays comparable to early-corr → truncation is acceptable for P2-2 / future work.
+This question closes in Phase 3 with a deliberate ISM+ray-tracing hybrid pass that produces well-calibrated ground-truth EDCs.
 
 ---
 
@@ -62,17 +58,11 @@ If late-corr is consistently near zero across de-risk rooms → truncation matte
 
 **Asker**: Chunk P2-1 agent. **Owner**: research call (manager + user).
 
-The Phase-1 "modal LSD ≤ 2 dB" target was defined on the 2D 0-250 Hz band. In 3D:
-- Modal density is ~3× higher in the 0-250 Hz band (~30 modes vs ~10 for 2D).
-- The Schroeder frequency varies per room (typical f_Schroeder ≈ 150-200 Hz for the ranges in D1).
-- Above f_Schroeder, modal density exceeds the RFFT resolution Δf = 0.5 Hz (D18) — LSD remains a valid metric but modal MAE doesn't.
+**P2-1 outcome**: Modal density turned out to be ~11× higher than 2D in the 0-250 Hz band (P2-1 §5: 136 distinct modes on the box-center room vs ~12 in 2D). Per-band LSD also **inverts direction** in 3D — 0-250 Hz is the HARDEST band (2.1 dB on box-center single-room), 1000-2000 Hz the easiest (1.3 dB).
 
-**Sub-question**: should the Phase-2 target be:
-(a) modal LSD ≤ 2 dB on f < f_Schroeder (variable per-room band)?
-(b) modal LSD ≤ 2 dB on a fixed 0-250 Hz band?
-(c) signal-level magnitude-corr ≥ 0.9 in 0-500 Hz (matches Dolby's stated language)?
+**P2-2 adopted answer (c)**: signal-level magnitude correlation ≥ 0.9 in 0-500 Hz on ≥ 5/8 unseen test rooms. Matches Dolby's stated language; relevant for downstream applications. Modal LSD is reported as supporting (not pass/fail).
 
-Decision needed for P2-2 zero-shot eval. Single-room overfit results from P2-1 will inform: e.g., if all 5 de-risk rooms hit modal LSD ≤ 1 dB on f<f_Schroeder, then (a) is the right scale for the zero-shot target.
+This question closes when P2-2's zero-shot headline lands. If ≥ 5/8 rooms hit mag corr ≥ 0.9, the answer is definitively (c) and the target is met. If < 5/8, P2-3 will need a tighter band or a different framing — most likely option (a) constrained to a narrower range (e.g., 0-100 Hz, the resolvable axial modes only).
 
 ---
 

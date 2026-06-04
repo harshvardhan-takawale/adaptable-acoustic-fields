@@ -721,3 +721,31 @@ Phase 1's 2D version reported MAE up to f_max = 2000 Hz because 2D modal density
 - Raise max_order to 15 (2× wall, still tractable post-vectorization).
 - Add ray-tracing fallback with a deterministic per-room seed.
 
+
+---
+
+## 2026-06-04: P2-2 design — `INR3D_AutoDecoder` with FiLM + latent jitter; d=16 (with d=32 hedge); linear geometry head (D19-D31)
+
+**Decision**: P2-2 (multi-room 3D conditioning + zero-shot) uses the following Phase-1-validated recipe, adapted to 3D:
+
+- **D19** Conditioning: FiLM at both sigma + signal branches. γ init=1, β init=0 (identity at construction). No LoRA in P2-2's first run; no concat-vs-FiLM-vs-LoRA sweep.
+- **D20** Latent dimension `d=16` (up from Phase-1's 8). The 3D geometry manifold is parameterized by (L, W, H), so 16 gives ~5×-headroom over the intrinsic dim.
+- **D21** Latent jitter σ=0.1 during training (off at val / zero-shot). Mirrors Phase-1 C2.
+- **D22 / D31** Geometry head: linear `nn.Linear(latent_dim, 3) → (L, W, H)`, weight 0.1. Linear (not MLP-32) forces the latent to be directly readable as 3D geometry.
+- **D23** HashGrid inherits P2-1's D10: `log2_hashmap_size=18, n_levels=16, per_level_scale=1.38`.
+- **D24** Loss: 4 spectral (1, 1, 1, 0.1) + λ_latent·‖z‖² (1e-4) + 0.1·L1(predict_geom(z), [L, W, H]).
+- **D25** Two-param-group Adam: network lr=2e-4, latents lr=1e-3 (DeepSDF convention). CosineAnnealingLR.
+- **D26** n_iters=30K default; early-stop on 1% improvement over 2K window after 2K warmup. Checkpoint every 2500.
+- **D27** Zero-shot: 8 obs receivers (corners of 8×8×8 grid → `OBS_INDICES_3D=[0,7,56,63,448,455,504,511]`); n_adapt_iters=2000; Adam lr=1e-2; random init; n_restarts=1 — matches Phase-1 variant B1.
+- **D28** GPU pinning: training on tron (D13 lesson); zero-shot + probe on scavenger.
+- **D29 (user-approved hedge)** Launch `M2_45rooms_d32` (d=32) in parallel with M1 from chunk start. Definitive d=16 vs d=32 comparison at closeout.
+- **D30 (user-approved)** Zero-shot held-out evaluation uses the full 504 receivers (signal_level.py is BLAS-bound; ~1 s/room).
+
+**Rationale**: P2-1 §11 recommended this configuration directly; Phase 1's C2 (FiLM + jitter) was the strongest in-distribution recipe with comparable zero-shot to other variants. The 3-output linear geometry head is the natural extension of Phase 1's linear L-head; P2-1's D14 (reject-near-cubic LHS draws) guarantees the 3 outputs are well-posed. The d=32 hedge is insurance against d=16 under-fitting the 3D manifold; given tron has the slots, the head-to-head answers Q12 cleanly at chunk closeout.
+
+**Alternatives considered**: Concat conditioning (rejected — Phase-1 R0-R8's failure mode); MLP geometry head (rejected — would over-fit the latent away from linear readability); fewer iters / smaller batches (rejected — multi-room is harder than single-room, need headroom for early-stop to make a meaningful decision).
+
+**Verification**: `tests/test_autodecoder_3d.py` covers (a) forward shape, (b) requires-z_s, (c) predict_geometry shape, (d) different z → different geom predictions (and after a few training steps, different forward outputs), (e) gradient flows back to latents + FiLM + geometry head, (f) latent jitter on at train and off at eval. `tests/test_zero_shot_3d.py` covers `OBS_INDICES_3D` correctness and grid-corner semantics. `tests/test_latent_probe_3d.py` covers `_r2_full_latent` and `_r2_per_pc` on synthetic ground truth.
+
+**Revisit if**: M1 (d=16) and M2 (d=32) diverge in val LSD — Q12 closes with the empirical winner. If both fail to reach ≤ 2.5-2.7 dB in-distribution, escalate: widen `sigma_encoder_dim` 256 → 512, or bump `log2_hashmap_size` 18 → 20.
+

@@ -23,18 +23,36 @@ import torch
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from aaf.models.inr_3d import INR3D_Single
+from aaf.models.inr_3d import INR3D_AutoDecoder, INR3D_Single
 from aaf.renderers.freq_3d import FreqRenderer3D
 
 
 def run_check(
     n_azi: int, n_ele: int, n_pts_per_ray: int, batch: int = 8,
     n_freq_bins: int = 4097, fs: int = 4096, n_time_samples: int = 8192,
+    mode: str = "single",
+    n_rooms: int = 45, latent_dim: int = 16,
 ) -> dict:
+    """Memory smoke check for the 3D single-room or auto-decoder pipeline.
+
+    ``mode='single'`` builds `INR3D_Single` (P2-1 default).
+    ``mode='auto_decoder'`` builds `INR3D_AutoDecoder` with `n_rooms` and
+    `latent_dim` set (P2-2 multi-room).
+    """
     torch.cuda.empty_cache()
     torch.cuda.reset_peak_memory_stats()
     try:
-        model = INR3D_Single(n_freq_bins=n_freq_bins).cuda()
+        if mode == "auto_decoder":
+            model = INR3D_AutoDecoder(
+                n_rooms=n_rooms,
+                latent_dim=latent_dim,
+                n_freq_bins=n_freq_bins,
+                conditioning_type="film",
+                latent_jitter_sigma=0.1,
+                l_head_enabled=True,
+            ).cuda()
+        else:
+            model = INR3D_Single(n_freq_bins=n_freq_bins).cuda()
         renderer = FreqRenderer3D(
             n_azi=n_azi, n_ele=n_ele, n_pts_per_ray=n_pts_per_ray, near=1e-3,
             fs=fs, n_time_samples=n_time_samples,
@@ -47,7 +65,13 @@ def run_check(
         room_max = torch.tensor([5.0, 4.0, 3.0], device="cuda")
         torch.cuda.synchronize()
         t0 = time.time()
-        H_pred = renderer(model, rx_pos, tx_pos, room_min, room_max)
+        if mode == "auto_decoder":
+            z_s = model.get_latent(
+                torch.zeros(batch, dtype=torch.long, device="cuda")
+            )
+            H_pred = renderer(model, rx_pos, tx_pos, room_min, room_max, z_s=z_s)
+        else:
+            H_pred = renderer(model, rx_pos, tx_pos, room_min, room_max)
         loss = (H_pred.abs() ** 2).mean()
         loss.backward()
         torch.cuda.synchronize()
@@ -94,6 +118,12 @@ def run_check(
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out-dir", default=str(REPO_ROOT / "outputs/memory_check_3d"))
+    ap.add_argument(
+        "--mode", choices=("single", "auto_decoder"), default="single",
+        help="single = INR3D_Single (P2-1); auto_decoder = INR3D_AutoDecoder (P2-2).",
+    )
+    ap.add_argument("--n_rooms", type=int, default=45)
+    ap.add_argument("--latent_dim", type=int, default=16)
     args = ap.parse_args()
 
     if not torch.cuda.is_available():
@@ -113,9 +143,12 @@ def main():
     results = []
     chosen = None
     for n_azi, n_ele, n_pts, batch in candidates:
-        print(f"# trying (n_azi={n_azi}, n_ele={n_ele}, n_pts={n_pts}, batch={batch}) "
-              f"→ {n_azi*n_ele+2} rays")
-        r = run_check(n_azi=n_azi, n_ele=n_ele, n_pts_per_ray=n_pts, batch=batch)
+        print(f"# trying (mode={args.mode}, n_azi={n_azi}, n_ele={n_ele}, "
+              f"n_pts={n_pts}, batch={batch}) → {n_azi*n_ele+2} rays")
+        r = run_check(
+            n_azi=n_azi, n_ele=n_ele, n_pts_per_ray=n_pts, batch=batch,
+            mode=args.mode, n_rooms=args.n_rooms, latent_dim=args.latent_dim,
+        )
         print(f"  → {r['status']}", end="")
         if r["status"] == "pass":
             print(f"  peak={r['max_memory_gb']:.2f} GB  "
