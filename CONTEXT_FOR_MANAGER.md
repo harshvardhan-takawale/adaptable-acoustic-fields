@@ -2,11 +2,31 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk P2-2 infrastructure landed; pipeline submitted — 2026-06-04.
+**Last updated**: Chunk P2-2 COMPLETE — 2026-06-04. **Mixed result**.
 
-## Phase 2 — second chunk (P2-2): multi-room 3D conditioning + zero-shot (in progress)
+## Phase 2 — second chunk (P2-2): multi-room 3D conditioning + zero-shot (complete)
 
-**Status**: code + tests + SLURM all landed. Cluster pipeline submitted (M1 d=16 + M2 d=32 in parallel, each with 8 zero-shot evals + a latent probe). See `tasks/CHUNK_P2_2_RESULTS.md` for live status.
+**Status**: COMPLETE. Headline target NOT met (0/8 rooms reach mag corr ≥ 0.9; target was ≥ 5/8). But a clear diagnosis lands: the latent manifold correctly encodes (L, W, H) (R² > 0.96 on every axis), while the decoder/renderer never reached good in-distribution LSD because per-iter sampling at `batch=4` over 23K (room, rx) pairs is ~200× sparser than Phase 1's. See `tasks/CHUNK_P2_2_RESULTS.md`.
+
+**Headline numbers**:
+- Training: M1 d=16 early-stopped at 24K iters (val LSD 6.16 dB). M2 d=32 early-stopped at 13K iters (val LSD 6.69 dB). Both flat-lined far from the 2.5 dB target.
+- **Latent manifold (the bright spot)**: per-axis R²_full = L:0.991, W:0.967, H:0.974 (M1) and L:0.997, W:0.990, H:0.996 (M2). Geometry-head MAE 1.1-3.5 cm per axis. Phase-1's "PC1 vs L R²=0.987" generalizes cleanly to 3D.
+- **Zero-shot mag corr**: 0.47-0.59 (M1) / 0.47-0.64 (M2) across the 8 test rooms. Modal MAE 0.64-1.30 Hz (matches 2D's range). Phase-1's full-band LSD ~5 dB → P2-2's 7.5 dB (1.5× worse going from 1D to 3D).
+
+**Q12 closes**: d=16 is sufficient for the latent representation. d=32 didn't translate into better zero-shot mag corr; binding constraint is elsewhere.
+
+**Three pipeline fixes that landed mid-chunk** (all in DECISIONS.md):
+- **34aebd4** — move multi-room (room, rx) tensors to CPU; transfer per-iter (was OOM'ing on 10.57 GB tron nodes).
+- **8ff7f45** — best-effort TB writes (don't crash training on transient NFS errors).
+- **238d126** — chunk zero-shot inner-loop obs receivers (avoid 12 GB OOM at batch=8).
+
+**P2-3 recommendation (manager spec input)**: fix the per-iter sampling problem — pin tron `qos=high` A100/A6000 (40-48 GB), raise `batch_size` 4 → 32, raise `n_pts_per_ray` 16 → 32. Per-iter coverage goes 8×; would close most of the in-distribution gap. Secondary: relax early-stop and/or 3× iters.
+
+---
+
+## Phase 2 — first chunk (P2-1): 3D port (complete)
+
+### (P2-1 section unchanged below)
 
 **Scope**: train an `INR3D_AutoDecoder` (FiLM + latent jitter + linear geometry head) jointly on 45 LHS training rooms; zero-shot adapt to 8 unseen maximin test rooms; evaluate primarily via `aaf/eval/signal_level.py`. Spec-prescribed acceptance: magnitude correlation ≥ 0.9 in 0-500 Hz on ≥ 5/8 test rooms. **No** dimension-sweep eval (P2-3); **no** EDC fidelity work; **no** conditioning-mechanism sweep (FiLM only).
 
