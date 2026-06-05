@@ -1,6 +1,8 @@
 #!/bin/bash
 # P2-2.5 Run C: 10-room subset, micro_batch=8 + grad_accum=8 → effective
-# batch=64, n_pts=32, tron qos=high (A6000/A100). High-coverage ceiling test.
+# batch=64, n_pts=32, tron qos=high. High-coverage ceiling test.
+# GPU: rtxa6000 (48 GB). MUST name the GPU type — a bare `--gres=gpu:1`
+# lands on an 11 GB 2080 Ti and OOMs (it did, in validate() at 15 min).
 #SBATCH --job-name=aaf_diag_C
 #SBATCH --partition=tron
 #SBATCH --account=nexus
@@ -8,7 +10,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:rtxa6000:1
 #SBATCH --output=logs/slurm/%x-%j.out
 #SBATCH --error=logs/slurm/%x-%j.err
 

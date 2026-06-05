@@ -59,6 +59,21 @@ Per-partition user caps apply (e.g. `tron`: 32 CPU / 4 GPU / 256 GB simultaneous
 
 GPU inventory per partition is not summarized here — see [Nexus/GPUs](https://wiki.umiacs.umd.edu/umiacs/index.php/Nexus/GPUs) before requesting `--gres=gpu:<type>:<n>`. For development, `--gres=gpu:1` (any) is fine.
 
+### ⚠ GPU-type targeting — `qos` does NOT pick the GPU (P2-2.5 lesson)
+
+**A bare `--gres=gpu:1` lands on whatever card is free — which is usually an 11 GB RTX 2080 Ti on `tron62/63`, NOT the big Ampere cards.** `--qos=high` raises your QoS *limits* (CPUs/GPUs/RAM/walltime); it does **not** route you to a bigger GPU. For anything that needs >11 GB you **must** name the GPU type in the gres string. This bit both P2-2 (M1/M2 silently ran on a 2080 Ti, forcing batch=4) and P2-2.5's first launch (all 3 runs OOM'd on 2080 Ti).
+
+`tron` GPU types and how to request them (verify live counts with `sinfo -p tron -o "%n %G %t"`):
+
+| Type | VRAM | gres string | Representative nodes |
+|---|---|---|---|
+| RTX 2080 Ti | 11 GB | `--gres=gpu:rtx2080ti:1` | tron62, tron63 |
+| RTX A4000 | 16 GB | `--gres=gpu:rtxa4000:1` | tron06-36 (many) |
+| RTX A5000 | 24 GB | `--gres=gpu:rtxa5000:1` | tron46-58 |
+| RTX A6000 | 48 GB | `--gres=gpu:rtxa6000:1` | tron00-05 |
+
+Rule of thumb for this project: the 3D auto-decoder at `batch≥16` or `n_pts_per_ray=32` needs ≥ 24 GB (A5000) or ≥ 48 GB (A6000). The 3D single-room / multi-room at `batch=4, n_pts=16` fits the 2080 Ti (P2-1's memory cascade). When in doubt, name an A5000.
+
 ## sbatch template
 
 Place templates in `scripts/slurm/`. Logs land in `logs/slurm/<jobname>-<jobid>.out`. Naming: `<chunk>_<short>.sh` (e.g. `chunk1_simulate.sh`).
@@ -115,7 +130,7 @@ srun --pty --partition=scavenger --account=scavenger --qos=scavenger \
 ## Open items (move to OPEN_QUESTIONS.md if blocking)
 
 - Are we eligible for the `nexus` account on `tron` for non-preemptible jobs, or do we have to stay on scavenger? *(Chunk 3 confirmed yes — `--partition=tron --account=nexus --qos=default` works. Used 1 of 4 banked slots for multi-room training; 3 remain.)*
-- Per-GPU-type availability — A4000 / A5000 / A6000 / 2080Ti — not summarized in main wiki.
+- Per-GPU-type availability — A4000 / A5000 / A6000 / 2080Ti — *(P2-2.5 resolved: see the GPU-type targeting table above. `sinfo -p tron -o "%n %G %t"` shows live counts; A6000 ~20 free, A5000 plentiful, 2080 Ti on tron62/63. The gres string — not qos — selects the type.)*
 - Summer 2026 cluster OS upgrade ([Nexus/ClusterOSUpgrade](https://wiki.umiacs.umd.edu/umiacs/index.php/Nexus/ClusterOSUpgrade)): may invalidate cached tinycudann builds.
 
 ## Chunk-2 and Chunk-3 pipeline drivers

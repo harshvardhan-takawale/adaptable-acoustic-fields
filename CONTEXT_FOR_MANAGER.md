@@ -22,6 +22,8 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 
 **P2-3 recommendation (manager spec input)**: fix the per-iter sampling problem — pin tron `qos=high` A100/A6000 (40-48 GB), raise `batch_size` 4 → 32, raise `n_pts_per_ray` 16 → 32. Per-iter coverage goes 8×; would close most of the in-distribution gap. Secondary: relax early-stop and/or 3× iters.
 
+**⚠ Correction (P2-2.5, 2026-06-05)**: M1/M2 silently ran on an **11 GB 2080 Ti** because the SLURM script used a bare `--gres=gpu:1` (qos sets limits, NOT GPU type). The `batch=4` ceiling was **partly self-inflicted by GPU misallocation**, not purely fundamental sampling sparsity — the model never had the 24-48 GB it was designed for. To target a big card you must name the type: `--gres=gpu:rtxa6000:1`. P2-2.5 re-runs the diagnostic on correctly-pinned A5000/A6000. The latent-manifold result (R² > 0.96 per axis) stands. See CLUSTER_INFO.md "GPU-type targeting".
+
 ---
 
 ## Phase 2 — first chunk (P2-1): 3D port (complete)

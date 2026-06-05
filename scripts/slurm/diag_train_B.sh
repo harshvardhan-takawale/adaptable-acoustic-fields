@@ -1,5 +1,7 @@
 #!/bin/bash
-# P2-2.5 Run B: full 45 rooms, batch=32, n_pts=32, tron qos=high (A6000/A100).
+# P2-2.5 Run B: full 45 rooms, batch=32, n_pts=32, tron qos=high.
+# GPU: rtxa6000 (48 GB). MUST name the GPU type — qos=high sets QoS limits,
+# NOT GPU type; a bare `--gres=gpu:1` lands on an 11 GB 2080 Ti and OOMs.
 # Relaxed early-stop (0.5% / 5K) and 60K iter target.
 #SBATCH --job-name=aaf_diag_B
 #SBATCH --partition=tron
@@ -8,7 +10,7 @@
 #SBATCH --time=23:59:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:rtxa6000:1
 #SBATCH --output=logs/slurm/%x-%j.out
 #SBATCH --error=logs/slurm/%x-%j.err
 

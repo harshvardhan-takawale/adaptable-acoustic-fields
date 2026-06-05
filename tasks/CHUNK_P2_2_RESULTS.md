@@ -2,6 +2,17 @@
 
 **Status**: COMPLETE — 2026-06-04.
 
+> **⚠ Correction (added during P2-2.5, 2026-06-05):** M1 and M2 silently ran on
+> an 11 GB RTX 2080 Ti, because the training SLURM script used a bare
+> `--gres=gpu:1` (which the scheduler fills with any free card) rather than
+> naming a GPU type. **The `batch=4` ceiling that drove this chunk's "per-iter
+> sampling sparsity" diagnosis was therefore partly a GPU-misallocation
+> artifact, not a fundamental limit** — the model was never given the 24-48 GB
+> headroom it was designed to use. P2-2.5 re-runs the sampling-vs-capacity
+> diagnostic on correctly-targeted A5000/A6000 GPUs (`--gres=gpu:rtxa6000:1`).
+> See CLUSTER_INFO.md "GPU-type targeting" for the fix. This does not change
+> that the *latent manifold* result (R² > 0.96 per axis) was real and correct.
+
 ## 1. Goal recap
 
 Prove that cross-room adaptation generalizes from 1D length variation

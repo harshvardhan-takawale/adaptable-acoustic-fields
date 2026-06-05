@@ -1,5 +1,7 @@
 #!/bin/bash
 # P2-2.5 Run A: 10-room subset, batch=16, n_pts=16, tron qos=default.
+# GPU: rtxa5000 (24 GB) — the "modest GPU" per spec. MUST name the GPU type;
+# a bare `--gres=gpu:1` lands on whatever is free (an 11 GB 2080 Ti) and OOMs.
 #SBATCH --job-name=aaf_diag_A
 #SBATCH --partition=tron
 #SBATCH --account=nexus
@@ -7,7 +9,7 @@
 #SBATCH --time=08:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=24G
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:rtxa5000:1
 #SBATCH --output=logs/slurm/%x-%j.out
 #SBATCH --error=logs/slurm/%x-%j.err
 
