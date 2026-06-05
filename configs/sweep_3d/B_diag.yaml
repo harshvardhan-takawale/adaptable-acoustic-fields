@@ -16,10 +16,14 @@ latent_jitter_sigma: 0.1
 l_head_enabled: true
 l_head_weight: 0.1
 
-# Optimization — Run-B variables
+# Optimization — Run-B variables.
+# Effective batch = 32, split as micro=8 × accum=4 so each micro-step forward
+# (8 rx × n_pts=32 = 256 ray-point units ≈ 22 GB) fits the 48 GB A6000.
+# Direct batch=32 at n_pts=32 would be ~86 GB → OOM. `batch_size` is the
+# EFFECTIVE batch; bs_micro = batch_size // grad_accum_steps.
 n_iters: 60000
 batch_size: 32
-grad_accum_steps: 1
+grad_accum_steps: 4
 lr_network: 2e-4
 lr_latent: 1e-3
 lambda_latent: 1e-4

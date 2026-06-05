@@ -400,7 +400,11 @@ class MultiRoom3DTrainer:
             # Build a deterministic 64-of-512 per-room subsample (each receiver
             # spaced 8 apart). Saves ~8× val time vs full 512.
             VAL_PER_ROOM = 64
-            chunk = self.cfg.batch_size
+            # Chunk at the MICRO-batch size, not cfg.batch_size. With grad
+            # accumulation, cfg.batch_size is the (large) effective batch; a
+            # val forward of that many receivers at n_pts=32 would OOM. The
+            # micro-batch is the proven-fitting forward size used in training.
+            chunk = max(1, self.cfg.batch_size // max(1, self.cfg.grad_accum_steps))
             all_pred = []
             all_target = []
             per_room_metrics: dict[str, float] = {}

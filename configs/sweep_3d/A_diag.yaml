@@ -14,10 +14,14 @@ latent_jitter_sigma: 0.1
 l_head_enabled: true
 l_head_weight: 0.1
 
-# Optimization — Run-A variables
+# Optimization — Run-A variables.
+# Effective batch = 16, split as micro=8 × accum=2 so the per-micro-step
+# forward (8 rx × n_pts=16 = 128 ray-point units ≈ 11 GB) fits the 24 GB
+# A5000. `batch_size` here is the EFFECTIVE batch; the trainer computes
+# bs_micro = batch_size // grad_accum_steps.
 n_iters: 30000
 batch_size: 16
-grad_accum_steps: 1
+grad_accum_steps: 2
 lr_network: 2e-4
 lr_latent: 1e-3
 lambda_latent: 1e-4

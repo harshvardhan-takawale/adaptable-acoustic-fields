@@ -7,7 +7,7 @@
 #SBATCH --partition=tron
 #SBATCH --account=nexus
 #SBATCH --qos=high
-#SBATCH --time=12:00:00
+#SBATCH --time=23:59:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --gres=gpu:rtxa6000:1

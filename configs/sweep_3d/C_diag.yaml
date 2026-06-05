@@ -16,10 +16,15 @@ latent_jitter_sigma: 0.1
 l_head_enabled: true
 l_head_weight: 0.1
 
-# Optimization — Run-C variables
+# Optimization — Run-C variables.
+# Effective batch = 64, split as micro=8 × accum=8 so each micro-step forward
+# (8 rx × n_pts=32 = 256 ray-point units ≈ 22 GB) fits the 48 GB A6000.
+# IMPORTANT: `batch_size` is the EFFECTIVE batch (the trainer computes
+# bs_micro = batch_size // grad_accum_steps = 64 // 8 = 8). An earlier config
+# set batch_size=8 here, which gave bs_micro=1 and effective batch 8 — wrong.
 n_iters: 30000
-batch_size: 8                     # micro-batch
-grad_accum_steps: 8               # → effective batch 64
+batch_size: 64
+grad_accum_steps: 8
 lr_network: 2e-4
 lr_latent: 1e-3
 lambda_latent: 1e-4
