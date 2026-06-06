@@ -28,6 +28,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -36,6 +37,35 @@ RUNS = [
     ("B", "B_45rm_b32",   "Run B — 45 rooms, batch=32, n_pts=32 (relaxed early-stop)"),
     ("C", "C_10rm_b64",   "Run C — 10 rooms, batch=64 (micro 8 × accum 8), n_pts=32"),
 ]
+
+# Config YAML per run — used to fill the headline table for IN-PROGRESS runs
+# whose train_meta.json (written only at completion) doesn't exist yet.
+CONFIG_BY_CODE = {
+    "A": REPO_ROOT / "configs/sweep_3d/A_diag.yaml",
+    "B": REPO_ROOT / "configs/sweep_3d/B_diag.yaml",
+    "C": REPO_ROOT / "configs/sweep_3d/C_diag.yaml",
+}
+
+
+def _cfg_fallback(code: str) -> dict:
+    """Read (batch_size, grad_accum_steps, n_pts_per_ray, n_rooms) from the run's
+    config YAML — for runs not yet complete (no train_meta.json)."""
+    p = CONFIG_BY_CODE.get(code)
+    if p is None or not p.exists():
+        return {}
+    d = yaml.safe_load(p.read_text())
+    rooms_yaml = REPO_ROOT / d.get("rooms_yaml", "")
+    n_rooms = 0
+    if rooms_yaml.exists():
+        rd = yaml.safe_load(rooms_yaml.read_text())
+        n_rooms = len(rd.get("rooms", []))
+    return {
+        "batch_size": d.get("batch_size"),
+        "grad_accum_steps": d.get("grad_accum_steps", 1),
+        "n_pts_per_ray": d.get("n_pts_per_ray"),
+        "n_iters_target": d.get("n_iters"),
+        "n_rooms": n_rooms,
+    }
 
 # Per-room LSD keys in scalars.json look like "L4.50_W4.00_H3.25_lsd_db" etc.
 PER_ROOM_LSD_RE = re.compile(r"^L([0-9.]+)_W([0-9.]+)_H([0-9.]+)_lsd_db$")
@@ -100,17 +130,27 @@ def _verdict_from_triple(a: str, b: str, c: str) -> tuple[str, str]:
 
 
 def _read_run(out_dir: Path, run_label: str) -> dict:
-    """Read train_meta + scalars; return final val LSD + curve + per-room LSDs."""
+    """Read train_meta (if present) + scalars; return final val LSD + curve +
+    per-room LSDs.
+
+    Robust to IN-PROGRESS runs: ``train_meta.json`` is only written when
+    train() finishes, but ``scalars.json`` is rewritten at every checkpoint
+    (every 2500 iters). For an interim DIAGNOSIS we therefore only require
+    scalars.json; train_meta fields (wall-clock, early-stop) are reported as
+    "in progress" when absent.
+    """
     meta_path = out_dir / "train_meta.json"
     scalars_path = out_dir / "scalars.json"
     out = {
         "label": run_label,
         "meta_path": str(meta_path),
-        "exists": meta_path.exists() and scalars_path.exists(),
+        # Only scalars.json is required; meta is optional (written at the end).
+        "exists": scalars_path.exists(),
+        "complete": meta_path.exists(),
     }
     if not out["exists"]:
         return out
-    meta = json.loads(meta_path.read_text())
+    meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
     scalars = json.loads(scalars_path.read_text())
     val_rows = [r for r in scalars if r.get("phase") == "val"]
     out["meta"] = meta
@@ -234,6 +274,14 @@ def main():
         "--root", default=str(REPO_ROOT / "outputs/diag_p2_2_5"),
         help="Diagnostic output root; expects <root>/{A_10rm_b16, B_45rm_b32, C_10rm_b64}/.",
     )
+    ap.add_argument(
+        "--out-name", default="DIAGNOSIS.md",
+        help="Output markdown filename (e.g. DIAGNOSIS_interim.md for a snapshot).",
+    )
+    ap.add_argument(
+        "--note", default="",
+        help="A status note prepended to the report (e.g. 'INTERIM snapshot').",
+    )
     args = ap.parse_args()
     root = Path(args.root)
     root.mkdir(parents=True, exist_ok=True)
@@ -262,6 +310,10 @@ def main():
     # Assemble DIAGNOSIS.md.
     md = [
         "# P2-2.5 DIAGNOSIS — multi-room 3D training bottleneck\n",
+    ]
+    if args.note:
+        md.append(f"\n> **{args.note}**\n")
+    md += [
         "\n## Headline\n",
         "| Run | Rooms | batch | n_pts | iters / target | wall | final val LSD | classification |\n",
         "|---|---:|---:|---:|---|---:|---:|---|\n",
@@ -271,18 +323,36 @@ def main():
         if not info.get("exists"):
             md.append(f"| {code} | — | — | — | — | — | — | — missing |\n")
             continue
-        cfg = info["meta"]["cfg"]
-        n_rooms = info["meta"]["n_rooms"]
-        wall_h = info["wall_clock_s"] / 3600.0
+        complete = info.get("complete", False)
+        # Use train_meta cfg if complete, else fall back to the config YAML.
+        if complete and info.get("meta", {}).get("cfg"):
+            cfg = info["meta"]["cfg"]
+            n_rooms = info["meta"]["n_rooms"]
+            n_iters_target = info["n_iters_target"]
+            wall_str = f"{info['wall_clock_s'] / 3600.0:.1f} h"
+            # Latest val iter from the curve.
+            cur_iter = info["val_iter"][-1] if info["val_iter"] else 0
+            iters_str = f"{info['n_iters_actual']}/{n_iters_target}"
+            if info["stopped_early"]:
+                iters_str += " (early-stop)"
+        else:
+            cfg = _cfg_fallback(code)
+            n_rooms = cfg.get("n_rooms", "?")
+            n_iters_target = cfg.get("n_iters_target", "?")
+            cur_iter = info["val_iter"][-1] if info["val_iter"] else 0
+            wall_str = "running"
+            iters_str = f"~{cur_iter}/{n_iters_target} (in progress)"
         cls = _classify_lsd(info["final_val_lsd"])
-        early = " (early-stop)" if info["stopped_early"] else ""
+        cls_str = _format_classification(cls)
+        if not complete:
+            cls_str += " · still descending" if info["val_lsd"] and len(info["val_lsd"]) >= 2 and info["val_lsd"][-1] < info["val_lsd"][-2] else " · in progress"
+        bsz = cfg.get("batch_size", "?")
+        acc = cfg.get("grad_accum_steps", 1) or 1
+        bsz_str = f"{bsz}" + (f" × accum {acc}" if acc and acc > 1 else "")
         md.append(
-            f"| {code} | {n_rooms} | {cfg['batch_size']}"
-            f"{' × accum ' + str(cfg.get('grad_accum_steps', 1)) if cfg.get('grad_accum_steps', 1) > 1 else ''}"
-            f" | {cfg['n_pts_per_ray']} | "
-            f"{info['n_iters_actual']}/{info['n_iters_target']}{early} | "
-            f"{wall_h:.1f} h | {info['final_val_lsd']:.2f} dB | "
-            f"{_format_classification(cls)} |\n"
+            f"| {code} | {n_rooms} | {bsz_str} | {cfg.get('n_pts_per_ray','?')} | "
+            f"{iters_str} | {wall_str} | "
+            f"{info['final_val_lsd']:.2f} dB | {cls_str} |\n"
         )
 
     md.append(
@@ -324,7 +394,7 @@ def main():
         "trying to beat.\n"
     )
 
-    diag_path = root / "DIAGNOSIS.md"
+    diag_path = root / args.out_name
     diag_path.write_text("".join(md))
     print(f"# wrote {diag_path}")
     print(f"# verdict: {verdict}")
