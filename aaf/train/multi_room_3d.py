@@ -109,19 +109,44 @@ class MultiRoom3DTrainer:
         rooms_yaml: str,
         output_dir: str,
         cfg: Optional[MultiRoom3DTrainCfg] = None,
+        ddp: bool = False,
+        rank: int = 0,
+        world_size: int = 1,
+        local_rank: int = 0,
     ):
         self.cfg = cfg or MultiRoom3DTrainCfg()
         self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        (self.output_dir / "tb").mkdir(exist_ok=True)
         self.scalars_path = self.output_dir / "scalars.json"
 
-        torch.manual_seed(self.cfg.seed)
-        np.random.seed(self.cfg.seed)
+        # DDP bookkeeping (single-GPU defaults: ddp=False, rank=0, world=1).
+        self.ddp = bool(ddp)
+        self.rank = int(rank)
+        self.world_size = int(world_size)
+        self.is_main = (self.rank == 0)
+
+        # Only the main process creates dirs / writes artifacts.
+        if self.is_main:
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            (self.output_dir / "tb").mkdir(exist_ok=True)
+
+        # Per-rank seed offset so each DDP rank samples different data; model
+        # weights are made identical via a broadcast below.
+        torch.manual_seed(self.cfg.seed + self.rank)
+        np.random.seed(self.cfg.seed + self.rank)
 
         if not torch.cuda.is_available():
             raise RuntimeError("MultiRoom3DTrainer requires CUDA.")
-        self.device = torch.device("cuda")
+        if self.ddp:
+            import torch.distributed as dist
+            torch.cuda.set_device(local_rank)
+            self.device = torch.device(f"cuda:{local_rank}")
+            if not dist.is_initialized():
+                dist.init_process_group(backend="nccl",
+                                        rank=self.rank, world_size=self.world_size)
+            self._dist = dist
+        else:
+            self.device = torch.device("cuda")
+            self._dist = None
 
         # Dataset: every training room (no room_filter).
         self.dataset = Shoebox3DDataset(rooms_yaml=rooms_yaml)
@@ -176,6 +201,13 @@ class MultiRoom3DTrainer:
             latent_jitter_sigma=self.cfg.latent_jitter_sigma,
         ).to(self.device)
 
+        # DDP: make every rank's weights identical by broadcasting rank 0's.
+        if self.ddp:
+            for p in self.model.parameters():
+                self._dist.broadcast(p.data, src=0)
+            for b in self.model.buffers():
+                self._dist.broadcast(b.data, src=0)
+
         self.renderer = FreqRenderer3D(
             n_azi=self.cfg.n_azi,
             n_ele=self.cfg.n_ele,
@@ -203,10 +235,13 @@ class MultiRoom3DTrainer:
             self.optimizer, T_max=self.cfg.n_iters, eta_min=self.cfg.eta_min
         )
 
-        try:
-            self.writer = SummaryWriter(str(self.output_dir / "tb"))
-        except Exception as e:
-            print(f"[trainer] SummaryWriter init failed ({e!r}); disabling tb.")
+        if self.is_main:
+            try:
+                self.writer = SummaryWriter(str(self.output_dir / "tb"))
+            except Exception as e:
+                print(f"[trainer] SummaryWriter init failed ({e!r}); disabling tb.")
+                self.writer = None
+        else:
             self.writer = None
         self.scalars: list[dict] = []
         self.start_iter = 0
@@ -377,6 +412,20 @@ class MultiRoom3DTrainer:
                 **{k: float(v.detach()) for k, v in losses.items()},
             })
 
+        # DDP: average gradients across ranks (manual all-reduce). Each rank's
+        # loss is a mean over its own bs_micro×accum samples; SUM/world_size
+        # gives the gradient of the mean over the combined (world_size×per-rank)
+        # batch — identical to a single-GPU run at that effective batch, for
+        # both network params AND the per-room latent embedding (disjoint
+        # random samples across ranks). Done AFTER all accum micro-backwards,
+        # so there's exactly one collective per optimizer step.
+        if self.ddp:
+            for p in self.model.parameters():
+                if p.grad is None:
+                    p.grad = torch.zeros_like(p.data)
+                self._dist.all_reduce(p.grad, op=self._dist.ReduceOp.SUM)
+                p.grad /= self.world_size
+
         for p in self.model.parameters():
             if p.grad is not None:
                 p.grad = torch.nan_to_num(p.grad, nan=0.0, posinf=0.0, neginf=0.0)
@@ -493,9 +542,9 @@ class MultiRoom3DTrainer:
         ran_to = self.start_iter
 
         for it in range(self.start_iter, cfg.n_iters):
-            train_log = self._step()
+            train_log = self._step()   # contains the DDP all-reduce (collective; lockstep)
             ran_to = it + 1
-            if it % cfg.log_every == 0:
+            if self.is_main and it % cfg.log_every == 0:
                 row = {
                     "iter": it, "phase": "train", **train_log,
                     "lr_network": float(self.optimizer.param_groups[0]["lr"]),
@@ -510,33 +559,50 @@ class MultiRoom3DTrainer:
                         print(f"[trainer] tb add_scalar failed at iter {it}: {e!r}")
                         self.writer = None
             if (it + 1) % cfg.val_every == 0 or it == cfg.n_iters - 1:
-                val = self.validate()
-                row = {"iter": it + 1, "phase": "val", **val}
-                self.scalars.append(row)
-                if self.writer is not None:
-                    try:
-                        for k, v in val.items():
-                            self.writer.add_scalar(f"val/{k}", v, it + 1)
-                        self.writer.add_histogram(
-                            "val/latent_norms",
-                            self.model.latents.weight.norm(dim=-1).detach().cpu().numpy(),
-                            it + 1,
-                        )
-                    except Exception as e:
-                        print(f"[trainer] tb val write failed at iter {it+1}: {e!r}")
-                        self.writer = None
-                should_stop, why = self._check_early_stop(it + 1)
+                should_stop = False
+                if self.is_main:
+                    val = self.validate()
+                    row = {"iter": it + 1, "phase": "val", **val}
+                    self.scalars.append(row)
+                    if self.writer is not None:
+                        try:
+                            for k, v in val.items():
+                                self.writer.add_scalar(f"val/{k}", v, it + 1)
+                            self.writer.add_histogram(
+                                "val/latent_norms",
+                                self.model.latents.weight.norm(dim=-1).detach().cpu().numpy(),
+                                it + 1,
+                            )
+                        except Exception as e:
+                            print(f"[trainer] tb val write failed at iter {it+1}: {e!r}")
+                            self.writer = None
+                    should_stop, why = self._check_early_stop(it + 1)
+                    if should_stop:
+                        stopped_early = True
+                        stop_reason = why
+                        stop_iter = it + 1
+                        print(f"[early-stop] iter={it+1}: {why}")
+                        self.save_ckpt(it + 1)
+                # DDP: broadcast rank-0's stop decision so all ranks break in
+                # lockstep (otherwise the next _step's all-reduce would hang).
+                if self.ddp:
+                    flag = torch.tensor([1 if should_stop else 0], device=self.device)
+                    self._dist.broadcast(flag, src=0)
+                    should_stop = bool(flag.item())
                 if should_stop:
-                    stopped_early = True
-                    stop_reason = why
-                    stop_iter = it + 1
-                    print(f"[early-stop] iter={it+1}: {why}")
-                    self.save_ckpt(it + 1)
                     break
-            if (it + 1) % cfg.ckpt_every == 0:
+            if (it + 1) % cfg.ckpt_every == 0 and self.is_main:
                 self.save_ckpt(it + 1)
         else:
-            self.save_ckpt(cfg.n_iters)
+            if self.is_main:
+                self.save_ckpt(cfg.n_iters)
+
+        if not self.is_main:
+            # Non-main ranks are done; tear down and return.
+            if self.ddp:
+                self._dist.barrier()
+                self._dist.destroy_process_group()
+            return
 
         self.scalars_path.write_text(json.dumps(self.scalars))
         # Per-room dims for downstream eval.
@@ -560,6 +626,10 @@ class MultiRoom3DTrainer:
             f"[done] iters={ran_to}/{cfg.n_iters} early_stop={stopped_early} "
             f"wall={time.time()-t0:.1f}s output={self.output_dir}"
         )
+        # Rank-0 side of the teardown barrier (non-main ranks already waiting).
+        if self.ddp:
+            self._dist.barrier()
+            self._dist.destroy_process_group()
 
 
 def _load_sweep_yaml(path: str) -> dict:
@@ -590,6 +660,14 @@ def main():
     ap.add_argument("--n_azi", type=int, default=16)
     ap.add_argument("--n_ele", type=int, default=16)
     ap.add_argument("--latent_dim", type=int, default=16)
+    ap.add_argument(
+        "--ddp", action="store_true",
+        help="Enable multi-GPU manual-all-reduce data parallelism. Reads "
+             "SLURM_PROCID / SLURM_NTASKS / SLURM_LOCALID from the environment "
+             "(launch with srun --ntasks=N --gres=gpu:<type>:N). batch_size in "
+             "the config is the PER-RANK effective batch; the global effective "
+             "batch is world_size × that.",
+    )
     args = ap.parse_args()
 
     if args.config:
@@ -638,8 +716,21 @@ def main():
             latent_dim=args.latent_dim,
         )
 
+    # DDP env (set by `srun --ntasks=N`). Defaults → single-GPU.
+    ddp = bool(args.ddp)
+    rank, world_size, local_rank = 0, 1, 0
+    if ddp:
+        import os
+        rank = int(os.environ.get("SLURM_PROCID", os.environ.get("RANK", 0)))
+        world_size = int(os.environ.get("SLURM_NTASKS", os.environ.get("WORLD_SIZE", 1)))
+        local_rank = int(os.environ.get("SLURM_LOCALID", os.environ.get("LOCAL_RANK", 0)))
+        if world_size <= 1:
+            print("[ddp] --ddp set but world_size<=1; running single-GPU.")
+            ddp = False
+
     trainer = MultiRoom3DTrainer(
-        rooms_yaml=rooms_yaml, output_dir=out_dir, cfg=cfg
+        rooms_yaml=rooms_yaml, output_dir=out_dir, cfg=cfg,
+        ddp=ddp, rank=rank, world_size=world_size, local_rank=local_rank,
     )
     trainer.train()
 

@@ -1,0 +1,36 @@
+run_id: B_45rm_ddp
+rooms_yaml: configs/sweeps_3d/train_rooms.yaml
+
+# P2-2.5 Run B — 2-GPU DDP speedup variant of B_diag.
+# In --ddp mode, batch_size is the PER-RANK effective batch. With world_size=2:
+#   global effective batch = 2 × 16 = 32  (matches single-GPU B_diag's 32)
+#   per-rank micro = batch_size // grad_accum_steps = 16 // 2 = 8 (proven-fitting)
+# Same science as B_diag (effective 32, n_pts 32, 60K iters); ~2× faster wall-clock.
+
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+latent_jitter_sigma: 0.1
+l_head_enabled: true
+l_head_weight: 0.1
+
+n_iters: 60000
+batch_size: 16          # PER-RANK effective (×2 ranks = 32 global)
+grad_accum_steps: 2     # per-rank micro = 16//2 = 8
+lr_network: 2e-4
+lr_latent: 1e-3
+lambda_latent: 1e-4
+
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+
+val_every: 1000
+ckpt_every: 2500
+
+# Relaxed early-stop (matches B_diag).
+early_stop_warmup: 2000
+early_stop_patience: 5000
+early_stop_min_rel_improvement: 0.005

@@ -1,0 +1,30 @@
+run_id: _ddp_smoke
+rooms_yaml: configs/sweeps_3d/diag_10rooms.yaml
+
+# Tiny 2-GPU DDP smoke test: exercises NCCL init, per-step all-reduce, rank-0
+# val + stop-flag broadcast, rank-0 ckpt, final meta. Throwaway output dir.
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+latent_jitter_sigma: 0.1
+l_head_enabled: true
+l_head_weight: 0.1
+
+n_iters: 120
+batch_size: 16          # per-rank (×2 = 32 global)
+grad_accum_steps: 2     # micro = 8
+lr_network: 2e-4
+lr_latent: 1e-3
+lambda_latent: 1e-4
+
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+
+val_every: 50
+ckpt_every: 50
+early_stop_warmup: 100000   # disable early-stop for the smoke
+early_stop_patience: 2000
+early_stop_min_rel_improvement: 0.01
