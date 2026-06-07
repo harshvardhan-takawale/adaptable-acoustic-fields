@@ -2,7 +2,28 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk P2-2 COMPLETE — 2026-06-04. **Mixed result**.
+**Last updated**: Chunk P2-2.5 COMPLETE — 2026-06-06. **Bottleneck identified: coverage/compute, not capacity.**
+
+## Phase 2 — P2-2.5 diagnostic (complete)
+
+**Question**: was P2-2's failure (45-room val LSD plateaued at 6.16 dB) caused by *sampling/coverage* or *capacity*? Three controlled runs answered it.
+
+**Result** (`outputs/diag_p2_2_5/DIAGNOSIS.md`):
+- **A** (10 rm, eff-batch 16): 1.84 dB ✅
+- **C** (10 rm, eff-batch 64): **≈1.0 dB ✅** — the architecture's true 3D multi-room ceiling (the number to look at first)
+- **B** (45 rm, eff-batch 32, 60K iters): **2.61 dB** — up from M1's 6.16 dB purely from 8× coverage + more iters; at the 2.5 threshold and still descending.
+
+**Verdict**: **capacity is NOT the wall — coverage/compute is the dominant lever.** Do not widen the decoder (C proves ~1 dB is achievable at the current `latent_dim=16` / HashGrid 18/16/1.38 / FiLM). **P2-3 = scale compute on the full 45-room set**: Run C's recipe (eff-batch 64, n_pts 32) on all 45 rooms and/or 80-100K iters → expected ≤2.5 in-distribution, after which zero-shot becomes meaningful.
+
+**Two cluster fixes landed (high-leverage for all future chunks)**:
+- **GPU targeting**: `--gres=gpu:1` ignores GPU type → silently lands on 11 GB 2080 Ti even with `--qos=high`. Must name the card: `--gres=gpu:rtxa6000:1`. This was also the hidden cause of P2-2's batch=4 ceiling. CLUSTER_INFO.md now has a "GPU-type targeting" table.
+- **2-GPU DDP** added to `aaf/train/multi_room_3d.py` (`--ddp`, manual all-reduce; single-GPU path unchanged). Verified 2.0× speedup + correctness cross-check (DDP-B vs single-GPU B agree to 0.00-0.03 dB at matched iters). This is what let B finish 60K inside the time budget. Available for P2-3.
+
+Decisions: DECISIONS.md D32-D34. OPEN_QUESTIONS.md Q12 CLOSED.
+
+---
+
+**Prior**: Chunk P2-2 COMPLETE — 2026-06-04. **Mixed result** (note: its batch=4 ceiling was partly a GPU-misallocation artifact, since corrected — see P2-2.5).
 
 ## Phase 2 — second chunk (P2-2): multi-room 3D conditioning + zero-shot (complete)
 

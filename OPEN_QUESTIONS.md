@@ -40,6 +40,8 @@ This question can close definitively once (1) or (2) lands the 2 dB target. If n
 
 If multi-room M1 in-distribution val LSD > 2.5 dB and M2 (d=32) is meaningfully lower, the latent dim is the lever — P2-3 should adopt d=32 (or larger). If both reach similar LSD, d=16 is preferred for downstream analysis.
 
+**CLOSED (P2-2.5, 2026-06-06)** — capacity is NOT the wall; **per-iter coverage / total compute is**. The P2-2.5 diagnostic (DECISIONS.md D34) showed: the 10-room set fits to ~1.0-1.8 dB (runs A & C), and the 45-room set improved P2-2 M1's 6.16 → 2.61 dB purely from 8× coverage + 60K iters (run B) — all at the *same* `latent_dim=16` / HashGrid 18/16/1.38 / FiLM. The HashGrid/latent capacity is right; **do not widen**. (Note: P2-2's batch=4 ceiling was itself partly a GPU-misallocation artifact — M1/M2 silently ran on an 11 GB 2080 Ti via a bare `--gres=gpu:1`; CLUSTER_INFO.md now documents naming the GPU type.) P2-3 lever = scale compute (eff-batch 64, n_pts 32, 80-100K iters on A6000+DDP), not architecture.
+
 ---
 
 ### Q13 — ISM `max_order=12` tail truncation tolerance (was 17, revised in P2-1)
