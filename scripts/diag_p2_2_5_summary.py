@@ -387,6 +387,32 @@ def main():
     md.append(f"**{verdict}**\n\n")
     md.append(f"### Recommendation for P2-3\n\n{p2_3_rec}\n")
 
+    # Run B descent rate — how much further B would fall with more iters, to
+    # size the P2-3 iteration budget. Reports dB-improvement per 10K-iter window.
+    binfo = runs.get("B", {})
+    bv = {it: lsd for it, lsd in zip(binfo.get("val_iter", []), binfo.get("val_lsd", []))}
+    if bv:
+        md.append("\n## Run B descent rate (sizes the P2-3 iteration budget)\n\n")
+        md.append("| window | Δ val LSD per 10K iters |\n|---|---:|\n")
+        windows = [(30000, 40000), (40000, 50000), (50000, 60000)]
+        last_slope = None
+        for lo, hi in windows:
+            if lo in bv and hi in bv:
+                slope = bv[lo] - bv[hi]
+                last_slope = slope
+                md.append(f"| {lo//1000}K → {hi//1000}K | {slope:.3f} dB |\n")
+        b_final = binfo.get("final_val_lsd", float("nan"))
+        if last_slope and last_slope > 0 and np.isfinite(b_final) and b_final > 2.5:
+            gap = b_final - 2.5
+            nominal_k = gap / last_slope * 10  # K-iters at the last (decelerating) slope
+            md.append(
+                f"\nB ended at **{b_final:.2f} dB** with the descent decelerating "
+                f"(≈ {last_slope:.2f} dB/10K at the end). Closing the {gap:.2f} dB "
+                f"gap to 2.5 at that slope is ~{nominal_k:.0f}K nominal iters; with "
+                f"continued deceleration, budget **~80-100K iters** for P2-3 to "
+                f"clear 2.5 on the full 45-room set.\n"
+            )
+
     md.append("\n## Convergence curves\n\n![](convergence_curves.png)\n")
     md.append("\n## Per-room final val LSD\n\n![](per_room_lsd.png)\n")
 

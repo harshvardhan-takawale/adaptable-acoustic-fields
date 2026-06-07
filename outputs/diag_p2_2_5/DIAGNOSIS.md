@@ -1,13 +1,13 @@
 # P2-2.5 DIAGNOSIS — multi-room 3D training bottleneck
 
-> **FINAL. A & DDP-B (2-GPU) reached full targets; C and the single-GPU B cross-check were still finishing at write time — their values move only cosmetically and do not change the verdict.**
+> **FINAL (all runs complete). A, C, and DDP-B reached full targets; single-GPU B cross-check ran to its 24h walltime (~58K).**
 
 ## Headline
 | Run | Rooms | batch | n_pts | iters / target | wall | final val LSD | classification |
 |---|---:|---:|---:|---|---:|---:|---|
 | A | 10 | 16 × accum 2 | 16 | 30000/30000 | 6.6 h | 1.84 dB | ✅ success |
 | B | 45 | 16 × accum 2 | 32 | 60000/60000 | 16.1 h | 2.61 dB | ⚠ ambiguous |
-| C | 10 | 64 × accum 8 | 32 | ~25000/30000 (in progress) | running | 1.09 dB | ✅ success · still descending |
+| C | 10 | 64 × accum 8 | 32 | 30000/30000 | 23.6 h | 0.98 dB | ✅ success |
 
 **Thresholds (spec)**: `≤ 2.5 dB = success`; `> 4 dB = clear failure`; in-between = ambiguous, flag for manager.
 
@@ -18,6 +18,16 @@
 ### Recommendation for P2-3
 
 P2-3: scale compute on the full 45-room set — apply Run C's recipe (effective batch 64, n_pts 32) to all 45 rooms and/or extend to 80–100K iters. B reached 2.61 dB at 60K still descending; either lever should carry it below 2.5. Do NOT widen the decoder — Run C proves ~1 dB is achievable at this capacity.
+
+## Run B descent rate (sizes the P2-3 iteration budget)
+
+| window | Δ val LSD per 10K iters |
+|---|---:|
+| 30K → 40K | 0.421 dB |
+| 40K → 50K | 0.285 dB |
+| 50K → 60K | 0.162 dB |
+
+B ended at **2.61 dB** with the descent decelerating (≈ 0.16 dB/10K at the end). Closing the 0.11 dB gap to 2.5 at that slope is ~7K nominal iters; with continued deceleration, budget **~80-100K iters** for P2-3 to clear 2.5 on the full 45-room set.
 
 ## Convergence curves
 
@@ -46,9 +56,9 @@ P2-3: scale compute on the full 45-room set — apply Run C's recipe (effective 
 ### Run C — 10 rooms, eff-batch 64, n_pts=32
 
 - Output dir: `outputs/diag_p2_2_5/C_10rm_b64/`
-- Wall-clock: running (in progress) (~25000/30000 iters (in progress))
+- Wall-clock: 23.58 h (30000/30000 iters)
 - Stopped early: `False`
-- Latest val LSD: **1.09 dB**
+- Final val LSD: **0.98 dB**
 
 
 ## DDP correctness cross-check
@@ -57,12 +67,12 @@ Canonical B is the 2-GPU DDP run; the single-GPU B (`B_45rm_b32`) trained indepe
 
 | iter | DDP-B val LSD | single-B val LSD | Δ |
 |---:|---:|---:|---:|
-| 45000 | 2.91 | 2.91 | 0.00 |
-| 46000 | 2.87 | 2.88 | 0.01 |
-| 47000 | 2.84 | 2.84 | 0.00 |
-| 48000 | 2.83 | 2.81 | 0.03 |
-| 49000 | 2.79 | 2.79 | 0.00 |
 | 50000 | 2.78 | 2.76 | 0.01 |
+| 51000 | 2.76 | 2.75 | 0.01 |
+| 52000 | 2.75 | 2.73 | 0.02 |
+| 53000 | 2.72 | 2.72 | 0.00 |
+| 54000 | 2.70 | 2.70 | 0.00 |
+| 55000 | 2.68 | 2.68 | 0.01 |
 
 ## Anchors (other multi-room results)
 

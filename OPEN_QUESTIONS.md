@@ -64,7 +64,7 @@ This question closes in Phase 3 with a deliberate ISM+ray-tracing hybrid pass th
 
 **P2-2 adopted answer (c)**: signal-level magnitude correlation ≥ 0.9 in 0-500 Hz on ≥ 5/8 unseen test rooms. Matches Dolby's stated language; relevant for downstream applications. Modal LSD is reported as supporting (not pass/fail).
 
-This question closes when P2-2's zero-shot headline lands. If ≥ 5/8 rooms hit mag corr ≥ 0.9, the answer is definitively (c) and the target is met. If < 5/8, P2-3 will need a tighter band or a different framing — most likely option (a) constrained to a narrower range (e.g., 0-100 Hz, the resolvable axial modes only).
+**STILL OPEN (status as of P2-2.5, 2026-06-06)** — pending a valid P2-3 zero-shot run. P2-2's zero-shot hit 0/8 (mag corr 0.47-0.64), but that result is **not informative for Q14** because P2-2's *in-distribution* fit never converged (val LSD 6.16 dB; the model couldn't reconstruct even training rooms — see P2-2.5: the cause was coverage/compute + a GPU-misallocation, not the target metric). The target-metric question only becomes answerable once P2-3 trains a model that fits in-distribution (P2-2.5 shows that's reachable: ~1 dB on 10 rooms, 2.6 dB→ on 45 rooms) and THEN runs zero-shot. Carry forward the three candidate framings: (a) modal LSD ≤ 2 dB on f<f_Schroeder; (b) modal LSD ≤ 2 dB on a fixed 0-100/0-250 Hz band; (c) signal-level mag corr ≥ 0.9 in 0-500 Hz on ≥ 5/8 rooms (Dolby's language). **Decide in P2-3 once real zero-shot numbers exist.**
 
 ---
 
