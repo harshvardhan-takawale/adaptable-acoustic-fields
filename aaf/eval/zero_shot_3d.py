@@ -46,6 +46,7 @@ from aaf.eval.modal_verifier import (
     pick_peaks,
     plot_modal_overlay,
 )
+from aaf.eval.zero_shot_diagnosis import compute_manifold_distances
 from aaf.eval.signal_level import (
     DEFAULT_BANDS,
     compute_signal_metrics,
@@ -358,7 +359,32 @@ def zero_shot_adapt_3d(
             "geom_err_L_m": float(abs(geom_pred[0] - L)),
             "geom_err_W_m": float(abs(geom_pred[1] - W)),
             "geom_err_H_m": float(abs(geom_pred[2] - H_dim)),
+            "geom_err_max_m": float(max(abs(geom_pred[0] - L),
+                                        abs(geom_pred[1] - W),
+                                        abs(geom_pred[2] - H_dim))),
         }
+
+    # Manifold-distance self-diagnosis (P2-3 D37): is z* near where the trained
+    # latents sit? Two distances:
+    #   latent_min_dist        — ‖z* − nearest training latent‖₂
+    #   geom_nearest_train_dist — ‖z* − latent of the training room whose TRUE
+    #                             (L,W,H) is closest to this test room‖₂
+    # Together with geom_err these classify the 3-way verdict: a z* that's far
+    # from the manifold (large latent_min_dist) AND geometrically misplaced
+    # (large geom_err) => the inner loop couldn't reach the right region =>
+    # manifold-coverage problem (more training rooms). A well-placed z* with a
+    # still-poor spectrum => decoder-at-interpolated-latent problem.
+    z_train = model.latents.weight.detach().cpu().numpy()                 # [n_rooms, d]
+    z_np = z_star_tensor.cpu().numpy()
+    L_list = train_meta.get("L_list", [])
+    W_list = train_meta.get("W_list", [])
+    H_list = train_meta.get("H_list", [])
+    train_LWH = None
+    if L_list and W_list and H_list and len(L_list) == z_train.shape[0]:
+        train_LWH = list(zip(L_list, W_list, H_list))
+    manifold_extras = compute_manifold_distances(
+        z_np, z_train, train_LWH=train_LWH, test_LWH=[L, W, H_dim]
+    )
 
     # Save artifacts.
     torch.save(z_star_tensor.cpu(), output_dir / "z_star.pt")
@@ -397,6 +423,7 @@ def zero_shot_adapt_3d(
         "band_metrics_obs": band_metrics_obs,
         "loss_curve_first_last": [loss_curve[0], loss_curve[-1]] if loss_curve else [],
         **geom_extras,
+        **manifold_extras,
     }
     (output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
 

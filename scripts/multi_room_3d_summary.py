@@ -27,6 +27,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+from aaf.eval.zero_shot_diagnosis import classify_zero_shot_room, aggregate_verdict  # noqa: E402
 
 
 def _safe(v, fmt=".2f"):
@@ -34,6 +36,21 @@ def _safe(v, fmt=".2f"):
         return format(float(v), fmt)
     except Exception:
         return "—"
+
+
+def _read_in_dist_lsd(train_dir: Path):
+    """Final in-distribution val LSD from the training run (the D37 gate)."""
+    sc = train_dir / "scalars.json"
+    if sc.exists():
+        try:
+            rows = json.loads(sc.read_text())
+            vals = [r for r in rows if r.get("phase") == "val" and r.get("lsd_db") is not None]
+            if vals:
+                vals.sort(key=lambda r: r.get("iter", 0))
+                return float(vals[-1]["lsd_db"]), int(vals[-1].get("iter", 0))
+        except Exception:
+            pass
+    return None, None
 
 
 def main():
@@ -80,6 +97,9 @@ def main():
             "geom_err_L": ev.get("geom_err_L_m"),
             "geom_err_W": ev.get("geom_err_W_m"),
             "geom_err_H": ev.get("geom_err_H_m"),
+            "geom_err_max": ev.get("geom_err_max_m"),
+            "latent_min_dist": ev.get("latent_min_dist"),
+            "geom_nn_dist": ev.get("geom_nearest_train_dist"),
             "lsd_band_0_250": (ev.get("band_metrics_held", {}) or {}).get("lsd_band_0_250_db"),
             "lsd_band_250_500": (ev.get("band_metrics_held", {}) or {}).get("lsd_band_250_500_db"),
             "lsd_band_500_1000": (ev.get("band_metrics_held", {}) or {}).get("lsd_band_500_1000_db"),
@@ -94,24 +114,53 @@ def main():
     n_total = len(rows)
     n_mag_ge_09 = sum(1 for r in rows if (r["mag_corr"] or 0) >= 0.9)
 
+    # In-distribution gate (D37): zero-shot is only interpretable as method
+    # success/failure if the model fit the training rooms (≤ 2.5 dB val LSD).
+    in_dist_lsd, in_dist_iter = _read_in_dist_lsd(train_dir)
+    in_dist_ok = in_dist_lsd is not None and in_dist_lsd <= 2.5
+
+    # 3-way self-diagnosis per room (D37).
+    for r in rows:
+        gmax = r["geom_err_max"]
+        if gmax is None:  # older metrics.json without geom_err_max — derive it
+            errs = [r.get("geom_err_L"), r.get("geom_err_W"), r.get("geom_err_H")]
+            errs = [e for e in errs if e is not None]
+            gmax = max(errs) if errs else None
+        branch, why = classify_zero_shot_room(in_dist_lsd, r["mag_corr"], gmax)
+        r["branch"] = branch
+        r["branch_why"] = why
+    verdict = aggregate_verdict([r["branch"] for r in rows], n_total)
+
+    gate_line = (
+        f"in-distribution val LSD = **{_safe(in_dist_lsd)} dB**"
+        + (f" @ {in_dist_iter} iters" if in_dist_iter else "")
+        + (" → **gate PASSED** (≤ 2.5)" if in_dist_ok else " → **gate NOT met** (> 2.5); "
+           "zero-shot below is for the record, not a method success/failure read")
+    ) if in_dist_lsd is not None else "in-distribution val LSD = — (training scalars not found)"
+
     md = [
         f"# Multi-room 3D zero-shot summary — {train_dir.name}\n",
         "\nMetrics aggregated from each test room's `metrics.json` (held-out subset).\n",
-        f"\n**Headline**: {n_mag_ge_09}/{n_total} rooms reach mag corr ≥ 0.9 (full spectrum).\n",
-        "(Target: ≥ 5/8 per P2-2 acceptance criteria.)\n",
+        f"\n## Self-diagnosis verdict (D37)\n\n**{verdict}**\n",
+        f"\n- In-distribution gate: {gate_line}\n",
+        f"- Zero-shot headline: {n_mag_ge_09}/{n_total} rooms reach mag corr ≥ 0.9 "
+        "(full spectrum; target ≥ 5/8).\n",
+        "- Per-room branch ∈ {success, manifold_coverage (→ P2-4 more rooms), "
+        "decoder_interp (→ decoder smoothness), precondition_unmet}.\n",
         "\n## Per-room metrics (held-out)\n",
-        "| Run | L | W | H | V (m³) | f_S (Hz) | mod MAE (Hz) | LSD (dB) full | mag corr | phase corr mw | RIR Pearson | env corr | early/late | geom err L/W/H (m) |\n",
-        "|---|---:|---:|---:|------:|------:|---:|---:|---:|---:|---:|---:|------:|---|\n",
+        "| Run | L | W | H | V (m³) | mod MAE (Hz) | LSD full | mag corr | phase mw | RIR ρ | env ρ | geom err L/W/H (m) | z* dist (min/geom-nn) | branch |\n",
+        "|---|---:|---:|---:|------:|---:|---:|---:|---:|---:|---:|---|---|---|\n",
     ]
     for r in rows:
         md.append(
             f"| {r['run']} | {_safe(r['L'])} | {_safe(r['W'])} | {_safe(r['H'])} | "
-            f"{_safe(r['V'], '.1f')} | {_safe(r['f_S'], '.0f')} | "
+            f"{_safe(r['V'], '.1f')} | "
             f"{_safe(r['modal_mae'])} | {_safe(r['full_lsd'])} | "
             f"{_safe(r['mag_corr'], '.3f')} | {_safe(r['phase_corr_mw'], '.3f')} | "
             f"{_safe(r['rir_pearson'], '.3f')} | {_safe(r['env_corr'], '.3f')} | "
-            f"{_safe(r['early_corr'], '.2f')} / {_safe(r['late_corr'], '.2f')} | "
-            f"{_safe(r['geom_err_L'], '.2f')} / {_safe(r['geom_err_W'], '.2f')} / {_safe(r['geom_err_H'], '.2f')} |\n"
+            f"{_safe(r['geom_err_L'], '.2f')} / {_safe(r['geom_err_W'], '.2f')} / {_safe(r['geom_err_H'], '.2f')} | "
+            f"{_safe(r['latent_min_dist'], '.2f')} / {_safe(r['geom_nn_dist'], '.2f')} | "
+            f"{r['branch']} |\n"
         )
 
     md.append("\n## Per-band LSD (held-out)\n")
@@ -145,7 +194,9 @@ def main():
 
     summary_path = train_dir / "SUMMARY.md"
     summary_path.write_text("".join(md))
-    print(f"# wrote {summary_path}  (n_rooms={n_total}, n_mag_ge_09={n_mag_ge_09})")
+    print(f"# wrote {summary_path}  (n_rooms={n_total}, n_mag_ge_09={n_mag_ge_09}, "
+          f"in_dist_lsd={_safe(in_dist_lsd)})")
+    print(f"# VERDICT: {verdict}")
 
 
 if __name__ == "__main__":

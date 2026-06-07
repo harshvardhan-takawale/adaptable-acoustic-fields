@@ -522,3 +522,68 @@ def make_signal_plots(
     out["signal_metrics_summary"] = p
 
     return out
+
+
+def make_receiver_slices(
+    H_pred: np.ndarray,
+    H_target: np.ndarray,
+    receiver_pos: np.ndarray,
+    fs: float,
+    n_time_samples: int,
+    output_dir,
+    f_target_hz: float,
+    n_per_axis: int = 8,
+    z_slice_idxs=(1, 4, 6),
+):
+    """Receiver-volume spatial slices: |H| at a single frequency, predicted vs
+    ISM, on horizontal (x, y) planes at a few z heights.
+
+    The 8×8×8 receiver grid is row-major over (z, y, x) — index = iz*64 + iy*8 + ix
+    (matches scripts/build_3d_dataset.py). For each z in ``z_slice_idxs`` this
+    renders two 8×8 heatmaps (predicted, ISM) of |H(f_target)| so a reviewer can
+    see the spatial mode shape reproduced at a low modal frequency.
+
+    Returns the written Path (``receiver_slices_f{f:.0f}Hz.png``).
+    """
+    import matplotlib.pyplot as plt
+    from pathlib import Path as _Path
+
+    output_dir = _Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    n_freq = H_pred.shape[-1]
+    f_axis = np.arange(n_freq) * (fs / n_time_samples)
+    fbin = int(np.argmin(np.abs(f_axis - f_target_hz)))
+    f_actual = float(f_axis[fbin])
+
+    mag_pred = np.abs(H_pred[:, fbin])
+    mag_tgt = np.abs(H_target[:, fbin])
+    # Shared dB color scale across both fields for honest comparison.
+    eps = 1e-8
+    dp = 20 * np.log10(np.maximum(mag_pred, eps))
+    dt = 20 * np.log10(np.maximum(mag_tgt, eps))
+    vmin = float(min(dp.min(), dt.min()))
+    vmax = float(max(dp.max(), dt.max()))
+
+    zs = list(z_slice_idxs)
+    fig, axes = plt.subplots(2, len(zs), figsize=(4 * len(zs), 8))
+    if len(zs) == 1:
+        axes = axes.reshape(2, 1)
+    for col, iz in enumerate(zs):
+        base = iz * n_per_axis * n_per_axis
+        idx = np.array([base + iy * n_per_axis + ix
+                        for iy in range(n_per_axis) for ix in range(n_per_axis)])
+        z_h = float(receiver_pos[base, 2])
+        grid_p = dp[idx].reshape(n_per_axis, n_per_axis)
+        grid_t = dt[idx].reshape(n_per_axis, n_per_axis)
+        im0 = axes[0, col].imshow(grid_p, origin="lower", cmap="viridis", vmin=vmin, vmax=vmax)
+        axes[0, col].set_title(f"predicted  z={z_h:.2f} m")
+        axes[1, col].imshow(grid_t, origin="lower", cmap="viridis", vmin=vmin, vmax=vmax)
+        axes[1, col].set_title(f"ISM  z={z_h:.2f} m")
+        for r in (0, 1):
+            axes[r, col].set_xticks([]); axes[r, col].set_yticks([])
+    fig.colorbar(im0, ax=axes.ravel().tolist(), shrink=0.6, label="|H| (dB)")
+    fig.suptitle(f"Receiver-volume slices at {f_actual:.0f} Hz — predicted (top) vs ISM (bottom)")
+    p = output_dir / f"receiver_slices_f{f_actual:.0f}Hz.png"
+    fig.savefig(p, dpi=120, bbox_inches="tight")
+    plt.close(fig)
+    return p
