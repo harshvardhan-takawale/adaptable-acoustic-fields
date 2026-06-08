@@ -1,0 +1,24 @@
+set_name: runC_probe
+# Spec A — Run C zero-shot probe. Two NEW interpolative test rooms strictly
+# interior to the convex hull of Run C's 10 training rooms (verified via
+# scipy Delaunay.find_simplex >= 0), generated as convex combinations of
+# training-room vertices so they are guaranteed inside the hull yet distinct
+# from any training room. Same physics as the train/test sets (alpha 0.15,
+# source_offset 0.5, fs 4096, n_time 8192) so the spectra are consistent with
+# what Run C learned. The third probe room (box center 4.50/4.00/3.25) is an
+# existing maximin test room already on disk and also interior to the hull.
+alpha: 0.15
+fs: 4096
+n_time_samples: 8192
+source_offset:
+- 0.5
+- 0.5
+- 0.5
+rooms:
+- L: 3.65      # 0.5*(4.27,3.18,2.61) + 0.5*(3.04,4.89,3.86); lower-L interior
+  W: 4.04
+  H: 3.24
+- L: 4.36      # 0.5*(3.02,3.49,3.92) + 0.5*(5.69,4.78,4.00); higher-H interior
+  W: 4.14
+  H: 3.96
+comment: "Interpolative interior probe rooms for the Run C (10-room, 0.98 dB) model."
