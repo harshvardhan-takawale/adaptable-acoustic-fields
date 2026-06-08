@@ -149,6 +149,7 @@ def zero_shot_adapt_3d(
     held_out_subset_size=None,
     bands: tuple = DEFAULT_BANDS,
     eval_chunk: int = 4,
+    z_init: str = "randn",
 ) -> dict:
     """3D zero-shot inner-loop adaptation. Returns metrics dict."""
     output_dir = Path(output_dir)
@@ -213,9 +214,21 @@ def zero_shot_adapt_3d(
     w_r, w_i, w_a, w_p = weights
     eps_lsd = 1e-8
 
-    # Init z_star ~ N(0, 1/√d).
+    # Init z_star. Default "randn" ~ N(0, 1/√d) → ‖z*‖≈1, the historical behaviour.
+    # The Run C probe (2026-06-08) showed the trained latents live at ‖z‖≈6.6, so a
+    # ‖z*‖≈1 start is far *below* the manifold and the optimiser overshoots past it
+    # to a high-norm off-manifold region. "mean" inits z* at the training-latent
+    # centroid (on the manifold) and anchors the regulariser there (λ‖z*−z̄‖²) so the
+    # search stays on the manifold. Opt-in; "randn" preserves the exact old path.
     torch.manual_seed(int(random_seed))
-    z_star = nn.Parameter(torch.randn(latent_dim, device=device) / math.sqrt(latent_dim))
+    z_anchor = torch.zeros(latent_dim, device=device)
+    if z_init == "mean":
+        z_anchor = model.latents.weight.detach().mean(0).to(device)
+        z_star = nn.Parameter(z_anchor.clone())
+    elif z_init == "randn":
+        z_star = nn.Parameter(torch.randn(latent_dim, device=device) / math.sqrt(latent_dim))
+    else:
+        raise ValueError(f"z_init must be 'randn' or 'mean', got {z_init!r}")
     optimizer = torch.optim.Adam([z_star], lr=lr)
     loss_curve: list[dict] = []
 
@@ -249,7 +262,7 @@ def zero_shot_adapt_3d(
             spec_loss_log += float(loss_c.detach())
             real_loss_log += weight * float(losses_c["L_spec_real"].detach())
             amp_loss_log += weight * float(losses_c["L_amp"].detach())
-        l_latent = (z_star ** 2).mean()
+        l_latent = ((z_star - z_anchor) ** 2).mean()
         (lambda_latent * l_latent).backward()
         if z_star.grad is not None:
             z_star.grad = torch.nan_to_num(
@@ -405,6 +418,8 @@ def zero_shot_adapt_3d(
         "n_adapt_iters": int(n_adapt_iters),
         "n_obs_receivers": int(n_obs_receivers),
         "random_seed": int(random_seed),
+        "z_init": str(z_init),
+        "lambda_latent": float(lambda_latent),
         "obs_lsd_db": obs_lsd,
         "held_out_lsd_db": held_lsd,
         "held_out_complex_l1": held_complex,
@@ -486,6 +501,13 @@ def main():
         help="If given, sub-sample the held-out set for headline metrics.",
     )
     ap.add_argument("--eval_chunk", type=int, default=4)
+    ap.add_argument(
+        "--z_init", type=str, default="randn", choices=["randn", "mean"],
+        help="z* init + reg anchor. 'randn' (default, historical): ‖z*‖≈1, λ‖z*‖². "
+             "'mean': init at the training-latent centroid (on the manifold) with "
+             "λ‖z*−z̄‖² — keeps the search on the manifold (manifold-anchored adaptation).",
+    )
+    ap.add_argument("--lambda_latent", type=float, default=1e-4)
     args = ap.parse_args()
 
     out = zero_shot_adapt_3d(
@@ -498,6 +520,8 @@ def main():
         random_seed=args.random_seed,
         held_out_subset_size=args.held_out_subset_size,
         eval_chunk=args.eval_chunk,
+        z_init=args.z_init,
+        lambda_latent=args.lambda_latent,
     )
     # Print a compact summary.
     print(json.dumps(

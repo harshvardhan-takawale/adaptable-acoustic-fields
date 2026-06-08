@@ -1,9 +1,45 @@
 # Run C zero-shot probe — RESULT (Spec A, early signal)
 
 **Date**: 2026-06-08. **Verdict**: ❌ **zero-shot FAILS on the converged Run C model** —
-but the cause is **not** in-distribution convergence and **not** the model. The
-**test-time latent adaptation escapes the training manifold**. This is an early
-warning that **changes how we must run P3's zero-shot.**
+the cause is **not** in-distribution convergence, **not** the model, and (validated
+below) **not** the test-time procedure. The converged 10-room model **memorizes its
+10 rooms and does not interpolate to unseen geometries** — a coverage /
+decoder-generalization wall. **The decisive variable for P3 is room count (45 vs 10),
+not the adaptation procedure.**
+
+> **VALIDATION (added 2026-06-08, per "validate on Run C only").** I swept the
+> test-time procedure across 3 configs on the 2 cleanest interior rooms:
+> baseline (z* init ‖z‖≈1, λ‖z‖²=1e-4), manifold-anchored (init at training-latent
+> centroid, λ‖z*−z̄‖²=1e-2), and init-only (manifold init, weak λ=1e-4).
+>
+> | room | baseline | anchored λ1e-2 | init-only λ1e-4 |
+> |---|---|---|---|
+> | box center | mag 0.217 / obsLSD 7.14 | 0.202 / 6.84 | 0.211 / 7.10 |
+> | L3.65 | 0.184 / 7.50 | 0.179 / 7.01 | 0.192 / 7.54 |
+>
+> **mag corr is invariant (~0.2) across all three**; obs LSD stays ~7 dB; z* fails to
+> fit even the 8 *observed* receivers under any init/regulariser. init-only z* still
+> escaped (L3.65 → ‖z‖ 19.4) because the obs gradient actively drives z* off-manifold
+> — there is **no good on-manifold latent to settle at**. So the manifold-escape seen
+> in the baseline is a *symptom* (the optimiser chasing spurious minima because no
+> latent renders the room), **not the cause**. The opt-in `--z_init mean` /
+> `--lambda_latent` knobs added to `zero_shot_3d.py` are kept (defaults unchanged) but
+> **do not fix this** — coverage does.
+>
+> **Implication for P3 (revised):** leave P3's zero-shot **stock** — the procedure is
+> fine. P3's result is a clean test of *"is 45 rooms (4.5× denser) enough for 3D
+> zero-shot interpolation?"* If P3 zero-shot also fails, the fix is **more training
+> rooms (P2-4)**, not a procedure change. (Consistent: P2-2's 45-room model already
+> scored mag 0.47–0.64 — better than this 10-room 0.2 — so coverage is the axis, and
+> 45 helps, though it may still fall short of ≥0.9.)
+
+---
+
+### Original discovery narrative (how we got to the verdict)
+
+The first signal pointed at the **test-time latent adaptation escaping the training
+manifold**; the validation sweep above showed that escape is a symptom of the deeper
+coverage wall, not the root cause.
 
 ## Setup
 
