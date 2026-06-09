@@ -127,9 +127,9 @@ vastly larger, so it needs far more rooms.
   45-room training hull (extrapolation, not interpolation) — so they are a hard test.
   Even the interior box-center room fails (mag 0.27), so the conclusion holds, but the
   P2-4 zero-shot eval should separate interpolative vs extrapolative test rooms.
-- The procedure-vs-coverage disambiguation used 3 P3 rooms (box center ×2 λ + one
-  small room) + the full Run C sweep; the 4th P3 room (large) was mid-run at the 2h
-  walltime — the three completed points agree, so the verdict is not in doubt.
+- The procedure-vs-coverage disambiguation used **all 4 P3 runs** (box center at
+  λ=1e-2 and λ=1e-1, plus a small and a large room at λ=1e-2) + the full Run C sweep.
+  Every config and every room lands at mag corr 0.22–0.28 — the verdict is firm.
 
 ## 7. Deliverables / artifacts
 
