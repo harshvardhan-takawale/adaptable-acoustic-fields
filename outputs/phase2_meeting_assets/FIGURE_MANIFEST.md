@@ -31,3 +31,36 @@ honestly (Fig 6).
 - Legacy figures from the earlier pack (`02_modal_density_2d_vs_3d.png`,
   `03_diagnostic_convergence.png`, `04_representation_vs_rendering.png`,
   `05_phase2_progress.png`) remain in this directory but are **superseded** by the 6 above.
+
+---
+
+# P2-VIZ2 deck additions (2026-06-09) — generalization depth + backup slides
+
+All CPU-only (the median-LOO room's full spectrum was cached in
+`outputs/known_geometry/loo_median_spectrum.npz`, so figs 07 & 09 needed no GPU render).
+Honest captions keep **in-distribution / leave-one-out / zero-shot** distinct.
+
+| # | File (1920×1080) | What it shows | Source data | Exact numbers | One-line honest caption |
+|---|---|---|---|---|---|
+| 07 | `07_median_loo_signal_panels.png` | median-LOO room L4.60/4.35/3.53, 3 panels: (a) magnitude overlay, (b) phase overlay (mag-weighted), (c) RIR overlay full 2 s + 50 ms zoom — pred vs ISM. | `loo_median_spectrum.npz` (+ signal_level metrics) | 512-rx means: mag corr **0.90**, phase corr (mw) **0.91**, RIR Pearson **0.92** | "known-geometry render, **leave-one-out, at training density**" |
+| 08 | `08_signal_metrics_table.png` | 5 de-risk rooms × {mag, phase(mw), RIR Pearson, early/late, env corr, modal MAE, LSD}. | `outputs/single_room_3d/SUMMARY.md` | mag 0.954–0.983; phase 0.954–0.981; RIR 0.965–0.987; env 0.982–0.994; LSD 1.31–1.77; modal MAE 0.61–1.18 | "single-room fidelity — **in-distribution upper bound**" (each room overfit individually) |
+| 09 | `09_spatial_slices.png` | median-LOO room: pred-vs-ISM \|H\| on 3 horizontal slices (z=0.72/1.97/2.81 m) at the (1,1,0) tangential mode. | `loo_median_spectrum.npz` | f = **54 Hz** (1,1,0 mode); render reproduces the standing-wave node | "predicted vs ISM at 54 Hz — **a room that works (LOO, training density)**" |
+| 10 | `10_loo_generalization_table.png` | 6 representative LOO rooms spanning the score distribution (min/median/max + q1/q3/p90) + all-45 mean. | `outputs/known_geometry/loo/loo_rows.json` | min 0.825, **median 0.896**, max 0.947 (mag full); all-45 mean **0.894 / 0.938 / 2.60 dB** | "Known-geometry rendering — **leave-one-out generalization** (predict latent from (L,W,H), no measurements, at training density)" — counterpart to fig 08 |
+| 11 | `11_coverage_anchors.png` | two measured anchors (no connecting line): sparse-45 (0.27) vs LOO/training-density (0.89), with an explicit "unmeasured — P2-4" gap. | `known_geometry/{loo,lookup}` + `train_meta.json` | sparse: NN **0.61 m**, mag **0.27** (whisker 0.25–0.28); LOO: NN **0.34 m**, mag **0.89** (whisker 0.82–0.95) | "Coverage vs rendering quality: **two measured anchors** — the curve between is deliberately not drawn (P2-4 maps it)." |
+| — | `train_rooms_list.md` | the exact 45 training (L,W,H) triples + volume. | `configs/sweeps_3d/train_rooms.yaml` | 45 rooms; L 3.0–5.9, W 3.1–5.0, H 2.5–4.0 (approx) | backup / Q&A |
+
+## IR / dataset spec (verified on disk — methods backup slide)
+**fs = 4096 Hz · 8192 samples (2.0 s) · 4097 freq bins (Δf ≈ 0.5 Hz) · ISM max_order = 12 ·
+α = 0.15 · 512 receivers (8×8×8 grid) · 1 source.** Confirmed against
+`data/track_a_3d/*.h5` attrs (`ism_H` [512,4097], `ism_rir` [512,8192]) + the configs.
+
+## Honesty (P2-VIZ2)
+- The **three regimes are never mixed**: fig 08 = single-room *in-distribution upper bound*;
+  fig 10 = *leave-one-out generalization at training density*; fig 11's sparse point = the
+  *zero-shot* result on unseen rooms. (Room L4.50/4.00/3.25 appears in fig 08 as a single-room
+  overfit and elsewhere as the zero-shot box center — captions keep them distinct.)
+- Fig 10: min/median/max + 3 spaced (**not** the best 6); mean row anchors it; mag + LSD from
+  cache (loo_rows.json), phase/RIR not stored per room so omitted (no renders triggered).
+- Fig 11: **no interpolating line**; the gap is explicitly marked unmeasured; whiskers are the
+  real min–max score spreads.
+- Fig 09 uses the median-LOO room (renders at 0.90), never a failed sparse-gap test room.
