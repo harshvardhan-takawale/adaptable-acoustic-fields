@@ -161,7 +161,10 @@ def build_lookup_maps(train_LWH, train_latents):
 
 def optimize_oracle_latent(model, renderer, room_min, room_max, rx_obs, tx_obs,
                            H_obs, z_init_vec, n_iters, lr, lambda_latent,
-                           weights, device, eval_chunk=4):
+                           weights, device, eval_chunk=4, z_max_norm=None):
+    """Optimize z* to fit the observed receivers. If z_max_norm is set, project z*
+    onto the ball ‖z‖<=z_max_norm each step — the 'best ON-MANIFOLD latent' oracle
+    (prevents the optimiser exploiting unconstrained off-manifold flexibility)."""
     z_anchor = torch.as_tensor(z_init_vec, dtype=torch.float32, device=device)
     z_star = nn.Parameter(z_anchor.clone())
     opt = torch.optim.Adam([z_star], lr=lr)
@@ -183,6 +186,11 @@ def optimize_oracle_latent(model, renderer, room_min, room_max, rx_obs, tx_obs,
             z_star.grad = torch.nan_to_num(z_star.grad, nan=0.0, posinf=0.0, neginf=0.0)
         torch.nn.utils.clip_grad_norm_([z_star], 1.0)
         opt.step()
+        if z_max_norm is not None:
+            with torch.no_grad():
+                nrm = z_star.norm()
+                if nrm > z_max_norm:
+                    z_star.mul_(z_max_norm / nrm)
     return z_star.detach()
 
 
@@ -313,7 +321,8 @@ def run_lookup(train_output_dir, rooms, data_dir, out_dir, device, do_loo, n_loo
 
 
 def run_oracle(train_output_dir, rooms, data_dir, out_dir, device,
-               n_oracle_recv, n_adapt_iters, lr, lambda_latent):
+               n_oracle_recv, n_adapt_iters, lr, lambda_latent, z_max_norm=None,
+               out_sub="oracle"):
     from aaf.eval.zero_shot_3d import select_obs_indices_3d
     model, train_meta = _load_trained_model(Path(train_output_dir), device=device)
     cfg = train_meta["cfg"]
@@ -338,7 +347,7 @@ def run_oracle(train_output_dir, rooms, data_dir, out_dir, device,
         H_obs = torch.from_numpy(room["H_target"][obs_idx]).to(device)
         z_star = optimize_oracle_latent(model, renderer, rmin, rmax, rx_obs, tx_obs,
                                         H_obs, z_mean, n_adapt_iters, lr, lambda_latent,
-                                        (1.0, 1.0, 1.0, 0.1), device)
+                                        (1.0, 1.0, 1.0, 0.1), device, z_max_norm=z_max_norm)
         renderer.eval()
         Hp = render_full(model, renderer, z_star, rmin, rmax,
                          room["receiver_pos"], room["src"], device)
@@ -347,7 +356,8 @@ def run_oracle(train_output_dir, rooms, data_dir, out_dir, device,
         ev["z_norm"] = float(z_star.norm().item())
         ev["n_oracle_recv"] = int(n_oracle_recv)
         ev["n_adapt_iters"] = int(n_adapt_iters)
-        rd = out_dir / "oracle" / _room_name(L, W, H)
+        ev["z_max_norm"] = z_max_norm
+        rd = out_dir / out_sub / _room_name(L, W, H)
         rd.mkdir(parents=True, exist_ok=True)
         (rd / "metrics.json").write_text(json.dumps(ev, indent=2))
         np.save(rd / "H_pred_all.npy", Hp)
@@ -371,6 +381,9 @@ def main():
     ap.add_argument("--n-adapt-iters", type=int, default=1200)
     ap.add_argument("--lr", type=float, default=1e-2)
     ap.add_argument("--lambda-latent", type=float, default=1e-4)
+    ap.add_argument("--z-max-norm", type=float, default=None,
+                    help="project z* onto ‖z‖<=this each step (on-manifold oracle)")
+    ap.add_argument("--out-sub", type=str, default="oracle")
     args = ap.parse_args()
     device = "cuda" if torch.cuda.is_available() else "cpu"
     rooms = _parse_rooms(args.rooms)
@@ -379,7 +392,8 @@ def main():
                    device, args.loo, args.n_loo, _parse_rooms(args.plot_rooms))
     else:
         run_oracle(args.train_output_dir, rooms, args.data_dir, args.output_dir,
-                   device, args.n_oracle_recv, args.n_adapt_iters, args.lr, args.lambda_latent)
+                   device, args.n_oracle_recv, args.n_adapt_iters, args.lr, args.lambda_latent,
+                   z_max_norm=args.z_max_norm, out_sub=args.out_sub)
 
 
 if __name__ == "__main__":
