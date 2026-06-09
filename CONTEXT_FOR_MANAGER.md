@@ -2,7 +2,24 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk P2-2.5 COMPLETE — 2026-06-06. **Bottleneck identified: coverage/compute, not capacity.**
+**Last updated**: Chunk P2-3 COMPLETE — 2026-06-09. **In-distribution SOLVED (2.169 dB); zero-shot is a confirmed COVERAGE problem.**
+
+## Phase 2 — P2-3 (complete): converged 45-room training + zero-shot
+
+**Read `tasks/CHUNK_P2_3_RESULTS.md` for the full analysis.** Two-part result:
+
+- **Training SUCCEEDED**: 4-GPU DDP (eff-batch 64, 60K iters), in-distribution **val LSD 2.169 dB** — cleared the ≤2.5 target. The architecture/recipe/DDP all work; P2-2's in-distribution failure (6.16 dB) is fully resolved. DDP sanity-gated (3.8× single-GPU, correct).
+- **Zero-shot FAILED but is sharply diagnosed**: 0/8 test rooms reach mag corr ≥0.9 (got 0.20–0.28). The cause is **not the model and not the procedure** — it is **training-set coverage**:
+  1. The bottleneck is the test-time latent z* (z* can't fit even the 8 observed receivers; obs_lsd≈held_lsd≈7 dB).
+  2. **Converged P3 zero-shot (0.20–0.28) is WORSE than unconverged P2-2 M1 (0.52–0.59)** — a sharp decoder punishes a wrong z*, a blurry one fakes an "average room." So the model is fine; finding the right latent for an unseen room is the problem.
+  3. **Procedure is not the lever**: a manifold-anchored adaptation sweep (init at training-latent mean, λ ∈ {1e-4,1e-2,1e-1}) leaves mag corr invariant (~0.2–0.28) at both 10 and 45 rooms — there is no good latent to find. The converged model **memorizes its 45 rooms and does not interpolate**.
+  4. Coverage helped *placement* (45 rm: geom-err 0.5–2.6 m, z*norm 7–10 vs Run C 10 rm: 4.2 m, 11–13) but 45 rooms is still far too sparse in the 3-D (L,W,H) box.
+
+**P2-4 recommendation**: (1) **scale the training set** (45 → ~150–300 rooms, denser LHS); (2) **test explicit (L,W,H) conditioning** — the current setup never uses the test room's *known* geometry, so conditioning the decoder directly on (L,W,H) could render unseen rooms with no z* search at all (potentially decisive). Do NOT pursue procedure fixes (proven ineffective) or widen capacity (in-distribution is solved). Decisions D35–D38.
+
+---
+
+**Prior**: Chunk P2-2.5 COMPLETE — 2026-06-06. **Bottleneck identified: coverage/compute, not capacity.**
 
 ## Phase 2 — P2-2.5 diagnostic (complete)
 
