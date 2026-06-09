@@ -7,8 +7,10 @@
 #SBATCH --qos=scavenger
 #SBATCH --time=01:00:00
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
-#SBATCH --gres=gpu:1
+#SBATCH --mem=24G
+# n_pts=32 models (P2-2.5 Run C, P3) need ~12 GB for the renderer — an 11 GB
+# legacy scavenger card OOMs. Name a 24 GB rtxa5000 (still scavenger qos).
+#SBATCH --gres=gpu:rtxa5000:1
 #SBATCH --output=logs/slurm/%x-%j.out
 #SBATCH --error=logs/slurm/%x-%j.err
 
