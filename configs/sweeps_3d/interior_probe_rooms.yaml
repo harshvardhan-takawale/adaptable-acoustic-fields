@@ -1,0 +1,19 @@
+set_name: interior_probe
+alpha: 0.15
+fs: 4096
+n_time_samples: 8192
+source_offset:
+- 0.5
+- 0.5
+- 0.5
+rooms:
+- L: 4.4
+  W: 4.09
+  H: 3.26
+- L: 3.52
+  W: 4.31
+  H: 3.4
+- L: 4.82
+  W: 3.81
+  H: 2.92
+comment: P2-3.5 strictly-interior rooms (convex combos of P3 training vertices, Delaunay-verified).
