@@ -1,27 +1,33 @@
-# Phase-2 Meeting Deck — FIGURE MANIFEST
+# Phase-2 Meeting Deck — FIGURE MANIFEST (P2-VIZ pack, 2026-06-09)
 
-**All numbers in every figure are traceable to on-disk files.** Each value below was
-independently re-read from its source at critic time (not just trusted from the figure
-agents) and matches the plotted/labeled value within rounding. Every PNG was verified to
-exist and be exactly 1920×1080. No number in any figure is fabricated or hand-entered;
-every plotted data value is loaded from a `scalars.json`, `latent_probe.json`,
-checkpoint, or recomputed from `aaf.sim.analytical_modal_3d`. The single forward-looking
-quantity (P3) is drawn as an explicit PROJECTION, not a result (see Figure 5).
+The 6-figure meeting pack. Every number is traceable to an on-disk file (cited per row).
+All PNGs are 1920×1080. Honest captions — Fig 2 says "at training density (leave-one-out),"
+not "any new room"; Fig 6 is explicitly two-regime, not a continuous curve we didn't measure.
 
-Sources root: `/fs/nexus-projects/multimodal_recon/adaptable-acoustic-fields/`
-Assets dir:  `outputs/phase2_meeting_assets/`
-Generators:  `scripts/phase2_figs/`
+**Story arc**: 3D in-distribution is *solved* (Fig 3) → the representation *works* (Fig 1) →
+known-geometry rendering *works at training density* (Fig 2) → why 3D is hard (Fig 4) →
+the open problem is *ceiling-proven coverage*, not the method (Fig 5) → the path forward,
+honestly (Fig 6).
 
-| # | Filename (1920×1080) | What it shows | Source data file(s) | Exact numbers used (re-verified) |
-|---|----------------------|---------------|---------------------|----------------------------------|
-| 1 | `01_latent_manifold_3d.png` | Three PC1-vs-PC2 scatter panels of the 45 M1 16-D auto-decoder latents (same projection), colored by true room L / W / H, each annotated with the full-16-D linear-probe R². Latent space autonomously encodes all three dimensions. | `outputs/multi_room_3d/M1_45rooms/latent_probe/latent_probe.json`; `outputs/multi_room_3d/M1_45rooms/ckpt_iter0024000.pt` | R²_L = 0.991014 → label 0.991; R²_W = 0.966932 → 0.967; R²_H = 0.973746 → 0.974; PC1 var = 25.4% , PC2 var = 14.8% (axis labels, from stored `pca_explained_variance[0:2]`); `latents.weight` shape = (45, 16) (confirmed in ckpt). |
-| 2 | `02_modal_density_2d_vs_3d.png` | LEFT: distinct modes ≤250 Hz, 2D ~12 vs 3D 135 (~11×). RIGHT: cumulative 3D eigenfrequency staircase 0→250 Hz with Schroeder line ≈217 Hz. 3D modal regime is the hardest band. | `aaf/sim/analytical_modal_3d.py` (recomputed live); `tasks/CHUNK_P2_1_RESULTS.md` §5 | 3D distinct modes 0<f≤250 Hz = **135** (recomputed: `eigenfrequencies_3d(4.5,4.0,3.25,f_max=250)` returns 136 entries, exactly 1 is DC (0,0,0) at f=0 → 135 non-DC); highest = 249.852 Hz; modes ≤217 Hz = 93; 2D ~12 (approx Phase-1 ref); f_Schroeder ≈ 217 Hz; ratio 135/12 ≈ 11×. |
-| 3 | `03_diagnostic_convergence.png` | Val LSD (dB) vs iteration for three coverage-controlled runs A/B/C against the P2-2 M1 plateau (6.16 dB) and 2.5 dB target. Coverage, not capacity, was the bottleneck. | `outputs/diag_p2_2_5/A_10rm_b16/scalars.json`; `.../B_45rm_ddp/scalars.json`; `.../C_10rm_b64/scalars.json`; `outputs/multi_room_3d/M1_45rooms/scalars.json` | Run A final = 1.8430 dB @ iter 30000 → 1.84; Run B (DDP) final = 2.6138 dB @ iter 60000 → 2.61; Run C final = 0.9829 dB @ iter 30000 → 0.98; M1 plateau = 6.1600 dB @ iter 24000 → 6.16; target = 2.5 dB (constant). |
-| 4 | `04_representation_vs_rendering.png` | LEFT: latent already encodes geometry (probe R² 0.991/0.967/0.974). RIGHT: in-distribution val LSD lagged at 6.16 dB under low coverage, dropped to 2.61 then 0.98 dB once per-iteration coverage was raised. Representation vs rendering are separable. | `outputs/multi_room_3d/M1_45rooms/latent_probe/latent_probe.json`; `.../M1_45rooms/scalars.json`; `outputs/diag_p2_2_5/B_45rm_ddp/scalars.json`; `.../C_10rm_b64/scalars.json` | R²_L/W/H = 0.991/0.967/0.974; M1 low-cov = 6.159979 dB → 6.16; Run B = 2.613769 dB → 2.61; Run C = 0.982929 dB → 0.98; target line = 2.5 dB. (B = 45 rooms; C = 10 rooms — both are coverage levers, see notes.) |
-| 5 | `05_phase2_progress.png` | Phase-2 trajectory bar chart of in-distribution val LSD: two real final bars (M1 = 6.16 dB, P2-2.5-B = 2.61 dB) plus an honest **PROJECTED** hatched/translucent P3 band (1.8–2.2 dB target) with the live current value annotated, against a 2.5 dB target line. | `outputs/multi_room_3d/M1_45rooms/scalars.json`; `outputs/diag_p2_2_5/B_45rm_ddp/scalars.json`; `outputs/multi_room_3d/P3_45rooms_4gpu/scalars.json` | M1 final = 6.159979 dB → 6.16 (real); P2-2.5-B final = 2.613769 dB → 2.61 (real); P3 live = 4.535265 dB @ iter 10000 → "current 4.54 dB" (IN PROGRESS, labeled, **not** a bar value); projection band 1.8–2.2 dB (target, hatched, **not** a result); target line = 2.5 dB. |
+| # | File (1920×1080) | What it shows | Source data | Exact numbers | One-line honest caption |
+|---|---|---|---|---|---|
+| 1 | `01_latent_manifold_3d.png` | 45 trained latents on top 2 PCs, colored by L/W/H; linear-probe R² per axis. Representation works. | `outputs/multi_room_3d/M1_45rooms/latent_probe/latent_probe.json` + checkpoint | R² L=0.991, W=0.967, H=0.974; PC var 25.4%/14.8% | "The latent space autonomously encodes all three room dimensions." |
+| 2 | `02_known_geometry_works.png` | (a) median-LOO room predicted-vs-ISM magnitude overlay (0–2 kHz); (b) per-room LOO score distribution over 45 rooms. | `outputs/known_geometry/loo/loo_rows.json` + `loo_median_spectrum.npz` | median room L4.60/W4.35/H3.53 = 0.896; LOO mean 0.894 (full) / 0.938 (0–250 Hz) / 2.6 dB | "Known-geometry rendering: predict the latent from (L,W,H), render with no measurements — 0.89 mag corr **at training density** (leave-one-out, n=45)." |
+| 3 | `03_in_distribution_solved.png` | P3 val LSD vs iteration; the P2-2 plateau and 2.5 dB target. The engineering win. | `outputs/multi_room_3d/P3_45rooms_4gpu/scalars.json` | 6.43 dB @2K → **2.169 dB @60K**; M1 plateau 6.16; target 2.5 | "Converged 3D multi-room model: 2.169 dB in-distribution (45 rooms, 4-GPU DDP)." |
+| 4 | `04_modal_density_2d_vs_3d.png` | distinct modes ≤250 Hz: 2D ~12 vs 3D 135 (~11×); cumulative-mode staircase with Schroeder. | recomputed `aaf.sim.analytical_modal_3d.eigenfrequencies_3d` (4.5,4.0,3.25); `tasks/CHUNK_P2_1_RESULTS.md` | 3D = **135** distinct (0<f≤250 Hz; 136 incl. DC); 2D ~12; ratio ~11×; f_Schroeder ≈217 Hz | "3D rooms have ~11× higher modal density below Schroeder — the modal regime is the hardest band in 3D." |
+| 5 | `05_coverage_diagnosis.png` | test-room mean for 8-recv / lookup-RBF / lookup-lin / on-manifold-oracle (all ~0.27) vs LOO (0.89). | `outputs/known_geometry/{p2_3_8recv_per_band,lookup,oracle_onmanifold,lookup_summary}` | 8-recv 0.25, lookup-RBF 0.27, lookup-lin 0.26, oracle 0.24 (full); LOO 0.89 | "Ruled out three ways: even the best on-manifold latent fails at 45-room coverage — the bottleneck is training density, not the method." |
+| 6 | `06_the_density_lever.png` | scatter: mag corr vs distance to nearest trained room; trained (LOO) vs untrained (test) regimes. | `train_meta.json` (NN dist) + `known_geometry/{loo,lookup}` | LOO 0.82–0.95 across NN 0.14–0.74 m, corr(NN,mag) **−0.74**; test flat 0.25–0.28 at NN 0.33–0.84 m | "Quality vs distance to nearest trained room — **two regimes**: within trained geometries denser→better; untrained rooms fail flat. Denser coverage is the evidenced fix (not a continuous curve)." |
 
-## Traceability / source-selection notes
-- **Run B canonical = DDP variant.** `B_45rm_ddp/scalars.json` final = 2.6138 dB → "2.61 dB"; the non-DDP `B_45rm_b32` finished at 2.675 dB. The 2.61 dB DDP run is the value documented in `tasks/CHUNK_P2_2_5_RESULTS.md`.
-- **Fig 2, 135 vs 136.** Historical text in `CHUNK_P2_1_RESULTS.md` §5 says "136 distinct eigenfrequencies ≤250 Hz." That count includes the DC (0,0,0) term at f=0. The strict rule 0<f≤250 Hz gives **135**; Fig 2 plots the honest 135. The ~11× headline (135/12 ≈ 11.25) is unchanged.
-- **Fig 1 PCA pipeline.** Axis-label percentages (25.4% / 14.8%) come directly from the canonical stored `pca_explained_variance`. The relative point positions use the generator's own standardize-then-SVD projection, whose recomputed EV ratio differs slightly (21.3% / 15.6%); this affects point geometry only, never the labeled numbers, and is disclosed for full traceability.
-- **Fig 4 right panel** pairs Run B (45 rooms → 2.61 dB) and Run C (10 rooms → 0.98 dB) as the two coverage levers. Both are real on-disk values; the room counts differ and are shown in the diagnostic context (Fig 3), so "2.61 → 0.98 dB" is a coverage trend, not two values for the same room set.
+## Honesty notes
+- **Fig 2** is leave-one-out over the 45 *training* rooms (held-out room excluded from the
+  (L,W,H)→latent map) — "works at training density," NOT a claim about arbitrary new rooms.
+  Producing panel (a) required one ~30 s GPU render of the median-LOO room (the LOO spectra
+  weren't cached); everything else is CPU-only as specified.
+- **Fig 4**: the honest distinct-mode count is **135** (the 136th `eigenfrequencies_3d`
+  entry is the DC term at f=0); the ~11× headline is unchanged.
+- **Fig 6**: presented as **two regimes**, not a single continuous curve — distance to the
+  nearest trained room does *not* by itself separate the clusters (they overlap in x); the
+  distinction is trained-vs-untrained geometry. P2-4 (more rooms) is the motivated fix.
+- Legacy figures from the earlier pack (`02_modal_density_2d_vs_3d.png`,
+  `03_diagnostic_convergence.png`, `04_representation_vs_rendering.png`,
+  `05_phase2_progress.png`) remain in this directory but are **superseded** by the 6 above.
