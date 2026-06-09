@@ -2,7 +2,18 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk P2-3 COMPLETE — 2026-06-09. **In-distribution SOLVED (2.169 dB); zero-shot is a confirmed COVERAGE problem.**
+**Last updated**: Chunk P2-3.5 COMPLETE — 2026-06-09. **Known-geometry rendering works at training density (LOO 0.89); zero-shot to new rooms is ceiling-proven coverage-bound.**
+
+## Phase 2 — P2-3.5 (complete): known-geometry rendering + oracle ceiling
+
+**Read `tasks/CHUNK_P2_3_5_RESULTS.md` + `outputs/known_geometry/RESULTS.md`.** No retraining; reuses the P3 model. Two-part result:
+- **✅ POSITIVE**: known-geometry rendering (predict latent from (L,W,H), render, NO measurements) hits **0.89 mag corr / 2.6 dB** on held-out rooms at training density (leave-one-out over the 45 rooms). The route works.
+- **⛔ DEFINITIVE**: on the maximin test rooms (far from training), every route ≈ **0.27** — 8-recv search, lookup (RBF+linear), and the oracle. Verified three ways including a **norm-clipped on-manifold oracle** (best latent on the trained shell, 48 receivers) → still 0.27. Even the best on-manifold latent can't render an unseen room → the 45-room decoder memorizes, doesn't interpolate → **coverage is the wall, ceiling-proven**.
+- **P2-4**: scale training rooms (45 → ~150-300, denser LHS — the evidenced fix; LOO shows the route reaches 0.89 at density) + test explicit (L,W,H) conditioning. NOT test-time search / map (oracle rules them out).
+
+---
+
+**Prior**: Chunk P2-3 COMPLETE — 2026-06-09. **In-distribution SOLVED (2.169 dB); zero-shot is a confirmed COVERAGE problem.**
 
 ## Phase 2 — P2-3 (complete): converged 45-room training + zero-shot
 
