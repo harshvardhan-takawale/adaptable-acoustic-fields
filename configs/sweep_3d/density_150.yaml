@@ -1,0 +1,32 @@
+run_id: density_150
+rooms_yaml: configs/sweeps_3d/train_rooms_150.yaml
+
+# P2-4 coverage-density scaling — IDENTICAL recipe to P3 (D41); only room count
+# + iteration budget vary. 150 rooms, 70000 iters (lean budget, user-chosen).
+# eff-batch 64 (4 ranks x 16, accum 2 -> micro 8), 4-GPU DDP, n_pts 32.
+
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+latent_jitter_sigma: 0.1
+l_head_enabled: true
+l_head_weight: 0.1
+
+n_iters: 70000
+batch_size: 16
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+lambda_latent: 1e-4
+
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+
+val_every: 2000
+ckpt_every: 5000
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003

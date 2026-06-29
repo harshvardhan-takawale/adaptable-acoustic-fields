@@ -279,6 +279,120 @@ def select_diag_subset_maximin(
 
 
 # ----------------------------------------------------------------------
+# Nested supersets (P2-4): maximin augmentation seeded by an existing set
+# ----------------------------------------------------------------------
+
+
+def sample_nested_supersets(
+    base_rooms: Sequence[Room3D],
+    targets: Sequence[int] = (90, 150, 250),
+    ranges: Sequence[tuple[float, float]] = DEFAULT_RANGES,
+    seed: int = 7,
+    candidate_pool: int = 16384,
+    reject_cubic_tol: float = DEFAULT_REJECT_CUBIC_TOL,
+) -> dict[int, list[Room3D]]:
+    """Build nested training supersets that all CONTAIN ``base_rooms``.
+
+    Starting from ``base_rooms`` (the existing 45, fixed), greedily add points
+    that maximize the minimum distance (normalized [0,1]³) to the current set,
+    drawn from a fixed-seed Sobol candidate pool (with the same ``|L-W|`` cubic
+    rejection as training). Snapshots are taken at each ``targets`` count, so
+    ``base ⊂ supersets[90] ⊂ supersets[150] ⊂ supersets[250]`` exactly
+    (cumulative, space-filling, reproducible). Used by P2-4 (DECISIONS D39).
+    """
+    base = list(base_rooms)
+    targets = sorted(targets)
+    if targets[0] <= len(base):
+        raise ValueError(f"smallest target {targets[0]} must exceed base {len(base)}")
+
+    lows = np.array([r[0] for r in ranges], dtype=np.float64)
+    highs = np.array([r[1] for r in ranges], dtype=np.float64)
+    sampler = qmc.Sobol(d=3, seed=seed, scramble=True)
+    cand_norm = sampler.random(n=candidate_pool)
+    cand_real = lows + cand_norm * (highs - lows)
+    # reject near-cubic candidates (|L - W| < tol), consistent with training
+    keep = np.abs(cand_real[:, 0] - cand_real[:, 1]) >= reject_cubic_tol
+    cand_norm, cand_real = cand_norm[keep], cand_real[keep]
+
+    picked = list(base)
+    picked_norm = [_normalize_room(r, ranges) for r in base]
+    snapshots: dict[int, list[Room3D]] = {}
+    n_max = targets[-1]
+    while len(picked) < n_max:
+        ref = np.stack(picked_norm, axis=0)                       # (k, 3)
+        diff = cand_norm[:, None, :] - ref[None, :, :]
+        min_d2 = np.min(np.sum(diff * diff, axis=2), axis=1)      # (C,)
+        idx = int(np.argmax(min_d2))
+        picked.append(Room3D(L=float(cand_real[idx, 0]),
+                             W=float(cand_real[idx, 1]),
+                             H=float(cand_real[idx, 2])))
+        picked_norm.append(cand_norm[idx].copy())
+        cand_norm = np.delete(cand_norm, idx, axis=0)
+        cand_real = np.delete(cand_real, idx, axis=0)
+        if len(picked) in targets:
+            snapshots[len(picked)] = list(picked)
+    return snapshots
+
+
+def sample_interior_test_rooms(
+    hull_rooms: Sequence[Room3D],
+    exclude_rooms: Sequence[Room3D],
+    n: int = 15,
+    ranges: Sequence[tuple[float, float]] = DEFAULT_RANGES,
+    seed: int = 2024,
+    candidate_pool: int = 8192,
+    min_train_dist: float = 0.04,
+) -> list[Room3D]:
+    """Pick ``n`` strictly-interior test rooms (P2-4 frozen set, DECISIONS D40).
+
+    Candidates are Sobol points inside the convex hull of ``hull_rooms`` (the
+    45-room set, via scipy Delaunay in normalized space, so the rooms are
+    interpolative at every density) and at least ``min_train_dist`` (normalized)
+    from every room in ``exclude_rooms`` (the 250 training set, so they are
+    genuine, distinct test rooms). They are then maximin-spread: seed at the
+    candidate nearest the box center, then greedily maximize min-distance.
+    """
+    from scipy.spatial import Delaunay
+
+    lows = np.array([r[0] for r in ranges], dtype=np.float64)
+    highs = np.array([r[1] for r in ranges], dtype=np.float64)
+    hull_norm = np.stack([_normalize_room(r, ranges) for r in hull_rooms], axis=0)
+    excl_norm = np.stack([_normalize_room(r, ranges) for r in exclude_rooms], axis=0)
+    dt = Delaunay(hull_norm)
+
+    sampler = qmc.Sobol(d=3, seed=seed, scramble=True)
+    cand_norm = sampler.random(n=candidate_pool)
+    inside = dt.find_simplex(cand_norm) >= 0
+    # distance to nearest training (exclude) room
+    diff = cand_norm[:, None, :] - excl_norm[None, :, :]
+    nn = np.sqrt(np.min(np.sum(diff * diff, axis=2), axis=1))
+    qual = inside & (nn >= min_train_dist)
+    cand_norm = cand_norm[qual]
+    if len(cand_norm) < n:
+        raise RuntimeError(f"only {len(cand_norm)} interior candidates qualify "
+                           f"(need {n}); relax min_train_dist or grow the pool")
+    cand_real = lows + cand_norm * (highs - lows)
+
+    picked_norm: list[np.ndarray] = []
+    picked: list[Room3D] = []
+    seed_idx = int(np.argmin(np.sum((cand_norm - 0.5) ** 2, axis=1)))
+    while len(picked) < n:
+        if not picked_norm:
+            idx = seed_idx
+        else:
+            ref = np.stack(picked_norm, axis=0)
+            d = cand_norm[:, None, :] - ref[None, :, :]
+            idx = int(np.argmax(np.min(np.sum(d * d, axis=2), axis=1)))
+        picked.append(Room3D(L=float(cand_real[idx, 0]),
+                             W=float(cand_real[idx, 1]),
+                             H=float(cand_real[idx, 2])))
+        picked_norm.append(cand_norm[idx].copy())
+        cand_norm = np.delete(cand_norm, idx, axis=0)
+        cand_real = np.delete(cand_real, idx, axis=0)
+    return picked
+
+
+# ----------------------------------------------------------------------
 # YAML I/O
 # ----------------------------------------------------------------------
 
