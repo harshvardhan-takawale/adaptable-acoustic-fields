@@ -36,6 +36,39 @@ def _eval_means(label):
                 rir=float(np.mean(rir)) if rir else float("nan"))
 
 
+def _frozen_keys():
+    """The 15 frozen test rooms as L{L:.2f}_W{W:.2f}_H{H:.2f} dir names."""
+    rooms = json.loads((CC / "test_nn_distances.json").read_text())["test_rooms"]
+    return [f"L{r['L']:.2f}_W{r['W']:.2f}_H{r['H']:.2f}" for r in rooms]
+
+
+def _fewshot_means(train_subdir):
+    """SECONDARY: few-shot 8-measurement route on the FROZEN rooms only.
+    Reads outputs/multi_room_3d/<train_subdir>/zero_shot/<frozen>/metrics.json
+    (filters out any legacy non-frozen rooms sharing the dir). Returns mean
+    full-band mag_corr (signal_metrics.mag_corr), phase, RIR, held-out LSD."""
+    zsd = REPO / f"outputs/multi_room_3d/{train_subdir}/zero_shot"
+    if not zsd.exists():
+        return None
+    mag, phase, rir, lsd = [], [], [], []
+    for key in _frozen_keys():
+        f = zsd / key / "metrics.json"
+        if not f.exists():
+            continue
+        m = json.loads(f.read_text()); sm = m.get("signal_metrics", {})
+        if "mag_corr" in sm: mag.append(sm["mag_corr"])
+        if "phase_corr_mw" in sm: phase.append(sm["phase_corr_mw"])
+        if "rir_pearson" in sm: rir.append(sm["rir_pearson"])
+        if m.get("held_out_lsd_db") is not None: lsd.append(m["held_out_lsd_db"])
+    if not mag:
+        return None
+    return dict(n=len(mag),
+                mag=float(np.mean(mag)), mag_sd=float(np.std(mag)),
+                phase=float(np.mean(phase)) if phase else float("nan"),
+                rir=float(np.mean(rir)) if rir else float("nan"),
+                lsd=float(np.mean(lsd)) if lsd else float("nan"))
+
+
 def _indist_lsd(train_subdir):
     sc = REPO / f"outputs/multi_room_3d/{train_subdir}/scalars.json"
     if not sc.exists():
@@ -52,8 +85,9 @@ def main():
     pts = []
     for d in DENSITIES:
         ev = _eval_means(f"density_{d}")
+        fs = _fewshot_means(TRAIN_DIR[d])
         lsd, it = _indist_lsd(TRAIN_DIR[d])
-        pts.append(dict(rooms=d, nn=nn[str(d)], ev=ev, indist_lsd=lsd, indist_iter=it))
+        pts.append(dict(rooms=d, nn=nn[str(d)], ev=ev, fs=fs, indist_lsd=lsd, indist_iter=it))
     done = [p for p in pts if p["ev"]]
     print(f"# densities with eval: {[p['rooms'] for p in done]}")
 
@@ -67,6 +101,12 @@ def main():
         ax.errorbar(rooms, full, yerr=sd, fmt="-o", color="#1f77b4", lw=2.5, ms=9, capsize=5,
                     label="known-geometry mag corr (full)")
         ax.plot(rooms, modal, "-s", color="#ff7f0e", lw=2.0, ms=8, label="known-geometry mag corr (0-250 Hz modal)")
+        # secondary: few-shot 8-measurement route (where available)
+        fdone = [p for p in done if p.get("fs")]
+        if fdone:
+            ax.plot([p["rooms"] for p in fdone], [p["fs"]["mag"] for p in fdone],
+                    "--^", color="#9467bd", lw=1.6, ms=7, alpha=0.8,
+                    label="few-shot 8-measurement mag corr (secondary)")
         ax.axhline(LOO_FULL, color="#2ca02c", ls=":", lw=1.5, label=f"LOO ceiling full ({LOO_FULL:.2f})")
         ax.axhline(LOO_MODAL, color="#2ca02c", ls="--", lw=1.0, alpha=0.6, label=f"LOO ceiling modal ({LOO_MODAL:.2f})")
         ax.axhline(0.9, color="green", ls="-.", lw=0.8, alpha=0.5)
@@ -119,6 +159,23 @@ def main():
         else:
             md.append(f"| {p['rooms']} | {p['nn']:.3f} | (pending) | — | — | — | — |")
     md.append(f"\n**LOO ceiling (P2-3.5, training density):** mag corr {LOO_FULL:.3f} full / {LOO_MODAL:.3f} modal.\n")
+
+    # ---- secondary: few-shot 8-measurement route (for completeness) ----
+    if any(p.get("fs") for p in pts):
+        md.append("\n## Few-shot 8-measurement route (secondary, for completeness)\n")
+        md.append("Same frozen rooms, but the latent is fitted from 8 observed receivers (test-time "
+                  "optimization) instead of predicted from (L,W,H). Reported for completeness; the headline "
+                  "is the known-geometry route above.\n")
+        md.append("| rooms | n | mag corr (full) | phase corr (mw) | RIR Pearson | held-out LSD (dB) |")
+        md.append("|---:|---:|---:|---:|---:|---:|")
+        for p in pts:
+            fs = p.get("fs")
+            if fs:
+                md.append(f"| {p['rooms']} | {fs['n']} | {fs['mag']:.3f} | {fs['phase']:.3f} | "
+                          f"{fs['rir']:.3f} | {fs['lsd']:.2f} |")
+            else:
+                md.append(f"| {p['rooms']} | 0 | (pending) | — | — | — |")
+
     md.append("\n![scaling curve](scaling_curve.png)\n")
     # headline verdict (auto, refined by hand in CHUNK doc)
     if len(done) >= 2:
