@@ -143,10 +143,24 @@ def main():
         print(f"# wrote {p} {Image.open(p).size}")
 
     # ---- SCALING.md ----
+    n_done, n_tot = len(done), len(DENSITIES)
+    partial = n_done < n_tot
+    status = (f"⏳ **STATUS: PARTIAL — {n_done}/{n_tot} densities measured "
+              f"({', '.join(str(p['rooms']) for p in done)} done). Do NOT draw a scaling/saturation "
+              f"conclusion until all {n_tot} land.**" if partial
+              else f"✅ **STATUS: COMPLETE — all {n_tot}/{n_tot} densities measured.**")
     md = ["# P2-4 — Coverage-density scaling curve\n",
           "Known-geometry zero-shot fidelity (predict latent from (L,W,H), no measurements) on a FROZEN "
           "interior test set (15 rooms, inside the 45-hull, interpolative at every density), as training-room "
           "count scales 45→90→150→250 with the recipe frozen.\n",
+          f"\n{status}\n",
+          "\n> **Fixed-budget caveat (read before interpreting):** the iteration budget is held lean and *fixed* "
+          "(45/90→60K, 150→70K, 250→85K) while the room count rises, so per-room sample exposure *falls* as density "
+          "grows. In-distribution val LSD is therefore NOT constant across the curve (see the control column) and no "
+          "point is guaranteed converged — early-stop did not fire for 45 or 90 (both still descending at their final "
+          "iter). Treat every zero-shot point as a **lower bound**; the higher its in-dist LSD, the looser the bound. "
+          "That fidelity still *climbs* as rooms rise — despite falling per-room exposure — makes the coverage signal a "
+          "conservative read, not an inflated one.\n",
           "\n## Scaling table\n",
           "| rooms | mean NN-dist (m) | in-dist val LSD (dB) | mag corr full | mag corr modal (0-250) | phase corr | RIR Pearson |",
           "|---:|---:|---:|---:|---:|---:|---:|"]
@@ -166,6 +180,12 @@ def main():
         md.append("Same frozen rooms, but the latent is fitted from 8 observed receivers (test-time "
                   "optimization) instead of predicted from (L,W,H). Reported for completeness; the headline "
                   "is the known-geometry route above.\n")
+        md.append("> **Not a like-for-like overlay with the known-geometry column.** The few-shot mag corr is measured "
+                  "over the **504 held-out** receivers (the 8 observed/fitted receivers are excluded); the "
+                  "known-geometry mag corr above is over **all 512** receivers. Same metric function, band (0–2 kHz), "
+                  "and pooling — only the receiver population differs. So near-parity (e.g. few-shot slightly *above* "
+                  "known-geometry at 90 rooms) does not mean the few-shot route is better — it is scored on a strictly "
+                  "harder (unfitted) receiver set.\n")
         md.append("| rooms | n | mag corr (full) | phase corr (mw) | RIR Pearson | held-out LSD (dB) |")
         md.append("|---:|---:|---:|---:|---:|---:|")
         for p in pts:
@@ -184,13 +204,17 @@ def main():
                   f"{done[0]['rooms']} → {done[-1]['rooms']} rooms; the LOO ceiling is {LOO_FULL:.2f}.\n")
         di = [p for p in done if p["indist_lsd"]]
         if di:
-            worst = max(di, key=lambda p: p["indist_lsd"])
-            md.append(f"- **Convergence control**: in-distribution val LSD ranges "
-                      f"{min(p['indist_lsd'] for p in di):.2f}–{worst['indist_lsd']:.2f} dB; "
-                      + ("held near target — the zero-shot trend is clean coverage signal."
-                         if worst["indist_lsd"] <= 2.6 else
-                         f"degraded at {worst['rooms']} rooms — that point's zero-shot is a LOWER BOUND (undertrained).") + "\n")
-        md.append("- Saturation / P3-1 setup / recommendation: see tasks/CHUNK_P2_4_RESULTS.md.\n")
+            lo = min(p["indist_lsd"] for p in di); worst = max(di, key=lambda p: p["indist_lsd"])
+            md.append(f"- **Convergence control (fixed lean budget, NOT held constant)**: in-distribution val LSD spans "
+                      f"{lo:.2f}–{worst['indist_lsd']:.2f} dB across the measured densities and *rises* with room count "
+                      f"(per-room exposure falls). Because early-stop did not fire, every point is a lower bound — the "
+                      f"{worst['rooms']}-room point (LSD {worst['indist_lsd']:.2f}) is the loosest. The zero-shot climb is "
+                      f"therefore a **conservative** coverage signal, not an artifact of better convergence at higher density.\n")
+        tail = ("- Saturation, per-room NN-distance view, P3-1 setup, and the geometry-conditioning-vs-densification "
+                "recommendation: **pending** in tasks/CHUNK_P2_4_RESULTS.md once all four densities land."
+                if partial else
+                "- Saturation / per-room view / P3-1 setup / recommendation: see tasks/CHUNK_P2_4_RESULTS.md.")
+        md.append(tail + "\n")
     (CC / "SCALING.md").write_text("\n".join(md))
     print(f"# wrote {CC / 'SCALING.md'}")
 
