@@ -1,10 +1,19 @@
 # Phase 2 — Status Summary for Manager Review
 
-**Date**: 2026-06-09. **Scope**: everything completed since the P2-2 multi-room conditioning
-attempt — the diagnostic (P2-2.5), the converged training + zero-shot (P2-3), the
-coverage validations (Run C probe, anchored disambiguation), the known-geometry +
-oracle-ceiling study (P2-3.5), and two meeting-figure packs. **Purpose**: give you the full
-picture to decide P2-4. Every number below is traceable to a file on disk (links at the end).
+> **⏩ P2-4 COMPLETE (2026-07-04) — the "decision for P2-4" below has been executed.** The
+> coverage-scaling curve (lever 1) is measured: known-geometry zero-shot mag corr scales
+> **0.273→0.461 full / 0.409→0.811 modal** as rooms 45→90→150→250, **monotone and not saturating**;
+> the modal band closes 76% of the gap to the 0.938 training-density ceiling. Coverage is
+> confirmed as the lever, measured continuously. Full writeup: `tasks/CHUNK_P2_4_RESULTS.md` +
+> `outputs/coverage_curve/SCALING.md`. **Next: P3-1 (lever 2, explicit (L,W,H) conditioning)**,
+> benchmarked against this densification curve on the same frozen test set. The section below is
+> the pre-P2-4 decision snapshot, kept for context.
+
+**Date**: 2026-06-09 (P2-4 outcome note added 2026-07-04). **Scope**: everything completed since
+the P2-2 multi-room conditioning attempt — the diagnostic (P2-2.5), the converged training +
+zero-shot (P2-3), the coverage validations (Run C probe, anchored disambiguation), the
+known-geometry + oracle-ceiling study (P2-3.5), and two meeting-figure packs. **Purpose**: give you
+the full picture to decide P2-4. Every number below is traceable to a file on disk (links at the end).
 
 ---
 
