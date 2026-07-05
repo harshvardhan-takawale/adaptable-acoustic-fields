@@ -1,0 +1,44 @@
+run_id: density_45_conv
+rooms_yaml: configs/sweeps_3d/train_rooms_45.yaml
+
+# P2-4b matched-convergence: retrain the nested-45 set (== P3's rooms) with the
+# FROZEN P3 recipe, only re-running with DENSE checkpointing so we can extract an
+# UNDER-CONVERGED 45-room checkpoint at in-dist val LSD ~= 4.3 dB (250's capacity
+# plateau) and a small convergence sweep. Recipe is byte-identical to
+# P3_45rooms_4gpu.yaml; the ONLY changes are cadence (ckpt/val) and budget, which
+# do NOT affect the training trajectory. Convergence, not iters, is the control.
+
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+latent_jitter_sigma: 0.1
+l_head_enabled: true
+l_head_weight: 0.1
+
+# Optimization — IDENTICAL to P3 (eff-batch 64, same LRs). Only n_iters differs:
+# 22K spans the sweep from ~6.2 dB down to ~3.3 dB, bracketing 250's 4.30 plateau
+# (P3 hit 4.54 @10K, 3.46 @20K). The converged 45 end (2.17 dB) is P3 @60K, reused.
+n_iters: 22000
+batch_size: 16          # PER-RANK (×4 ranks = 64 global effective)
+grad_accum_steps: 2
+lr_network: 2e-4
+lr_latent: 1e-3
+lambda_latent: 1e-4
+
+# Renderer (Run C value) — unchanged
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+
+# Cadence: DENSE — checkpoint AND val every 1K, so every ckpt has an exact val LSD
+# and we can pick the one nearest 4.30 dB (250's plateau) for a tight match.
+# (Cadence does not affect the training trajectory.)
+val_every: 1000
+ckpt_every: 1000
+
+# Early-stop disabled (warmup > n_iters) so the full sweep runs to 22K.
+early_stop_warmup: 25000
+early_stop_patience: 25000
+early_stop_min_rel_improvement: 0.003
