@@ -2,7 +2,21 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk P2-4 **COMPLETE — 2026-07-04**. **Coverage-density scaling curve measured: known-geometry zero-shot fidelity scales monotonically with room count and does NOT saturate by 250; the modal band closes 76% of the gap to the training-density ceiling.**
+**Last updated**: Chunk **P2-4b IN PROGRESS (2026-07-05)** — bounding the P2-4 curve's convergence confound. **Until it lands, do NOT cite the P2-4 curve's slope/saturation naively** (see below). Prior: P2-4 COMPLETE (2026-07-04).
+
+## Phase 2 — P2-4b (IN PROGRESS): convergence-confound check on the coverage curve
+
+**Why**: P2-4 confounded coverage with convergence — iteration budget was fixed while rooms grew, so in-dist val LSD degraded with density (45→2.17, 250→4.30 dB). Since under-training can *inflate* magnitude correlation (P2-3 blur effect), the P2-4 climb might be partly artifactual. This chunk bounds that confound with **matched-convergence endpoints**.
+
+**Key finding that shaped the design**: at the frozen capacity, **250 rooms is capacity-plateaued at ~4.3 dB in-dist and cannot be trained to 45's 2.17 dB** (constant-LR plateau, slope ~0.008 dB/1k). So convergence is held constant at **~4.3 dB** by *under-training 45* to match 250 (user-approved minimal-compute path), not the infeasible reverse. Comparison on the **same frozen test set**, full metric suite (not just mag corr).
+
+**Status**: 45-conv retrain running (7062760, frozen P3 recipe, dense ckpts); matched 45@4.3 + blur-sweep evals + `build_confound_check.py` gated afterok → `outputs/coverage_curve/CONFOUND_CHECK.md` (the verdict deliverable).
+
+**Early signal (unmatched, 45@2.17 vs 250@4.30)**: 250 already beats 45 on the *hard* metrics — held-out LSD **6.04 vs 7.70** (full), **4.71 vs 9.28** (modal 0–250), phase 0.35 vs 0.13, RIR 0.42 vs 0.13. Blur *worsens* LSD, so 250's lower LSD points toward a **genuine** coverage effect; the matched 45@4.3 point will confirm/deny cleanly. Verdict pending.
+
+---
+
+**Prior: Chunk P2-4 COMPLETE — 2026-07-04**. **Coverage-density scaling curve measured: known-geometry zero-shot fidelity scales monotonically with room count and does NOT saturate by 250; the modal band closes 76% of the gap to the training-density ceiling.** *(Caveat now under test in P2-4b — see above.)*
 
 ## Phase 2 — P2-4 (COMPLETE): coverage-density scaling curve
 
