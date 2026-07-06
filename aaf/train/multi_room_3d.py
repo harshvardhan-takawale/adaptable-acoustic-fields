@@ -57,6 +57,7 @@ class MultiRoom3DTrainCfg:
     c: float = 343.0
     val_every: int = 1_000
     ckpt_every: int = 2_500
+    ckpt_keep_last: int = 3          # keep only the last N ckpts (P2-4b: set high to retain a convergence sweep)
     log_every: int = 100
     early_stop_warmup: int = 2_000
     early_stop_patience: int = 2_000
@@ -289,7 +290,8 @@ class MultiRoom3DTrainer:
             self.output_dir.glob("ckpt_iter*.pt"),
             key=lambda p: int(p.stem.split("ckpt_iter")[-1]),
         )
-        for old in ckpts[:-3]:
+        keep = max(1, int(getattr(self.cfg, "ckpt_keep_last", 3)))
+        for old in ckpts[:-keep]:
             try:
                 old.unlink()
             except Exception:
@@ -685,6 +687,7 @@ def main():
             lr_latent=float(d.get("lr_latent", 1e-3)),
             val_every=int(d.get("val_every", 1_000)),
             ckpt_every=int(d.get("ckpt_every", 2_500)),
+            ckpt_keep_last=int(d.get("ckpt_keep_last", 3)),
             latent_dim=int(d.get("latent_dim", 16)),
             log2_hashmap_size=int(d.get("log2_hashmap_size", 18)),
             n_levels=int(d.get("n_levels", 16)),

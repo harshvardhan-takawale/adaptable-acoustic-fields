@@ -37,6 +37,7 @@ n_pts_per_ray: 32
 # (Cadence does not affect the training trajectory.)
 val_every: 1000
 ckpt_every: 1000
+ckpt_keep_last: 30      # KEEP ALL 22 ckpts (default 3 would prune the 4.3 dB pt); P2-4b needs the sweep
 
 # Early-stop disabled (warmup > n_iters) so the full sweep runs to 22K.
 early_stop_warmup: 25000
