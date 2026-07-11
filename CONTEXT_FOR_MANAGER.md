@@ -2,17 +2,20 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk **P2-4b IN PROGRESS (2026-07-05)** — bounding the P2-4 curve's convergence confound. **Until it lands, do NOT cite the P2-4 curve's slope/saturation naively** (see below). Prior: P2-4 COMPLETE (2026-07-04).
+**Last updated**: Chunk **P2-4b COMPLETE (2026-07-06)** — convergence-confound check. **Verdict: coverage CONFIRMED at matched convergence, but ~⅔ of the raw P2-4 curve was confound — cite `CONFOUND_CHECK.md` matched deltas, NOT the raw P2-4 slope.** Prior: P2-4 COMPLETE (2026-07-04).
 
-## Phase 2 — P2-4b (IN PROGRESS): convergence-confound check on the coverage curve
+## Phase 2 — P2-4b (COMPLETE): convergence-confound check on the coverage curve
 
-**Why**: P2-4 confounded coverage with convergence — iteration budget was fixed while rooms grew, so in-dist val LSD degraded with density (45→2.17, 250→4.30 dB). Since under-training can *inflate* magnitude correlation (P2-3 blur effect), the P2-4 climb might be partly artifactual. This chunk bounds that confound with **matched-convergence endpoints**.
+**Read `tasks/CHUNK_P2_4b_RESULTS.md` + `outputs/coverage_curve/CONFOUND_CHECK.md`.** P2-4 confounded coverage with convergence (fixed budget → in-dist LSD degraded with density: 45→2.17, 250→4.30 dB), and under-training *inflates* zero-shot mag corr (P2-3 blur). This chunk isolates coverage with **matched-convergence endpoints** on the same frozen test set, full metric suite.
 
-**Key finding that shaped the design**: at the frozen capacity, **250 rooms is capacity-plateaued at ~4.3 dB in-dist and cannot be trained to 45's 2.17 dB** (constant-LR plateau, slope ~0.008 dB/1k). So convergence is held constant at **~4.3 dB** by *under-training 45* to match 250 (user-approved minimal-compute path), not the infeasible reverse. Comparison on the **same frozen test set**, full metric suite (not just mag corr).
+**Design-forcing finding**: at the frozen capacity, **250 rooms is capacity-plateaued at ~4.3 dB and CANNOT reach 45's 2.17 dB** (constant-LR plateau). So convergence was matched at **~4.3 dB** by *under-training 45 down* (fresh frozen-recipe retrain, evaluated at ckpt @4.333 dB), not training 250 up (infeasible). User-approved minimal-compute (D42).
 
-**Status**: 45-conv retrain running (7062760, frozen P3 recipe, dense ckpts); matched 45@4.3 + blur-sweep evals + `build_confound_check.py` gated afterok → `outputs/coverage_curve/CONFOUND_CHECK.md` (the verdict deliverable).
+**Verdict: CONFIRMED — coverage genuinely helps, but the raw curve overstated it ~3×.**
+- **Matched (250@4.30 vs 45@4.33)**: 250 wins on mag (+0.060 full / +0.113 modal), held-out LSD (+0.21 / +0.59 dB), **phase +0.131, RIR +0.133** (the blur-proof metrics). Modal *peak placement* is a wash. → coverage is real.
+- **Decomposition of the raw P2-4 gap** (45@2.17→250@4.30, +0.188 full): **blur/convergence +0.128 (68%) + coverage +0.060 (32%)**; modal (+0.402) = 72% blur / 28% coverage. **~⅔ of the raw climb was confound.**
+- **Blur also improves held-out LSD** (same 45 rooms, 2.17→4.33 dB: LSD 7.70→6.25), so LSD isn't confound-proof either; phase/RIR carry the clean signal. Paradox: the *converged* 45 is a *worse* zero-shot renderer than the *under-trained* 45 (blur generalises "safer").
 
-**Early signal (unmatched, 45@2.17 vs 250@4.30)**: 250 already beats 45 on the *hard* metrics — held-out LSD **6.04 vs 7.70** (full), **4.71 vs 9.28** (modal 0–250), phase 0.35 vs 0.13, RIR 0.42 vs 0.13. Blur *worsens* LSD, so 250's lower LSD points toward a **genuine** coverage effect; the matched 45@4.3 point will confirm/deny cleanly. Verdict pending.
+**Implications**: P2-4 curve **direction** trustworthy, **magnitude** inflated (SCALING.md now annotated + corrected). Densification is a real but *modest* lever with a **capacity penalty** (250 can't converge at fixed capacity). **→ P3-1 (geometry conditioning) is doubly motivated**; benchmark it against the **matched-convergence 250** point (0.461/0.811, phase 0.348, RIR 0.421 @4.30 dB), reported at matched convergence. A fully-converged 250 baseline would need a capacity bump (re-opens D34).
 
 ---
 

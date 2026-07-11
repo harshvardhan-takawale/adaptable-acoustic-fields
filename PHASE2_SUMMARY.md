@@ -2,12 +2,19 @@
 
 > **⏩ P2-4 COMPLETE (2026-07-04) — the "decision for P2-4" below has been executed.** The
 > coverage-scaling curve (lever 1) is measured: known-geometry zero-shot mag corr scales
-> **0.273→0.461 full / 0.409→0.811 modal** as rooms 45→90→150→250, **monotone and not saturating**;
-> the modal band closes 76% of the gap to the 0.938 training-density ceiling. Coverage is
-> confirmed as the lever, measured continuously. Full writeup: `tasks/CHUNK_P2_4_RESULTS.md` +
-> `outputs/coverage_curve/SCALING.md`. **Next: P3-1 (lever 2, explicit (L,W,H) conditioning)**,
-> benchmarked against this densification curve on the same frozen test set. The section below is
-> the pre-P2-4 decision snapshot, kept for context.
+> **0.273→0.461 full / 0.409→0.811 modal** as rooms 45→90→150→250. Full writeup:
+> `tasks/CHUNK_P2_4_RESULTS.md` + `outputs/coverage_curve/SCALING.md`.
+>
+> **⏩ P2-4b COMPLETE (2026-07-06) — the P2-4 curve is confound-corrected.** The curve conflated
+> coverage with convergence (in-dist LSD degraded 2.17→4.30 dB as rooms rose), and under-training
+> inflates zero-shot mag corr. A matched-convergence check (`outputs/coverage_curve/CONFOUND_CHECK.md`)
+> found: coverage is **real** — at ~4.3 dB, 250 beats 45 on LSD/phase/RIR (verdict **CONFIRMED**) — but
+> **~⅔ of the raw P2-4 mag-corr climb was the confound, only ~⅓ genuine coverage**. So the curve's
+> *direction* is trustworthy, its *magnitude* was inflated ~3×; cite the matched deltas, not the raw
+> slope. Also: **250 rooms can't converge at fixed capacity (~4.3 dB plateau)**, so densification carries
+> a capacity penalty. **Next: P3-1 (lever 2, explicit (L,W,H) conditioning)** — now doubly motivated —
+> benchmarked against the matched-convergence 250 point on the same frozen test set, reported at matched
+> convergence. `tasks/CHUNK_P2_4b_RESULTS.md`. The section below is the pre-P2-4 decision snapshot.
 
 **Date**: 2026-06-09 (P2-4 outcome note added 2026-07-04). **Scope**: everything completed since
 the P2-2 multi-room conditioning attempt — the diagnostic (P2-2.5), the converged training +

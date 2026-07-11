@@ -84,9 +84,10 @@ def main():
         soft_win = d_full >= 0.05 or d_modal >= 0.05
         if hard_wins >= 3 and soft_win:
             verdict = ("**Coverage effect CONFIRMED at matched convergence.** At equal in-distribution "
-                       f"convergence (~4.3 dB), 250 rooms beats 45 rooms on the hard held-out metrics "
-                       f"(LSD and modal placement, not just magnitude correlation), so the P2-4 curve's "
-                       f"direction is trustworthy and densification genuinely helps.")
+                       f"convergence (~4.3 dB), 250 rooms beats 45 rooms on the held-out metrics that under-"
+                       f"training cannot fake — magnitude-band LSD, phase, and RIR — not just the blur-friendly "
+                       f"magnitude correlation. So the P2-4 curve's *direction* is trustworthy and densification "
+                       f"genuinely helps, though its *magnitude* was inflated by the confound (see decomposition).")
         elif hard_wins <= 1:
             verdict = ("**Coverage effect is CONFOUNDED / largely a convergence artifact.** At matched "
                        f"convergence (~4.3 dB), 250 rooms does not meaningfully beat 45 rooms on the hard "
@@ -105,6 +106,28 @@ def main():
                   f"- hard-metric wins for 250 (of 6): **{hard_wins}**\n")
     md.append(verdict + "\n")
     md.append(detail)
+
+    # confound decomposition: split the RAW P2-4 gap (45@2.17 -> 250@4.3) into
+    # blur/convergence (45@2.17 -> 45@4.3, same rooms) + coverage (matched, 45@4.3 -> 250@4.3)
+    if a and b and c:
+        def decomp(metric):
+            raw = c[metric] - a[metric]; blur = b[metric] - a[metric]; cov = c[metric] - b[metric]
+            fb = 100 * blur / raw if raw else float("nan")
+            return raw, blur, cov, fb
+        rf, bf, cf, pf = decomp("mag_full")
+        rm, bm, cm, pm = decomp("mag_modal")
+        md.append(
+            f"\n**How much of the raw P2-4 climb was the confound?** Decompose the raw P2-4 mag-corr gap "
+            f"(45@{a['indist_lsd']:.2f}dB → 250@{c['indist_lsd']:.2f}dB) into blur/convergence "
+            f"(45@{a['indist_lsd']:.2f}→45@{b['indist_lsd']:.2f}, *same rooms*) + genuine coverage "
+            f"(matched, 45@{b['indist_lsd']:.2f}→250@{c['indist_lsd']:.2f}):\n"
+            f"- full-band: raw **{rf:+.3f}** = blur **{bf:+.3f} ({pf:.0f}%)** + coverage **{cf:+.3f} ({100-pf:.0f}%)**\n"
+            f"- modal (0–250): raw **{rm:+.3f}** = blur **{bm:+.3f} ({pm:.0f}%)** + coverage **{cm:+.3f} ({100-pm:.0f}%)**\n"
+            f"\nSo **~{pf:.0f}% of the raw P2-4 magnitude-correlation climb was the convergence/blur confound, "
+            f"not coverage.** The genuine coverage effect is real (verdict above) but **smaller than the raw curve "
+            f"shows**, and it is clearest on the metrics blur cannot fake — phase (+{c['phase']-b['phase']:.3f}), "
+            f"RIR (+{c['rir']-b['rir']:.3f}), modal-band LSD (+{b['lsd_modal']-c['lsd_modal']:.2f} dB). "
+            f"**Do not cite the raw P2-4 curve's slope/magnitude; cite the matched-convergence deltas.**\n")
 
     # blur-inflation test (same 45 rooms, converged vs under-trained)
     if a and b:

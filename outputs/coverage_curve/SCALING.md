@@ -5,8 +5,10 @@ Known-geometry zero-shot fidelity (predict latent from (L,W,H), no measurements)
 
 ✅ **STATUS: COMPLETE — all 4/4 densities measured.**
 
+> ⚠️ **CONFOUND QUANTIFIED (P2-4b, 2026-07-06) — read this before citing the curve.** This curve confounds coverage with convergence: the fixed lean budget means in-dist LSD degrades as rooms rise (2.17→4.30 dB), and under-training *inflates* zero-shot magnitude correlation (blur). The **matched-convergence check** (`CONFOUND_CHECK.md`) decomposed the raw 45→250 mag-corr gap and found **~68% was the convergence/blur confound, only ~32% genuine coverage** (modal: 72% / 28%). The coverage effect is **real** (250 beats 45 at equal convergence on LSD/phase/RIR — verdict CONFIRMED) but its **magnitude here is inflated ~3×**. **Cite the matched-convergence deltas in `CONFOUND_CHECK.md`, NOT this curve's raw slope/"76% of the gap" numbers.**
 
-> **Fixed-budget caveat (read before interpreting):** the iteration budget is held lean and *fixed* (45/90→60K, 150→70K, 250→85K) while the room count rises, so per-room sample exposure *falls* as density grows. In-distribution val LSD is therefore NOT constant across the curve (see the control column) and no point is guaranteed converged — early-stop did not fire for 45 or 90 (both still descending at their final iter). Treat every zero-shot point as a **lower bound**; the higher its in-dist LSD, the looser the bound. That fidelity still *climbs* as rooms rise — despite falling per-room exposure — makes the coverage signal a conservative read, not an inflated one.
+
+> **Fixed-budget caveat (read before interpreting):** the iteration budget is held lean and *fixed* (45/90→60K, 150→70K, 250→85K) while the room count rises, so per-room sample exposure *falls* as density grows. In-distribution val LSD is therefore NOT constant across the curve (see the control column) and no point is guaranteed converged — early-stop did not fire for 45 or 90 (both still descending at their final iter). Treat every zero-shot point as a **lower bound**; the higher its in-dist LSD, the looser the bound. ~~That fidelity still *climbs* as rooms rise makes the coverage signal a conservative read.~~ **Corrected by P2-4b (above): the climb is *inflated*, not conservative — ~⅔ of it is the convergence/blur confound.**
 
 
 ## Scaling table

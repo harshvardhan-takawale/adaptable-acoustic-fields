@@ -1,0 +1,7 @@
+{
+  "label": "conv45_lsd43",
+  "source": "outputs/multi_room_3d/density_45_conv",
+  "ckpt_iter": 11000,
+  "indist_val_lsd_db": 4.3328,
+  "target_lsd_db": 4.3
+}
