@@ -11,7 +11,7 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Design-forcing finding**: at the frozen capacity, **250 rooms is capacity-plateaued at ~4.3 dB and CANNOT reach 45's 2.17 dB** (constant-LR plateau). So convergence was matched at **~4.3 dB** by *under-training 45 down* (fresh frozen-recipe retrain, evaluated at ckpt @4.333 dB), not training 250 up (infeasible). User-approved minimal-compute (D42).
 
 **Verdict: CONFIRMED — coverage genuinely helps, but the raw curve overstated it ~3×.**
-- **Matched (250@4.30 vs 45@4.33)**: 250 wins on mag (+0.060 full / +0.113 modal), held-out LSD (+0.21 / +0.59 dB), **phase +0.131, RIR +0.133** (the blur-proof metrics). Modal *peak placement* is a wash. → coverage is real.
+- **Matched (250@4.30 vs 45@4.33)**: 250 wins on mag (+0.060 full / +0.113 modal), held-out LSD (+0.21 / +0.59 dB), **phase +0.131, RIR +0.133**. Both sides at matched convergence → blur equalized → the deltas isolate coverage. Modal *peak placement* is a wash. → coverage is real.
 - **Decomposition of the raw P2-4 gap** (45@2.17→250@4.30, +0.188 full): **blur/convergence +0.128 (68%) + coverage +0.060 (32%)**; modal (+0.402) = 72% blur / 28% coverage. **~⅔ of the raw climb was confound.**
 - **Blur also improves held-out LSD** (same 45 rooms, 2.17→4.33 dB: LSD 7.70→6.25), so LSD isn't confound-proof either; phase/RIR carry the clean signal. Paradox: the *converged* 45 is a *worse* zero-shot renderer than the *under-trained* 45 (blur generalises "safer").
 

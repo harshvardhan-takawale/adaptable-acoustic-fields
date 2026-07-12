@@ -78,16 +78,18 @@ def main():
         d_rir = c["rir"] - b["rir"]
         d_mrec = c["modal_recall"] - b["modal_recall"]
         d_mmae = b["modal_mae"] - c["modal_mae"]       # lower MAE better
-        # hard metrics = LSD + modal placement + phase + RIR (blur cannot easily game these)
+        # hard metrics = LSD + modal placement + phase + RIR; at matched convergence blur is
+        # equalized on both sides, so these deltas isolate coverage (blur alone also moves them — see sweep)
         hard_wins = sum([d_lsd >= 0.2, d_lsdmod >= 0.2, d_phase >= 0.03,
                          d_rir >= 0.03, d_mrec >= 0.02, d_mmae >= 0.0 and c["modal_mae"] < b["modal_mae"]])
         soft_win = d_full >= 0.05 or d_modal >= 0.05
         if hard_wins >= 3 and soft_win:
             verdict = ("**Coverage effect CONFIRMED at matched convergence.** At equal in-distribution "
-                       f"convergence (~4.3 dB), 250 rooms beats 45 rooms on the held-out metrics that under-"
-                       f"training cannot fake — magnitude-band LSD, phase, and RIR — not just the blur-friendly "
-                       f"magnitude correlation. So the P2-4 curve's *direction* is trustworthy and densification "
-                       f"genuinely helps, though its *magnitude* was inflated by the confound (see decomposition).")
+                       f"convergence (~4.3 dB), 250 rooms beats 45 rooms across the suite — magnitude-band LSD, "
+                       f"phase, RIR, and magnitude correlation. Because both sides are at matched convergence, "
+                       f"blur is equalized on both, so these deltas isolate coverage. So the P2-4 curve's "
+                       f"*direction* is trustworthy and densification genuinely helps, though its *magnitude* was "
+                       f"inflated by the confound (see decomposition).")
         elif hard_wins <= 1:
             verdict = ("**Coverage effect is CONFOUNDED / largely a convergence artifact.** At matched "
                        f"convergence (~4.3 dB), 250 rooms does not meaningfully beat 45 rooms on the hard "
@@ -125,7 +127,8 @@ def main():
             f"- modal (0–250): raw **{rm:+.3f}** = blur **{bm:+.3f} ({pm:.0f}%)** + coverage **{cm:+.3f} ({100-pm:.0f}%)**\n"
             f"\nSo **~{pf:.0f}% of the raw P2-4 magnitude-correlation climb was the convergence/blur confound, "
             f"not coverage.** The genuine coverage effect is real (verdict above) but **smaller than the raw curve "
-            f"shows**, and it is clearest on the metrics blur cannot fake — phase (+{c['phase']-b['phase']:.3f}), "
+            f"shows**. Because blur is equalized at matched convergence, the matched deltas isolate coverage; it "
+            f"shows most strongly on phase (+{c['phase']-b['phase']:.3f}), "
             f"RIR (+{c['rir']-b['rir']:.3f}), modal-band LSD (+{b['lsd_modal']-c['lsd_modal']:.2f} dB). "
             f"**Do not cite the raw P2-4 curve's slope/magnitude; cite the matched-convergence deltas.**\n")
 

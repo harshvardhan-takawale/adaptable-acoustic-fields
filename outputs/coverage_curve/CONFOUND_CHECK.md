@@ -1,6 +1,6 @@
 # P2-4b — Bounding the convergence confound in the coverage curve
 
-**Coverage effect CONFIRMED at matched convergence.** At equal in-distribution convergence (~4.3 dB), 250 rooms beats 45 rooms on the held-out metrics that under-training cannot fake — magnitude-band LSD, phase, and RIR — not just the blur-friendly magnitude correlation. So the P2-4 curve's *direction* is trustworthy and densification genuinely helps, though its *magnitude* was inflated by the confound (see decomposition).
+**Coverage effect CONFIRMED at matched convergence.** At equal in-distribution convergence (~4.3 dB), 250 rooms beats 45 rooms across the suite — magnitude-band LSD, phase, RIR, and magnitude correlation. Because both sides are at matched convergence, blur is equalized on both, so these deltas isolate coverage. So the P2-4 curve's *direction* is trustworthy and densification genuinely helps, though its *magnitude* was inflated by the confound (see decomposition).
 
 
 Matched-convergence deltas (250@4.30dB − 45@4.33dB, positive = 250 better):
@@ -15,7 +15,7 @@ Matched-convergence deltas (250@4.30dB − 45@4.33dB, positive = 250 better):
 - full-band: raw **+0.188** = blur **+0.128 (68%)** + coverage **+0.060 (32%)**
 - modal (0–250): raw **+0.402** = blur **+0.289 (72%)** + coverage **+0.113 (28%)**
 
-So **~68% of the raw P2-4 magnitude-correlation climb was the convergence/blur confound, not coverage.** The genuine coverage effect is real (verdict above) but **smaller than the raw curve shows**, and it is clearest on the metrics blur cannot fake — phase (+0.131), RIR (+0.133), modal-band LSD (+0.59 dB). **Do not cite the raw P2-4 curve's slope/magnitude; cite the matched-convergence deltas.**
+So **~68% of the raw P2-4 magnitude-correlation climb was the convergence/blur confound, not coverage.** The genuine coverage effect is real (verdict above) but **smaller than the raw curve shows**. Because blur is equalized at matched convergence, the matched deltas isolate coverage; it shows most strongly on phase (+0.131), RIR (+0.133), modal-band LSD (+0.59 dB). **Do not cite the raw P2-4 curve's slope/magnitude; cite the matched-convergence deltas.**
 
 
 **Blur-inflation test (same 45 rooms, 2.17dB→4.33dB under-training):** mag corr full moves **0.273 → 0.401** (+0.128), held-out LSD **7.70 → 6.25 dB** (-1.45). Under-training **inflates** the soft correlation while LSD worsens — the P2-3 blur effect is real and must be discounted when reading the raw P2-4 mag-corr curve.

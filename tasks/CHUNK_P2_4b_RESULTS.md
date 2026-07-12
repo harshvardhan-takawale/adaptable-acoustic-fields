@@ -2,7 +2,8 @@
 
 **Verdict: coverage effect CONFIRMED at matched convergence — but the raw P2-4 curve overstated
 its magnitude ~3×.** At equal in-distribution convergence (~4.3 dB), 250 training rooms beat 45 on
-the held-out metrics that under-training cannot fake (magnitude-band LSD, phase, RIR) — so
+magnitude-band LSD, phase, and RIR — and because both sides are at matched convergence, blur is
+equalized on both, so these deltas isolate coverage — so
 densification genuinely helps and the P2-4 curve's **direction** is trustworthy. But a
 decomposition shows **~68% of the raw P2-4 magnitude-correlation climb was the convergence/blur
 confound, only ~32% genuine coverage**. Cite the matched-convergence deltas below, **not** the raw
@@ -47,8 +48,9 @@ match). A blur sweep (45 at 4.55/4.33/3.80/3.52 dB) traces the confound directly
 At ~4.3 dB, **250 beats 45** on: mag full **+0.060**, mag modal **+0.113**, held LSD full **+0.21 dB**,
 modal-band LSD **+0.59 dB**, phase **+0.131**, RIR **+0.133**. It does **not** win on modal *peak
 placement* (recall −0.036, MAE −0.08 Hz favour 45) — but those are weak metrics (recall ~0.1 for both;
-MAE differences ~0.1 Hz). The decisive clean wins are **phase and RIR** (broadband + time-domain
-structure, which blur cannot fake) and the **modal-band LSD**. Coverage genuinely helps.
+MAE differences ~0.1 Hz). The largest matched deltas are **phase and RIR** (broadband + time-domain
+structure) and the **modal-band LSD** — and because blur is equalized on both sides at matched
+convergence, these deltas isolate coverage. Coverage genuinely helps.
 
 ### 2. The confound was large — decompose the raw P2-4 gap
 Split the raw P2-4 mag-corr gap (45@2.17 → 250@4.30) at the matched-convergence midpoint:
