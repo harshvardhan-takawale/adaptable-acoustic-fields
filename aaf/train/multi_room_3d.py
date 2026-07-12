@@ -35,6 +35,8 @@ from torch.utils.tensorboard import SummaryWriter
 from aaf.data.loader import Shoebox3DDataset
 from aaf.models.inr_3d import INR3D_AutoDecoder, _default_hash_grid_config_3d
 from aaf.renderers.freq_3d import FreqRenderer3D
+from aaf.models.conditioning import build_cond_vector, resonance_map  # P3-1 arms
+from aaf.eval.band_limited import band_indices                        # P3-1 band mask
 
 
 @dataclass
@@ -71,10 +73,18 @@ class MultiRoom3DTrainCfg:
     latent_jitter_sigma: float = 0.1                 # D21
     l_head_enabled: bool = True                      # D22 / D31
     l_head_weight: float = 0.1                       # D22 / D24
+    # P3-1 (D43): conditioning arm + band-limited protocol. Defaults reproduce Phase-2.
+    cond_source: str = "latent"                      # latent | geom_fourier | eigen
+    cond_dim: Optional[int] = None                   # FiLM input width (None → latent_dim)
+    band_max_hz: Optional[float] = None              # limit loss/val to f<=band_max_hz (None → full band)
 
 
-def _losses(H_pred: torch.Tensor, H_target: torch.Tensor) -> dict:
+def _losses(H_pred: torch.Tensor, H_target: torch.Tensor, band=None) -> dict:
     eps = 1e-6
+    if band is not None:                             # P3-1: keep only bins [lo:hi]; excluded bins
+        lo, hi = band                                # leave the graph entirely → grad there is exactly 0
+        H_pred = H_pred[..., lo:hi]
+        H_target = H_target[..., lo:hi]
     return {
         "L_spec_real": F.l1_loss(H_pred.real, H_target.real),
         "L_spec_imag": F.l1_loss(H_pred.imag, H_target.imag),
@@ -86,8 +96,12 @@ def _losses(H_pred: torch.Tensor, H_target: torch.Tensor) -> dict:
     }
 
 
-def _full_band_metrics(H_pred: torch.Tensor, H_target: torch.Tensor) -> dict:
+def _full_band_metrics(H_pred: torch.Tensor, H_target: torch.Tensor, band=None) -> dict:
     eps = 1e-8
+    if band is not None:                             # P3-1: band-limited in-dist val metrics
+        lo, hi = band
+        H_pred = H_pred[..., lo:hi]
+        H_target = H_target[..., lo:hi]
     lsd = (20.0 * (
         torch.log10(H_pred.abs().clamp(min=eps))
         - torch.log10(H_target.abs().clamp(min=eps))
@@ -155,6 +169,11 @@ class MultiRoom3DTrainer:
         self.n_freq_bins = self.dataset.n_freq_bins
         self.rooms_yaml = str(rooms_yaml)
 
+        # P3-1 band-limited protocol (D43): loss/val use only bins [lo:hi] with
+        # f <= band_max_hz. None → full band (Phase-2 back-compat). (0, 601) for 300 Hz.
+        self.band = (None if self.cfg.band_max_hz is None else
+                     band_indices(self.cfg.fs, self.n_freq_bins, 0.0, float(self.cfg.band_max_hz)))
+
         # Per-room AABB tensors (each room has different L, W, H).
         self.room_aabbs: dict[int, tuple[torch.Tensor, torch.Tensor]] = {}
         for room_id, (L, W, H) in self.dataset.room_id_to_dims.items():
@@ -162,6 +181,19 @@ class MultiRoom3DTrainer:
                 torch.tensor([0.0, 0.0, 0.0], device=self.device),
                 torch.tensor([float(L), float(W), float(H)], device=self.device),
             )
+
+        # P3-1 Arm G+: precompute each room's per-bin resonance map [n_freq_bins]
+        # (analytic, constant; 0 above the supervised band). Only for the eigen arm.
+        self._R_by_room: dict[int, torch.Tensor] = {}
+        if self.cfg.cond_source == "eigen":
+            n_band = self.band[1] if self.band is not None else self.n_freq_bins
+            df = self.cfg.fs / self.cfg.n_time_samples
+            for room_id, (L, W, H) in self.dataset.room_id_to_dims.items():
+                R_band = resonance_map(float(L), float(W), float(H), n_bins=n_band,
+                                       df=df, device=self.device)
+                R_full = torch.zeros(self.n_freq_bins, device=self.device)
+                R_full[:R_band.numel()] = R_band
+                self._R_by_room[room_id] = R_full
 
         # Pin (room, rx) tensors to CPU; index + .to(device) per iter. The
         # H_target alone is 45 × 512 × 4097 × 8 B ≈ 720 MB; keeping it on GPU
@@ -200,6 +232,8 @@ class MultiRoom3DTrainer:
             l_head_enabled=self.cfg.l_head_enabled,
             conditioning_type=self.cfg.conditioning_type,
             latent_jitter_sigma=self.cfg.latent_jitter_sigma,
+            cond_source=self.cfg.cond_source,          # P3-1 arm
+            cond_dim=self.cfg.cond_dim,                 # P3-1 FiLM input width
         ).to(self.device)
 
         # DDP: make every rank's weights identical by broadcasting rank 0's.
@@ -220,18 +254,25 @@ class MultiRoom3DTrainer:
             use_geometric_attn=False,
         ).to(self.device)
 
-        # Two-param-group Adam: network lr=2e-4, latents lr=1e-3.
-        latent_params = list(self.model.latents.parameters())
-        latent_param_ids = {id(p) for p in latent_params}
-        network_params = [
-            p for p in self.model.parameters() if id(p) not in latent_param_ids
-        ]
-        self.optimizer = torch.optim.Adam(
-            [
-                {"params": network_params, "lr": self.cfg.lr_network, "name": "network"},
-                {"params": latent_params, "lr": self.cfg.lr_latent, "name": "latent"},
+        # Adam param groups. Arm L: two groups (network lr=2e-4, latents lr=1e-3).
+        # Arms G/G+: no latent table → single network group (G+'s scalar w rides in it).
+        if self.model.latents is not None:
+            latent_params = list(self.model.latents.parameters())
+            latent_param_ids = {id(p) for p in latent_params}
+            network_params = [
+                p for p in self.model.parameters() if id(p) not in latent_param_ids
             ]
-        )
+            self.optimizer = torch.optim.Adam(
+                [
+                    {"params": network_params, "lr": self.cfg.lr_network, "name": "network"},
+                    {"params": latent_params, "lr": self.cfg.lr_latent, "name": "latent"},
+                ]
+            )
+        else:
+            self.optimizer = torch.optim.Adam(
+                [{"params": list(self.model.parameters()),
+                  "lr": self.cfg.lr_network, "name": "network"}]
+            )
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max=self.cfg.n_iters, eta_min=self.cfg.eta_min
         )
@@ -358,11 +399,18 @@ class MultiRoom3DTrainer:
             sub_idx = indices_cpu[mask]
             rx = self.rx_pos_all[sub_idx].to(self.device)
             tx = self.tx_pos_all[sub_idx].to(self.device)
-            z_s = self.model.get_latent(
-                torch.full(
-                    (sub_idx.size(0),), r, dtype=torch.long, device=self.device,
+            # P3-1 arm dispatch: latent → table lookup; G/G+ → analytic geometry vector.
+            if self.cfg.cond_source == "latent":
+                z_s = self.model.get_latent(
+                    torch.full((sub_idx.size(0),), r, dtype=torch.long, device=self.device)
                 )
-            )
+            else:
+                L, W, H = self.dataset.room_id_to_dims[r]
+                cond = build_cond_vector(self.cfg.cond_source, float(L), float(W), float(H),
+                                         device=self.device)                 # [cond_dim]
+                z_s = cond.unsqueeze(0).expand(sub_idx.size(0), -1)
+                if self.cfg.cond_source == "eigen":
+                    self.model.set_resonance(self._R_by_room[r])             # per-room R (Arm G+)
             room_min, room_max = self.room_aabbs[r]
             H_pred = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z_s)
             for k, pos in enumerate(mask.nonzero(as_tuple=True)[0].tolist()):
@@ -388,8 +436,12 @@ class MultiRoom3DTrainer:
             idx = torch.randint(0, n_samples, (bs_micro,))                   # CPU
             H_target = self.H_target_all[idx].to(self.device)
             H_pred, z_s = self._render_grouped_by_room(idx)
-            losses = _losses(H_pred, H_target)
-            l_latent = (z_s ** 2).mean()
+            losses = _losses(H_pred, H_target, band=self.band)          # P3-1 band-limited loss
+            # Latent L2 reg only for Arm L (G/G+ have no learnable per-room latent to regularize).
+            if self.cfg.cond_source == "latent":
+                l_latent = (z_s ** 2).mean()
+            else:
+                l_latent = torch.zeros((), device=self.device)
             w_r, w_i, w_a, w_p = cfg.weights
             loss = (
                 w_r * losses["L_spec_real"]
@@ -465,9 +517,16 @@ class MultiRoom3DTrainer:
                 step = max(1, room_idxs.size(0) // VAL_PER_ROOM)
                 sub_idxs = room_idxs[::step][:VAL_PER_ROOM]                       # CPU
                 room_min, room_max = self.room_aabbs[r]
-                z_one = self.model.get_latent(
-                    torch.full((1,), r, dtype=torch.long, device=self.device)
-                )                                                            # [1, latent_dim]
+                if self.cfg.cond_source == "latent":
+                    z_one = self.model.get_latent(
+                        torch.full((1,), r, dtype=torch.long, device=self.device)
+                    )                                                        # [1, latent_dim]
+                else:
+                    L_r, W_r, H_r = self.dataset.room_id_to_dims[r]
+                    z_one = build_cond_vector(self.cfg.cond_source, float(L_r), float(W_r),
+                                              float(H_r), device=self.device).unsqueeze(0)
+                    if self.cfg.cond_source == "eigen":
+                        self.model.set_resonance(self._R_by_room[r])
                 Hp_list = []
                 Ht_list = []
                 for s in range(0, sub_idxs.size(0), chunk):
@@ -484,7 +543,7 @@ class MultiRoom3DTrainer:
                     continue
                 Hp = torch.cat(Hp_list, dim=0)
                 Ht = torch.cat(Ht_list, dim=0)
-                m = _full_band_metrics(Hp, Ht)
+                m = _full_band_metrics(Hp, Ht, band=self.band)
                 L, W, H = self.dataset.room_id_to_dims[r]
                 key_base = f"L{L:.2f}_W{W:.2f}_H{H:.2f}"
                 for k, v in m.items():
@@ -494,9 +553,8 @@ class MultiRoom3DTrainer:
 
             H_pred_all = torch.cat(all_pred, dim=0)
             H_target_all = torch.cat(all_target, dim=0)
-            losses = _losses(H_pred_all, H_target_all)
-            agg = _full_band_metrics(H_pred_all, H_target_all)
-            latent_norms = self.model.latents.weight.norm(dim=-1).detach().cpu().numpy()
+            losses = _losses(H_pred_all, H_target_all, band=self.band)
+            agg = _full_band_metrics(H_pred_all, H_target_all, band=self.band)
             extras = {}
             if (
                 self.cfg.l_head_enabled
@@ -520,13 +578,16 @@ class MultiRoom3DTrainer:
                 extras["geom_mae_H_m"] = float(axis_err[:, 2].mean())
                 extras["geom_mae_overall_m"] = float(axis_err.mean())
                 extras["geom_max_err_m"] = float(axis_err.max())
+            # Latent-norm diagnostics only exist for Arm L (G/G+ have no latent table).
+            if self.model.latents is not None:
+                latent_norms = self.model.latents.weight.norm(dim=-1).detach().cpu().numpy()
+                extras["latent_norm_mean"] = float(np.mean(latent_norms))
+                extras["latent_norm_min"] = float(np.min(latent_norms))
+                extras["latent_norm_max"] = float(np.max(latent_norms))
             return {
                 **{k: float(v) for k, v in losses.items()},
                 **agg,
                 **per_room_metrics,
-                "latent_norm_mean": float(np.mean(latent_norms)),
-                "latent_norm_min": float(np.min(latent_norms)),
-                "latent_norm_max": float(np.max(latent_norms)),
                 **extras,
             }
         finally:
@@ -550,8 +611,9 @@ class MultiRoom3DTrainer:
                 row = {
                     "iter": it, "phase": "train", **train_log,
                     "lr_network": float(self.optimizer.param_groups[0]["lr"]),
-                    "lr_latent": float(self.optimizer.param_groups[1]["lr"]),
                 }
+                if len(self.optimizer.param_groups) > 1:     # Arm L has a latent group
+                    row["lr_latent"] = float(self.optimizer.param_groups[1]["lr"])
                 self.scalars.append(row)
                 if self.writer is not None:
                     try:
@@ -570,11 +632,12 @@ class MultiRoom3DTrainer:
                         try:
                             for k, v in val.items():
                                 self.writer.add_scalar(f"val/{k}", v, it + 1)
-                            self.writer.add_histogram(
-                                "val/latent_norms",
-                                self.model.latents.weight.norm(dim=-1).detach().cpu().numpy(),
-                                it + 1,
-                            )
+                            if self.model.latents is not None:   # Arm L only
+                                self.writer.add_histogram(
+                                    "val/latent_norms",
+                                    self.model.latents.weight.norm(dim=-1).detach().cpu().numpy(),
+                                    it + 1,
+                                )
                         except Exception as e:
                             print(f"[trainer] tb val write failed at iter {it+1}: {e!r}")
                             self.writer = None
@@ -697,6 +760,10 @@ def main():
             latent_jitter_sigma=float(d.get("latent_jitter_sigma", 0.1)),
             l_head_enabled=bool(d.get("l_head_enabled", True)),
             l_head_weight=float(d.get("l_head_weight", 0.1)),
+            # P3-1 (D43): conditioning arm + band-limited protocol.
+            cond_source=str(d.get("cond_source", "latent")),
+            cond_dim=(int(d["cond_dim"]) if d.get("cond_dim") is not None else None),
+            band_max_hz=(float(d["band_max_hz"]) if d.get("band_max_hz") is not None else None),
             # P2-2.5 diagnostic: expose early-stop knobs to the YAML so we can
             # relax them for Run B without touching the trainer code.
             early_stop_warmup=int(d.get("early_stop_warmup", 2_000)),

@@ -1,0 +1,40 @@
+run_id: arm_Gplus_eigen
+rooms_yaml: configs/sweeps_3d/train_rooms_45.yaml
+
+# P3-1 Arm G+ — eigenstructure conditioning: 64-d sorted analytic eigenfrequencies feed
+# the FiLM generator (global path) AND a per-bin resonance map R modulates the signal
+# output as h_b*(1 + w*R[b]) with a single learnable scalar w (ZERO-INIT: at t=0 G+ == G).
+# Strong physics prior. NO latent / jitter / head. Zero-shot = direct computation (D43).
+
+# --- P3-1 protocol (band-limited) ---
+band_max_hz: 300
+
+# --- conditioning arm ---
+cond_source: eigen
+cond_dim: 64                 # eigenfrequency-vector width -> FiLM input
+latent_jitter_sigma: 0.0
+l_head_enabled: false
+l_head_weight: 0.0
+lambda_latent: 0.0
+# lr_latent omitted -> no latent param group; the scalar w rides in the network group
+# (resonance-map params sigma=2Hz, cap=310Hz, 64 modes are analytic defaults in conditioning.py)
+
+# --- frozen backbone recipe (identical across all three arms; from P3) ---
+latent_dim: 16               # unused by G+
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+n_iters: 60000
+batch_size: 16
+grad_accum_steps: 2
+lr_network: 2.0e-4
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+val_every: 2000
+ckpt_every: 2000
+ckpt_keep_last: 40
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003

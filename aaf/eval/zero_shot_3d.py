@@ -114,6 +114,10 @@ def _load_trained_model(
         l_head_enabled=bool(cfg.get("l_head_enabled", True)),
         conditioning_type=str(cfg.get("conditioning_type", "film")),
         latent_jitter_sigma=float(cfg.get("latent_jitter_sigma", 0.0)),
+        # P3-1: forward the arm + FiLM width so G/G+ checkpoints reconstruct correctly
+        # (defaults keep Phase-2 latent behavior for old metas).
+        cond_source=str(cfg.get("cond_source", "latent")),
+        cond_dim=(int(cfg["cond_dim"]) if cfg.get("cond_dim") is not None else None),
     ).to(device)
 
     ckpts = sorted(

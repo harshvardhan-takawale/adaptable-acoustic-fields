@@ -1,0 +1,39 @@
+run_id: arm_L_latent
+rooms_yaml: configs/sweeps_3d/train_rooms_45.yaml
+
+# P3-1 Arm L — latent-only (Phase-2 auto-decoder), retrained under the band-limited
+# (0-300 Hz) protocol. The memorization baseline. Zero-shot on unseen rooms = RBF
+# (L,W,H)->latent lookup (P2-3.5). Backbone byte-identical to Arms G/G+; only the
+# conditioning path differs (D43).
+
+# --- P3-1 protocol (band-limited) ---
+band_max_hz: 300              # loss + val LSD scoped to f<=300 Hz (bins 0..600)
+
+# --- conditioning arm ---
+cond_source: latent          # nn.Embedding(45,16) per-room latents
+# cond_dim omitted -> defaults to latent_dim (16)
+latent_jitter_sigma: 0.1     # part of the latent mechanism's recipe (D21)
+l_head_enabled: true         # linear geometry head (latent arm only)
+l_head_weight: 0.1
+lambda_latent: 1.0e-4        # latent L2 reg
+lr_latent: 1.0e-3            # latent param group LR
+
+# --- frozen backbone recipe (identical across all three arms; from P3) ---
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+n_iters: 60000
+batch_size: 16               # PER-RANK (x4 ranks = eff-batch 64)
+grad_accum_steps: 2
+lr_network: 2.0e-4
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+val_every: 2000
+ckpt_every: 2000             # dense
+ckpt_keep_last: 40           # retain ALL ckpts (matched-convergence eval needs the ladder; D42)
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003

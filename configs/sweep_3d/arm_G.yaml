@@ -1,0 +1,38 @@
+run_id: arm_G_geom
+rooms_yaml: configs/sweeps_3d/train_rooms_45.yaml
+
+# P3-1 Arm G — raw-geometry conditioning: 48-d Fourier features of (L,W,H) feed the
+# SAME FiLM generator. Weak physics prior. NO latent table / jitter / geometry head
+# (geometry IS the input; D43). Zero-shot = direct feature computation (no lookup).
+
+# --- P3-1 protocol (band-limited) ---
+band_max_hz: 300
+
+# --- conditioning arm ---
+cond_source: geom_fourier
+cond_dim: 48                 # Fourier-feature width -> FiLM input
+latent_jitter_sigma: 0.0     # no latent to jitter
+l_head_enabled: false        # geometry is the input, not a target
+l_head_weight: 0.0
+lambda_latent: 0.0           # no latent to regularize
+# lr_latent omitted -> no latent param group
+
+# --- frozen backbone recipe (identical across all three arms; from P3) ---
+latent_dim: 16               # kept >=1 to satisfy the model check; unused by G
+log2_hashmap_size: 18
+n_levels: 16
+per_level_scale: 1.38
+conditioning_type: film
+n_iters: 60000
+batch_size: 16
+grad_accum_steps: 2
+lr_network: 2.0e-4
+n_azi: 16
+n_ele: 16
+n_pts_per_ray: 32
+val_every: 2000
+ckpt_every: 2000
+ckpt_keep_last: 40
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003

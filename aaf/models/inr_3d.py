@@ -267,6 +267,8 @@ class INR3D_AutoDecoder(nn.Module):
         conditioning_type: str = "film",            # D19: FiLM
         latent_jitter_sigma: float = 0.1,           # D21
         lora_rank: int = 8,                         # only for film_lora
+        cond_source: str = "latent",                # P3-1 D43: latent | geom_fourier | eigen
+        cond_dim: Optional[int] = None,             # P3-1: FiLM input width (defaults to latent_dim)
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -284,6 +286,10 @@ class INR3D_AutoDecoder(nn.Module):
             )
         if int(lora_rank) <= 0:
             raise ValueError(f"lora_rank must be > 0, got {lora_rank}")
+        if cond_source not in ("latent", "geom_fourier", "eigen"):
+            raise ValueError(
+                f"cond_source must be 'latent', 'geom_fourier', or 'eigen', got {cond_source!r}"
+            )
 
         self.n_rooms = int(n_rooms)
         self.latent_dim = int(latent_dim)
@@ -294,6 +300,9 @@ class INR3D_AutoDecoder(nn.Module):
         self.conditioning_type = str(conditioning_type)
         self.latent_jitter_sigma = float(latent_jitter_sigma)
         self.lora_rank = int(lora_rank)
+        # P3-1: conditioning arm + FiLM input width (defaults to latent_dim → Phase-2 back-compat).
+        self.cond_source = str(cond_source)
+        self.cond_dim = int(cond_dim) if cond_dim is not None else self.latent_dim
 
         hg_cfg = hash_grid_config or _default_hash_grid_config_3d()
         mlp_cfg = mlp_config or _default_mlp_config()
@@ -313,7 +322,7 @@ class INR3D_AutoDecoder(nn.Module):
         )
         if self.conditioning_type in ("film", "film_lora"):
             sigma_in_dims = sigma_feat_dim
-            self.film_sigma = nn.Linear(self.latent_dim, 2 * sigma_feat_dim)
+            self.film_sigma = nn.Linear(self.cond_dim, 2 * sigma_feat_dim)
             nn.init.zeros_(self.film_sigma.weight)
             with torch.no_grad():
                 self.film_sigma.bias[:sigma_feat_dim].fill_(1.0)         # γ init=1
@@ -335,7 +344,7 @@ class INR3D_AutoDecoder(nn.Module):
         # film_lora: output-side rank-r adapter on the sigma decoder (zero-init).
         if self.conditioning_type == "film_lora":
             r = self.lora_rank
-            self.A_sigma = nn.Linear(self.latent_dim, r)
+            self.A_sigma = nn.Linear(self.cond_dim, r)
             self.B_sigma = nn.Linear(sigma_encoder_dim, r, bias=False)
             self.proj_sigma = nn.Linear(r, self.signal_output_dim, bias=False)
             nn.init.zeros_(self.proj_sigma.weight)
@@ -353,7 +362,7 @@ class INR3D_AutoDecoder(nn.Module):
         )
         if self.conditioning_type in ("film", "film_lora"):
             n_signal_input = signal_feat_dim
-            self.film_signal = nn.Linear(self.latent_dim, 2 * signal_feat_dim)
+            self.film_signal = nn.Linear(self.cond_dim, 2 * signal_feat_dim)
             nn.init.zeros_(self.film_signal.weight)
             with torch.no_grad():
                 self.film_signal.bias[:signal_feat_dim].fill_(1.0)
@@ -370,22 +379,40 @@ class INR3D_AutoDecoder(nn.Module):
         )
         if self.conditioning_type == "film_lora":
             r = self.lora_rank
-            self.A_signal = nn.Linear(self.latent_dim, r)
+            self.A_signal = nn.Linear(self.cond_dim, r)
             self.B_signal = nn.Linear(signal_feat_dim, r, bias=False)
             self.proj_signal = nn.Linear(r, self.signal_output_dim, bias=False)
             nn.init.zeros_(self.proj_signal.weight)
         else:
             self.A_signal = self.B_signal = self.proj_signal = None
 
-        # Per-room latent table.
-        self.latents = nn.Embedding(self.n_rooms, self.latent_dim)
-        nn.init.normal_(self.latents.weight, mean=0.0, std=1.0 / math.sqrt(self.latent_dim))
+        # Per-room latent table — ONLY for the latent arm; G/G+ derive conditioning
+        # from geometry, so there is no learnable per-room table (P3-1 D43).
+        if self.cond_source == "latent":
+            self.latents = nn.Embedding(self.n_rooms, self.latent_dim)
+            nn.init.normal_(self.latents.weight, mean=0.0, std=1.0 / math.sqrt(self.latent_dim))
+        else:
+            self.latents = None
 
-        # Geometry head: linear (L, W, H) predictor.
+        # Geometry head: linear (L, W, H) predictor (latent arm only; disabled via
+        # l_head_enabled=False for G/G+ where geometry is the input).
         if self.l_head_enabled:
             self.l_head = nn.Linear(self.latent_dim, 3)
         else:
             self.l_head = None
+
+        # P3-1 G+ eigenstructure: per-bin resonance modulation at the signal output.
+        # w is a single learnable scalar, ZERO-INIT (so at t=0 G+ ≡ G structurally);
+        # _R is the per-room resonance map [n_freq_bins], set per render via set_resonance
+        # (a plain attribute — NOT a registered/persistent buffer; rebuilt analytically at eval).
+        self.w = nn.Parameter(torch.zeros(())) if self.cond_source == "eigen" else None
+        self._R = None
+
+    def set_resonance(self, R: Optional[torch.Tensor]) -> None:
+        """Set the per-room resonance map (Arm G+). ``R`` is a real tensor of length
+        n_freq_bins (0 above the supervised band), or ``None`` to disable. Must be called
+        immediately before each render of an eigen-arm room."""
+        self._R = R
 
     @staticmethod
     def _normalize_unit(x: torch.Tensor) -> torch.Tensor:
@@ -518,6 +545,13 @@ class INR3D_AutoDecoder(nn.Module):
         if self._n_time_samples % 2 == 0:
             signal_im[..., -1] = 0
         signal_complex = torch.complex(signal_re, signal_im)
+
+        # P3-1 Arm G+ eigenstructure: per-bin resonance modulation h_b·(1 + w·R[b]).
+        # w zero-init ⇒ no-op at t=0 (G+ ≡ G). R is 0 above the supervised band, and a
+        # real scale preserves the DC/Nyquist imag=0 enforced just above (RFFT symmetry).
+        if self.w is not None and self._R is not None:
+            scale = (1.0 + self.w * self._R.to(signal_re.dtype))     # real [one_sided]
+            signal_complex = signal_complex * scale
 
         attn_complex = attn_complex.view(B, N, one_sided)
         signal_complex = signal_complex.view(B, N, one_sided)
