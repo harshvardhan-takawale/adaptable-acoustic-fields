@@ -9,7 +9,7 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Read `tasks/CHUNK_P3_1_RESULTS.md` + `outputs/p3_1/HEADTOHEAD.md` (both data-only — numbers/methods, no verdict).** Three conditioning arms trained under one identical band-limited (0–300 Hz) protocol on the 45-room set; backbone + renderer byte-identical across arms (`tests/test_arm_parity.py`); only the conditioning path differs. Zero-shot (no measurements) on the frozen 15-room interior test set (identical to P2-4/P2-4b), all metrics in-band 0–300 Hz.
 
 - **Arm L (latent)**: per-room `nn.Embedding(45,16)`; zero-shot via RBF (L,W,H)→latent. Trained 40,000 iters, in-dist val LSD **0.72 dB**.
-- **Arm G (raw geometry)**: 48-d Fourier features of (L,W,H) → FiLM. 28,000 iters, **1.14 dB**.
+- **Arm G (raw geometry)**: 48-d Fourier features of (L,W,H) → FiLM. Zero-shot evaluated at 28,000 iters, **1.14 dB**; training has since continued to iter 54,000 (**0.59 dB**) — the zero-shot row below is the 28,000-iter checkpoint.
 - **Arm G+ (eigenstructure)**: 64-d analytic eigenfrequency vector → FiLM + per-bin resonance map R modulating signal output `h·(1+w·R)`, learned scalar w (zero-init). **Still training** (iter 10,900, **2.02 dB**).
 
 **Zero-shot modal placement (recall@250 / recall@300 / MAE@300 Hz) and select metrics, band 0–300:**
