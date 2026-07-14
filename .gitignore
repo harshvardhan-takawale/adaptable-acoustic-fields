@@ -109,3 +109,11 @@ slurm-*.out
 /outputs/diag_p2_2_5/**/*.pt
 /outputs/diag_p2_2_5/**/tb/
 /outputs/diag_p2_2_5/**/*.tfevents.*
+
+# Phase-3 P3-1: keep reports/json + edit figures, drop heavy ckpts/tb/tfevents
+!/outputs/p3_1/**/*.png
+!/outputs/p3_1/**/*.md
+!/outputs/p3_1/**/*.json
+/outputs/p3_1/**/*.pt
+/outputs/p3_1/**/tb/
+/outputs/p3_1/**/*.tfevents.*

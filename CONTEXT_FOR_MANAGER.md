@@ -2,7 +2,37 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk **P2-4b COMPLETE (2026-07-06)** — convergence-confound check. **Verdict: coverage CONFIRMED at matched convergence, but ~⅔ of the raw P2-4 curve was confound — cite `CONFOUND_CHECK.md` matched deltas, NOT the raw P2-4 slope.** Prior: P2-4 COMPLETE (2026-07-04).
+**Last updated**: Chunk **P3-1 IN PROGRESS (2026-07-14)** — geometry-conditioned editing in the modal band; 3-arm head-to-head. Data-only report below; interpretation deferred to the manager. Prior: P2-4b COMPLETE (2026-07-06); P2-4 COMPLETE (2026-07-04).
+
+## Phase 3 — P3-1 (IN PROGRESS): geometry-conditioned editing, modal band 0–300 Hz
+
+**Read `tasks/CHUNK_P3_1_RESULTS.md` + `outputs/p3_1/HEADTOHEAD.md` (both data-only — numbers/methods, no verdict).** Three conditioning arms trained under one identical band-limited (0–300 Hz) protocol on the 45-room set; backbone + renderer byte-identical across arms (`tests/test_arm_parity.py`); only the conditioning path differs. Zero-shot (no measurements) on the frozen 15-room interior test set (identical to P2-4/P2-4b), all metrics in-band 0–300 Hz.
+
+- **Arm L (latent)**: per-room `nn.Embedding(45,16)`; zero-shot via RBF (L,W,H)→latent. Trained 40,000 iters, in-dist val LSD **0.72 dB**.
+- **Arm G (raw geometry)**: 48-d Fourier features of (L,W,H) → FiLM. 28,000 iters, **1.14 dB**.
+- **Arm G+ (eigenstructure)**: 64-d analytic eigenfrequency vector → FiLM + per-bin resonance map R modulating signal output `h·(1+w·R)`, learned scalar w (zero-init). **Still training** (iter 10,900, **2.02 dB**).
+
+**Zero-shot modal placement (recall@250 / recall@300 / MAE@300 Hz) and select metrics, band 0–300:**
+
+| Arm / ckpt | in-dist LSD | recall@250 | recall@300 | MAE@300 | mode-shape | phase | RIR |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| L | 0.72 | 0.104 | 0.075 | 0.86 | 0.874 | 0.607 | 0.751 |
+| G | 1.14 | 0.101 | 0.075 | 0.83 | 0.874 | 0.616 | 0.743 |
+| G+ @2000 | 4.33 | 0.164 | 0.129 | 0.61 | 0.770 | 0.575 | 0.674 |
+| G+ @6000 | 2.72 | 0.114 | 0.084 | 0.73 | 0.700 | 0.545 | 0.632 |
+| G+ @11000 | 2.02 | 0.089 | 0.069 | 0.75 | 0.647 | 0.507 | 0.594 |
+
+- Arms are at different in-distribution convergence (L 0.72, G 1.14, G+ 2.02–4.33 dB); **matched-convergence comparison NOT run** (dense L checkpoints were removed under the disk quota; G+ has not reached L's/G's convergence).
+- G+ learned resonance weight w by ckpt: 0.03 (1K), 0.14 (2K), 0.35 (4K), 0.41 (6K peak), 0.34 (11K).
+- Per-room (G+ @2000 vs @6000): recall@250 lower at 6000 for 14 of 15 rooms.
+- Edit-sweep mode tracking (18-pt unseen L-sweep, W=4.0/H=3.25; MAE Hz / recall over first 3 axial-L modes), G+ = ~6K ckpt: L 1.46/0.39, 1.61/0.72, 2.69/0.78 · G 1.40/0.72, 1.43/0.83, 3.05/0.78 · G+ 1.98/0.78, 2.15/0.50, 2.81/0.78.
+- **Not yet run**: G+ to convergence; matched-convergence comparison; disentanglement eval.
+- Operational: shared 500 GB disk quota hit mid-run (checkpoint retention cut, L intermediate ckpts removed); scavenger 4-GPU DDP needed `NCCL_P2P_DISABLE`/`NCCL_IB_DISABLE` on some nodes; tron/qos=high capped at 4 GPUs/user (arms could not run concurrently there).
+- Sources: `outputs/p3_1/eval/*/summary.json`, `outputs/p3_1/edits/*/edit_sweep_summary.json`, `outputs/p3_1/arm_*/scalars.json`.
+
+---
+
+**Prior: Chunk P2-4b COMPLETE (2026-07-06)** — convergence-confound check. **Verdict: coverage CONFIRMED at matched convergence, but ~⅔ of the raw P2-4 curve was confound — cite `CONFOUND_CHECK.md` matched deltas, NOT the raw P2-4 slope.**
 
 ## Phase 2 — P2-4b (COMPLETE): convergence-confound check on the coverage curve
 
