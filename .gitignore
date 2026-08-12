@@ -117,3 +117,27 @@ slurm-*.out
 /outputs/p3_1/**/*.pt
 /outputs/p3_1/**/tb/
 /outputs/p3_1/**/*.tfevents.*
+
+# --- 2026-08 maintenance: keep reports + source, drop heavy & per-room/per-run artifacts ---
+# Checkpoints & TensorBoard event logs anywhere under outputs (consolidates the per-dir rules above).
+/outputs/**/*.pt
+/outputs/**/tb/
+/outputs/**/*.tfevents.*
+# Coverage-curve (P2-4) per-room lookup / zero-shot dumps — headline is in SCALING.md / CONFOUND_CHECK.md.
+/outputs/coverage_curve/**/lookup/**
+/outputs/coverage_curve/**/lookup_summary.json
+/outputs/coverage_curve/**/zero_shot/**
+# multi_room_3d (P2-2/2-3) per-room zero-shot dumps + per-run metadata — headline is in the SUMMARY.md files.
+/outputs/multi_room_3d/**/zero_shot/**
+/outputs/multi_room_3d/**/scalars.json
+/outputs/multi_room_3d/**/train_meta.json
+# Superseded zero-shot experiment scratch dirs (any already-committed reports within them stay tracked).
+/outputs/runC_zeroshot_initonly/**
+/outputs/runC_zeroshot_probe/**
+/outputs/runC_zeroshot_probe_fix/**
+/outputs/p3_zeroshot_anchored/**
+# P3-1 training-run dirs (checkpoints / scalars / tb) — convergence is summarized in the P3-1 reports.
+/outputs/p3_1/arm_L/**
+/outputs/p3_1/arm_G/**
+/outputs/p3_1/arm_Gplus/**
+/outputs/p3_1/arm_Gplus_fast/**

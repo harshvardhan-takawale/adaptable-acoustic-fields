@@ -57,10 +57,11 @@ FiLM-identity at init, w=0 no-op). Only the conditioning path differs.
 ## 5. Training
 
 - Arm L: 40,000 iters, final band-limited val LSD 0.72 dB (trajectory 6.16→0.72).
-- Arm G: zero-shot evaluated at iter 28,000, val LSD 1.14 dB; training later continued to iter 54,000
+- Arm G: zero-shot evaluated at iter 28,000, val LSD 1.14 dB; training later reached iter 60,000
   (val LSD 0.59 dB). The §6 zero-shot metrics for G are from the iter-28,000 checkpoint.
-- Arm G+: ongoing, iter 10,900, val LSD 2.02 dB. Trajectory per 1K: 5.2, 4.3, 3.8, 3.3, 3.0, 2.7,
-  2.5, 2.4, 2.2, 2.1, 2.0.
+- Arm G+: zero-shot evaluated up to iter 11,000 (val LSD 2.02 dB); training later reached iter 16,000
+  (val LSD 1.61 dB) before P3-1 was paused (2026-08-12). Trajectory per 1K: 5.2, 4.3, 3.8, 3.3, 3.0,
+  2.7, 2.5, 2.4, 2.2, 2.1, 2.0. The §6 G+ metrics are the iter-2,000/6,000/11,000 checkpoints.
 - Learned resonance weight w over G+ training: 0.03 (1K), 0.14 (2K), 0.35 (4K), 0.41 (6K, peak),
   0.34 (11K).
 

@@ -2,9 +2,12 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk **P3-1 IN PROGRESS (2026-07-14)** — geometry-conditioned editing in the modal band; 3-arm head-to-head. Data-only report below; interpretation deferred to the manager. Prior: P2-4b COMPLETE (2026-07-06); P2-4 COMPLETE (2026-07-04).
+**Last updated**: Chunk **P3-1 PAUSED (2026-08-12)** — geometry-conditioned editing in the modal band; 3-arm head-to-head, paused mid-flight by user decision to sidestep for now (will resume). Data-only report below; interpretation deferred to the manager. Prior: P2-4b COMPLETE (2026-07-06); P2-4 COMPLETE (2026-07-04).
 
-## Phase 3 — P3-1 (IN PROGRESS): geometry-conditioned editing, modal band 0–300 Hz
+## Phase 3 — P3-1 (PAUSED, will resume): geometry-conditioned editing, modal band 0–300 Hz
+
+**STATUS (2026-08-12): paused, not concluded.** Training since advanced past the last eval — **Arm G reached iter 60,000 / 0.59 dB** (evaluated at 28K/1.14 dB) and **Arm G+ reached iter 16,000 / 1.61 dB** (evaluated at 11K/2.02 dB); an experimental `arm_Gplus_fast` (native-NCCL hedge) also exists. **The head-to-head evals were NOT refreshed on these newer checkpoints**, and the two decisive experiments — **matched-convergence** and **disentanglement** — remain **NOT run**. The central P3-1 question (does eigenstructure conditioning win at matched convergence) is therefore still **open**. On resume, re-eval the arms at their now-converged/matched checkpoints before drawing any conclusion. Repo maintenance: the working copy was consolidated back to `/fs/nexus-projects/...` (its canonical home) and the tree cleaned of stale artifacts (see DECISIONS **D44**); nothing about the P3-1 science changed.
+
 
 **Read `tasks/CHUNK_P3_1_RESULTS.md` + `outputs/p3_1/HEADTOHEAD.md` (both data-only — numbers/methods, no verdict).** Three conditioning arms trained under one identical band-limited (0–300 Hz) protocol on the 45-room set; backbone + renderer byte-identical across arms (`tests/test_arm_parity.py`); only the conditioning path differs. Zero-shot (no measurements) on the frozen 15-room interior test set (identical to P2-4/P2-4b), all metrics in-band 0–300 Hz.
 

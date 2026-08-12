@@ -29,9 +29,10 @@ P2-4/P2-4b), all metrics computed in-band 0–300 Hz.
 G+ val-LSD trajectory (per 1K iters): 5.2, 4.3, 3.8, 3.3, 3.0, 2.7, 2.5, 2.4, 2.2, 2.1, 2.0.
 A matched-convergence comparison (arms evaluated at equal in-dist val LSD) has **not** been run.
 
-Note: Arm G training has since continued past the evaluated checkpoint to iter 54,000 (in-dist val
-LSD 0.59 dB); the zero-shot metrics in the table below are from the evaluated **iter-28,000** (1.14 dB)
-checkpoint. Arm G+ latest is iter 11,000 (2.02 dB) and still training.
+Note (2026-08-12, P3-1 paused): training advanced past the evaluated checkpoints — Arm G reached iter
+60,000 (in-dist val LSD 0.59 dB) and Arm G+ reached iter 16,000 (1.61 dB) before work was paused. The
+zero-shot metrics in the table below were **not** refreshed on these newer checkpoints: G's row is the
+evaluated **iter-28,000** (1.14 dB) checkpoint and G+'s rows are iter 2,000/6,000/11,000.
 
 ## Zero-shot metrics (frozen 15 rooms, band 0–300 Hz)
 
