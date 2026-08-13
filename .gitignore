@@ -165,3 +165,14 @@ slurm-*.out
 /data/track_c_2d/
 /outputs/p3_2b/*/ckpt_*.pt
 /outputs/p3_2b/smoke_*/
+# Keep the P3-2b meeting figures (small, and the pack is the deliverable); the blanket
+# /outputs/**/*.png rule above would otherwise drop them.
+!/outputs/p3_2b/meeting_assets/**/*.png
+# Per-config eval dump (one record per room incl. per-mode cells) — regenerable by re-running
+# the P3-2b eval; summary.json is the tracked headline (D44 policy).
+/outputs/p3_2b/eval/**/per_config.json
+# Layout-check output of the --synthetic modes: EVERY number in these is FABRICATED. The
+# whitelist above would otherwise make the figures committable, and a watermark is not a
+# sufficient guard for that — keep them structurally unpushable.
+/outputs/p3_2b/meeting_assets_SYNTHETIC/**
+/outputs/p3_2b/synthetic/**
