@@ -238,12 +238,19 @@ class INR2D_AutoDecoder(nn.Module):
         conditioning_type: str = "concat",
         latent_jitter_sigma: float = 0.0,
         lora_rank: int = 8,
+        cond_source: str = "latent",
+        cond_dim: Optional[int] = None,
+        l_head_out_dim: int = 1,
     ):
         super().__init__()
         if n_freq_bins <= 1:
             raise ValueError(f"n_freq_bins must be > 1, got {n_freq_bins}")
         if latent_dim <= 0:
             raise ValueError(f"latent_dim must be > 0 in INR2D_AutoDecoder, got {latent_dim}")
+        if cond_source not in ("latent", "geom_alpha_fourier"):
+            raise ValueError(
+                f"cond_source must be 'latent' or 'geom_alpha_fourier', got {cond_source!r}"
+            )
         if conditioning_type not in ("concat", "film", "film_lora"):
             raise ValueError(
                 f"conditioning_type must be 'concat', 'film', or 'film_lora', "
@@ -257,6 +264,12 @@ class INR2D_AutoDecoder(nn.Module):
             raise ValueError(f"lora_rank must be > 0, got {lora_rank}")
         self.n_rooms = int(n_rooms)
         self.latent_dim = int(latent_dim)
+        # P3-2: conditioning may be an analytic feature vector instead of a latent.
+        # cond_dim defaults to latent_dim so every pre-P3-2 config builds byte-identical
+        # layers (same in_features -> same RNG draws -> same init).
+        self.cond_source = str(cond_source)
+        self.cond_dim = int(cond_dim) if cond_dim is not None else self.latent_dim
+        self.l_head_out_dim = int(l_head_out_dim)
         self.n_freq_bins = int(n_freq_bins)
         self.signal_output_dim = 2 * self.n_freq_bins
         self._n_time_samples = 2 * (self.n_freq_bins - 1)
@@ -287,13 +300,13 @@ class INR2D_AutoDecoder(nn.Module):
             sigma_in_dims = sigma_feat_dim
             # Linear(d -> 2*F) split into (gamma, beta), each F-dim. gamma is
             # initialised to 1 (no-op) and beta to 0 so untrained FiLM is identity.
-            self.film_sigma = nn.Linear(self.latent_dim, 2 * sigma_feat_dim)
+            self.film_sigma = nn.Linear(self.cond_dim, 2 * sigma_feat_dim)
             nn.init.zeros_(self.film_sigma.weight)
             with torch.no_grad():
                 self.film_sigma.bias[:sigma_feat_dim].fill_(1.0)         # gamma_init=1
                 self.film_sigma.bias[sigma_feat_dim:].zero_()             # beta_init=0
         else:
-            sigma_in_dims = sigma_feat_dim + self.latent_dim
+            sigma_in_dims = sigma_feat_dim + self.cond_dim
             self.film_sigma = None
         self._model_encoder_sigma = tcnn.Network(
             n_input_dims=sigma_in_dims,
@@ -311,7 +324,7 @@ class INR2D_AutoDecoder(nn.Module):
         # plain FiLM. The hidden rank `r = self.lora_rank` (default 8).
         if self.conditioning_type == "film_lora":
             r = self.lora_rank
-            self.A_sigma = nn.Linear(self.latent_dim, r)
+            self.A_sigma = nn.Linear(self.cond_dim, r)
             self.B_sigma = nn.Linear(sigma_encoder_dim, r, bias=False)
             self.proj_sigma = nn.Linear(r, self.signal_output_dim, bias=False)
             nn.init.zeros_(self.proj_sigma.weight)
@@ -329,13 +342,13 @@ class INR2D_AutoDecoder(nn.Module):
         )
         if self.conditioning_type in ("film", "film_lora"):
             n_signal_input = signal_feat_dim
-            self.film_signal = nn.Linear(self.latent_dim, 2 * signal_feat_dim)
+            self.film_signal = nn.Linear(self.cond_dim, 2 * signal_feat_dim)
             nn.init.zeros_(self.film_signal.weight)
             with torch.no_grad():
                 self.film_signal.bias[:signal_feat_dim].fill_(1.0)
                 self.film_signal.bias[signal_feat_dim:].zero_()
         else:
-            n_signal_input = signal_feat_dim + self.latent_dim
+            n_signal_input = signal_feat_dim + self.cond_dim
             self.film_signal = None
         self._sigma_feat_dim = sigma_feat_dim
         self._signal_feat_dim = signal_feat_dim
@@ -347,16 +360,21 @@ class INR2D_AutoDecoder(nn.Module):
         # film_lora: output-side rank-r additive adapter on the signal MLP.
         if self.conditioning_type == "film_lora":
             r = self.lora_rank
-            self.A_signal = nn.Linear(self.latent_dim, r)
+            self.A_signal = nn.Linear(self.cond_dim, r)
             self.B_signal = nn.Linear(signal_feat_dim, r, bias=False)
             self.proj_signal = nn.Linear(r, self.signal_output_dim, bias=False)
             nn.init.zeros_(self.proj_signal.weight)
         else:
             self.A_signal = self.B_signal = self.proj_signal = None
 
-        # Per-room latent table (DeepSDF-style auto-decoder).
-        self.latents = nn.Embedding(self.n_rooms, self.latent_dim)
-        nn.init.normal_(self.latents.weight, mean=0.0, std=1.0 / math.sqrt(self.latent_dim))
+        # Per-room latent table (DeepSDF-style auto-decoder). Absent for analytic
+        # conditioning arms, where the conditioning vector IS the physical parameters.
+        if self.cond_source == "latent":
+            self.latents = nn.Embedding(self.n_rooms, self.latent_dim)
+            nn.init.normal_(self.latents.weight, mean=0.0,
+                            std=1.0 / math.sqrt(self.latent_dim))
+        else:
+            self.latents = None
 
         # Optional auxiliary L-prediction head (Chunk-3.5): adds an inductive bias
         # forcing z_s to encode room length L, mitigating Chunk-3's latent-collapse
@@ -368,15 +386,18 @@ class INR2D_AutoDecoder(nn.Module):
         #             which is the strongest inductive bias toward a 1-D manifold
         #             (R6-R8).
         self.l_head_arch = str(l_head_arch)
-        if self.l_head_enabled:
+        if self.cond_source != "latent":
+            # The geometry IS the input; a head predicting it back is a trivial identity.
+            self.l_head = None
+        elif self.l_head_enabled:
             if self.l_head_arch == "mlp_32":
                 self.l_head = nn.Sequential(
                     nn.Linear(self.latent_dim, 32),
                     nn.ReLU(),
-                    nn.Linear(32, 1),
+                    nn.Linear(32, self.l_head_out_dim),
                 )
             elif self.l_head_arch == "linear":
-                self.l_head = nn.Linear(self.latent_dim, 1)
+                self.l_head = nn.Linear(self.latent_dim, self.l_head_out_dim)
             else:
                 raise ValueError(
                     f"Unknown l_head_arch={self.l_head_arch!r}; "
@@ -413,6 +434,11 @@ class INR2D_AutoDecoder(nn.Module):
         loss landscape around each trained z_s so zero-shot adaptation has an
         easier time navigating the latent-to-spectrum response surface.
         """
+        if self.latents is None:
+            raise RuntimeError(
+                "get_latent() requires cond_source='latent'; this model was built "
+                f"with cond_source={self.cond_source!r} and has no latent table."
+            )
         if isinstance(room_id, int):
             t = torch.tensor(room_id, device=self.latents.weight.device)
             z = self.latents(t)
