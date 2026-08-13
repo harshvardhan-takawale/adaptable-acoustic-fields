@@ -10,19 +10,19 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 
 **Physics premise established (blocking gate PASS).** Editing one wall broadens ITS OWN mode family ~29x more than the other (pooled CI [20, 39]; 49:1 on the spec room), block-diagonal on all 4 walls, strictly monotone M1<M0<M2<M3, bidirectional (concrete sharpens). max_order=60 verified converged; wall convention proven by image-lattice probe.
 
-**Zero-shot results** (paired edit deltas; in-dist val LSD 2.748 dB, PLATEAUED, model still over-damped):
+**Zero-shot results** (paired edit deltas; in-dist val LSD 2.687 dB at the full 60 K, model still over-damped):
 
 | split | n | E_BW (Hz) | slope | r | edit_gain |
 |---|---:|---:|---:|---:|---:|
-| (i) unseen geom x SEEN combo | 110 | **1.215** | **1.059** | **0.896** | **1.033** |
-| (ii) seen geom x held-out combo | 80 | 5.472 | 0.040 | 0.543 | 0.907 |
-| (iii) unseen geom x held-out combo | 20 | 5.002 | 0.126 | 0.516 | 0.862 |
-| (iv) unseen alpha=0.30 | 40 | 2.249 | 0.331 | 0.293 | 0.681 |
+| (i) unseen geom x SEEN combo | 110 | **1.205** | **1.087** | **0.899** | **1.035** |
+| (ii) seen geom x held-out combo | 80 | 5.450 | 0.044 | 0.554 | 0.940 |
+| (iii) unseen geom x held-out combo | 20 | 4.982 | 0.133 | 0.533 | 0.874 |
+| (iv) unseen alpha=0.30 | 40 | 2.254 | 0.379 | 0.323 | 0.691 |
 
-- **Positive**: split (i) — a single conditioned model renders the correct material edit on rooms it never saw, at essentially correct magnitude (slope 1.06).
-- **Not achieved**: split (iii) — direction and WALL IDENTITY transfer (r 0.52; C4 asymmetry +0.515 / +0.201 against alpha_eff-matched twins, both positive and both rising with training), but only ~13% of the magnitude and edit_gain < 1.
+- **Positive**: split (i) — a single conditioned model renders the correct material edit on rooms it never saw, at essentially correct magnitude (slope 1.09).
+- **Not achieved**: split (iii) — direction and WALL IDENTITY transfer (r 0.53; C4 asymmetry +0.549 / +0.175 against alpha_eff-matched twins, both positive and both rising with training), but only ~13% of the magnitude and edit_gain < 1.
 - **(ii) ~ (iii)** ⇒ the deficit is COMBINATION novelty, not geometry novelty.
-- **Most probable cause is the FIT, not the conditioning design**: the model plateaued at 2.748 dB while still over-damped, and blur inflates every bandwidth — the predicted selectivity index was still climbing (4.6 -> 10.6) when the loss stopped improving. Recommended next step: sharper recipe (n_pts_per_ray 32 -> 64, larger hash grid), then re-run the eval.
+- **Most probable cause is the FIT, not the conditioning design**: the model saturated at 2.687 dB while still over-damped, and blur inflates every bandwidth — the predicted selectivity index was still climbing (4.6 at 6 K -> 10.6 at 60 K) as the loss saturated. Recommended next step: sharper recipe (n_pts_per_ray 32 -> 64, larger hash grid), then re-run the eval.
 - **SCOPING (D48, must be stated to collaborators)**: the ~29:1 selectivity is a property of the ISM simulator (angle-independent reflection, no grazing-incidence absorption; dAIC=73 vs Kuttruff). Real locally-reacting walls give ~2:1 with no invariant family. The supportable claim is *"the model learns the simulator's per-wall law"*. See Q16 for the resulting strategic choice.
 
 Decisions **D44-D50**; open questions **Q15** (three deferred shared-eval bugs) and **Q16** (ray-vs-wave: is P3-3 "scale to 3D" or "re-establish under realistic wall physics?").
