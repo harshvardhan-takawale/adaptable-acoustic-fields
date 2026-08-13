@@ -20,8 +20,22 @@ from importlib import metadata as _md
 import numpy as np
 import pyroomacoustics as pra
 
+from aaf.walls import WALLS_2D
+
 
 C_DEFAULT = 343.0
+
+
+def _alpha_eff_2d(L: float, W: float, alphas) -> float:
+    """Perimeter-weighted mean absorption for per-wall configs.
+
+    west/east span W; south/north span L (WALLS_2D order). Used so ``meta['alpha']``
+    stays a float for legacy readers and so Sabine/Eyring references remain meaningful.
+    NOTE this scalar deliberately CANNOT distinguish which wall was edited -- that is the
+    confound P3-2's held-out combos are designed to expose, not a quantity to model with.
+    """
+    a_w, a_e, a_s, a_n = (float(a) for a in alphas)
+    return float((a_w * W + a_e * W + a_s * L + a_n * L) / (2.0 * (L + W)))
 
 
 def _versions() -> dict:
@@ -97,11 +111,31 @@ def simulate_room_2d(cfg: dict) -> dict:
     W = float(cfg["W"])
     source_pos = np.asarray(cfg["source_pos"], dtype=np.float64).reshape(2)
     receiver_pos = np.asarray(cfg["receiver_pos"], dtype=np.float64).reshape(-1, 2)
-    alpha = float(cfg["alpha"])
     fs = float(cfg["fs"])
     n_time_samples = int(cfg["n_time_samples"])
     c = float(cfg.get("c", C_DEFAULT))
     max_order_user = cfg.get("max_order", None)
+
+    # Per-wall absorption (P3-2). ``alphas`` is a 4-sequence in aaf.walls.WALLS_2D order
+    # (west, east, south, north); when absent the legacy scalar ``alpha`` applies to all
+    # four walls. Back-compat is exact, not approximate: pra's ShoeBox does
+    # ``materials = dict(zip(wall_names, [material] * n_walls))`` for a single Material, so
+    # the uniform-dict path below is the same code path as the scalar one.
+    alphas_user = cfg.get("alphas", None)
+    if alphas_user is None:
+        alpha = float(cfg["alpha"])
+        alphas = (alpha,) * 4
+    else:
+        alphas = tuple(float(a) for a in alphas_user)
+        if len(alphas) != 4:
+            raise ValueError(
+                f"cfg['alphas'] must have 4 entries in WALLS_2D order {list(WALLS_2D)}, "
+                f"got {len(alphas)}"
+            )
+        # Perimeter-weighted mean, so meta['alpha'] stays a float for every legacy reader
+        # (write_room_to_h5 and every attrs['alpha'] consumer) and remains the right
+        # scalar for Sabine/Eyring references.
+        alpha = _alpha_eff_2d(L, W, alphas)
 
     n_freq_bins = n_time_samples // 2 + 1
 
@@ -110,7 +144,11 @@ def simulate_room_2d(cfg: dict) -> dict:
 
     # Build the room. We pass max_order=0 first to get a valid Room object so we
     # can call rt60_theory; then re-build with the correct max_order.
-    materials = pra.Material(energy_absorption=alpha)
+    if alphas_user is None:
+        materials = pra.Material(energy_absorption=alpha)
+    else:
+        materials = {w: pra.Material(energy_absorption=a)
+                     for w, a in zip(WALLS_2D, alphas)}
     room = pra.ShoeBox(
         p=[L, W], fs=int(fs), materials=materials, max_order=0, ray_tracing=False
     )
@@ -177,6 +215,10 @@ def simulate_room_2d(cfg: dict) -> dict:
         "L": L,
         "W": W,
         "alpha": alpha,
+        "alphas": [float(a) for a in alphas],
+        "alpha_per_wall": {w: float(a) for w, a in zip(WALLS_2D, alphas)},
+        "walls": list(WALLS_2D),
+        "alpha_is_effective": alphas_user is not None,
         "fs": fs,
         "c": c,
         "source_pos": source_pos.tolist(),

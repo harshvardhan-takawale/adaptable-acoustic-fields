@@ -1,0 +1,85 @@
+{
+  "n_train_geometries": 40,
+  "n_test_geometries": 10,
+  "counts": {
+    "train": 440,
+    "test_i_and_iii": 130,
+    "split_ii": 80,
+    "split_iv": 40,
+    "total_sims": 690
+  },
+  "coverage_train": {
+    "materials_per_wall": {
+      "west": [
+        "M1",
+        "M3"
+      ],
+      "east": [
+        "M1",
+        "M2",
+        "M3"
+      ],
+      "south": [
+        "M1",
+        "M2",
+        "M3"
+      ],
+      "north": [
+        "M1",
+        "M2"
+      ]
+    },
+    "walls_per_material": {
+      "M1": [
+        "east",
+        "north",
+        "south",
+        "west"
+      ],
+      "M3": [
+        "east",
+        "south",
+        "west"
+      ],
+      "M2": [
+        "east",
+        "north",
+        "south"
+      ]
+    },
+    "min_materials_per_wall": 2,
+    "min_walls_per_material": 3,
+    "n_configs": 440,
+    "n_baseline": 40
+  },
+  "nn_to_train": {
+    "nn_raw_m": [
+      0.19798989873223316,
+      0.06000000000000005,
+      0.060827625302982365,
+      0.11045361017187291,
+      0.06403124237432871,
+      0.07211102550927985,
+      0.3667424164178447,
+      0.24186773244895668,
+      0.31827660925679047,
+      0.2109502310972898
+    ],
+    "nn_raw_mean": 0.17032503913115787,
+    "nn_raw_min": 0.06000000000000005,
+    "nn_norm_mean": 0.07010052190777116,
+    "nn_norm_min": 0.020000000000000018,
+    "nn_chebyshev_min_m": 0.050000000000000266
+  },
+  "heldout_combos": [
+    [
+      "west",
+      "M2"
+    ],
+    [
+      "north",
+      "M3"
+    ]
+  ],
+  "unseen_alpha": 0.3
+}
