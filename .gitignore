@@ -147,6 +147,16 @@ slurm-*.out
 !/outputs/p3_2/**/*.md
 !/outputs/p3_2/**/*.json
 /outputs/p3_2/model/**
+# Per-config eval dump (~2 MB, one record per room incl. per-mode cells) — regenerable by
+# re-running scripts/slurm/p3_2_eval.sh; summary.json is the tracked headline (D44 policy).
+/outputs/p3_2/eval/per_config.json
+# Layout-check output of `make_p3_2_figures.py --synthetic`: every number in it is FABRICATED.
+# The whitelist above would otherwise make these committable, and a watermark is not a
+# sufficient guard for that — keep them structurally unpushable.
+/outputs/p3_2/meeting_assets_SYNTHETIC/**
+# Field dump for figure E (~16 MB of complex spectra) — regenerable via
+# scripts/slurm/p3_2_dump_fields.sh; already covered by *.npz, pinned here for clarity.
+/outputs/p3_2/meeting_assets/fields.npz
 
 # P3-2 dataset (regenerable from configs + scripts/build_2d_mat_dataset.py)
 /data/track_c_2d/
