@@ -1,0 +1,160 @@
+{
+  "n_train": 960,
+  "n_test": 210,
+  "rows_sha256": "ecf0ee6e620dc56eff508a5c8c0334cdb41f21b88b6359317e5b8a43e690da04",
+  "seed": 20260813,
+  "G1_slab_violations": 0,
+  "G2_preset_collisions": 0,
+  "G3_per_wall": {
+    "west": {
+      "n": 431,
+      "counts": [
+        57,
+        42,
+        39,
+        33,
+        13,
+        11,
+        41,
+        36,
+        46,
+        43,
+        35,
+        35
+      ],
+      "slab_bins": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "max_over_mean_outside": 1.4928571428571429,
+      "n_in_slab": 0
+    },
+    "east": {
+      "n": 430,
+      "counts": [
+        37,
+        39,
+        42,
+        29,
+        28,
+        51,
+        38,
+        31,
+        36,
+        34,
+        34,
+        31
+      ],
+      "slab_bins": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "max_over_mean_outside": 1.4232558139534883,
+      "n_in_slab": 0
+    },
+    "south": {
+      "n": 430,
+      "counts": [
+        42,
+        30,
+        38,
+        32,
+        30,
+        30,
+        43,
+        34,
+        27,
+        41,
+        40,
+        43
+      ],
+      "slab_bins": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "max_over_mean_outside": 1.2,
+      "n_in_slab": 0
+    },
+    "north": {
+      "n": 429,
+      "counts": [
+        46,
+        30,
+        49,
+        39,
+        48,
+        37,
+        32,
+        27,
+        16,
+        17,
+        43,
+        45
+      ],
+      "slab_bins": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "max_over_mean_outside": 1.2373737373737372,
+      "n_in_slab": 0
+    }
+  },
+  "G4_signature": {
+    "L3.68_W4.03_west0.690": {
+      "wall": "west",
+      "alpha": 0.69028,
+      "d_bw_own": 12.238342159307159,
+      "d_bw_other": 0.3679766968784248,
+      "selectivity": 33.25847061274797
+    },
+    "L3.68_W4.03_east0.716": {
+      "wall": "east",
+      "alpha": 0.715688,
+      "d_bw_own": 14.136856484178825,
+      "d_bw_other": 0.7572106070568836,
+      "selectivity": 18.669649305529113
+    }
+  },
+  "verdict": "PASS",
+  "failures": []
+}

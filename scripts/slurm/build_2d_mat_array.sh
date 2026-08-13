@@ -22,4 +22,4 @@ export LD_LIBRARY_PATH="${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}"
 export PYTHONPATH="${PWD}"
 
 echo "host=$(hostname); job=${SLURM_JOB_ID}; task=${SLURM_ARRAY_TASK_ID}"
-python scripts/build_2d_mat_dataset.py --idx "${SLURM_ARRAY_TASK_ID}" --chunk "${CHUNK:-10}"
+python scripts/build_2d_mat_dataset.py --idx "${SLURM_ARRAY_TASK_ID}" --chunk "${CHUNK:-10}" --set "${SET:-p3_2}"

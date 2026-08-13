@@ -67,8 +67,14 @@ MATERIAL_ALIASES = {
 # cannot re-emit the all-baseline room 4x.
 NON_BASELINE_MATERIALS = ("M1", "M2", "M3")
 
-# Alpha normalization divisor used by the conditioning encoder (D46): u_alpha = alpha / 0.7.
+# Alpha normalization divisor used by the P3-2 conditioning encoder (D46): u_alpha = alpha / 0.7.
 ALPHA_NORM = 0.7
+
+# P3-2b (D51): the linearizing material coordinate. The ISM-ray damping law is EXACTLY linear
+# in m = -ln(1-alpha) -- gamma = c*(m_w + m_e)/(4L) for an x-axial family -- so conditioning on m
+# makes the target a linear function of the input rather than something the network must learn to
+# invert. M_NORM = -ln(1-0.8) = ln 5 maps the sampled range m in [0.02, 1.61] onto ~[0.012, 1.0].
+M_NORM = 1.6094379124341003
 
 
 def resolve_material(name: str) -> str:

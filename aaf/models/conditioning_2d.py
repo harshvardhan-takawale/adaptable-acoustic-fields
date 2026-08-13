@@ -42,7 +42,7 @@ from typing import Optional, Sequence
 
 import torch
 
-from aaf.walls import ALPHA_NORM, WALLS_2D
+from aaf.walls import ALPHA_NORM, M_NORM, WALLS_2D
 
 # k = 0..7 for geometry, k = 0..3 for the four absorptions.
 N_K_GEOM = 8
@@ -108,6 +108,81 @@ def fourier_features_2d(
     )
 
 
+# ----------------------------------------------------------------------
+# P3-2b: the m-coordinate arm (D51)
+# ----------------------------------------------------------------------
+COND_SOURCE_M = "m_linear"
+N_K_M = 3                       # pi, 2pi, 4pi -- deliberately lower than P3-2's 8 octaves
+MLINEAR_DIM_2D = 2 * 2 * N_K_GEOM + len(WALLS_2D) * (1 + 2 * N_K_M)   # 32 + 28 = 60
+"""Per wall: one IDENTITY channel + 3 octaves of sin/cos = 7 dims.
+
+Why this beats P3-2's ``geom_alpha_fourier`` on the same physics:
+
+* The target law is exactly linear in m, so an identity channel lets FiLM represent it with
+  ZERO interpolation error. P3-2 conditioned on raw alpha, in which the law is
+  log-curved, so every prediction between training points was an approximation.
+* The top feature is 4*pi on m_hat -- one half-period per delta_m ~ 0.40. P3-2 put its top
+  feature at 8*pi on normalized alpha while adjacent training points were 0.5 apart, i.e. two
+  completely unconstrained cycles between samples, which is why alpha=0.30 (a pure
+  interpolation) came out with the WRONG SIGN on all four walls.
+"""
+
+
+def m_of_alpha(alpha: float) -> float:
+    """The linearizing material coordinate m = -ln(1 - alpha)."""
+    a = float(alpha)
+    if not 0.0 <= a < 1.0:
+        raise ValueError(f"alpha must be in [0, 1), got {a}")
+    return -math.log1p(-a)
+
+
+def alpha_of_m(m: float) -> float:
+    """Inverse of :func:`m_of_alpha`."""
+    return 1.0 - math.exp(-float(m))
+
+
+def m_hat_of_alpha(alpha: float) -> float:
+    """Normalized material coordinate, m / ln(5). ~1.0 at the top of the sampled range."""
+    return m_of_alpha(alpha) / M_NORM
+
+
+def normalize_params_m_2d(L, W, alphas, device=None, dtype=torch.float32) -> torch.Tensor:
+    """u = ((L-3)/3, (W-3)/2, m_hat_w, m_hat_e, m_hat_s, m_hat_n) -> [6]."""
+    a = [float(x) for x in alphas]
+    if len(a) != len(WALLS_2D):
+        raise ValueError(
+            "alphas must have {} entries in WALLS_2D order {}, got {}".format(
+                len(WALLS_2D), list(WALLS_2D), len(a)))
+    return torch.tensor(
+        [(L - 3.0) / 3.0, (W - 3.0) / 2.0] + [m_hat_of_alpha(x) for x in a],
+        device=device, dtype=dtype)
+
+
+def m_linear_features_2d(L, W, alphas, device=None, dtype=torch.float32) -> torch.Tensor:
+    """60-d features. Layout: [0:16] L, [16:32] W, then 7 per wall in WALLS_2D order
+    ([32:39] west, [39:46] east, [46:53] south, [53:60] north), each
+    ``[m_hat, sin(pi m), sin(2pi m), sin(4pi m), cos(pi m), cos(2pi m), cos(4pi m)]``.
+
+    The geometry block is byte-identical to ``fourier_features_2d``'s, so arms sharing a
+    geometry encoding differ ONLY in the material channels.
+    """
+    u = normalize_params_m_2d(L, W, alphas, device=device, dtype=dtype)      # [6]
+    mh = u[2:]                                                              # [4]
+    fb = _fourier_block(mh, N_K_M).reshape(len(WALLS_2D), 2 * N_K_M)        # [4, 6]
+    per_wall = torch.cat([mh[:, None], fb], dim=1)                          # [4, 7]
+    return torch.cat([_fourier_block(u[:2], N_K_GEOM), per_wall.reshape(-1)])
+
+
+def cond_dim_for(cond_source: str) -> int:
+    """Feature width for an arm. Guards against a config whose cond_dim contradicts its
+    cond_source -- that mismatch trains happily and silently produces the wrong arm."""
+    if cond_source == COND_SOURCE:
+        return FOURIER_DIM_2D
+    if cond_source == COND_SOURCE_M:
+        return MLINEAR_DIM_2D
+    raise ValueError(f"no fixed cond_dim for cond_source {cond_source!r}")
+
+
 def build_cond_vector_2d(
     cond_source: str,
     L: float,
@@ -132,10 +207,15 @@ def build_cond_vector_2d(
         if alphas is None:
             raise ValueError(f"{COND_SOURCE} requires alphas")
         return fourier_features_2d(L, W, alphas, device=device, dtype=dtype)
+    if cond_source == COND_SOURCE_M:
+        if alphas is None:
+            raise ValueError(f"{COND_SOURCE_M} requires alphas")
+        return m_linear_features_2d(L, W, alphas, device=device, dtype=dtype)
     if cond_source == "latent":
         if model is None or room_ids is None:
             raise ValueError("latent arm requires model + room_ids")
         return model.get_latent(room_ids)
     raise ValueError(
-        f"unknown cond_source {cond_source!r}; expected {COND_SOURCE!r} or 'latent'"
+        f"unknown cond_source {cond_source!r}; expected {COND_SOURCE!r}, "
+        f"{COND_SOURCE_M!r} or 'latent'"
     )

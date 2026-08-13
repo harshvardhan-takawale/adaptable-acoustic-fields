@@ -160,3 +160,8 @@ slurm-*.out
 
 # P3-2 dataset (regenerable from configs + scripts/build_2d_mat_dataset.py)
 /data/track_c_2d/
+
+# P3-2b: regenerable dataset + per-config eval dump
+/data/track_c_2d/
+/outputs/p3_2b/*/ckpt_*.pt
+/outputs/p3_2b/smoke_*/

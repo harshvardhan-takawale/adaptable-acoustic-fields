@@ -43,7 +43,13 @@ import yaml
 
 from aaf.data.mat_configs import HELDOUT_COMBOS, enumerate_configs
 from aaf.eval.band_limited import band_indices
-from aaf.models.conditioning_2d import COND_SOURCE, FOURIER_DIM_2D, fourier_features_2d
+from aaf.models.conditioning_2d import (
+    COND_SOURCE,
+    FOURIER_DIM_2D,
+    build_cond_vector_2d,
+    cond_dim_for,
+    fourier_features_2d,
+)
 from aaf.models.inr_2d import INR2D_AutoDecoder
 from aaf.renderers.freq_2d import FreqRenderer2D
 
@@ -56,6 +62,8 @@ class P32TrainCfg:
     run_id: str = "p3_2_main"
     rooms_yaml: str = "configs/sweeps_2d_mat/p3_2_train.yaml"
     data_dir: str = "data/track_c_2d"
+    configs_manifest: str = ""            # "" -> legacy preset enumeration (arm A / P3-2)
+    config_kinds: Tuple[str, ...] = ()    # () = all kinds; ("baseline","single") = arm D
     n_iters: int = 60_000
     batch_size: int = 16
     rx_per_config: int = 4
@@ -65,7 +73,8 @@ class P32TrainCfg:
     grad_clip_max_norm: float = 1.0
     weights: Tuple[float, float, float, float] = (1.0, 1.0, 1.0, 0.1)
     n_azi: int = 64
-    n_pts_per_ray: int = 32
+    n_pts_per_ray: int = 64
+    max_rows_per_render: int = 8          # OOM guard, see _render
     near: float = 1e-3
     fs: int = 4096
     n_time_samples: int = 8192
@@ -117,7 +126,24 @@ class P32Trainer:
 
         common = yaml.safe_load(open(cfg.rooms_yaml))
         geoms = [(g["L"], g["W"]) for g in common["geometries"]]
-        self.configs = enumerate_configs(geoms, exclude_combos=HELDOUT_COMBOS)
+        self.manifest_sha = ""
+        if cfg.configs_manifest:
+            # P3-2b: the sampled set is FROZEN in git, so the dataset, the trainer and the
+            # eval cannot disagree about which rooms exist.
+            from aaf.data.mat_configs_cont import configs_from_rows
+            man = json.load(open(cfg.configs_manifest))
+            self.manifest_sha = str(man.get("rows_sha256", ""))
+            self.configs = configs_from_rows(man["configs"], split="train",
+                                             kinds=tuple(cfg.config_kinds))
+        else:
+            self.configs = enumerate_configs(geoms, exclude_combos=HELDOUT_COMBOS)
+        # A cond_dim that contradicts cond_source trains happily and silently produces the
+        # WRONG ARM, which no metric would reveal -- so it is a hard check.
+        expect = cond_dim_for(cfg.cond_source)
+        if int(cfg.cond_dim) != expect:
+            raise ValueError(
+                f"cond_dim={cfg.cond_dim} contradicts cond_source={cfg.cond_source!r} "
+                f"(expected {expect})")
         self.n_freq_bins = cfg.n_time_samples // 2 + 1
         self.band = band_indices(cfg.fs, self.n_freq_bins, 0.0, cfg.band_max_hz)
         lo, hi = self.band
@@ -135,6 +161,14 @@ class P32Trainer:
                 H = np.asarray(f["ism/H_complex"][:, lo:hi], dtype=np.complex64)
                 rx = np.asarray(json.loads(f.attrs["receiver_pos"]), dtype=np.float32)
                 src = np.asarray(json.loads(f.attrs["source_pos"]), dtype=np.float32)
+                a_disk = json.loads(f.attrs["alphas"]) if isinstance(
+                    f.attrs["alphas"], str) else list(f.attrs["alphas"])
+            if not np.allclose(a_disk, c.alphas, atol=1e-9):
+                raise ValueError(
+                    f"manifest/data drift for {c.filename}: manifest {c.alphas} vs "
+                    f"file {a_disk}")
+            if False:
+                pass
             key = (c.L, c.W)
             if key not in geom_index:
                 geom_index[key] = len(self.geom_dims)
@@ -143,7 +177,8 @@ class P32Trainer:
             rx_list.append(rx)
             geom_id.append(geom_index[key])
             cfg_id.append(ci)
-            conds.append(fourier_features_2d(c.L, c.W, c.alphas).numpy())
+            conds.append(
+                build_cond_vector_2d(cfg.cond_source, c.L, c.W, c.alphas).numpy())
         self.src = torch.tensor(src, device=self.device)
         self.H = torch.tensor(np.stack(H_list), device=self.device)          # [C,64,B]
         self.rx = torch.tensor(np.stack(rx_list), device=self.device)        # [C,64,2]
@@ -159,13 +194,21 @@ class P32Trainer:
 
         # Validation configs: a deterministic stride, stratified so every (wall, material)
         # appears -- otherwise the val curve is not comparable across iterations.
-        by_combo: Dict[str, List[int]] = {}
+        # Stratify on a COARSE key and select by stride. Keying on the exact (wall, alpha)
+        # combo -- as the P3-2 trainer did -- degenerates to one singleton group per config
+        # once alpha is continuous, and the head-slice then draws the whole val set from the
+        # first few geometries. Early stopping reads this metric, so that silently makes the
+        # val curve non-comparable across arms.
+        by_strata: Dict[str, List[int]] = {}
         for i, c in enumerate(self.configs):
-            by_combo.setdefault(str(c.combo), []).append(i)
+            key = getattr(c, "strata", None) or str(getattr(c, "combo", i))
+            by_strata.setdefault(key, []).append(i)
         val_ids: List[int] = []
-        per = max(1, cfg.val_max_configs // max(1, len(by_combo)))
-        for k in sorted(by_combo):
-            val_ids.extend(by_combo[k][:per])
+        per = max(1, cfg.val_max_configs // max(1, len(by_strata)))
+        for k in sorted(by_strata):
+            grp = by_strata[k]
+            stride = max(1, len(grp) // per)
+            val_ids.extend(grp[::stride][:per])
         self.val_cfg_ids = torch.tensor(sorted(val_ids)[:cfg.val_max_configs],
                                         dtype=torch.long, device=self.device)
         print(f"[val] {len(self.val_cfg_ids)} configs x {len(self.val_rx_idx)} held-out receivers")
@@ -205,11 +248,18 @@ class P32Trainer:
             L, W = self.geom_dims[int(gid)]
             room_min = torch.zeros(2, device=self.device)
             room_max = torch.tensor([L, W], device=self.device, dtype=torch.float32)
-            rx = self.rx[cfg_ids[sel], rx_ids[sel]]                    # [n,2]
-            tx = self.src.unsqueeze(0).expand(sel.numel(), -1)
-            z = self.cond[cfg_ids[sel]]                                # [n,64] per-row
-            H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z)
-            out[sel] = H[:, self.band[0]:self.band[1]]
+            # Sub-batch: at n_pts_per_ray=64 one row's activation is ~134 MB, so a group
+            # that happens to collect several rows can reach ~21 GB on a 24 GB card -- a
+            # random crash hours into a run. Rows are independent, so this is numerically
+            # identical, just chunked.
+            step = max(1, int(self.cfg.max_rows_per_render))
+            for s0 in range(0, sel.numel(), step):
+                sub = sel[s0:s0 + step]
+                rx = self.rx[cfg_ids[sub], rx_ids[sub]]
+                tx = self.src.unsqueeze(0).expand(sub.numel(), -1)
+                z = self.cond[cfg_ids[sub]]
+                H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z)
+                out[sub] = H[:, self.band[0]:self.band[1]]
         return out
 
     # ---------------------------------------------------------------- train step
@@ -265,10 +315,12 @@ class P32Trainer:
     def save_ckpt(self, it: int):
         path = self.out / f"ckpt_iter{it:07d}.pt"
         tmp = path.with_suffix(".pt.tmp")
+        meta_cfg = asdict(self.cfg)
+        meta_cfg["_manifest_sha"] = self.manifest_sha
         torch.save({"iter": it, "model": self.model.state_dict(),
                     "optimizer": self.opt.state_dict(),
                     "scheduler": self.sched.state_dict(),
-                    "cfg": asdict(self.cfg)}, tmp)
+                    "cfg": meta_cfg}, tmp)
         tmp.replace(path)
         (self.out / "scalars.json").write_text(json.dumps(self.scalars, indent=1))
         ckpts = sorted(self.out.glob("ckpt_iter*.pt"))
@@ -282,6 +334,16 @@ class P32Trainer:
                 st = torch.load(c, map_location=self.device)
             except Exception:
                 continue
+            prev = st.get("cfg", {})
+            for k in ("cond_source", "cond_dim", "n_pts_per_ray", "n_azi", "n_iters"):
+                if k in prev and prev[k] != getattr(self.cfg, k):
+                    raise RuntimeError(
+                        f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
+                        f"{getattr(self.cfg, k)!r} in this config. Point --output_dir at a "
+                        f"fresh directory for a different arm.")
+            if prev.get("configs_manifest") and self.manifest_sha and \
+                    prev.get("_manifest_sha", self.manifest_sha) != self.manifest_sha:
+                raise RuntimeError(f"refusing to resume {c.name}: manifest sha mismatch")
             self.model.load_state_dict(st["model"])
             self.opt.load_state_dict(st["optimizer"])
             self.sched.load_state_dict(st["scheduler"])
@@ -313,6 +375,8 @@ class P32Trainer:
         cfg = self.cfg
         (self.out / "train_meta.json").write_text(json.dumps({
             "cfg": asdict(cfg), "n_configs": len(self.configs),
+            "manifest_sha": self.manifest_sha,
+            "val_config_labels": [self.configs[int(i)].label for i in self.val_cfg_ids],
             "geometries": self.geom_dims, "band": list(self.band),
             "val_rx": list(VAL_RX),
             "config_labels": [c.label for c in self.configs],

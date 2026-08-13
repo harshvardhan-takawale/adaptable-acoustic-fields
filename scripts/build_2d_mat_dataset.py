@@ -30,6 +30,7 @@ from aaf.sim.analytical_modal_2d import modal_rir_2d
 from aaf.sim.ism_2d import simulate_room_2d
 from aaf.walls import WALLS_2D
 
+P3_2B_MANIFEST = "configs/sweeps_2d_mat/p3_2b_manifest.json"
 TRAIN_YAML = "configs/sweeps_2d_mat/p3_2_train.yaml"
 TEST_YAML = "configs/sweeps_2d_mat/p3_2_test_frozen.yaml"
 OUT_DIR = "data/track_c_2d"
@@ -71,6 +72,20 @@ def build_manifest(train_yaml=TRAIN_YAML, test_yaml=TEST_YAML):
     return dtr, out
 
 
+def build_manifest_2b(path=P3_2B_MANIFEST):
+    """P3-2b: read the FROZEN manifest rather than re-deriving configs.
+
+    The sampled set is frozen in git so the dataset, the trainer and the eval all agree on
+    exactly which rooms exist, independent of the sampler code. Returns the same
+    ``(common, [(split, cfg), ...])`` shape as ``build_manifest`` so the task loop is shared.
+    """
+    from aaf.data.mat_configs_cont import configs_from_rows
+    d = json.load(open(path))
+    common = yaml.safe_load(open(TRAIN_YAML))
+    cfgs = configs_from_rows(d["configs"])
+    return common, [(c.split, c) for c in cfgs]
+
+
 def write_h5(path: Path, cfg: MatConfig, ism: dict, analytical, meta_extra: dict):
     tmp = path.with_suffix(".h5.tmp")
     with h5py.File(tmp, "w") as f:
@@ -103,9 +118,16 @@ def main():
     ap.add_argument("--train-yaml", default=TRAIN_YAML)
     ap.add_argument("--test-yaml", default=TEST_YAML)
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--set", choices=("p3_2", "p3_2b"), default="p3_2",
+                    help="p3_2 = the original preset enumeration; p3_2b = the frozen "
+                         "continuous-m manifest")
+    ap.add_argument("--manifest-path", default=P3_2B_MANIFEST)
     a = ap.parse_args()
 
-    common, manifest = build_manifest(a.train_yaml, a.test_yaml)
+    if a.set == "p3_2b":
+        common, manifest = build_manifest_2b(a.manifest_path)
+    else:
+        common, manifest = build_manifest(a.train_yaml, a.test_yaml)
     if a.manifest or a.idx is None:
         counts = {}
         for split, _ in manifest:
@@ -154,6 +176,8 @@ def _build_one(i, split, cfg, common, out_dir, force):
         "alphas": [float(x) for x in cfg.alphas],
         "walls": list(WALLS_2D),
         "wall_edited": cfg.wall if cfg.wall else "none",
+        "edited_walls": list(getattr(cfg, "edited", ()) or ([cfg.wall] if cfg.wall else [])),
+        "kind": getattr(cfg, "kind", "preset"),
         "material": cfg.material if cfg.material else "M0",
         "is_baseline": bool(cfg.is_baseline),
         "split": split, "label": cfg.label,

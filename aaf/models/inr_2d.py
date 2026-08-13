@@ -247,9 +247,10 @@ class INR2D_AutoDecoder(nn.Module):
             raise ValueError(f"n_freq_bins must be > 1, got {n_freq_bins}")
         if latent_dim <= 0:
             raise ValueError(f"latent_dim must be > 0 in INR2D_AutoDecoder, got {latent_dim}")
-        if cond_source not in ("latent", "geom_alpha_fourier"):
+        if cond_source not in ("latent", "geom_alpha_fourier", "m_linear"):
             raise ValueError(
-                f"cond_source must be 'latent' or 'geom_alpha_fourier', got {cond_source!r}"
+                f"cond_source must be 'latent', 'geom_alpha_fourier' or 'm_linear', "
+                f"got {cond_source!r}"
             )
         if conditioning_type not in ("concat", "film", "film_lora"):
             raise ValueError(

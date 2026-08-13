@@ -111,6 +111,35 @@ def room_filename_2d_mat(L: float, W: float, alphas: Sequence[float]) -> str:
     return "L{:.2f}_W{:.2f}_aW{:.2f}_aE{:.2f}_aS{:.2f}_aN{:.2f}.h5".format(L, W, *a)
 
 
+PRESET_ALPHAS: Tuple[float, ...] = (0.05, 0.15, 0.30, 0.50, 0.70)
+ALPHA_QUANT_DP = 6
+
+
+def _alpha_token(a: float) -> str:
+    """2 dp for a canonical preset, 6 dp otherwise.
+
+    The two alphabets are disjoint as strings (2 vs 6 decimal digits), which is what makes
+    the v2 filename injective while leaving every P3-2 name byte-identical.
+    """
+    return "{:.2f}".format(a) if any(abs(a - p) < 1e-12 for p in PRESET_ALPHAS) \
+        else "{:.6f}".format(a)
+
+
+def room_filename_2d_mat_v2(L: float, W: float, alphas: Sequence[float]) -> str:
+    """Back-compatible superset of :func:`room_filename_2d_mat`.
+
+    Emits the IDENTICAL string when every alpha is a canonical preset -- so P3-2's 690 files
+    are reused by name -- and 6-dp tokens for continuously drawn values. P3-2's ``{:.2f}``
+    everywhere would collide under continuous sampling (0.462 and 0.464 both -> "0.46"),
+    silently merging two different rooms into one HDF5 file.
+    """
+    a = [float(x) for x in alphas]
+    if len(a) != 4:
+        raise ValueError(f"alphas must have 4 entries, got {len(a)}")
+    return "L{:.2f}_W{:.2f}_aW{}_aE{}_aS{}_aN{}.h5".format(
+        L, W, *[_alpha_token(x) for x in a])
+
+
 def make_config(L: float, W: float, wall=None, material=None, alpha=None) -> MatConfig:
     """Build one :class:`MatConfig`. ``wall=None`` -> baseline.
 
