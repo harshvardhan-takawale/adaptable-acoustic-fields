@@ -141,3 +141,9 @@ slurm-*.out
 /outputs/p3_1/arm_G/**
 /outputs/p3_1/arm_Gplus/**
 /outputs/p3_1/arm_Gplus_fast/**
+
+# Phase-3 P3-2 (2D material editing): keep reports/json + figures, drop the training run.
+!/outputs/p3_2/**/*.png
+!/outputs/p3_2/**/*.md
+!/outputs/p3_2/**/*.json
+/outputs/p3_2/model/**

@@ -124,6 +124,112 @@ def sabine_damping_2d(L: float, W: float, alpha: float, c: float = C_DEFAULT) ->
     return c * alpha * P / (4.0 * A)
 
 
+def _ln_reflection(alpha: float) -> float:
+    """ln R for the PRESSURE reflection coefficient R = sqrt(1 - alpha). ≤ 0."""
+    if not 0.0 <= alpha < 1.0:
+        raise ValueError(f"alpha must be in [0, 1), got {alpha}")
+    return 0.5 * np.log(1.0 - alpha)
+
+
+def modal_damping_2d(
+    L: float,
+    W: float,
+    alphas,
+    n_x: int,
+    n_y: int,
+    c: float = C_DEFAULT,
+    model: str = "ism_ray",
+) -> float:
+    """Per-mode damping rate γ (1/s) for PER-WALL absorptions — two competing laws.
+
+    ``alphas`` is a 4-sequence of energy absorption coefficients in ``aaf.walls.WALLS_2D``
+    order: (west, east, south, north) = (x=0, x=L, y=0, y=W).
+
+    ``model="ism_ray"`` — what pyroomacoustics ISM actually computes. The reflection
+    coefficient is real and angle-independent, so the x- and y-resonance conditions
+    separate and the damping is the ray's bounce rate against each wall pair::
+
+        γ = c · [ cosθ_x · κ_x  +  cosθ_y · κ_y ]
+        κ_x = (−ln R_west − ln R_east) / (2L),   κ_y = (−ln R_south − ln R_north) / (2W)
+        cosθ_x = (n_x/L) / √((n_x/L)² + (n_y/W)²)
+
+    A pure x-axial mode has cosθ_y = 0 EXACTLY, so the south/north walls contribute zero
+    damping: ISM contains no grazing-incidence absorption. Averaging over an isotropic 2D
+    direction distribution (⟨|cosθ|⟩ = 2/π) recovers the 2D Eyring rate, which is how this
+    expression was validated.
+
+    ``model="kuttruff"`` — the locally-reacting impedance-wall (wave) result, in which a
+    grazing wave still loses energy at its pressure antinode::
+
+        γ = (c/8) · [ (α_w + α_e)·ε_n / L  +  (α_s + α_n)·ε_m / W ],   ε = 1 if index 0 else 2
+
+    Reduces to ``sabine_damping_2d`` for uniform α and oblique modes. It predicts only a
+    ~2:1 wall selectivity and NO invariant mode family.
+
+    The two laws disagree by ~25× in selectivity; which one the ground truth obeys is the
+    subject of the P3-2 physics gate (D47/D48). Reported alongside every predicted matrix
+    so the chunk's claim is explicitly scoped to the simulator's law.
+
+    Returns the e-folding rate of pressure, in 1/s. The corresponding −3 dB modal
+    bandwidth is ``γ / π`` Hz (see ``damping_to_bandwidth_hz``).
+    """
+    a = [float(x) for x in alphas]
+    if len(a) != 4:
+        raise ValueError(f"alphas must have 4 entries (west, east, south, north), got {len(a)}")
+    if L <= 0 or W <= 0:
+        raise ValueError(f"L and W must be positive, got L={L}, W={W}")
+    if n_x < 0 or n_y < 0:
+        raise ValueError(f"mode indices must be non-negative, got ({n_x}, {n_y})")
+    if n_x == 0 and n_y == 0:
+        raise ValueError("the (0, 0) DC mode has no damping rate")
+    a_w, a_e, a_s, a_n = a
+
+    if model == "kuttruff":
+        eps_n = 1.0 if n_x == 0 else 2.0
+        eps_m = 1.0 if n_y == 0 else 2.0
+        return float((c / 8.0) * ((a_w + a_e) * eps_n / L + (a_s + a_n) * eps_m / W))
+
+    if model == "ism_ray":
+        kx = n_x / L
+        ky = n_y / W
+        k = float(np.hypot(kx, ky))
+        cos_x = kx / k
+        cos_y = ky / k
+        kappa_x = (-_ln_reflection(a_w) - _ln_reflection(a_e)) / (2.0 * L)
+        kappa_y = (-_ln_reflection(a_s) - _ln_reflection(a_n)) / (2.0 * W)
+        return float(c * (cos_x * kappa_x + cos_y * kappa_y))
+
+    raise ValueError(f"unknown model {model!r}; expected 'ism_ray' or 'kuttruff'")
+
+
+def damping_to_bandwidth_hz(gamma: float) -> float:
+    """−3 dB bandwidth (Hz) of a Lorentzian modal peak with damping rate ``gamma`` (1/s).
+
+    |H| ∝ 1/√((k_m−k)² + (γ/c)²) near resonance ⇒ half-power at |k_m−k| = γ/c ⇒ full
+    width 2γ in angular frequency ⇒ γ/π in Hz.
+    """
+    return float(gamma) / np.pi
+
+
+def bandwidth_hz_to_damping(bw_hz: float) -> float:
+    """Inverse of :func:`damping_to_bandwidth_hz`."""
+    return float(bw_hz) * np.pi
+
+
+def eyring_damping_2d(L: float, W: float, alpha: float, c: float = C_DEFAULT) -> float:
+    """Direction-averaged 2D Eyring damping, γ = c·P·(−ln(1−α)) / (2πA).
+
+    The isotropic average of ``modal_damping_2d(..., model='ism_ray')`` with uniform α
+    (⟨|cosθ|⟩ = 2/π). Unlike :func:`sabine_damping_2d` it accepts α = 0 and stays finite
+    as α → 1, so it is the right reference for the low-absorption (concrete) configs.
+    """
+    if not 0.0 <= alpha < 1.0:
+        raise ValueError(f"alpha must be in [0, 1), got {alpha}")
+    P = 2.0 * (L + W)
+    A = L * W
+    return float(c * P * (-np.log(1.0 - alpha)) / (2.0 * np.pi * A))
+
+
 def modal_rir_2d(cfg: dict) -> dict:
     """Synthesize H(f) and rir(t) by summing 2D rectangular-room eigenmodes.
 
