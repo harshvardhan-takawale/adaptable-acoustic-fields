@@ -79,3 +79,25 @@ This question closes in Phase 3 with a deliberate ISM+ray-tracing hybrid pass th
 (Q1 ray sampling, Q2 frequency grid, Q3 L sweep, Q4 latent dim, Q5 cluster partition, Q6 vendoring, Q7 pyroomacoustics 2D sanity, Q8 geometric attenuation, Q9 modal-degeneracy convention, Q10 HashGrid resize have been resolved; see `DECISIONS.md`.)
 
 (P2-1's first budget check failed at per-room wall 2034.7s; resolved in-chunk by vectorizing `modal_rir_3d` to a single complex matmul and lowering `MAX_ORDER_CAP` from 17 → 12. Re-run wall 23.6s/room — see DECISIONS.md D6 revised.)
+
+---
+
+### Q15 — Three latent bugs in shared evaluation code, deliberately isolated rather than fixed (P3-2)
+
+**Status: OPEN, deferred by explicit decision.** Found while building P3-2's measurement stack. All three sit in code behind already-published P2/P3-1 numbers, so P3-2 works around them in new modules and leaves the shared code untouched; reproducibility of published results wins over tidiness until a dedicated fix chunk can re-verify the affected numbers.
+
+1. **`aaf/eval/spatial_modes.py:21` `MARGIN_DEFAULT = 0.5` contradicts the datasets' `margin=0.3`** (`scripts/build_datasets.py:66,90`). `receiver_grid_xy`, `analytical_mode_shape` and `mode_shape_fit_error` therefore default to receiver coordinates that do not match `data/track_a`. Measured impact: `cond(Phi)` degrades 1.54 -> 3.02 and peak level picks up a **+0.66 dB** bias. This very plausibly explains the negative shape-fit SNRs flagged in `tasks/CHUNK_3_7_RESULTS.md:224-230` ((1,0) and (2,0) at L=4.25 reported -5.8 dB and -9.3 dB). The unit test at `tests/test_spatial_node_extraction.py:109` passes `margin=0.5` to *both* sides, so it cannot catch this. **P3-2 avoids it** by always reading `receiver_pos` from the HDF5 attrs and never reconstructing a grid.
+
+2. **`aaf/eval/spatial_modes.py:154` `pick_first_modes` keeps only `sorted(e.pairs)[0]`**, silently discarding the degenerate partner of any frequency-degenerate pair. On a near-square room that throws away half the modes and mislabels mode families. **P3-2 avoids it** with `modal_projection.enumerate_modes`, which expands `EigenFreq.pairs`.
+
+3. **`aaf/eval/modal_verifier.py:96-109` computes a -3 dB bandwidth and then discards it**, keeping only `q_factor`. The outward walk has **no distance cap** (on real 2D ground truth it strides across neighbouring modes and returns widths of 13-172 Hz), does no sub-bin interpolation (quantizing every width to 0.5 Hz), and **fabricates `bw = df` when the walk collapses**, turning an unresolvable peak into a confident number. **P3-2 avoids it** with `aaf/eval/modal_bandwidth.py`, which caps the walk, interpolates the peak and the crossings, and returns `nan` plus a flag rather than a fabricated width.
+
+**Owner**: a future maintenance chunk. **What resolving it requires**: fix (1)-(3) in place, then re-run the affected Phase-1/Phase-2 shape-fit and modal-placement numbers and note any changes in DECISIONS. **Do not** silently fix them alongside unrelated work — the point of deferring was that published numbers move.
+
+---
+
+### Q16 — Does wall-selective editing survive a wave-based (Kuttruff) absorption law? (P3-2)
+
+P3-2's ground truth is pyroomacoustics ISM, whose angle-independent reflection coefficient gives `gamma ~ cos(theta)` and therefore **no grazing-incidence absorption**: an axial mode is damped only by the wall pair it bounces between, and measured selectivity is ~29:1 (D48; `dAIC = 73` favouring the ray law over Kuttruff). A real locally-reacting wall follows Kuttruff, where every wall sits at a pressure antinode of every mode, giving only **~2:1** selectivity and **no invariant family**.
+
+So P3-2 can support *"the model learns the simulator's per-wall law"* and cannot, on its own evidence, support *"wall-selective editing works in real rooms"*. **Open question for the manager**: is the 2:1 regime the target worth pursuing (a materially harder learning problem, since the edit signal is ~15x weaker relative to the non-edited family), and if so should it be approached by (a) a wave-based / FEM 2D solver, (b) pyroomacoustics with `ray_tracing=True` and angle-dependent materials, or (c) measured RIRs? This decides whether P3-3 is "scale the same claim to 3D" or "re-establish the claim under realistic wall physics". Nothing in P3-2 needs to change to keep this option open — the Kuttruff law is already implemented and reported alongside every prediction.
