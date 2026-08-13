@@ -1,0 +1,966 @@
+{
+ "checkpoint": "outputs/p3_2/p3_2_main/ckpt_iter0040000.pt",
+ "iter": 40000,
+ "in_dist_val_lsd_db": 2.747694969177246,
+ "splits": {
+  "i_unseen_geom_seen_combo": {
+   "n_configs": 110,
+   "n_edited_configs": 100,
+   "fidelity": {
+    "mag_corr": 0.8630637889558619,
+    "band_lsd_db": 3.563235168023543,
+    "phase_corr_mw": 0.8555618026039817,
+    "rir_pearson": 0.8930951345448366,
+    "t20_rel_err": 0.35137918783998295
+   },
+   "edit": {
+    "E_BW_hz": 1.2151255336692266,
+    "edit_bw_pearson": 0.8960247571150542,
+    "edit_bw_slope": 1.0588484357222154,
+    "E_LVL_db": 1.1739040190619037,
+    "E_LNGAMMA": 0.34940241385047943,
+    "gt_effect_size_hz": 3.351147735415101,
+    "pred_effect_size_hz": 3.5538848531531895,
+    "n_cells": 866,
+    "n_cells_level": 1540,
+    "n_cells_gamma": 244,
+    "edit_gain": 1.0326827006350932
+   },
+   "by_family": {
+    "x_axial": {
+     "E_BW_hz": 0.8381928426089402,
+     "n": 280,
+     "E_LVL_db": 0.8688720059139867,
+     "gt_d_bw": 2.4773218791171967,
+     "pred_d_bw": 2.540903372980924
+    },
+    "y_axial": {
+     "E_BW_hz": 1.0883858474981785,
+     "n": 204,
+     "E_LVL_db": 0.9024049246110818,
+     "gt_d_bw": 2.4668062735485554,
+     "pred_d_bw": 2.953758765756478
+    },
+    "tangential": {
+     "E_BW_hz": 1.5590942495743942,
+     "n": 382,
+     "E_LVL_db": 1.3972506549239447,
+     "gt_d_bw": 3.286632186302606,
+     "pred_d_bw": 3.9037270077800312
+    }
+   },
+   "mode_shape_invariance": {
+    "gt": 0.987979107312753,
+    "pred": 0.9940745693677733,
+    "n": 100
+   },
+   "null_fidelity": {
+    "mag_corr": 0.857329398393631,
+    "band_lsd_db": 3.661429769992828,
+    "phase_corr_mw": 0.8506644552946091,
+    "rir_pearson": 0.8864685579893878,
+    "t20_rel_err": 0.36338835501874817
+   }
+  },
+  "ii_seen_geom_heldout_combo": {
+   "n_configs": 80,
+   "n_edited_configs": 80,
+   "fidelity": {
+    "mag_corr": 0.9612132497131824,
+    "band_lsd_db": 2.0983294546604156,
+    "phase_corr_mw": 0.9635319285094738,
+    "rir_pearson": 0.9687908795891114,
+    "t20_rel_err": 0.2283328652230563
+   },
+   "edit": {
+    "E_BW_hz": 5.471834821008086,
+    "edit_bw_pearson": 0.5434390350237183,
+    "edit_bw_slope": 0.04017347623005399,
+    "E_LVL_db": 1.8275565038137762,
+    "E_LNGAMMA": 0.5529507056277246,
+    "gt_effect_size_hz": 5.453532855054284,
+    "pred_effect_size_hz": 0.24609449571936098,
+    "n_cells": 1178,
+    "n_cells_level": 1178,
+    "n_cells_gamma": 507,
+    "edit_gain": 0.907105891407361
+   },
+   "by_family": {
+    "x_axial": {
+     "E_BW_hz": 2.8835067738187536,
+     "n": 290,
+     "E_LVL_db": 0.9844097909567066,
+     "gt_d_bw": 3.0224966157248105,
+     "pred_d_bw": 0.13898984190605682
+    },
+    "y_axial": {
+     "E_BW_hz": 6.639093187385872,
+     "n": 242,
+     "E_LVL_db": 2.4142592648833268,
+     "gt_d_bw": 6.50438655010056,
+     "pred_d_bw": -0.13470663728531101
+    },
+    "tangential": {
+     "E_BW_hz": 6.196507590391186,
+     "n": 646,
+     "E_LVL_db": 1.9862724148814526,
+     "gt_d_bw": 6.148716535821984,
+     "pred_d_bw": -0.047791054569202476
+    }
+   },
+   "mode_shape_invariance": {
+    "gt": 0.9797132941496827,
+    "pred": 0.9980184303232246,
+    "n": 80
+   },
+   "null_fidelity": {
+    "mag_corr": 0.9536634765565395,
+    "band_lsd_db": 1.903407010436058,
+    "phase_corr_mw": 0.9603109337389469,
+    "rir_pearson": 0.9634286574787894,
+    "t20_rel_err": 0.2096277315822089
+   }
+  },
+  "iii_unseen_geom_heldout_combo": {
+   "n_configs": 20,
+   "n_edited_configs": 20,
+   "fidelity": {
+    "mag_corr": 0.8778085798025131,
+    "band_lsd_db": 3.9230679631233216,
+    "phase_corr_mw": 0.8676977246999741,
+    "rir_pearson": 0.9046959874937865,
+    "t20_rel_err": 0.20989389052855567
+   },
+   "edit": {
+    "E_BW_hz": 5.001528551397146,
+    "edit_bw_pearson": 0.5156205248543699,
+    "edit_bw_slope": 0.12648525335349659,
+    "E_LVL_db": 1.8184086028641533,
+    "E_LNGAMMA": 0.47521321282444595,
+    "gt_effect_size_hz": 5.156979328174453,
+    "pred_effect_size_hz": 0.7293315471140281,
+    "n_cells": 184,
+    "n_cells_level": 308,
+    "n_cells_gamma": 57,
+    "edit_gain": 0.8617974553909808
+   },
+   "by_family": {
+    "x_axial": {
+     "E_BW_hz": 2.4506100832622546,
+     "n": 58,
+     "E_LVL_db": 0.951435218636125,
+     "gt_d_bw": 2.9225994966590783,
+     "pred_d_bw": 0.4719894133968232
+    },
+    "y_axial": {
+     "E_BW_hz": 6.240496835296731,
+     "n": 44,
+     "E_LVL_db": 2.5002330642767254,
+     "gt_d_bw": 6.243240855072529,
+     "pred_d_bw": 0.0027440197757991184
+    },
+    "tangential": {
+     "E_BW_hz": 6.141024486278147,
+     "n": 82,
+     "E_LVL_db": 1.9520095381981748,
+     "gt_d_bw": 6.153096214427123,
+     "pred_d_bw": 0.012071728148975653
+    }
+   },
+   "mode_shape_invariance": {
+    "gt": 0.9799023778960055,
+    "pred": 0.99799936993176,
+    "n": 20
+   },
+   "null_fidelity": {
+    "mag_corr": 0.8717828631401062,
+    "band_lsd_db": 3.3808899879455567,
+    "phase_corr_mw": 0.8664011865854263,
+    "rir_pearson": 0.9003283600592503,
+    "t20_rel_err": 0.20306317248234534
+   }
+  },
+  "iv_unseen_alpha": {
+   "n_configs": 40,
+   "n_edited_configs": 40,
+   "fidelity": {
+    "mag_corr": 0.8643475532531738,
+    "band_lsd_db": 5.227599823474884,
+    "phase_corr_mw": 0.8420434698462487,
+    "rir_pearson": 0.8857546613624256,
+    "t20_rel_err": 0.23410282243343766
+   },
+   "edit": {
+    "E_BW_hz": 2.2493314273618337,
+    "edit_bw_pearson": 0.2933451708822302,
+    "edit_bw_slope": 0.3305788024010653,
+    "E_LVL_db": 0.8378313455273354,
+    "E_LNGAMMA": 0.3908170156685642,
+    "gt_effect_size_hz": 1.2520866921629932,
+    "pred_effect_size_hz": 1.104534774105072,
+    "n_cells": 366,
+    "n_cells_level": 616,
+    "n_cells_gamma": 139,
+    "edit_gain": 0.6807290640268723
+   },
+   "by_family": {
+    "x_axial": {
+     "E_BW_hz": 1.7577079261939328,
+     "n": 114,
+     "E_LVL_db": 0.5557630547113824,
+     "gt_d_bw": 1.028989059562599,
+     "pred_d_bw": -0.7287188666313338
+    },
+    "y_axial": {
+     "E_BW_hz": 1.8014867754544392,
+     "n": 88,
+     "E_LVL_db": 0.7407155099987184,
+     "gt_d_bw": 1.1724549701218197,
+     "pred_d_bw": -0.6084560551493815
+    },
+    "tangential": {
+     "E_BW_hz": 2.831376601148366,
+     "n": 164,
+     "E_LVL_db": 0.9912796423784707,
+     "gt_d_bw": 1.4490838765852456,
+     "pred_d_bw": -1.382292724563121
+    }
+   },
+   "mode_shape_invariance": {
+    "gt": 0.9974955170710669,
+    "pred": 0.995494021885358,
+    "n": 40
+   },
+   "null_fidelity": {
+    "mag_corr": 0.8681746259331703,
+    "band_lsd_db": 3.558579134941101,
+    "phase_corr_mw": 0.8554378971457481,
+    "rir_pearson": 0.8941760819869197,
+    "t20_rel_err": 0.27799354343773724
+   }
+  }
+ },
+ "selectivity_matrix": {
+  "A030": {
+   "west": {
+    "x_axial": {
+     "gt_d_bw": 1.9189729508812525,
+     "pred_d_bw": -0.61347834781475,
+     "theory_d_bw": 1.8813144423845278,
+     "residual_d_bw": -2.5324512986960026,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 0.055790547226076175,
+     "pred_d_bw": -1.4009129296160536,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -1.4567034768421299,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 1.3344483680631354,
+     "pred_d_bw": -1.828861362465564,
+     "theory_d_bw": 1.3632619562217765,
+     "residual_d_bw": -3.1633097305286997,
+     "n": 41
+    }
+   },
+   "east": {
+    "x_axial": {
+     "gt_d_bw": 1.9487325252240495,
+     "pred_d_bw": -0.013605414532128376,
+     "theory_d_bw": 1.8813144423845278,
+     "residual_d_bw": -1.9623379397561778,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 0.12030580926161023,
+     "pred_d_bw": -1.0826599140369018,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -1.202965723298512,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 1.3862324497158427,
+     "pred_d_bw": -1.1521547163396806,
+     "theory_d_bw": 1.3632619562217765,
+     "residual_d_bw": -2.5383871660555233,
+     "n": 41
+    }
+   },
+   "south": {
+    "x_axial": {
+     "gt_d_bw": 0.06631576562799817,
+     "pred_d_bw": -1.125496309095014,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -1.1918120747230123,
+     "n": 28
+    },
+    "y_axial": {
+     "gt_d_bw": 2.2408891615461246,
+     "pred_d_bw": 0.30231563736441996,
+     "theory_d_bw": 2.2147679763157573,
+     "residual_d_bw": -1.9385735241817046,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 1.5152996545248876,
+     "pred_d_bw": -1.068715667164986,
+     "theory_d_bw": 1.537931261831217,
+     "residual_d_bw": -2.584015321689874,
+     "n": 41
+    }
+   },
+   "north": {
+    "x_axial": {
+     "gt_d_bw": 0.11730187662494933,
+     "pred_d_bw": -1.191950894044721,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -1.3092527706696704,
+     "n": 28
+    },
+    "y_axial": {
+     "gt_d_bw": 2.2728343624534677,
+     "pred_d_bw": -0.25256701430899076,
+     "theory_d_bw": 2.2147679763157573,
+     "residual_d_bw": -2.5254013767624586,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 1.5603550340371168,
+     "pred_d_bw": -1.4794391522822523,
+     "theory_d_bw": 1.537931261831217,
+     "residual_d_bw": -3.0397941863193694,
+     "n": 41
+    }
+   }
+  },
+  "M1": {
+   "west": {
+    "x_axial": {
+     "gt_d_bw": -1.0977980314476707,
+     "pred_d_bw": -0.5287028505086562,
+     "theory_d_bw": -1.0704917656390875,
+     "residual_d_bw": 0.5690951809390146,
+     "n": 25
+    },
+    "y_axial": {
+     "gt_d_bw": -0.03232912649336989,
+     "pred_d_bw": -0.019977759792714118,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": 0.012351366700655775,
+     "n": 21
+    },
+    "tangential": {
+     "gt_d_bw": -0.7573020068155498,
+     "pred_d_bw": -0.41847811109710203,
+     "theory_d_bw": -0.7541662102885909,
+     "residual_d_bw": 0.3388238957184478,
+     "n": 36
+    }
+   },
+   "east": {
+    "x_axial": {
+     "gt_d_bw": -1.1014148656256304,
+     "pred_d_bw": -0.5568946937081748,
+     "theory_d_bw": -1.0704917656390875,
+     "residual_d_bw": 0.5445201719174556,
+     "n": 25
+    },
+    "y_axial": {
+     "gt_d_bw": -0.06694568307641546,
+     "pred_d_bw": -0.10775795805301543,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -0.04081227497659996,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": -0.7815375841981801,
+     "pred_d_bw": -0.48523354176516587,
+     "theory_d_bw": -0.7604889654390996,
+     "residual_d_bw": 0.2963040424330142,
+     "n": 37
+    }
+   },
+   "south": {
+    "x_axial": {
+     "gt_d_bw": -0.037046942596694964,
+     "pred_d_bw": -0.04907028278614076,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -0.0120233401894458,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": -1.314363124449368,
+     "pred_d_bw": -0.5581230171104629,
+     "theory_d_bw": -1.278040656293284,
+     "residual_d_bw": 0.7562401073389052,
+     "n": 17
+    },
+    "tangential": {
+     "gt_d_bw": -0.8750270190266767,
+     "pred_d_bw": -0.5817055184507807,
+     "theory_d_bw": -0.8663023677594208,
+     "residual_d_bw": 0.293321500575896,
+     "n": 36
+    }
+   },
+   "north": {
+    "x_axial": {
+     "gt_d_bw": -0.06416097964383113,
+     "pred_d_bw": -0.0683022867437809,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -0.0041413070999497675,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": -1.3194821659502178,
+     "pred_d_bw": -0.521100231751817,
+     "theory_d_bw": -1.278040656293284,
+     "residual_d_bw": 0.7983819341984009,
+     "n": 17
+    },
+    "tangential": {
+     "gt_d_bw": -0.8887450100252386,
+     "pred_d_bw": -0.5364465642644718,
+     "theory_d_bw": -0.8663023677594208,
+     "residual_d_bw": 0.35229844576076685,
+     "n": 36
+    }
+   }
+  },
+  "M2": {
+   "west": {
+    "x_axial": {
+     "gt_d_bw": 5.182898666872017,
+     "pred_d_bw": 1.2965498093993153,
+     "theory_d_bw": 5.141631049313076,
+     "residual_d_bw": -3.8863488574727016,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 0.15258163482507084,
+     "pred_d_bw": -0.9910202002275897,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -1.1436018350526607,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 3.6242553561219424,
+     "pred_d_bw": -0.22789465646807544,
+     "theory_d_bw": 3.725793968589804,
+     "residual_d_bw": -3.852150012590018,
+     "n": 41
+    }
+   },
+   "east": {
+    "x_axial": {
+     "gt_d_bw": 5.385882385937504,
+     "pred_d_bw": 4.730143376485912,
+     "theory_d_bw": 5.141631049313076,
+     "residual_d_bw": -0.655739009451592,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 0.34339859052468746,
+     "pred_d_bw": 0.6577140229848606,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": 0.3143154324601731,
+     "n": 20
+    },
+    "tangential": {
+     "gt_d_bw": 3.8701880290724637,
+     "pred_d_bw": 3.7744739929884403,
+     "theory_d_bw": 3.734552186230733,
+     "residual_d_bw": -0.0957140360840234,
+     "n": 39
+    }
+   },
+   "south": {
+    "x_axial": {
+     "gt_d_bw": 0.17752616341330954,
+     "pred_d_bw": 0.1887629345961232,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": 0.01123677118281366,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 6.050565328208406,
+     "pred_d_bw": 6.977822094352674,
+     "theory_d_bw": 6.05295932327821,
+     "residual_d_bw": 0.9272567661442679,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 4.142306627527199,
+     "pred_d_bw": 4.597068330020251,
+     "theory_d_bw": 4.223510505725299,
+     "residual_d_bw": 0.4547617024930526,
+     "n": 40
+    }
+   },
+   "north": {
+    "x_axial": {
+     "gt_d_bw": 0.3253906816067194,
+     "pred_d_bw": 0.42710440404825445,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": 0.10171372244153504,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 6.2476309065894915,
+     "pred_d_bw": 6.867952419774955,
+     "theory_d_bw": 6.05295932327821,
+     "residual_d_bw": 0.6203215131854636,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 4.359389245305073,
+     "pred_d_bw": 4.675372801344366,
+     "theory_d_bw": 4.223510505725299,
+     "residual_d_bw": 0.31598355603929296,
+     "n": 40
+    }
+   }
+  },
+  "M3": {
+   "west": {
+    "x_axial": {
+     "gt_d_bw": 9.826925501482599,
+     "pred_d_bw": 10.155563389716534,
+     "theory_d_bw": 10.091380488176267,
+     "residual_d_bw": 0.3286378882339349,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 0.30525990756754157,
+     "pred_d_bw": 0.2954258051185646,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -0.009834102448976978,
+     "n": 21
+    },
+    "tangential": {
+     "gt_d_bw": 6.909514395777485,
+     "pred_d_bw": 7.846874103846884,
+     "theory_d_bw": 7.313711642683562,
+     "residual_d_bw": 0.9373597080693985,
+     "n": 40
+    }
+   },
+   "east": {
+    "x_axial": {
+     "gt_d_bw": 10.587382398645401,
+     "pred_d_bw": 10.543682694302206,
+     "theory_d_bw": 10.107549563022095,
+     "residual_d_bw": -0.04369970434319548,
+     "n": 27
+    },
+    "y_axial": {
+     "gt_d_bw": 0.6929390155873097,
+     "pred_d_bw": 1.1696098680504192,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": 0.4766708524631095,
+     "n": 20
+    },
+    "tangential": {
+     "gt_d_bw": 7.677658101060564,
+     "pred_d_bw": 9.714203395331838,
+     "theory_d_bw": 7.254112460265793,
+     "residual_d_bw": 2.0365452942712743,
+     "n": 40
+    }
+   },
+   "south": {
+    "x_axial": {
+     "gt_d_bw": 0.34310814898045866,
+     "pred_d_bw": 0.26798640585275524,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -0.07512174312770342,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 11.475365412637641,
+     "pred_d_bw": 12.561196929035924,
+     "theory_d_bw": 11.880026984591796,
+     "residual_d_bw": 1.085831516398283,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 7.912552188250469,
+     "pred_d_bw": 9.0513372117433,
+     "theory_d_bw": 8.29096584248687,
+     "residual_d_bw": 1.1387850234928312,
+     "n": 38
+    }
+   },
+   "north": {
+    "x_axial": {
+     "gt_d_bw": 0.6623003264461379,
+     "pred_d_bw": -0.35257098260566866,
+     "theory_d_bw": 0.0,
+     "residual_d_bw": -1.0148713090518067,
+     "n": 29
+    },
+    "y_axial": {
+     "gt_d_bw": 12.333900075319987,
+     "pred_d_bw": 0.9965082397791879,
+     "theory_d_bw": 11.880026984591796,
+     "residual_d_bw": -11.3373918355408,
+     "n": 22
+    },
+    "tangential": {
+     "gt_d_bw": 8.681937072732303,
+     "pred_d_bw": 0.2520381127660268,
+     "theory_d_bw": 8.249471315453654,
+     "residual_d_bw": -8.429898959966277,
+     "n": 41
+    }
+   }
+  }
+ },
+ "selectivity_index": {
+  "gt": 18.160677473461508,
+  "pred": 10.624948593252237,
+  "theory": 33.01558101951244,
+  "gt_per_material": {
+   "A030": 13.969048333508159,
+   "M1": 8.05509697912148,
+   "M2": 25.73378988184868,
+   "M3": 24.884774699367718
+  },
+  "pred_per_material": {
+   "A030": 0.2327450589092179,
+   "M1": 3.6080346551318514,
+   "M2": 15.38660453440124,
+   "M3": 23.272410124566637
+  },
+  "theory_per_material": {
+   "A030": 13.653608062334285,
+   "M1": 7.8284414064412395,
+   "M2": 37.31530124197096,
+   "M3": 73.26497336730326
+  },
+  "floor_hz": 0.15,
+  "source": "frozen test geometries only"
+ },
+ "controls": {
+  "C1_null_model": {
+   "definition": "model's BASELINE render scored against the EDITED ground truth",
+   "per_split": {
+    "i_unseen_geom_seen_combo": {
+     "model_band_lsd_db": 3.563235168023543,
+     "null_band_lsd_db": 3.661429769992828,
+     "edit_gain": 1.0326827006350932,
+     "E_BW_hz": 1.2151255336692266,
+     "null_E_BW_hz": 3.351147735415101
+    },
+    "ii_seen_geom_heldout_combo": {
+     "model_band_lsd_db": 2.0983294546604156,
+     "null_band_lsd_db": 1.903407010436058,
+     "edit_gain": 0.907105891407361,
+     "E_BW_hz": 5.471834821008086,
+     "null_E_BW_hz": 5.453532855054284
+    },
+    "iii_unseen_geom_heldout_combo": {
+     "model_band_lsd_db": 3.9230679631233216,
+     "null_band_lsd_db": 3.3808899879455567,
+     "edit_gain": 0.8617974553909808,
+     "E_BW_hz": 5.001528551397146,
+     "null_E_BW_hz": 5.156979328174453
+    },
+    "iv_unseen_alpha": {
+     "model_band_lsd_db": 5.227599823474884,
+     "null_band_lsd_db": 3.558579134941101,
+     "edit_gain": 0.6807290640268723,
+     "E_BW_hz": 2.2493314273618337,
+     "null_E_BW_hz": 1.2520866921629932
+    }
+   }
+  },
+  "C2_floor_hz": 0.04021490339257019,
+  "C2_detail": {
+   "gt_within_family_bw_std_hz": {
+    "x_axial": 0.04120470437578118,
+    "y_axial": 0.0392251024093592,
+    "tangential": 0.2720456970882672
+   },
+   "pred_within_family_bw_std_hz": {
+    "x_axial": 0.40754892394268777,
+    "y_axial": 0.44739014376855035,
+    "tangential": 1.0384695086164324
+   },
+   "note": "axial families only for the headline floor: ISM-ray damping is mode-independent within an axial family, so the spread is estimator noise; tangential modes genuinely differ and are reported separately",
+   "n_geometries": 50
+  },
+  "C3_conditioning_identity": true,
+  "C3_detail": {
+   "pass": true,
+   "cond_vector_identical": true,
+   "render_bitwise_identical": true,
+   "render_deterministic": true,
+   "geometry": [
+    3.1,
+    3.49
+   ]
+  },
+  "C4_wall_identity": {
+   "west_M2": {
+    "twin": "east_M2",
+    "n_geoms": 10,
+    "r_pred_vs_own_gt": 0.5340239093661505,
+    "r_pred_vs_twin_gt": 0.01871556217209768,
+    "wall_asymmetry": 0.5153083471940528,
+    "r_gt_own_vs_twin_gt": 0.4789371830474322,
+    "r_pred_own_vs_twin_pred": -0.047381786916045825
+   },
+   "north_M3": {
+    "twin": "south_M3",
+    "n_geoms": 10,
+    "r_pred_vs_own_gt": 0.2999375043474812,
+    "r_pred_vs_twin_gt": 0.0993462763171076,
+    "wall_asymmetry": 0.20059122803037358,
+    "r_gt_own_vs_twin_gt": 0.5705783077329817,
+    "r_pred_own_vs_twin_pred": 0.12538527937404778
+   },
+   "mean_wall_asymmetry": 0.3579497876122132
+  }
+ },
+ "heldout_combos": [
+  [
+   "west",
+   "M2"
+  ],
+  [
+   "north",
+   "M3"
+  ]
+ ],
+ "unseen_alpha": 0.3,
+ "heldout_by_combo": {
+  "ii_seen_geom_heldout_combo": {
+   "west_M2": {
+    "n_configs": 40,
+    "edit": {
+     "E_BW_hz": 3.297277220296709,
+     "edit_bw_pearson": 0.8177123880096695,
+     "edit_bw_slope": 0.16008528950202175,
+     "E_LVL_db": 0.7441156894644869,
+     "E_LNGAMMA": 0.46358009013876755,
+     "gt_effect_size_hz": 3.230900957983203,
+     "pred_effect_size_hz": 0.34758085537512673,
+     "n_cells": 589,
+     "n_cells_level": 589,
+     "n_cells_gamma": 276,
+     "edit_gain": 0.7598550855305183
+    },
+    "by_family": {
+     "x_axial": {
+      "E_BW_hz": 4.96462619616019,
+      "n": 145,
+      "E_LVL_db": 1.3354172921425975,
+      "gt_d_bw": 5.375688133575228,
+      "pred_d_bw": 0.41106193741503816
+     },
+     "y_axial": {
+      "E_BW_hz": 0.5787261397488643,
+      "n": 121,
+      "E_LVL_db": 0.19635201596176277,
+      "gt_d_bw": 0.11234505012277762,
+      "pred_d_bw": -0.46638108962608665
+     },
+     "tangential": {
+      "E_BW_hz": 3.567181490408425,
+      "n": 323,
+      "E_LVL_db": 0.6838700922679035,
+      "gt_d_bw": 3.4313525584842957,
+      "pred_d_bw": -0.1358289319241302
+     }
+    },
+    "fidelity": {
+     "mag_corr": 0.9707610353827476,
+     "band_lsd_db": 2.2458696126937867,
+     "phase_corr_mw": 0.9687154665589333,
+     "rir_pearson": 0.976648306893772,
+     "t20_rel_err": 0.1972285688361789
+    },
+    "mode_shape_invariance": {
+     "gt": 0.9894245503535768,
+     "pred": 0.9970710860092862
+    }
+   },
+   "north_M3": {
+    "n_configs": 40,
+    "edit": {
+     "E_BW_hz": 7.646392421719464,
+     "edit_bw_pearson": 0.6882575572374181,
+     "edit_bw_slope": 0.024949372413775612,
+     "E_LVL_db": 2.9109973181630653,
+     "E_LNGAMMA": 0.659731181276868,
+     "gt_effect_size_hz": 7.676164752125366,
+     "pred_effect_size_hz": 0.14460813606359518,
+     "n_cells": 589,
+     "n_cells_level": 589,
+     "n_cells_gamma": 231,
+     "edit_gain": 1.0766301506060711
+    },
+    "by_family": {
+     "x_axial": {
+      "E_BW_hz": 0.8023873514773174,
+      "n": 145,
+      "E_LVL_db": 0.6334022897708155,
+      "gt_d_bw": 0.6693050978743929,
+      "pred_d_bw": -0.13308225360292453
+     },
+     "y_axial": {
+      "E_BW_hz": 12.699460235022876,
+      "n": 121,
+      "E_LVL_db": 4.632166513804891,
+      "gt_d_bw": 12.896428050078343,
+      "pred_d_bw": 0.19696781505546462
+     },
+     "tangential": {
+      "E_BW_hz": 8.825833690373946,
+      "n": 323,
+      "E_LVL_db": 3.288674737495002,
+      "gt_d_bw": 8.866080513159673,
+      "pred_d_bw": 0.04024682278572525
+     }
+    },
+    "fidelity": {
+     "mag_corr": 0.9516654640436173,
+     "band_lsd_db": 1.9507892966270446,
+     "phase_corr_mw": 0.9583483904600143,
+     "rir_pearson": 0.9609334522844506,
+     "t20_rel_err": 0.25943716160993374
+    },
+    "mode_shape_invariance": {
+     "gt": 0.970002037945789,
+     "pred": 0.9989657746371629
+    }
+   }
+  },
+  "iii_unseen_geom_heldout_combo": {
+   "west_M2": {
+    "n_configs": 10,
+    "edit": {
+     "E_BW_hz": 3.215233779935409,
+     "edit_bw_pearson": 0.7481773886104442,
+     "edit_bw_slope": 0.42422767722357474,
+     "E_LVL_db": 0.7111136535738525,
+     "E_LNGAMMA": 0.4322399422080657,
+     "gt_effect_size_hz": 3.286655057370621,
+     "pred_effect_size_hz": 0.9507480702004771,
+     "n_cells": 92,
+     "n_cells_level": 154,
+     "n_cells_gamma": 32,
+     "edit_gain": 0.8012005612542121
+    },
+    "by_family": {
+     "x_axial": {
+      "E_BW_hz": 3.886348857472703,
+      "n": 29,
+      "E_LVL_db": 1.3252434568784737,
+      "gt_d_bw": 5.182898666872017,
+      "pred_d_bw": 1.2965498093993153
+     },
+     "y_axial": {
+      "E_BW_hz": 1.1436018350526604,
+      "n": 22,
+      "E_LVL_db": 0.40099445334591943,
+      "gt_d_bw": 0.15258163482507084,
+      "pred_d_bw": -0.9910202002275897
+     },
+     "tangential": {
+      "E_BW_hz": 3.8521500125900174,
+      "n": 41,
+      "E_LVL_db": 0.5568696683389903,
+      "gt_d_bw": 3.6242553561219424,
+      "pred_d_bw": -0.22789465646807544
+     }
+    },
+    "fidelity": {
+     "mag_corr": 0.865317952632904,
+     "band_lsd_db": 4.436349177360535,
+     "phase_corr_mw": 0.8540838897228241,
+     "rir_pearson": 0.8937991579629854,
+     "t20_rel_err": 0.21423324476959277
+    },
+    "mode_shape_invariance": {
+     "gt": 0.9893881673731141,
+     "pred": 0.9969806439850671
+    }
+   },
+   "north_M3": {
+    "n_configs": 10,
+    "edit": {
+     "E_BW_hz": 6.787823322858884,
+     "edit_bw_pearson": 0.5691108642819726,
+     "edit_bw_slope": 0.09122567847198743,
+     "E_LVL_db": 2.925703552154454,
+     "E_LNGAMMA": 0.5302189992134128,
+     "gt_effect_size_hz": 7.0273035989782855,
+     "pred_effect_size_hz": 0.5079150240275792,
+     "n_cells": 92,
+     "n_cells_level": 154,
+     "n_cells_gamma": 25,
+     "edit_gain": 0.9406378642646668
+    },
+    "by_family": {
+     "x_axial": {
+      "E_BW_hz": 1.0148713090518064,
+      "n": 29,
+      "E_LVL_db": 0.5776269803937766,
+      "gt_d_bw": 0.6623003264461379,
+      "pred_d_bw": -0.35257098260566866
+     },
+     "y_axial": {
+      "E_BW_hz": 11.3373918355408,
+      "n": 22,
+      "E_LVL_db": 4.599471675207531,
+      "gt_d_bw": 12.333900075319987,
+      "pred_d_bw": 0.9965082397791879
+     },
+     "tangential": {
+      "E_BW_hz": 8.429898959966279,
+      "n": 41,
+      "E_LVL_db": 3.347149408057358,
+      "gt_d_bw": 8.681937072732303,
+      "pred_d_bw": 0.2520381127660268
+     }
+    },
+    "fidelity": {
+     "mag_corr": 0.8902992069721222,
+     "band_lsd_db": 3.409786748886108,
+     "phase_corr_mw": 0.881311559677124,
+     "rir_pearson": 0.9155928170245877,
+     "t20_rel_err": 0.20555453628751855
+    },
+    "mode_shape_invariance": {
+     "gt": 0.9704165884188971,
+     "pred": 0.9990180958784528
+    }
+   }
+  }
+ },
+ "gap_i_iii": {
+  "E_BW_hz_i": 1.2151255336692266,
+  "E_BW_hz_iii": 5.001528551397146,
+  "gap_hz": 3.7864030177279195,
+  "gt_effect_size_hz_iii": 5.156979328174453,
+  "gap_pct_of_gt_effect": 73.42288531275321
+ },
+ "meta": {
+  "band_hz": [
+   0.0,
+   300.0
+  ],
+  "f_max_projection_hz": 200.0,
+  "theory_slope_ism_ray": 1.6607564051417665,
+  "with_decay": true,
+  "limit": null,
+  "n_configs_evaluated": 250,
+  "n_geometries": 50,
+  "runtime_s": 210.9,
+  "scoping": "the ~29:1 bandwidth selectivity is a property of the ISM simulator (angle-independent reflection, no grazing-incidence absorption); real locally-reacting walls follow Kuttruff (~2:1, no invariant family), so the claim is that the model learns the SIMULATOR's per-wall law"
+ }
+}

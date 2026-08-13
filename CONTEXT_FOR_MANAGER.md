@@ -2,9 +2,34 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk **P3-1 PAUSED (2026-08-12)** — geometry-conditioned editing in the modal band; 3-arm head-to-head, paused mid-flight by user decision to sidestep for now (will resume). Data-only report below; interpretation deferred to the manager. Prior: P2-4b COMPLETE (2026-07-06); P2-4 COMPLETE (2026-07-04).
+**Last updated**: Chunk **P3-2 COMPLETE (2026-08-13)** — 2D material-editable acoustic field. **Verdict: the split-(iii) claim (unseen geometry x NEVER-SEEN wall/material combination) does NOT hold at usable strength; the bracketed claim (unseen geometry x SEEN combination) holds cleanly.** Prior: P3-1 PAUSED (2026-08-12); P2-4b COMPLETE (2026-07-06).
 
-## Phase 3 — P3-1 (PAUSED, will resume): geometry-conditioned editing, modal band 0–300 Hz
+## Phase 3 — P3-2 (COMPLETE): 2D material editing, band 0-300 Hz
+
+**Read `tasks/CHUNK_P3_2_RESULTS.md` + `outputs/p3_2/SIM_VALIDATION.md`.** One 2D model conditioned on (L, W, alpha_west, alpha_east, alpha_south, alpha_north) via 64-D Fourier features -> FiLM, no latent table (the P3-1 Arm-G pattern). 690 simulated configs; 440 trained; frozen 10-geometry test set.
+
+**Physics premise established (blocking gate PASS).** Editing one wall broadens ITS OWN mode family ~29x more than the other (pooled CI [20, 39]; 49:1 on the spec room), block-diagonal on all 4 walls, strictly monotone M1<M0<M2<M3, bidirectional (concrete sharpens). max_order=60 verified converged; wall convention proven by image-lattice probe.
+
+**Zero-shot results** (paired edit deltas; in-dist val LSD 2.748 dB, PLATEAUED, model still over-damped):
+
+| split | n | E_BW (Hz) | slope | r | edit_gain |
+|---|---:|---:|---:|---:|---:|
+| (i) unseen geom x SEEN combo | 110 | **1.215** | **1.059** | **0.896** | **1.033** |
+| (ii) seen geom x held-out combo | 80 | 5.472 | 0.040 | 0.543 | 0.907 |
+| (iii) unseen geom x held-out combo | 20 | 5.002 | 0.126 | 0.516 | 0.862 |
+| (iv) unseen alpha=0.30 | 40 | 2.249 | 0.331 | 0.293 | 0.681 |
+
+- **Positive**: split (i) — a single conditioned model renders the correct material edit on rooms it never saw, at essentially correct magnitude (slope 1.06).
+- **Not achieved**: split (iii) — direction and WALL IDENTITY transfer (r 0.52; C4 asymmetry +0.515 / +0.201 against alpha_eff-matched twins, both positive and both rising with training), but only ~13% of the magnitude and edit_gain < 1.
+- **(ii) ~ (iii)** ⇒ the deficit is COMBINATION novelty, not geometry novelty.
+- **Most probable cause is the FIT, not the conditioning design**: the model plateaued at 2.748 dB while still over-damped, and blur inflates every bandwidth — the predicted selectivity index was still climbing (4.6 -> 10.6) when the loss stopped improving. Recommended next step: sharper recipe (n_pts_per_ray 32 -> 64, larger hash grid), then re-run the eval.
+- **SCOPING (D48, must be stated to collaborators)**: the ~29:1 selectivity is a property of the ISM simulator (angle-independent reflection, no grazing-incidence absorption; dAIC=73 vs Kuttruff). Real locally-reacting walls give ~2:1 with no invariant family. The supportable claim is *"the model learns the simulator's per-wall law"*. See Q16 for the resulting strategic choice.
+
+Decisions **D44-D50**; open questions **Q15** (three deferred shared-eval bugs) and **Q16** (ray-vs-wave: is P3-3 "scale to 3D" or "re-establish under realistic wall physics?").
+
+---
+
+**Prior: ## Phase 3 — P3-1 (PAUSED, will resume): geometry-conditioned editing, modal band 0–300 Hz
 
 **STATUS (2026-08-12): paused, not concluded.** Training since advanced past the last eval — **Arm G reached iter 60,000 / 0.59 dB** (evaluated at 28K/1.14 dB) and **Arm G+ reached iter 16,000 / 1.61 dB** (evaluated at 11K/2.02 dB); an experimental `arm_Gplus_fast` (native-NCCL hedge) also exists. **The head-to-head evals were NOT refreshed on these newer checkpoints**, and the two decisive experiments — **matched-convergence** and **disentanglement** — remain **NOT run**. The central P3-1 question (does eigenstructure conditioning win at matched convergence) is therefore still **open**. On resume, re-eval the arms at their now-converged/matched checkpoints before drawing any conclusion. Repo maintenance: the working copy was consolidated back to `/fs/nexus-projects/...` (its canonical home) and the tree cleaned of stale artifacts (see DECISIONS **D44**); nothing about the P3-1 science changed.
 
