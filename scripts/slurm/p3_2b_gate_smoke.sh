@@ -24,7 +24,7 @@ python scripts/p3_2b_dataset_gate.py
 echo "=== 3. SMOKE per arm (300 iters, peak GPU memory) ==="
 for A in A B C D; do
   echo "--- arm $A"
-  timeout 1200 python -m aaf.train.multi_room_2d_mat \
+  timeout 1800 python -u -m aaf.train.multi_room_2d_mat \
     --config configs/sweep_2d_mat/P3_2b_${A}_smoke.yaml \
-    --output_dir outputs/p3_2b/smoke_${A} 2>&1 | tail -4
+    --output_dir outputs/p3_2b/smoke_${A} 2>&1 | tail -25
 done

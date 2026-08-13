@@ -20,9 +20,9 @@ n_pts_per_ray: 64
 
 # --- optimization ---
 n_iters: 300
-batch_size: 16
-rx_per_config: 4             # 4 configs x 4 receivers per micro-step
-grad_accum_steps: 1
+batch_size: 8
+rx_per_config: 4
+grad_accum_steps: 2
 lr_network: 2.0e-4
 
 # --- validation on HELD-OUT receivers of training configs ---

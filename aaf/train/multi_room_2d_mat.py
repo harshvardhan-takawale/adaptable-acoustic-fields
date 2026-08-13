@@ -74,7 +74,8 @@ class P32TrainCfg:
     weights: Tuple[float, float, float, float] = (1.0, 1.0, 1.0, 0.1)
     n_azi: int = 64
     n_pts_per_ray: int = 64
-    max_rows_per_render: int = 8          # OOM guard, see _render
+    max_rows_per_render: int = 8          # caps rows per renderer call in the no_grad
+                                          # validation path; see the note in _render
     near: float = 1e-3
     fs: int = 4096
     n_time_samples: int = 8192
@@ -248,10 +249,13 @@ class P32Trainer:
             L, W = self.geom_dims[int(gid)]
             room_min = torch.zeros(2, device=self.device)
             room_max = torch.tensor([L, W], device=self.device, dtype=torch.float32)
-            # Sub-batch: at n_pts_per_ray=64 one row's activation is ~134 MB, so a group
-            # that happens to collect several rows can reach ~21 GB on a 24 GB card -- a
-            # random crash hours into a run. Rows are independent, so this is numerically
-            # identical, just chunked.
+            # Chunk the rows per renderer call. NOTE this bounds peak memory only under
+            # no_grad (validation): during training every sub-batch feeds the SAME backward
+            # graph, so their activations all stay alive until .backward() and chunking the
+            # forward pass buys nothing. Training memory is controlled by rows-per-backward,
+            # i.e. batch_size / grad_accum_steps -- at n_pts_per_ray=64 a row's renderer
+            # tensor is ~134 MB, so 16 rows per backward OOMs a 24 GB card (measured) while
+            # 8 rows reproduces P3-2's proven per-tensor footprint.
             step = max(1, int(self.cfg.max_rows_per_render))
             for s0 in range(0, sel.numel(), step):
                 sub = sel[s0:s0 + step]
