@@ -10478,7 +10478,7 @@
   "f_max_projection_hz": 200.0,
   "n_points": 20,
   "rx_chunk": 4,
-  "runtime_s": 258.5,
+  "runtime_s": 258.9,
   "a_theory_note": "kappa-scaled: a = kappa*c/(4 pi D) with D = L for west/east and D = W for south/north; the raw Lorentzian slope is reported alongside for transparency only"
  }
 }
