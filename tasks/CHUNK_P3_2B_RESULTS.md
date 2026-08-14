@@ -2,18 +2,18 @@
 
 **S2 PASSES, and the cause is the training distribution — not the fit, and not (mainly) the coordinate.** On unseen geometry with a **never-seen (wall, absorption) combination**, arms B, C and D clear all four frozen acceptance thresholds (slope ≥ 0.80, Pearson ≥ 0.80, edit_gain > 1, |ρ−1| ≤ 0.25); arm A fails. The attribution is unambiguous because **A → B changes only the training distribution** — identical encoder, identical renderer, identical everything else — and the S2 edit slope jumps **0.153 → 1.147**. P3-2's failure was caused by sampling α at 3 preset values on single walls, giving 11 distinct α-vectors in a 4-D space; sampling continuously in m = −ln(1−α) fixes it.
 
-| arm | training data | encoder | in-dist LSD | S2 slope | S2 r | edit_gain | ρ (κ-scaled) | **S2** |
+| arm | training data | encoder | in-dist LSD | S2 slope | S2 r | edit_gain | ρ (slab-local, κ-scaled) | **S2** |
 |---|---|---|---:|---:|---:|---:|---:|:---:|
-| **A** | P3-2's 440 presets | α-Fourier | **0.931** | 0.153 | 0.499 | 0.868 | 0.887 | **FAIL** |
-| **B** | 960 continuous | α-Fourier | 0.998 | 1.147 | 0.871 | 1.084 | 1.045 | **PASS** |
-| **C** | 960 continuous | **m_linear** | 1.013 | **0.959** | 0.868 | 1.087 | **0.971** | **PASS** |
+| **A** | P3-2's 440 presets | α-Fourier | **0.931** | 0.153 | 0.499 | 0.868 | **0.509** | **FAIL** |
+| **B** | 960 continuous | α-Fourier | 0.998 | 1.147 | 0.871 | 1.084 | 1.039 | **PASS** |
+| **C** | 960 continuous | **m_linear** | 1.013 | **0.959** | 0.868 | 1.087 | **0.947** | **PASS** |
 | **D** | single-wall only | m_linear | 1.464 | 1.038 | 0.871 | 1.082 | 1.031 | **PASS** |
 
 ## 1. What the ablation settles
 
 **(a) Continuous sampling is the fix (A → B).** Same 64-d α-Fourier encoder, same `n_pts_per_ray=64` renderer; only the data differs. Slope 0.153 → 1.147, Pearson 0.499 → 0.871, edit_gain 0.868 → 1.084.
 
-**(b) The m-coordinate is not necessary, but it is materially more accurate (B → C).** Both pass; C lands closer to unity on both calibration measures — slope **0.959 vs 1.147** and ρ **0.971 vs 1.045**. B systematically **overshoots** the edit by ~15%. The clearest number in the chunk: **outside the held-out slab, arm C's fitted slope is ρ = 0.99991 of κ-scaled theory** — it recovers the physical law to within 0.01%. So the coordinate buys calibration, not capability.
+**(b) The m-coordinate is not necessary, but it is materially more accurate (B → C).** Both pass; C lands closer to unity on both calibration measures — slope **0.959 vs 1.147** and ρ (slab-local) **0.947 vs 1.039**. B systematically **overshoots** the edit by ~15%. The clearest number in the chunk: **outside the held-out slab, arm C's fitted slope is ρ = 0.99991 of κ-scaled theory** — it recovers the physical law to within 0.01%. So the coordinate buys calibration, not capability.
 
 **(c) Multi-wall training is not necessary (D).** D trains on single-wall configs only and still passes; it does cost in-distribution fit (1.464 vs 1.013).
 
@@ -49,3 +49,33 @@ The block-diagonal structure is **genuine physics**: an axial family's damping i
 ## 6. Recommendation
 
 Adopt **arm C** (continuous sampling + m-coordinate) as the design: it is the best-calibrated of the passing arms and the only one that recovers the theoretical slope essentially exactly. Note for planning that **the sampling distribution, not the conditioning parameterization, was the binding constraint** — the same lesson generalizes to the 3D pipeline, where P3-1's geometry conditioning was trained on a similarly sparse grid.
+
+---
+
+## Correction (2026-08-14, P3-2c audit A1)
+
+**What was wrong.** The arm table above and the §1(b) narrative originally printed
+`slope_fit.aggregate.own_family.**all**.rho_median` — a diagnostic that pools slab and non-slab
+cells — while the acceptance gate correctly used
+`slope_fit.aggregate.own_family.**slab_local**.rho_median`. The two differ:
+
+| arm | printed (rho_all) | used by the gate (rho_slab_local) |
+|---|---:|---:|
+| A | 0.887 | **0.509** |
+| B | 1.045 | 1.039 |
+| C | 0.971 | 0.947 |
+| D | 1.031 | 1.031 |
+
+**Why it mattered.** Arm A's row showed ρ = 0.887 — *inside* the ±0.25 acceptance band — directly
+beside a **FAIL** verdict, so the flagship results doc contradicted its own gate. A reader checking
+the ρ criterion against that row would have concluded arm A passed it.
+
+**What did NOT change.** No verdict moves. The gate always consumed `rho_slab_local` (recorded in
+each `summary.json` as `verdict.rho_used`), and `outputs/p3_2b/EVAL.md`, `ablation.json` and all five
+figures were already correct. Only this document was affected.
+
+**Guard.** `slope_fit` now emits `rho_published` (aliased to `slab_local`) plus a
+`publication_policy` block naming `all` as diagnostic-only, and `tests/test_p3_2c_publication.py`
+asserts (a) `rho_published == verdict.rho_used` for every summary on disk and (b) every ρ printed in
+a human-facing document matches `slab_local` to 3 dp. The `all` aggregate is no longer published.
+

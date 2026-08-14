@@ -146,7 +146,19 @@ def fit_cell(points: Sequence[dict], L: float, W: float, wall: str, family: str,
     }
     if not valid_pts:
         out["reject_reason"] = "no paired-valid modes"
-        return out
+        # PUBLICATION POLICY (P3-2c audit A1). The gate consumes slab_local; the `all`
+    # aggregate pools slab and non-slab cells and is DIAGNOSTIC ONLY. Publishing `all`
+    # once put rho = 0.887 beside a FAIL verdict whose gate had used 0.509, so the
+    # published value is now named explicitly and asserted by tests.
+    _own = (out.get("aggregate") or {}).get("own_family") or {}
+    out["rho_published"] = (_own.get("slab_local") or {}).get("rho_median")
+    out["publication_policy"] = {
+        "gate_source": "aggregate.own_family.slab_local.rho_median",
+        "diagnostic_only": ["aggregate.own_family.all"],
+        "note": "'all' pools slab and non-slab cells; it is not the gated number and "
+                "must never appear in a human-facing table",
+    }
+    return out
 
     x = np.array([p["d_m"] for p in valid_pts], dtype=float)
     span = float(x.max() - x.min())

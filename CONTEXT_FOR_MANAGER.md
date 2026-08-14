@@ -10,17 +10,17 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 Four arms, identical backbone/renderer (n_pts_per_ray=64) and identical eval; only the training
 distribution and the material encoder vary.
 
-| arm | data | encoder | in-dist LSD | S2 slope | S2 r | edit_gain | rho | S2 |
+| arm | data | encoder | in-dist LSD | S2 slope | S2 r | edit_gain | rho (slab-local) | S2 |
 |---|---|---|---:|---:|---:|---:|---:|:---:|
-| A | P3-2's 440 presets | alpha-Fourier | **0.931** | 0.153 | 0.499 | 0.868 | 0.887 | **FAIL** |
-| B | 960 continuous | alpha-Fourier | 0.998 | 1.147 | 0.871 | 1.084 | 1.045 | **PASS** |
-| C | 960 continuous | **m_linear** | 1.013 | **0.959** | 0.868 | 1.087 | **0.971** | **PASS** |
+| A | P3-2's 440 presets | alpha-Fourier | **0.931** | 0.153 | 0.499 | 0.868 | **0.509** | **FAIL** |
+| B | 960 continuous | alpha-Fourier | 0.998 | 1.147 | 0.871 | 1.084 | 1.039 | **PASS** |
+| C | 960 continuous | **m_linear** | 1.013 | **0.959** | 0.868 | 1.087 | **0.947** | **PASS** |
 | D | single-wall only | m_linear | 1.464 | 1.038 | 0.871 | 1.082 | 1.031 | **PASS** |
 
 - **Attribution is unambiguous**: A -> B changes ONLY the training data (same encoder, same
   renderer) and the S2 slope goes 0.153 -> 1.147. Continuous sampling in m = -ln(1-alpha) is the fix.
 - **The m-coordinate is not necessary but is materially better calibrated**: C's slope 0.959 vs B's
-  1.147 (B overshoots ~15%); outside the held-out slab **C recovers the theoretical slope to
+  1.147 (B overshoots ~15%; rho slab-local 0.947 vs 1.039); outside the held-out slab **C recovers the theoretical slope to
   rho = 0.99991**. Recommend arm C as the design.
 - **Multi-wall training is not necessary** (D passes on single-wall configs alone).
 - **Sharpest evidence** — rho inside vs outside the held-out slab: A 1.060 -> **0.509** (learns the
