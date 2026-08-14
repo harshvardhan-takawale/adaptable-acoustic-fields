@@ -1,0 +1,860 @@
+{
+ "schema": "p3_2b.ablation/1",
+ "synthetic": false,
+ "watermark": null,
+ "eval_root": "outputs/p3_2b/eval",
+ "arms_expected": [
+  "p3_2b_A_preset_fourier",
+  "p3_2b_B_cont_fourier",
+  "p3_2b_C_cont_mlinear",
+  "p3_2b_D_single_mlinear"
+ ],
+ "arms_evaluated": [
+  "p3_2b_A_preset_fourier",
+  "p3_2b_B_cont_fourier",
+  "p3_2b_C_cont_mlinear",
+  "p3_2b_D_single_mlinear"
+ ],
+ "arms_missing": [],
+ "kappa": 1.6607564051417665,
+ "thresholds": {
+  "spec": "p3_2b.accept/1",
+  "split": "S2_unseen_geom_slab",
+  "edit_bw_slope_min": 0.8,
+  "edit_bw_pearson_min": 0.8,
+  "edit_gain_min_exclusive": 1.0,
+  "rho_abs_dev_max": 0.25,
+  "rho_source": "slope_fit.aggregate.own_family.slab_local.rho_median",
+  "blocker_min_n_cells": 40,
+  "blocker_max_frac_modes_dropped": 0.5
+ },
+ "spec_sha": "a8479c5e1dcc3ab5b2a505809e0f9d9f7dd4590f009f3549c9070e860a33caa1",
+ "gate_split": "S2_unseen_geom_slab",
+ "splits": [
+  "S1_unseen_geom_nonslab_1wall",
+  "S2_unseen_geom_slab",
+  "S3_seen_geom_slab",
+  "S4_unseen_geom_alpha030",
+  "S5_unseen_geom_2wall"
+ ],
+ "rows": [
+  {
+   "arm": "p3_2_main",
+   "letter": "P3-2",
+   "role": "P3-2 baseline (preset configs, geom_alpha conditioning) -- the failure this chunk is diagnosing",
+   "present": true,
+   "is_baseline": true,
+   "comparability": "APPROXIMATE. P3-2 held out (wall, preset-material) pairs; P3-2b holds out an m-slab. Splits are matched by role, not by construction, and P3-2 ran no slope fit, so rho is unavailable.",
+   "summary_path": "outputs/p3_2/eval/summary.json",
+   "checkpoint": "outputs/p3_2/p3_2_main/ckpt_iter0060000.pt",
+   "iter": 60000,
+   "total_iters": null,
+   "mid_training": false,
+   "cond_source": "geom_alpha",
+   "cond_dim": null,
+   "in_dist_val_lsd_db": 2.686931848526001,
+   "kappa": 1.6607564051417665,
+   "rho_all": NaN,
+   "rho_non_slab": NaN,
+   "rho_slab_local": NaN,
+   "rho_ci95_slab_local": null,
+   "a_fit_slab_local": NaN,
+   "a_theory_slab_local": NaN,
+   "rho_vs_raw_theory_median": NaN,
+   "splits": {
+    "S1_unseen_geom_nonslab_1wall": {
+     "present": true,
+     "n_configs": 110,
+     "n_cells": null,
+     "frac_modes_dropped": NaN,
+     "edit_bw_slope": 1.0867948409891541,
+     "edit_bw_pearson": 0.898651612633411,
+     "edit_gain": 1.0347295459053978,
+     "E_BW_hz": 1.205196533300758,
+     "E_LVL_db": 1.1622792110904636,
+     "gt_effect_size_hz": 3.3475007976170894,
+     "pred_effect_size_hz": 3.658322036535171,
+     "band_lsd_db": 3.5534059784629126,
+     "p3_2_source_split": "i_unseen_geom_seen_combo"
+    },
+    "S2_unseen_geom_slab": {
+     "present": true,
+     "n_configs": 20,
+     "n_cells": null,
+     "frac_modes_dropped": NaN,
+     "edit_bw_slope": 0.1331085896273166,
+     "edit_bw_pearson": 0.5325170641500864,
+     "edit_gain": 0.8736470694634979,
+     "E_BW_hz": 4.982257162989248,
+     "E_LVL_db": 1.8095852103262942,
+     "gt_effect_size_hz": 5.159276145311531,
+     "pred_effect_size_hz": 0.7752591865365402,
+     "band_lsd_db": 3.8770814061164858,
+     "p3_2_source_split": "iii_unseen_geom_heldout_combo"
+    },
+    "S3_seen_geom_slab": {
+     "present": true,
+     "n_configs": 80,
+     "n_cells": null,
+     "frac_modes_dropped": NaN,
+     "edit_bw_slope": 0.04389382588528892,
+     "edit_bw_pearson": 0.5540223623232596,
+     "edit_gain": 0.9400742094242781,
+     "E_BW_hz": 5.45034030012764,
+     "E_LVL_db": 1.80860594405291,
+     "gt_effect_size_hz": 5.453532855054284,
+     "pred_effect_size_hz": 0.26223107866215906,
+     "band_lsd_db": 2.014018902182579,
+     "p3_2_source_split": "ii_seen_geom_heldout_combo"
+    },
+    "S4_unseen_geom_alpha030": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": null,
+     "frac_modes_dropped": NaN,
+     "edit_bw_slope": 0.37853704162846596,
+     "edit_bw_pearson": 0.32265723425465836,
+     "edit_gain": 0.6914337575160966,
+     "E_BW_hz": 2.254355316646192,
+     "E_LVL_db": 0.8271321147464411,
+     "gt_effect_size_hz": 1.2544627819759788,
+     "pred_effect_size_hz": 1.1257788330793241,
+     "band_lsd_db": 5.1348710536956785,
+     "p3_2_source_split": "iv_unseen_alpha"
+    },
+    "S5_unseen_geom_2wall": {
+     "present": false,
+     "p3_2_source_split": null
+    }
+   },
+   "s2_edit_bw_slope": 0.1331085896273166,
+   "s2_edit_bw_pearson": 0.5325170641500864,
+   "s2_edit_gain": 0.8736470694634979,
+   "verdict": {
+    "passed": null,
+    "criteria": [],
+    "blockers": [],
+    "one_line": null,
+    "spec_sha": null,
+    "criteria_failed": []
+   }
+  },
+  {
+   "arm": "p3_2b_A_preset_fourier",
+   "letter": "A",
+   "role": "P3-2 preset configs, geom_alpha_fourier -- isolates the renderer/eval change alone",
+   "present": true,
+   "summary_path": "outputs/p3_2b/eval/p3_2b_A_preset_fourier/summary.json",
+   "checkpoint": "outputs/p3_2/p3_2b_A_preset_fourier/ckpt_iter0060000.pt",
+   "iter": 60000,
+   "total_iters": 60000,
+   "mid_training": false,
+   "cond_source": "geom_alpha_fourier",
+   "cond_dim": 64,
+   "in_dist_val_lsd_db": 0.9308053851127625,
+   "n_train_configs": 440,
+   "manifest_sha": "ecf0ee6e620dc56eff508a5c8c0334cdb41f21b88b6359317e5b8a43e690da04",
+   "kappa": 1.6607564051417665,
+   "rho_vs_raw_theory_median": 1.4732424068981955,
+   "splits": {
+    "S1_unseen_geom_nonslab_1wall": {
+     "present": true,
+     "n_configs": 100,
+     "n_cells": 835,
+     "frac_modes_dropped": 0.45779220779220775,
+     "edit_bw_slope": 1.0765266682541759,
+     "edit_bw_pearson": 0.883756723419198,
+     "edit_gain": 1.0500937944834559,
+     "E_BW_hz": 1.314048905075116,
+     "E_LVL_db": 1.1691877541094078,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.942527114152908
+    },
+    "S2_unseen_geom_slab": {
+     "present": true,
+     "n_configs": 20,
+     "n_cells": 178,
+     "frac_modes_dropped": 0.42207792207792205,
+     "edit_bw_slope": 0.15295734064520436,
+     "edit_bw_pearson": 0.4988401061970739,
+     "edit_gain": 0.8679548012960507,
+     "E_BW_hz": 4.964157232477777,
+     "E_LVL_db": 1.7764334088689813,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 3.2495548486709596
+    },
+    "S3_seen_geom_slab": {
+     "present": true,
+     "n_configs": 80,
+     "n_cells": 1178,
+     "frac_modes_dropped": 0.0,
+     "edit_bw_slope": 0.04239963647034497,
+     "edit_bw_pearson": 0.5708338888819687,
+     "edit_gain": 0.9458674452764002,
+     "E_BW_hz": 5.475856281228169,
+     "E_LVL_db": 1.831738713467686,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 1.8419304460287094
+    },
+    "S4_unseen_geom_alpha030": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 356,
+     "frac_modes_dropped": 0.42207792207792205,
+     "edit_bw_slope": 0.34727212870409213,
+     "edit_bw_pearson": 0.31443008028782976,
+     "edit_gain": 0.6583477484182498,
+     "E_BW_hz": 2.2188064851033205,
+     "E_LVL_db": 0.9688026008515609,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 4.498738986253739
+    },
+    "S5_unseen_geom_2wall": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 344,
+     "frac_modes_dropped": 0.4415584415584416,
+     "edit_bw_slope": 0.9386095334607351,
+     "edit_bw_pearson": 0.6594769880302995,
+     "edit_gain": 1.0114676576488442,
+     "E_BW_hz": 4.074645399409149,
+     "E_LVL_db": 1.7863852295949325,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.9687809109687806
+    }
+   },
+   "verdict": {
+    "passed": false,
+    "criteria": [
+     {
+      "name": "edit_bw_slope",
+      "value": 0.15295734064520436,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": false,
+      "note": "predicted delta-BW regressed on GT delta-BW, pooled over S2 modes"
+     },
+     {
+      "name": "edit_bw_pearson",
+      "value": 0.4988401061970739,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": false,
+      "note": "association between predicted and GT delta-BW on S2"
+     },
+     {
+      "name": "edit_gain",
+      "value": 0.8679548012960507,
+      "op": ">",
+      "threshold": 1.0,
+      "passed": false,
+      "note": "LSD(model baseline render vs edited GT) / LSD(model edited render vs edited GT)"
+     },
+     {
+      "name": "abs_rho_minus_1",
+      "value": 0.490693640451037,
+      "op": "<=",
+      "threshold": 0.25,
+      "passed": false,
+      "note": "|rho - 1| with rho = a_fit / a_theory (kappa-scaled) from slope_fit.aggregate.own_family.slab_local.rho_median"
+     }
+    ],
+    "criteria_failed": [
+     "edit_bw_slope",
+     "edit_bw_pearson",
+     "edit_gain",
+     "abs_rho_minus_1"
+    ],
+    "blockers": [],
+    "one_line": "P3-2b p3_2b_A_preset_fourier iter 60000 S2_unseen_geom_slab: FAIL | edit_bw_slope=0.153>=0.80 FAIL; edit_bw_pearson=0.499>=0.80 FAIL; edit_gain=0.868>1.00 FAIL; abs_rho_minus_1=0.491<=0.25 FAIL | blockers: none | thr a8479c5e1dcc",
+    "spec_sha": "a8479c5e1dcc3ab5b2a505809e0f9d9f7dd4590f009f3549c9070e860a33caa1",
+    "spec": "p3_2b.accept/1",
+    "mid_training": false
+   },
+   "rho_all": 0.8870912087630549,
+   "rho_ci95_all": [
+    0.7910215945001212,
+    1.1019648907841408
+   ],
+   "a_fit_all": 9.838940176957026,
+   "a_theory_all": 11.165410572080729,
+   "n_cells_slope_all": 32,
+   "rho_non_slab": 1.0601943299452525,
+   "rho_ci95_non_slab": [
+    0.9840959051958489,
+    1.3749751459453177
+   ],
+   "a_fit_non_slab": 12.54644971653472,
+   "a_theory_non_slab": 11.165410572080729,
+   "n_cells_slope_non_slab": 16,
+   "rho_slab_local": 0.509306359548963,
+   "rho_ci95_slab_local": [
+    0.3020433754335798,
+    0.6874118848266254
+   ],
+   "a_fit_slab_local": 5.074170763781613,
+   "a_theory_slab_local": 11.165410572080729,
+   "n_cells_slope_slab_local": 16,
+   "s2_edit_bw_slope": 0.15295734064520436,
+   "s2_edit_bw_pearson": 0.4988401061970739,
+   "s2_edit_gain": 0.8679548012960507
+  },
+  {
+   "arm": "p3_2b_B_cont_fourier",
+   "letter": "B",
+   "role": "continuous configs, geom_alpha_fourier -- adds continuous alpha sampling",
+   "present": true,
+   "summary_path": "outputs/p3_2b/eval/p3_2b_B_cont_fourier/summary.json",
+   "checkpoint": "outputs/p3_2/p3_2b_B_cont_fourier/ckpt_iter0060000.pt",
+   "iter": 60000,
+   "total_iters": 60000,
+   "mid_training": false,
+   "cond_source": "geom_alpha_fourier",
+   "cond_dim": 64,
+   "in_dist_val_lsd_db": 0.9983784556388855,
+   "n_train_configs": 960,
+   "manifest_sha": "ecf0ee6e620dc56eff508a5c8c0334cdb41f21b88b6359317e5b8a43e690da04",
+   "kappa": 1.6607564051417665,
+   "rho_vs_raw_theory_median": 1.7352282183867422,
+   "splits": {
+    "S1_unseen_geom_nonslab_1wall": {
+     "present": true,
+     "n_configs": 100,
+     "n_cells": 827,
+     "frac_modes_dropped": 0.46298701298701295,
+     "edit_bw_slope": 1.0155077087302247,
+     "edit_bw_pearson": 0.8944674845379018,
+     "edit_gain": 1.0519879325899177,
+     "E_BW_hz": 1.2534773130549965,
+     "E_LVL_db": 1.253576667256565,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 3.0068933141231535
+    },
+    "S2_unseen_geom_slab": {
+     "present": true,
+     "n_configs": 20,
+     "n_cells": 171,
+     "frac_modes_dropped": 0.44480519480519476,
+     "edit_bw_slope": 1.1471034036820107,
+     "edit_bw_pearson": 0.8711236411147749,
+     "edit_gain": 1.08418431998065,
+     "E_BW_hz": 1.8247922936642642,
+     "E_LVL_db": 1.7481963901499418,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.6519498467445373
+    },
+    "S3_seen_geom_slab": {
+     "present": true,
+     "n_configs": 80,
+     "n_cells": 1176,
+     "frac_modes_dropped": 0.001697792869269965,
+     "edit_bw_slope": 0.7406300416476138,
+     "edit_bw_pearson": 0.9387433925393336,
+     "edit_gain": 2.6794388872575627,
+     "E_BW_hz": 2.3020227256764887,
+     "E_LVL_db": 1.0126036313682905,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 0.6265527501702308
+    },
+    "S4_unseen_geom_alpha030": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 353,
+     "frac_modes_dropped": 0.42694805194805197,
+     "edit_bw_slope": 0.6973049677263947,
+     "edit_bw_pearson": 0.6355597614501373,
+     "edit_gain": 0.9974985837306319,
+     "E_BW_hz": 0.6066048502221325,
+     "E_LVL_db": 0.6907713982222751,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 3.0407106757164
+    },
+    "S5_unseen_geom_2wall": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 337,
+     "frac_modes_dropped": 0.45292207792207795,
+     "edit_bw_slope": 1.12342680696894,
+     "edit_bw_pearson": 0.8590095223452542,
+     "edit_gain": 1.171449386803545,
+     "E_BW_hz": 2.2766796537983227,
+     "E_LVL_db": 2.0550442329659195,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.6173251181840897
+    }
+   },
+   "verdict": {
+    "passed": true,
+    "criteria": [
+     {
+      "name": "edit_bw_slope",
+      "value": 1.1471034036820107,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": true,
+      "note": "predicted delta-BW regressed on GT delta-BW, pooled over S2 modes"
+     },
+     {
+      "name": "edit_bw_pearson",
+      "value": 0.8711236411147749,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": true,
+      "note": "association between predicted and GT delta-BW on S2"
+     },
+     {
+      "name": "edit_gain",
+      "value": 1.08418431998065,
+      "op": ">",
+      "threshold": 1.0,
+      "passed": true,
+      "note": "LSD(model baseline render vs edited GT) / LSD(model edited render vs edited GT)"
+     },
+     {
+      "name": "abs_rho_minus_1",
+      "value": 0.039429856667063445,
+      "op": "<=",
+      "threshold": 0.25,
+      "passed": true,
+      "note": "|rho - 1| with rho = a_fit / a_theory (kappa-scaled) from slope_fit.aggregate.own_family.slab_local.rho_median"
+     }
+    ],
+    "criteria_failed": [],
+    "blockers": [],
+    "one_line": "P3-2b p3_2b_B_cont_fourier iter 60000 S2_unseen_geom_slab: PASS | edit_bw_slope=1.147>=0.80; edit_bw_pearson=0.871>=0.80; edit_gain=1.084>1.00; abs_rho_minus_1=0.039<=0.25 | blockers: none | thr a8479c5e1dcc",
+    "spec_sha": "a8479c5e1dcc3ab5b2a505809e0f9d9f7dd4590f009f3549c9070e860a33caa1",
+    "spec": "p3_2b.accept/1",
+    "mid_training": false
+   },
+   "rho_all": 1.0448421050880239,
+   "rho_ci95_all": [
+    0.905054942919484,
+    1.2025371319888012
+   ],
+   "a_fit_all": 11.276635652480206,
+   "a_theory_all": 10.005921933627555,
+   "n_cells_slope_all": 32,
+   "rho_non_slab": 1.0825156516725438,
+   "rho_ci95_non_slab": [
+    0.9305422918403693,
+    1.2211391523806274
+   ],
+   "a_fit_non_slab": 10.720975553007639,
+   "a_theory_non_slab": 10.005921933627555,
+   "n_cells_slope_non_slab": 16,
+   "rho_slab_local": 1.0394298566670634,
+   "rho_ci95_slab_local": [
+    0.8877968796919191,
+    1.1848831081024314
+   ],
+   "a_fit_slab_local": 11.342969890290906,
+   "a_theory_slab_local": 10.005921933627555,
+   "n_cells_slope_slab_local": 16,
+   "s2_edit_bw_slope": 1.1471034036820107,
+   "s2_edit_bw_pearson": 0.8711236411147749,
+   "s2_edit_gain": 1.08418431998065
+  },
+  {
+   "arm": "p3_2b_C_cont_mlinear",
+   "letter": "C",
+   "role": "continuous configs, m_linear -- adds the m = -ln(1-alpha) coordinate (proposed design)",
+   "present": true,
+   "summary_path": "outputs/p3_2b/eval/p3_2b_C_cont_mlinear/summary.json",
+   "checkpoint": "outputs/p3_2/p3_2b_C_cont_mlinear/ckpt_iter0060000.pt",
+   "iter": 60000,
+   "total_iters": 60000,
+   "mid_training": false,
+   "cond_source": "m_linear",
+   "cond_dim": 60,
+   "in_dist_val_lsd_db": 1.0132012367248535,
+   "n_train_configs": 960,
+   "manifest_sha": "ecf0ee6e620dc56eff508a5c8c0334cdb41f21b88b6359317e5b8a43e690da04",
+   "kappa": 1.6607564051417665,
+   "rho_vs_raw_theory_median": 1.611903761564733,
+   "splits": {
+    "S1_unseen_geom_nonslab_1wall": {
+     "present": true,
+     "n_configs": 100,
+     "n_cells": 802,
+     "frac_modes_dropped": 0.4792207792207792,
+     "edit_bw_slope": 0.9970635177834809,
+     "edit_bw_pearson": 0.8769626068735522,
+     "edit_gain": 1.0531146024579987,
+     "E_BW_hz": 1.2441936779611864,
+     "E_LVL_db": 1.2196992380637415,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.978846174478531
+    },
+    "S2_unseen_geom_slab": {
+     "present": true,
+     "n_configs": 20,
+     "n_cells": 168,
+     "frac_modes_dropped": 0.4545454545454546,
+     "edit_bw_slope": 0.9588345128623672,
+     "edit_bw_pearson": 0.8675969997813935,
+     "edit_gain": 1.0871590321837128,
+     "E_BW_hz": 1.5597412705707852,
+     "E_LVL_db": 1.689841602294916,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.66918163895607
+    },
+    "S3_seen_geom_slab": {
+     "present": true,
+     "n_configs": 80,
+     "n_cells": 1176,
+     "frac_modes_dropped": 0.001697792869269965,
+     "edit_bw_slope": 0.7202635066704847,
+     "edit_bw_pearson": 0.9438006896270837,
+     "edit_gain": 2.7335046577680053,
+     "E_BW_hz": 2.2190361889722574,
+     "E_LVL_db": 0.9746459595167623,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 0.6165659729391336
+    },
+    "S4_unseen_geom_alpha030": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 347,
+     "frac_modes_dropped": 0.4366883116883117,
+     "edit_bw_slope": 0.7894836933011322,
+     "edit_bw_pearson": 0.6119738356166283,
+     "edit_gain": 1.0011977025495482,
+     "E_BW_hz": 0.6062541335717849,
+     "E_LVL_db": 0.672029151041269,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 3.0004631638526917
+    },
+    "S5_unseen_geom_2wall": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 326,
+     "frac_modes_dropped": 0.47077922077922074,
+     "edit_bw_slope": 1.0103398883655037,
+     "edit_bw_pearson": 0.8277468248408879,
+     "edit_gain": 1.1760231674174333,
+     "E_BW_hz": 2.2857708283693774,
+     "E_LVL_db": 1.9961505096721266,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.631588599085808
+    }
+   },
+   "verdict": {
+    "passed": true,
+    "criteria": [
+     {
+      "name": "edit_bw_slope",
+      "value": 0.9588345128623672,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": true,
+      "note": "predicted delta-BW regressed on GT delta-BW, pooled over S2 modes"
+     },
+     {
+      "name": "edit_bw_pearson",
+      "value": 0.8675969997813935,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": true,
+      "note": "association between predicted and GT delta-BW on S2"
+     },
+     {
+      "name": "edit_gain",
+      "value": 1.0871590321837128,
+      "op": ">",
+      "threshold": 1.0,
+      "passed": true,
+      "note": "LSD(model baseline render vs edited GT) / LSD(model edited render vs edited GT)"
+     },
+     {
+      "name": "abs_rho_minus_1",
+      "value": 0.052799084501293225,
+      "op": "<=",
+      "threshold": 0.25,
+      "passed": true,
+      "note": "|rho - 1| with rho = a_fit / a_theory (kappa-scaled) from slope_fit.aggregate.own_family.slab_local.rho_median"
+     }
+    ],
+    "criteria_failed": [],
+    "blockers": [],
+    "one_line": "P3-2b p3_2b_C_cont_mlinear iter 60000 S2_unseen_geom_slab: PASS | edit_bw_slope=0.959>=0.80; edit_bw_pearson=0.868>=0.80; edit_gain=1.087>1.00; abs_rho_minus_1=0.053<=0.25 | blockers: none | thr a8479c5e1dcc",
+    "spec_sha": "a8479c5e1dcc3ab5b2a505809e0f9d9f7dd4590f009f3549c9070e860a33caa1",
+    "spec": "p3_2b.accept/1",
+    "mid_training": false
+   },
+   "rho_all": 0.9705841004582105,
+   "rho_ci95_all": [
+    0.855332482944641,
+    1.2142222079959846
+   ],
+   "a_fit_all": 11.564315901256082,
+   "a_theory_all": 10.718127609881282,
+   "n_cells_slope_all": 36,
+   "rho_non_slab": 0.9999051692662915,
+   "rho_ci95_non_slab": [
+    0.871035661519573,
+    1.2176886764635408
+   ],
+   "a_fit_non_slab": 11.564315901256082,
+   "a_theory_non_slab": 10.718127609881282,
+   "n_cells_slope_non_slab": 18,
+   "rho_slab_local": 0.9472009154987068,
+   "rho_ci95_slab_local": [
+    0.8184042697801307,
+    1.188990759151383
+   ],
+   "a_fit_slab_local": 11.465888564123258,
+   "a_theory_slab_local": 10.718127609881282,
+   "n_cells_slope_slab_local": 18,
+   "s2_edit_bw_slope": 0.9588345128623672,
+   "s2_edit_bw_pearson": 0.8675969997813935,
+   "s2_edit_gain": 1.0871590321837128
+  },
+  {
+   "arm": "p3_2b_D_single_mlinear",
+   "letter": "D",
+   "role": "single-wall configs, m_linear -- drops multi-wall training",
+   "present": true,
+   "summary_path": "outputs/p3_2b/eval/p3_2b_D_single_mlinear/summary.json",
+   "checkpoint": "outputs/p3_2/p3_2b_D_single_mlinear/ckpt_iter0060000.pt",
+   "iter": 60000,
+   "total_iters": 60000,
+   "mid_training": false,
+   "cond_source": "m_linear",
+   "cond_dim": 60,
+   "in_dist_val_lsd_db": 1.463692307472229,
+   "n_train_configs": 480,
+   "manifest_sha": "ecf0ee6e620dc56eff508a5c8c0334cdb41f21b88b6359317e5b8a43e690da04",
+   "kappa": 1.6607564051417665,
+   "rho_vs_raw_theory_median": 1.7121956418149933,
+   "splits": {
+    "S1_unseen_geom_nonslab_1wall": {
+     "present": true,
+     "n_configs": 100,
+     "n_cells": 813,
+     "frac_modes_dropped": 0.4720779220779221,
+     "edit_bw_slope": 0.9694723845407592,
+     "edit_bw_pearson": 0.9061751949241025,
+     "edit_gain": 1.0477621253444271,
+     "E_BW_hz": 1.1534280913743495,
+     "E_LVL_db": 1.2338546537715207,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 3.0286206364631654
+    },
+    "S2_unseen_geom_slab": {
+     "present": true,
+     "n_configs": 20,
+     "n_cells": 167,
+     "frac_modes_dropped": 0.45779220779220775,
+     "edit_bw_slope": 1.0377511101713919,
+     "edit_bw_pearson": 0.870706974276051,
+     "edit_gain": 1.082422967580753,
+     "E_BW_hz": 1.7070944614932937,
+     "E_LVL_db": 1.6773765161811478,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.7086825609207152
+    },
+    "S3_seen_geom_slab": {
+     "present": true,
+     "n_configs": 80,
+     "n_cells": 1178,
+     "frac_modes_dropped": 0.0,
+     "edit_bw_slope": 0.7205890943586853,
+     "edit_bw_pearson": 0.9312068435011179,
+     "edit_gain": 2.2584126232429154,
+     "E_BW_hz": 2.2792791501826173,
+     "E_LVL_db": 0.9274317271925014,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 0.7780818045139313
+    },
+    "S4_unseen_geom_alpha030": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 336,
+     "frac_modes_dropped": 0.4545454545454546,
+     "edit_bw_slope": 0.6643416860906161,
+     "edit_bw_pearson": 0.6920423481317767,
+     "edit_gain": 0.9978131000185115,
+     "E_BW_hz": 0.5705424863410435,
+     "E_LVL_db": 0.6720229401463387,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 3.0538025319576265
+    },
+    "S5_unseen_geom_2wall": {
+     "present": true,
+     "n_configs": 40,
+     "n_cells": 325,
+     "frac_modes_dropped": 0.4724025974025974,
+     "edit_bw_slope": 1.158009582669498,
+     "edit_bw_pearson": 0.869527443971098,
+     "edit_gain": 1.145931193774037,
+     "E_BW_hz": 2.4912424950448875,
+     "E_LVL_db": 1.832226397151372,
+     "gt_effect_size_hz": NaN,
+     "pred_effect_size_hz": NaN,
+     "band_lsd_db": 2.709476652741432
+    }
+   },
+   "verdict": {
+    "passed": true,
+    "criteria": [
+     {
+      "name": "edit_bw_slope",
+      "value": 1.0377511101713919,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": true,
+      "note": "predicted delta-BW regressed on GT delta-BW, pooled over S2 modes"
+     },
+     {
+      "name": "edit_bw_pearson",
+      "value": 0.870706974276051,
+      "op": ">=",
+      "threshold": 0.8,
+      "passed": true,
+      "note": "association between predicted and GT delta-BW on S2"
+     },
+     {
+      "name": "edit_gain",
+      "value": 1.082422967580753,
+      "op": ">",
+      "threshold": 1.0,
+      "passed": true,
+      "note": "LSD(model baseline render vs edited GT) / LSD(model edited render vs edited GT)"
+     },
+     {
+      "name": "abs_rho_minus_1",
+      "value": 0.03097337846415571,
+      "op": "<=",
+      "threshold": 0.25,
+      "passed": true,
+      "note": "|rho - 1| with rho = a_fit / a_theory (kappa-scaled) from slope_fit.aggregate.own_family.slab_local.rho_median"
+     }
+    ],
+    "criteria_failed": [],
+    "blockers": [],
+    "one_line": "P3-2b p3_2b_D_single_mlinear iter 60000 S2_unseen_geom_slab: PASS | edit_bw_slope=1.038>=0.80; edit_bw_pearson=0.871>=0.80; edit_gain=1.082>1.00; abs_rho_minus_1=0.031<=0.25 | blockers: none | thr a8479c5e1dcc",
+    "spec_sha": "a8479c5e1dcc3ab5b2a505809e0f9d9f7dd4590f009f3549c9070e860a33caa1",
+    "spec": "p3_2b.accept/1",
+    "mid_training": false
+   },
+   "rho_all": 1.0309733784641557,
+   "rho_ci95_all": [
+    0.8315273312163021,
+    1.2176848457623441
+   ],
+   "a_fit_all": 10.954170157261533,
+   "a_theory_all": 11.165410572080729,
+   "n_cells_slope_all": 36,
+   "rho_non_slab": 1.0180985988836193,
+   "rho_ci95_non_slab": [
+    0.8489044953485145,
+    1.19409597009296
+   ],
+   "a_fit_non_slab": 11.428016959897292,
+   "a_theory_non_slab": 11.165410572080729,
+   "n_cells_slope_non_slab": 18,
+   "rho_slab_local": 1.0309733784641557,
+   "rho_ci95_slab_local": [
+    0.8124949343635928,
+    1.2176848457623441
+   ],
+   "a_fit_slab_local": 10.500810167956455,
+   "a_theory_slab_local": 11.165410572080729,
+   "n_cells_slope_slab_local": 18,
+   "s2_edit_bw_slope": 1.0377511101713919,
+   "s2_edit_bw_pearson": 0.870706974276051,
+   "s2_edit_gain": 1.082422967580753
+  }
+ ],
+ "attribution": [
+  {
+   "step": "renderer + eval protocol",
+   "comparison": "A vs P3-2 baseline",
+   "from": "p3_2_main",
+   "to": "p3_2b_A_preset_fourier",
+   "isolates": "the P3-2b renderer/eval on P3-2's own data and conditioning family",
+   "caveat": "arm A inherits the P3-2 dataset, in which one holdout was an EXTRAPOLATION (alpha above every trained value on that wall), so a null here cannot separate 'the renderer did not help' from 'that holdout was unfair'.",
+   "delta": {
+    "s2_edit_bw_slope": 0.019848751017887772,
+    "s2_edit_bw_pearson": -0.033676957953012454,
+    "s2_edit_gain": -0.005692268167447168,
+    "rho_slab_local": NaN,
+    "in_dist_val_lsd_db": -1.7561264634132385
+   },
+   "both_present": true
+  },
+  {
+   "step": "continuous alpha sampling",
+   "comparison": "B - A",
+   "from": "p3_2b_A_preset_fourier",
+   "to": "p3_2b_B_cont_fourier",
+   "isolates": "960 continuous configs instead of 440 preset configs, same geom_alpha_fourier conditioning",
+   "caveat": null,
+   "delta": {
+    "s2_edit_bw_slope": 0.9941460630368063,
+    "s2_edit_bw_pearson": 0.372283534917701,
+    "s2_edit_gain": 0.21622951868459928,
+    "rho_slab_local": 0.5301234971181005,
+    "in_dist_val_lsd_db": 0.06757307052612305
+   },
+   "both_present": true
+  },
+  {
+   "step": "m = -ln(1-alpha) coordinate",
+   "comparison": "C - B",
+   "from": "p3_2b_B_cont_fourier",
+   "to": "p3_2b_C_cont_mlinear",
+   "isolates": "m_linear conditioning instead of geom_alpha_fourier, same continuous configs",
+   "caveat": null,
+   "delta": {
+    "s2_edit_bw_slope": -0.1882688908196435,
+    "s2_edit_bw_pearson": -0.0035266413333814306,
+    "s2_edit_gain": 0.0029747122030627793,
+    "rho_slab_local": -0.09222894116835667,
+    "in_dist_val_lsd_db": 0.014822781085968018
+   },
+   "both_present": true
+  },
+  {
+   "step": "multi-wall training",
+   "comparison": "C - D",
+   "from": "p3_2b_D_single_mlinear",
+   "to": "p3_2b_C_cont_mlinear",
+   "isolates": "whether multi-wall training configs were necessary (D trains on single-wall edits only)",
+   "caveat": "a near-zero delta here means multi-wall training was NOT necessary, which is a positive finding about data cost, not a failure.",
+   "delta": {
+    "s2_edit_bw_slope": -0.07891659730902467,
+    "s2_edit_bw_pearson": -0.0031099744946575525,
+    "s2_edit_gain": 0.004736064602959722,
+    "rho_slab_local": -0.08377246296544894,
+    "in_dist_val_lsd_db": -0.4504910707473755
+   },
+   "both_present": true
+  }
+ ],
+ "s2": {
+  "first_clearing_arm": "p3_2b_B_cont_fourier",
+  "passed_any": true,
+  "biggest_slope_mover": "B - A",
+  "note": "arm A inherits the P3-2 dataset in which one holdout was an EXTRAPOLATION, so arm A cannot separate 'the renderer did not help' from 'that holdout was unfair'"
+ }
+}

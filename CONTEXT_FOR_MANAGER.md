@@ -2,9 +2,50 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk **P3-2 COMPLETE (2026-08-13)** — 2D material-editable acoustic field. **Verdict: the split-(iii) claim (unseen geometry x NEVER-SEEN wall/material combination) does NOT hold at usable strength; the bracketed claim (unseen geometry x SEEN combination) holds cleanly.** Prior: P3-1 PAUSED (2026-08-12); P2-4b COMPLETE (2026-07-06).
+**Last updated**: Chunk **P3-2b COMPLETE (2026-08-14)** — corrected conditioning + attribution ladder. **Verdict: S2 PASSES (unseen geometry x NEVER-SEEN wall/absorption combination). The cause is CONTINUOUS ALPHA SAMPLING, not the fit and not mainly the coordinate change.** Prior: P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
 
-## Phase 3 — P3-2 (COMPLETE): 2D material editing, band 0-300 Hz
+## Phase 3 — P3-2b (COMPLETE): material editing, corrected training distribution
+
+**Read `tasks/CHUNK_P3_2B_RESULTS.md` + `outputs/p3_2b/EVAL.md` + `outputs/p3_2b/DATASET_GATE.md`.**
+Four arms, identical backbone/renderer (n_pts_per_ray=64) and identical eval; only the training
+distribution and the material encoder vary.
+
+| arm | data | encoder | in-dist LSD | S2 slope | S2 r | edit_gain | rho | S2 |
+|---|---|---|---:|---:|---:|---:|---:|:---:|
+| A | P3-2's 440 presets | alpha-Fourier | **0.931** | 0.153 | 0.499 | 0.868 | 0.887 | **FAIL** |
+| B | 960 continuous | alpha-Fourier | 0.998 | 1.147 | 0.871 | 1.084 | 1.045 | **PASS** |
+| C | 960 continuous | **m_linear** | 1.013 | **0.959** | 0.868 | 1.087 | **0.971** | **PASS** |
+| D | single-wall only | m_linear | 1.464 | 1.038 | 0.871 | 1.082 | 1.031 | **PASS** |
+
+- **Attribution is unambiguous**: A -> B changes ONLY the training data (same encoder, same
+  renderer) and the S2 slope goes 0.153 -> 1.147. Continuous sampling in m = -ln(1-alpha) is the fix.
+- **The m-coordinate is not necessary but is materially better calibrated**: C's slope 0.959 vs B's
+  1.147 (B overshoots ~15%); outside the held-out slab **C recovers the theoretical slope to
+  rho = 0.99991**. Recommend arm C as the design.
+- **Multi-wall training is not necessary** (D passes on single-wall configs alone).
+- **Sharpest evidence** — rho inside vs outside the held-out slab: A 1.060 -> **0.509** (learns the
+  law everywhere EXCEPT where it is tested); B 1.083 -> 1.039; C 0.99991 -> 0.947; D 1.018 -> 1.031.
+- **Fit quality is again ANTI-correlated with edit transfer**: arm A has the BEST in-dist LSD and is
+  the ONLY failure. This is the second refutation of P3-2's "sharper recipe" recommendation, which
+  this agent wrote and which was wrong. The renderer fix is present in every arm, including A.
+- **P3-2's holdouts were not comparable**: (west,0.50) interpolated but (north,0.70) EXTRAPOLATED
+  beyond that wall's trained maximum. P3-2b's slabs are both strictly interior.
+- **kappa correction (D51)**: the estimator measures a CALIBRATED -3 dB width, so a_theory =
+  kappa*c/(4 pi D), not raw c/(4 pi D). Decided BEFORE any result; confirmed by 240 GT points over
+  12 cells (mean rho 1.0050, all r^2 >= 0.9996). The raw formula would have produced a FALSE PASS on
+  an unconverged model. Thresholds frozen + hashed with a test pinning the hash.
+- **D48 scoping corrected**: the block-diagonal structure is genuine physics (grazing-incidence
+  absorption on locally-reacting surfaces tends to zero); the ~29:1 MAGNITUDE is simulator-set. The
+  claim is *the representation learns whatever per-wall law it is trained on*.
+
+Decisions **D51-D52**. Open questions: **Q16** (ray-vs-wave: is P3-3 "scale to 3D" or "re-establish
+under realistic wall physics?"). **Planning note: the sampling distribution, not the conditioning
+parameterization, was the binding constraint — the same lesson likely applies to P3-1's 3D geometry
+conditioning, which was trained on a similarly sparse grid.**
+
+---
+
+**Prior: ## Phase 3 — P3-2 (COMPLETE): 2D material editing, band 0-300 Hz
 
 **Read `tasks/CHUNK_P3_2_RESULTS.md` + `outputs/p3_2/SIM_VALIDATION.md`.** One 2D model conditioned on (L, W, alpha_west, alpha_east, alpha_south, alpha_north) via 64-D Fourier features -> FiLM, no latent table (the P3-1 Arm-G pattern). 690 simulated configs; 440 trained; frozen 10-geometry test set.
 
