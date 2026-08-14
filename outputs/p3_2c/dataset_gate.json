@@ -1,0 +1,701 @@
+{
+ "pass": true,
+ "arms": [
+  {
+   "arm": "W030",
+   "manifest": "configs/sweeps_2d_mat/p3_2c_W030_manifest.json",
+   "n_train": 960,
+   "n_test": 210,
+   "G1_slab_emptiness": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "edge_margins": {
+     "north": {
+      "slab": [
+       1.13,
+       1.28
+      ],
+      "closest_below": 1.1290941768223939,
+      "closest_above": 1.2823127957771876,
+      "margin_below": 0.0009058231776060133,
+      "margin_above": 0.0023127957771875707
+     },
+     "west": {
+      "slab": [
+       0.543,
+       0.843
+      ],
+      "closest_below": 0.5372294913850679,
+      "closest_above": 0.8432493998073396,
+      "margin_below": 0.005770508614932113,
+      "margin_above": 0.0002493998073396231
+     }
+    }
+   },
+   "G2_preset_collisions": {
+    "pass": true,
+    "n_collisions": 0,
+    "collisions": [],
+    "nearest_train_alpha_to_each_test_preset": {
+     "0.05": 0.00031899999999999984,
+     "0.15": 0.0005509999999999959,
+     "0.30": 0.0010040000000000049,
+     "0.50": 4.000000000004e-06,
+     "0.70": 0.0006289999999999907,
+     "0.75": 9.499999999995623e-05,
+     "0.80": 0.0007980000000000764
+    }
+   },
+   "G3_coverage": {
+    "pass": true,
+    "west": {
+     "pass": true,
+     "n_draws": 431,
+     "n_admissible_bins": 13,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 25,
+     "max_bin": 45
+    },
+    "east": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 20,
+     "max_bin": 36
+    },
+    "south": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 19,
+     "max_bin": 34
+    },
+    "north": {
+     "pass": true,
+     "n_draws": 429,
+     "n_admissible_bins": 14,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 22,
+     "max_bin": 36
+    },
+    "geometry": {
+     "n_train_geoms": 40,
+     "contiguous": true
+    }
+   },
+   "G5_baseline_immunity": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "baseline_alpha": 0.15,
+    "baseline_m": 0.1625189294977749,
+    "arm_would_reject_baseline_if_drawn": {
+     "west": false,
+     "east": false,
+     "south": false,
+     "north": false
+    },
+    "n_all_baseline_train_rooms": 40
+   },
+   "realized_gap_west": {
+    "n_draws": 431,
+    "max_gap_m": 0.30601990842227167,
+    "bracketing_m": [
+     0.5372294913850679,
+     0.8432493998073396
+    ],
+    "density_per_unit_m": 335.67498657272483
+   },
+   "realized_gap_north": {
+    "n_draws": 429,
+    "max_gap_m": 0.15321861895479372,
+    "bracketing_m": [
+     1.1290941768223939,
+     1.2823127957771876
+    ],
+    "density_per_unit_m": 298.5840474129182
+   },
+   "delta_vs_W015": {
+    "n_train": 960,
+    "n_changed": 31,
+    "n_unchanged": 929,
+    "n_wall_moves": 31
+   },
+   "DELTA_matches_design": {
+    "pass": true,
+    "expected": 31,
+    "got": 31
+   },
+   "G4_physics_signature": {
+    "pass": true,
+    "n_geoms": 10,
+    "median_selectivity_x": 49.694384397154025,
+    "median_selectivity_y": 33.49424976244989,
+    "threshold": 3.0,
+    "alpha_hi": 0.7,
+    "per_geom": [
+     {
+      "geom_id": 0,
+      "L": 4.51,
+      "W": 4.0,
+      "f10": 38.026607538802665,
+      "f01": 42.875,
+      "d_bw10_west": 25.48019538448507,
+      "d_bw10_south": -0.6898917058511884,
+      "d_bw01_south": 19.703874576027076,
+      "d_bw01_west": 0.018410178899500806,
+      "selectivity_x": Infinity,
+      "selectivity_y": 1070.270673826062
+     },
+     {
+      "geom_id": 1,
+      "L": 3.27,
+      "W": 4.98,
+      "f10": 52.44648318042813,
+      "f01": 34.437751004016064,
+      "d_bw10_west": 75.67319545030335,
+      "d_bw10_south": 18.00078323534543,
+      "d_bw01_south": 61.243219137200796,
+      "d_bw01_west": 1.4094884754473966,
+      "selectivity_x": 4.2038834900092175,
+      "selectivity_y": 43.450670370157596
+     },
+     {
+      "geom_id": 2,
+      "L": 5.93,
+      "W": 3.18,
+      "f10": 28.920741989881957,
+      "f01": 53.93081761006289,
+      "d_bw10_west": 62.806065908199876,
+      "d_bw10_south": 1.3685853323451234,
+      "d_bw01_south": 50.61265588785933,
+      "d_bw01_west": 2.3454586793657413,
+      "selectivity_x": 45.891231203376464,
+      "selectivity_y": 21.579001298605696
+     },
+     {
+      "geom_id": 3,
+      "L": 5.56,
+      "W": 4.9,
+      "f10": 30.845323741007196,
+      "f01": 35.0,
+      "d_bw10_west": 47.87846230786124,
+      "d_bw10_south": -0.6236223480085812,
+      "d_bw01_south": 19.61155750899405,
+      "d_bw01_west": 0.26954648328562314,
+      "selectivity_x": Infinity,
+      "selectivity_y": 72.7576085205786
+     },
+     {
+      "geom_id": 4,
+      "L": 3.44,
+      "W": 3.14,
+      "f10": 49.854651162790695,
+      "f01": 54.617834394904456,
+      "d_bw10_west": 28.413361612319,
+      "d_bw10_south": -0.138026398422177,
+      "d_bw01_south": 21.945555249924382,
+      "d_bw01_west": 0.7816904459633065,
+      "selectivity_x": Infinity,
+      "selectivity_y": 28.074483145153515
+     },
+     {
+      "geom_id": 5,
+      "L": 3.18,
+      "W": 4.08,
+      "f10": 53.93081761006289,
+      "f01": 42.03431372549019,
+      "d_bw10_west": 61.55365671831159,
+      "d_bw10_south": 12.780517887712719,
+      "d_bw01_south": 52.27158341854658,
+      "d_bw01_west": 1.7241305387367518,
+      "selectivity_x": 4.816209895335284,
+      "selectivity_y": 30.317648370665303
+     },
+     {
+      "geom_id": 6,
+      "L": 5.82,
+      "W": 4.04,
+      "f10": 29.467353951890033,
+      "f01": 42.45049504950495,
+      "d_bw10_west": 79.68172742503327,
+      "d_bw10_south": 1.245878502330271,
+      "d_bw01_south": 62.59503315457407,
+      "d_bw01_west": 1.7069424675010865,
+      "selectivity_x": 63.95625839598152,
+      "selectivity_y": 36.67085115423448
+     },
+     {
+      "geom_id": 7,
+      "L": 4.68,
+      "W": 3.16,
+      "f10": 36.64529914529915,
+      "f01": 54.27215189873417,
+      "d_bw10_west": 50.647304537462134,
+      "d_bw10_south": 1.2452009691654453,
+      "d_bw01_south": 55.51475771494651,
+      "d_bw01_west": 16.450274901104876,
+      "selectivity_x": 40.67400025508076,
+      "selectivity_y": 3.3747009122150224
+     },
+     {
+      "geom_id": 8,
+      "L": 4.39,
+      "W": 4.78,
+      "f10": 39.06605922551253,
+      "f01": 35.87866108786611,
+      "d_bw10_west": 2.61159612672553,
+      "d_bw10_south": 0.6764703516659836,
+      "d_bw01_south": 20.154361944775555,
+      "d_bw01_west": 0.1699553580567965,
+      "selectivity_x": 3.8606217113489123,
+      "selectivity_y": 118.58621096276512
+     },
+     {
+      "geom_id": 9,
+      "L": 5.25,
+      "W": 3.6,
+      "f10": 32.666666666666664,
+      "f01": 47.638888888888886,
+      "d_bw10_west": 59.02682451370217,
+      "d_bw10_south": 1.1033559145291925,
+      "d_bw01_south": 68.46362434820193,
+      "d_bw01_west": 13.618180417746608,
+      "selectivity_x": 53.49753759093158,
+      "selectivity_y": 5.027369461120017
+     }
+    ]
+   },
+   "G0_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": []
+   },
+   "pass": true
+  },
+  {
+   "arm": "W060",
+   "manifest": "configs/sweeps_2d_mat/p3_2c_W060_manifest.json",
+   "n_train": 960,
+   "n_test": 210,
+   "G1_slab_emptiness": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "edge_margins": {
+     "north": {
+      "slab": [
+       1.13,
+       1.28
+      ],
+      "closest_below": 1.1290941768223939,
+      "closest_above": 1.2823127957771876,
+      "margin_below": 0.0009058231776060133,
+      "margin_above": 0.0023127957771875707
+     },
+     "west": {
+      "slab": [
+       0.393,
+       0.993
+      ],
+      "closest_below": 0.39182851058525575,
+      "closest_above": 0.9945036562892635,
+      "margin_below": 0.0011714894147442645,
+      "margin_above": 0.001503656289263522
+     }
+    }
+   },
+   "G2_preset_collisions": {
+    "pass": true,
+    "n_collisions": 0,
+    "collisions": [],
+    "nearest_train_alpha_to_each_test_preset": {
+     "0.05": 0.00031899999999999984,
+     "0.15": 0.0005509999999999959,
+     "0.30": 0.00026999999999999247,
+     "0.50": 4.000000000004e-06,
+     "0.70": 0.0006289999999999907,
+     "0.75": 9.499999999995623e-05,
+     "0.80": 0.0007980000000000764
+    }
+   },
+   "G3_coverage": {
+    "pass": true,
+    "west": {
+     "pass": true,
+     "n_draws": 431,
+     "n_admissible_bins": 10,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 31,
+     "max_bin": 54
+    },
+    "east": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 20,
+     "max_bin": 36
+    },
+    "south": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 19,
+     "max_bin": 34
+    },
+    "north": {
+     "pass": true,
+     "n_draws": 429,
+     "n_admissible_bins": 14,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 22,
+     "max_bin": 36
+    },
+    "geometry": {
+     "n_train_geoms": 40,
+     "contiguous": true
+    }
+   },
+   "G5_baseline_immunity": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "baseline_alpha": 0.15,
+    "baseline_m": 0.1625189294977749,
+    "arm_would_reject_baseline_if_drawn": {
+     "west": false,
+     "east": false,
+     "south": false,
+     "north": false
+    },
+    "n_all_baseline_train_rooms": 40
+   },
+   "realized_gap_west": {
+    "n_draws": 431,
+    "max_gap_m": 0.6026751457040078,
+    "bracketing_m": [
+     0.39182851058525575,
+     0.9945036562892635
+    ],
+    "density_per_unit_m": 436.5331209121872
+   },
+   "realized_gap_north": {
+    "n_draws": 429,
+    "max_gap_m": 0.15321861895479372,
+    "bracketing_m": [
+     1.1290941768223939,
+     1.2823127957771876
+    ],
+    "density_per_unit_m": 298.5840474129182
+   },
+   "delta_vs_W015": {
+    "n_train": 960,
+    "n_changed": 120,
+    "n_unchanged": 840,
+    "n_wall_moves": 120
+   },
+   "DELTA_matches_design": {
+    "pass": true,
+    "expected": 120,
+    "got": 120
+   },
+   "G0_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": []
+   },
+   "pass": true
+  },
+  {
+   "arm": "W100",
+   "manifest": "configs/sweeps_2d_mat/p3_2c_W100_manifest.json",
+   "n_train": 960,
+   "n_test": 210,
+   "G1_slab_emptiness": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "edge_margins": {
+     "north": {
+      "slab": [
+       1.13,
+       1.28
+      ],
+      "closest_below": 1.1290941768223939,
+      "closest_above": 1.2823127957771876,
+      "margin_below": 0.0009058231776060133,
+      "margin_above": 0.0023127957771875707
+     },
+     "west": {
+      "slab": [
+       0.193,
+       1.193
+      ],
+      "closest_below": 0.1913736032254075,
+      "closest_above": 1.194646430469692,
+      "margin_below": 0.0016263967745925034,
+      "margin_above": 0.0016464304696919285
+     }
+    }
+   },
+   "G2_preset_collisions": {
+    "pass": true,
+    "n_collisions": 0,
+    "collisions": [],
+    "nearest_train_alpha_to_each_test_preset": {
+     "0.05": 0.00031899999999999984,
+     "0.15": 0.0005509999999999959,
+     "0.30": 0.00121899999999997,
+     "0.50": 4.000000000004e-06,
+     "0.70": 0.00027800000000000047,
+     "0.75": 3.2000000000032e-05,
+     "0.80": 6.999999999990347e-05
+    }
+   },
+   "G3_coverage": {
+    "pass": true,
+    "west": {
+     "pass": true,
+     "n_draws": 431,
+     "n_admissible_bins": 6,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 62,
+     "max_bin": 82
+    },
+    "east": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 20,
+     "max_bin": 36
+    },
+    "south": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 19,
+     "max_bin": 34
+    },
+    "north": {
+     "pass": true,
+     "n_draws": 429,
+     "n_admissible_bins": 14,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 22,
+     "max_bin": 36
+    },
+    "geometry": {
+     "n_train_geoms": 40,
+     "contiguous": true
+    }
+   },
+   "G5_baseline_immunity": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "baseline_alpha": 0.15,
+    "baseline_m": 0.1625189294977749,
+    "arm_would_reject_baseline_if_drawn": {
+     "west": false,
+     "east": false,
+     "south": false,
+     "north": false
+    },
+    "n_all_baseline_train_rooms": 40
+   },
+   "realized_gap_west": {
+    "n_draws": 431,
+    "max_gap_m": 1.0032728272442846,
+    "bracketing_m": [
+     0.1913736032254075,
+     1.194646430469692
+    ],
+    "density_per_unit_m": 734.5833293789639
+   },
+   "realized_gap_north": {
+    "n_draws": 429,
+    "max_gap_m": 0.15321861895479372,
+    "bracketing_m": [
+     1.1290941768223939,
+     1.2823127957771876
+    ],
+    "density_per_unit_m": 298.5840474129182
+   },
+   "delta_vs_W015": {
+    "n_train": 960,
+    "n_changed": 236,
+    "n_unchanged": 724,
+    "n_wall_moves": 236
+   },
+   "DELTA_matches_design": {
+    "pass": true,
+    "expected": 236,
+    "got": 236
+   },
+   "G0_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": []
+   },
+   "pass": true
+  },
+  {
+   "arm": "XTRAP",
+   "manifest": "configs/sweeps_2d_mat/p3_2c_XTRAP_manifest.json",
+   "n_train": 960,
+   "n_test": 230,
+   "G1_slab_emptiness": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "edge_margins": {
+     "north": {
+      "slab": [
+       1.13,
+       1.28
+      ],
+      "closest_below": 1.1290941768223939,
+      "closest_above": 1.2823127957771876,
+      "margin_below": 0.0009058231776060133,
+      "margin_above": 0.0023127957771875707
+     },
+     "west": {
+      "slab": [
+       1.1,
+       2.6100000000000003
+      ],
+      "closest_below": 1.0981963751721202,
+      "closest_above": null,
+      "margin_below": 0.0018036248278798794,
+      "margin_above": null
+     }
+    }
+   },
+   "G2_preset_collisions": {
+    "pass": true,
+    "n_collisions": 0,
+    "collisions": [],
+    "nearest_train_alpha_to_each_test_preset": {
+     "0.05": 0.00031899999999999984,
+     "0.15": 0.0005509999999999959,
+     "0.30": 0.0010040000000000049,
+     "0.50": 4.000000000004e-06,
+     "0.70": 0.0007409999999999917,
+     "0.75": 9.499999999995623e-05,
+     "0.80": 0.0009069999999999911
+    }
+   },
+   "G3_coverage": {
+    "pass": true,
+    "west": {
+     "pass": true,
+     "n_draws": 431,
+     "n_admissible_bins": 11,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 13,
+     "max_bin": 58
+    },
+    "east": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 20,
+     "max_bin": 36
+    },
+    "south": {
+     "pass": true,
+     "n_draws": 430,
+     "n_admissible_bins": 16,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 19,
+     "max_bin": 34
+    },
+    "north": {
+     "pass": true,
+     "n_draws": 429,
+     "n_admissible_bins": 14,
+     "n_empty_admissible_bins": 0,
+     "n_overfull_bins": 0,
+     "min_bin": 22,
+     "max_bin": 36
+    },
+    "geometry": {
+     "n_train_geoms": 40,
+     "contiguous": true
+    }
+   },
+   "G5_baseline_immunity": {
+    "pass": true,
+    "n_violations": 0,
+    "violations": [],
+    "baseline_alpha": 0.15,
+    "baseline_m": 0.1625189294977749,
+    "arm_would_reject_baseline_if_drawn": {
+     "west": false,
+     "east": false,
+     "south": false,
+     "north": false
+    },
+    "n_all_baseline_train_rooms": 40
+   },
+   "realized_gap_west": {
+    "n_draws": 431,
+    "max_gap_m": 0.026172728356858244,
+    "bracketing_m": [
+     0.732674180614271,
+     0.7588469089711293
+    ],
+    "density_per_unit_m": 275.6058855190193
+   },
+   "realized_gap_north": {
+    "n_draws": 429,
+    "max_gap_m": 0.15321861895479372,
+    "bracketing_m": [
+     1.1290941768223939,
+     1.2823127957771876
+    ],
+    "density_per_unit_m": 298.5840474129182
+   },
+   "delta_vs_W015": {
+    "n_train": 960,
+    "n_changed": 156,
+    "n_unchanged": 804,
+    "n_wall_moves": 156
+   },
+   "DELTA_matches_design": {
+    "pass": true,
+    "expected": 156,
+    "got": 156
+   },
+   "G0_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": []
+   },
+   "pass": true
+  }
+ ]
+}
