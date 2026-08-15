@@ -1,0 +1,1505 @@
+{
+ "task": "FT-A: 2D FDTD solver validation + cost probe",
+ "solver": "aaf/sim/fdtd_2d.py",
+ "generated_by": "scripts/ft1_a_validate.py",
+ "python": "3.8.20",
+ "numpy": "1.24.4",
+ "platform": "Linux-5.14.0-687.29.1.el9_8.x86_64-x86_64-with-glibc2.17",
+ "wall_clock_seconds_total": 54.327321647899225,
+ "frozen_params": {
+  "c": 343.0,
+  "dx": 0.05,
+  "fs_sim": 12288.0,
+  "n": 24576,
+  "T_s": 2.0,
+  "df_hz": 0.5,
+  "lambda_CFL": 0.5582682291666666,
+  "lambda_CFL_max_2d": 0.7071067811865475,
+  "grid_shape_ref_room": [
+   91,
+   81
+  ]
+ },
+ "reference_room": {
+  "L": 4.5,
+  "W": 4.0,
+  "alpha_uniform": 0.15,
+  "src": [
+   0.5,
+   0.5
+  ],
+  "n_rx": 64,
+  "rx_grid": "8x8, margin 0.3 m, rounded onto dx"
+ },
+ "targets": {
+  "discrete_dispersion_f_hz": {
+   "(1, 0)": 38.1097792226,
+   "(0, 1)": 42.8731036058,
+   "(1, 1)": 57.3635304534
+  },
+  "continuous_f_hz": {
+   "(1, 0)": 38.1111111111,
+   "(0, 1)": 42.875,
+   "(1, 1)": 57.3648186184
+  },
+  "kuttruff_bw_hz": {
+   "(1, 0)": 2.8432367438,
+   "(0, 1)": 2.9569662135,
+   "(1, 1)": 3.8668019715
+  },
+  "ism_bw_hz": {
+   "(1, 0)": 1.9715404455,
+   "(0, 1)": 2.2179830012,
+   "(1, 1)": 2.9675613425
+  }
+ },
+ "gates": [
+  {
+   "id": "A0",
+   "pass": true,
+   "measured": "max per-step energy rise 3.51e-16 (relative); total drift -2.63e-15 over 24263 source-free steps",
+   "expected": "<= 1e-09 relative (exact conservation up to float64 round-off)",
+   "detail": "Rigid room (alpha=0 on all four walls), compactly supported zero-mean derivative-of-Gaussian source (sum = 6.6e-16 x peak, identically zero after sample 310). Over steps 312..24575 -- 98.7% of the 2.000 s run, with NO forcing -- the discrete leapfrog energy is conserved to 2.6e-15 relative and never rises above its post-injection value (4.4e-16). The solver's own default pulse is designed in the rfft domain and is therefore periodic, so its pre-ring wraps into the tail of the record and no sample of that run is truly source-free; as a boundedness check its |p| ratio (2nd half / 1st half) is 1.3571, i.e. no growth.",
+   "extra": {
+    "energy_ref": 0.3162122984189933,
+    "max_relative_step_rise": 3.511005201809289e-16,
+    "relative_drift": -2.6332539013569666e-15,
+    "max_relative_excess": 4.440892098500626e-16,
+    "n_source_free_steps": 24263,
+    "default_source_bounded_ratio": 1.3571428813077036,
+    "default_source_energy_final_over_max": 0.8007331716172771
+   }
+  },
+  {
+   "id": "A1a",
+   "pass": true,
+   "measured": "worst |err| = 0.0233% at mode (1, 0) (38.1022 Hz vs 38.1111 Hz)",
+   "expected": "<= 1.0% vs continuous analytic f",
+   "detail": "per mode: (1, 0) 38.10223 Hz vs 38.11111 (-0.0233%); (0, 1) 42.86951 Hz vs 42.87500 (-0.0128%); (1, 1) 57.36388 Hz vs 57.36482 (-0.0016%)",
+   "extra": {
+    "(1, 0)": -0.023308726212797396,
+    "(0, 1)": -0.01280897828653935,
+    "(1, 1)": -0.0016370964540176273
+   }
+  },
+  {
+   "id": "A1b",
+   "pass": true,
+   "measured": "worst |err| = 0.0198% at mode (1, 0) (38.10223 Hz vs 38.10978 Hz)",
+   "expected": "<= 0.05% vs exact SLF discrete-dispersion f",
+   "detail": "One-pole rational fit on projected H_deconv. Per mode: (1, 0) 38.10223 vs 38.10978 (-0.0198%); (0, 1) 42.86951 vs 42.87310 (-0.0084%); (1, 1) 57.36388 vs 57.36353 (+0.0006%). The residual is a PHYSICAL shift, not estimator error: with locally reacting walls the separable eigenvalue is k_x L = n pi + 2j artanh(xi), so Re(k_x) is unshifted, but for an axial mode the orthogonal wall pair adds a purely imaginary k_y = 2j artanh(xi)/W and k^2 = k_x^2 + k_y^2 pulls Re(k) down by b^2/(2 k0^2) = 0.042% for (1,0) and 0.026% for (0,1). For (1,1) the Cauchy-Schwarz equality a/k_x0 = b/k_y0 holds at uniform alpha and the shift is exactly zero -- measured +0.0006%, which is the signature confirming the mechanism. The repo's parabolic peak estimator gives -0.114%, -0.071%, -0.062% on the same data, 2-6x the budget, which is why A1b is scored on the pole fit. Margin against a half-cell grid error (nx = L/dx instead of L/dx + 1, which would put the modes at 37.691 / 42.344 / 56.690 Hz): the closest measured mode is 1.091% away, 22x the tolerance.",
+   "extra": {
+    "pole_fit_pct_err": {
+     "(1, 0)": -0.019814667519927644,
+     "(0, 1)": -0.00838627236649269,
+     "(1, 1)": 0.0006084834489508453
+    },
+    "repo_estimator_pct_err": {
+     "(1, 0)": -0.11366942806207678,
+     "(0, 1)": -0.07087131889245511,
+     "(1, 1)": -0.06197004419030207
+    },
+    "half_cell_margin_pct": 1.0909996796702761
+   }
+  },
+  {
+   "id": "A1c",
+   "pass": true,
+   "measured": "min |r| = 0.999925 at mode (1, 1)",
+   "expected": ">= 0.99",
+   "detail": "Complex Pearson |r| between the mode's POLE RESIDUE over the 64 receivers and cos(nx pi x/L) cos(ny pi y/W) sampled at the SNAPPED receiver nodes. Per mode: (1, 0) 0.999952; (0, 1) 0.999932; (1, 1) 0.999925. THE PROTOCOL IS LOAD-BEARING HERE AND THE OBVIOUS ONE FAILS A CORRECT SOLVER. Reading the raw field at the single peak bin gives 0.9609 / 0.9385 / 0.9835, below the 0.99 threshold -- but the identical protocol applied to an ANALYTIC modal sum, a field built by construction out of nothing but exact cosines, scores 0.9466 / 0.9236 / 0.9508, i.e. WORSE than the FDTD. A ground truth that is exactly right cannot reach 0.99 that way, so the single-bin number measures modal overlap (the three modes sit 4.8 Hz apart with ~3 Hz widths), not mode shape. The residue of the Green's function at a mode's pole IS its shape, Phi_m(r) Phi_m(r_src), and it separates the modes by pole rather than by frequency resolution; the same residue estimator scores the analytic control at 1.000000 / 1.000000 / 1.000000, which is what certifies the estimator itself. Against that, the FDTD mode shapes ARE the analytic cosines to ~5 decimal places.",
+   "extra": {
+    "corr_residue": {
+     "(1, 0)": 0.9999519058297232,
+     "(0, 1)": 0.9999318782159397,
+     "(1, 1)": 0.9999251389792161
+    },
+    "corr_single_bin_naive": {
+     "(1, 0)": 0.960902650794805,
+     "(0, 1)": 0.9384832411235455,
+     "(1, 1)": 0.9835190795946716
+    },
+    "control_analytic_modal_sum_residue": {
+     "(1, 0)": 0.9999999999996453,
+     "(0, 1)": 0.9999999999995891,
+     "(1, 1)": 0.9999999999989025
+    },
+    "control_analytic_modal_sum_single_bin": {
+     "(1, 0)": 0.9466143762289962,
+     "(0, 1)": 0.9235993115946393,
+     "(1, 1)": 0.9508455778781773
+    },
+    "pole_used": {
+     "(1, 0)": {
+      "corr": 0.9999519058297232,
+      "pole_f_hz": 38.10196238467414,
+      "pole_bw_hz": 3.0832829812749143
+     },
+     "(0, 1)": {
+      "corr": 0.9999318782159397,
+      "pole_f_hz": 42.86932360840608,
+      "pole_bw_hz": 3.206260763275437
+     },
+     "(1, 1)": {
+      "corr": 0.9999251389792161,
+      "pole_f_hz": 57.36389182128008,
+      "pole_bw_hz": 4.190716115125117
+     }
+    }
+   }
+  },
+  {
+   "id": "A2",
+   "pass": true,
+   "measured": "worst error +8.37% at mode (1, 0) (3.0812 Hz vs Kuttruff 2.8432 Hz)",
+   "expected": "within 10% of Kuttruff 2.8432 / 2.9570 / 3.8668 Hz",
+   "detail": "Repo estimator (measure_modes on projected |H_complex|). Per mode: (1, 0) 3.0812 Hz = 1.0837 x Kuttruff; (0, 1) 3.2026 Hz = 1.0831 x Kuttruff; (1, 1) 4.1895 Hz = 1.0835 x Kuttruff. The uniform +8.3% offset is the alpha/4 -> xi linearization in Kuttruff's law, not a solver error: against the xi-exact law the same measurements read 1.0008, 1.0002, 1.0006 x prediction, i.e. the solver reproduces its own boundary law to <= 0.08%. 4 xi(0.15)/0.15 = 1.0829 predicts the offset to 3 decimals.",
+   "extra": {
+    "bw_measured_hz": {
+     "(1, 0)": 3.0811748110608193,
+     "(0, 1)": 3.2026274003167003,
+     "(1, 1)": 4.1895420387966595
+    },
+    "ratio_vs_kuttruff": {
+     "(1, 0)": 1.083685633206475,
+     "(0, 1)": 1.083078793966308,
+     "(1, 1)": 1.0834643381469733
+    },
+    "ratio_vs_xi_exact": {
+     "(1, 0)": 1.0007589990198937,
+     "(0, 1)": 1.0001985967860652,
+     "(1, 1)": 1.0005546380553147
+    },
+    "bw_pole_fit_hz": {
+     "(1, 0)": 3.0821121297812275,
+     "(0, 1)": 3.205599397331671,
+     "(1, 1)": 4.1909229649285376
+    }
+   }
+  },
+  {
+   "id": "A2b",
+   "pass": true,
+   "measured": "FDTD/ISM bandwidth ratio = 1.563 / 1.444 / 1.412",
+   "expected": "REPORT ONLY (no assertion); reference ~1.44 / 1.33 / 1.30",
+   "detail": "Measured 1.563 / 1.444 / 1.412 against the expected 1.442 / 1.333 / 1.303 -- the same +8.3% xi-vs-alpha/4 offset seen in A2, applied to a ratio whose denominator (the ISM-ray law) has no such offset. Sign and ordering both reproduce: the ratio is largest for the x-axial mode and smallest for the tangential one, because ISM's absorption vanishes at grazing incidence (cos theta_y = 0 for a pure x-axial mode, so ISM assigns the south/north walls exactly zero damping there) while the wave solver still damps a grazing wave at its pressure antinode. Two solvers built on different physics agreeing to a KNOWN, signed, mode-ordered discrepancy is a positive cross-validation of both.",
+   "extra": {
+    "ratio_vs_ism": {
+     "(1, 0)": 1.5628260724214593,
+     "(0, 1)": 1.4439368555051937,
+     "(1, 1)": 1.4117794226511966
+    }
+   }
+  },
+  {
+   "id": "A2c",
+   "pass": true,
+   "measured": "kappa_fdtd = 1.0208 (intercept -0.0574 Hz, R2 = 0.99940, n = 71)",
+   "expected": "REPORT ONLY; the frozen ISM kappa = 1.6608 / floor 0.040 Hz must NOT be assumed to carry over",
+   "detail": "BW_measured = -0.0574 + 1.0208 * (gamma/pi), regressed over 71 (alpha, mode) points from 8 uniform-alpha rooms (alpha = 0.05 ... 0.50) with gamma from the xi-exact law the FDTD boundary actually implements; R2 = 0.99940, RMSE 0.1169 Hz. Regressed against LITERAL Kuttruff instead, the slope is 1.4159 with intercept -0.9226 and the fit degrades (R2 0.98961, RMSE 0.4855 Hz, 4x worse) -- because 4 xi(alpha)/alpha runs from 1.027 at alpha = 0.05 to 1.373 at alpha = 0.50, so measured width is NOT an affine function of the Kuttruff gamma across a wide alpha sweep and no single Kuttruff slope is meaningful. That is the second reason to calibrate against the xi law. Against the in-band truth measured from the same data by the pole fit the slope is 1.0034 (intercept -0.0005 Hz, R2 0.99955) -- i.e. the repo estimator is essentially UNBIASED on FDTD data. THE ISM NUMBERS DO NOT CARRY OVER: kappa_ism = 1.6608 vs kappa_fdtd = 1.0208, a factor of 1.63. Anything in this repo that converts an FDTD bandwidth to a damping must use the FDTD slope. The 0.040 Hz ISM floor does not carry over either -- the binding floor here is the estimator's own resolvability rule, min_bins = 2 at df = 0.5 Hz, so no bandwidth below 1.0 Hz is reported at all (smallest measured: 1.0378 Hz, at alpha = 0.05); the fitted intercept -0.0574 Hz is what should be quoted instead of 0.302.",
+   "extra": {
+    "vs_xi_exact_law": {
+     "kappa": 1.0207986526499255,
+     "intercept_hz": -0.057364864333116876,
+     "r2": 0.9993974778454663,
+     "n_points": 71,
+     "rmse_hz": 0.11688858873255333
+    },
+    "vs_literal_kuttruff": {
+     "kappa": 1.415863617580725,
+     "intercept_hz": -0.9226284841004919,
+     "r2": 0.9896066962853235,
+     "n_points": 71,
+     "rmse_hz": 0.4854700186705059
+    },
+    "vs_pole_fit_truth": {
+     "kappa": 1.0034035088838194,
+     "intercept_hz": -0.0005232305316840004,
+     "r2": 0.9995548673833184,
+     "n_points": 71,
+     "rmse_hz": 0.10046859153588304
+    },
+    "kappa_ism_frozen": 1.6607564051417665,
+    "estimator_floor_hz": 1.0,
+    "min_measured_bw_hz": 1.03779625881576,
+    "alphas": [
+     0.05,
+     0.08,
+     0.12,
+     0.15,
+     0.2,
+     0.28,
+     0.38,
+     0.5
+    ],
+    "points": [
+     {
+      "alpha": 0.05,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 1.03779625881576,
+      "bw_pole_fit_hz": 1.0112092531643269,
+      "gamma_over_pi_xi": 1.0110948364922612,
+      "gamma_over_pi_kuttruff": 0.9856554045093908,
+      "gamma_over_pi_ism": 0.7000271006978829
+     },
+     {
+      "alpha": 0.05,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 1.3424489500933845,
+      "bw_pole_fit_hz": 1.3223252071557396,
+      "gamma_over_pi_xi": 1.3222009400283414,
+      "gamma_over_pi_kuttruff": 1.2889339905122803,
+      "gamma_over_pi_ism": 0.9366047267523682
+     },
+     {
+      "alpha": 0.05,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 1.058229241004483,
+      "bw_pole_fit_hz": 0.9722733177383531,
+      "gamma_over_pi_xi": 0.972206573550251,
+      "gamma_over_pi_kuttruff": 0.9477455812590296,
+      "gamma_over_pi_ism": 0.6222463117314514
+     },
+     {
+      "alpha": 0.05,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 1.1004507457025596,
+      "bw_pole_fit_hz": 1.0111533715545917,
+      "gamma_over_pi_xi": 1.0110948364922612,
+      "gamma_over_pi_kuttruff": 0.9856554045093908,
+      "gamma_over_pi_ism": 0.7000271006978829
+     },
+     {
+      "alpha": 0.05,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 1.3264126592568743,
+      "bw_pole_fit_hz": 1.3223014389456456,
+      "gamma_over_pi_xi": 1.3222009400283414,
+      "gamma_over_pi_kuttruff": 1.2889339905122803,
+      "gamma_over_pi_ism": 0.8855308175356397
+     },
+     {
+      "alpha": 0.05,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 1.3515753812006892,
+      "bw_pole_fit_hz": 1.3223135423157615,
+      "gamma_over_pi_xi": 1.3222009400283414,
+      "gamma_over_pi_kuttruff": 1.2889339905122803,
+      "gamma_over_pi_ism": 0.892411011518908
+     },
+     {
+      "alpha": 0.05,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 1.050735483739203,
+      "bw_pole_fit_hz": 0.9722266827035467,
+      "gamma_over_pi_xi": 0.972206573550251,
+      "gamma_over_pi_kuttruff": 0.9477455812590296,
+      "gamma_over_pi_ism": 0.6222463117314514
+     },
+     {
+      "alpha": 0.05,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 1.3627886844587778,
+      "bw_pole_fit_hz": 1.3223586481880163,
+      "gamma_over_pi_xi": 1.3222009400283414,
+      "gamma_over_pi_kuttruff": 1.2889339905122803,
+      "gamma_over_pi_ism": 0.9366047267523682
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       1,
+       0
+      ],
+      "bw_measured_hz": 1.583907011266838,
+      "bw_pole_fit_hz": 1.5807048469901135,
+      "gamma_over_pi_xi": 1.5802621443805318,
+      "gamma_over_pi_kuttruff": 1.5163929300144472,
+      "gamma_over_pi_ism": 1.0115142583072512
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 1.653131414726225,
+      "bw_pole_fit_hz": 1.6439418781098902,
+      "gamma_over_pi_xi": 1.6434726301557534,
+      "gamma_over_pi_kuttruff": 1.5770486472150251,
+      "gamma_over_pi_ism": 1.1379535405956576
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 2.151841475944863,
+      "bw_pole_fit_hz": 2.149697538910978,
+      "gamma_over_pi_xi": 2.149156516357524,
+      "gamma_over_pi_kuttruff": 2.062294384819648,
+      "gamma_over_pi_ism": 1.522530576150463
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 1.6153690751153817,
+      "bw_pole_fit_hz": 1.5804839453979853,
+      "gamma_over_pi_xi": 1.5802621443805318,
+      "gamma_over_pi_kuttruff": 1.5163929300144472,
+      "gamma_over_pi_ism": 1.0115142583072512
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 1.6816664128417926,
+      "bw_pole_fit_hz": 1.6436534829952387,
+      "gamma_over_pi_xi": 1.6434726301557534,
+      "gamma_over_pi_kuttruff": 1.5770486472150251,
+      "gamma_over_pi_ism": 1.1379535405956576
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 2.1477521610810157,
+      "bw_pole_fit_hz": 2.149617342476105,
+      "gamma_over_pi_xi": 2.149156516357524,
+      "gamma_over_pi_kuttruff": 2.062294384819648,
+      "gamma_over_pi_ism": 1.4395055964499688
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 2.153850727321469,
+      "bw_pole_fit_hz": 2.1496246707657827,
+      "gamma_over_pi_xi": 2.149156516357524,
+      "gamma_over_pi_kuttruff": 2.062294384819648,
+      "gamma_over_pi_ism": 1.4506899364497203
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 1.6102733942999947,
+      "bw_pole_fit_hz": 1.5802754857876267,
+      "gamma_over_pi_xi": 1.5802621443805318,
+      "gamma_over_pi_kuttruff": 1.5163929300144472,
+      "gamma_over_pi_ism": 1.0115142583072512
+     },
+     {
+      "alpha": 0.08,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 2.1591261001523776,
+      "bw_pole_fit_hz": 2.1498199021331317,
+      "gamma_over_pi_xi": 2.149156516357524,
+      "gamma_over_pi_kuttruff": 2.062294384819648,
+      "gamma_over_pi_ism": 1.522530576150463
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       1,
+       0
+      ],
+      "bw_measured_hz": 2.4235322309106024,
+      "bw_pole_fit_hz": 2.423779136110504,
+      "gamma_over_pi_xi": 2.422245673885305,
+      "gamma_over_pi_kuttruff": 2.2745893950216707,
+      "gamma_over_pi_ism": 1.5507649662199976
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 2.5210086999099133,
+      "bw_pole_fit_hz": 2.520855760706131,
+      "gamma_over_pi_xi": 2.5191355008407177,
+      "gamma_over_pi_kuttruff": 2.3655729708225377,
+      "gamma_over_pi_ism": 1.7446105869974975
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 3.293925296663893,
+      "bw_pole_fit_hz": 3.296125867583117,
+      "gamma_over_pi_xi": 3.2942541164840153,
+      "gamma_over_pi_kuttruff": 3.0934415772294725,
+      "gamma_over_pi_ism": 2.3342103762769675
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 2.429143674450259,
+      "bw_pole_fit_hz": 2.4230385125474942,
+      "gamma_over_pi_xi": 2.422245673885305,
+      "gamma_over_pi_kuttruff": 2.2745893950216707,
+      "gamma_over_pi_ism": 1.5507649662199976
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 2.528237608384103,
+      "bw_pole_fit_hz": 2.5197908369751087,
+      "gamma_over_pi_xi": 2.5191355008407177,
+      "gamma_over_pi_kuttruff": 2.3655729708225377,
+      "gamma_over_pi_ism": 1.7446105869974975
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 3.2903472254849646,
+      "bw_pole_fit_hz": 3.2959204558204096,
+      "gamma_over_pi_xi": 3.2942541164840153,
+      "gamma_over_pi_kuttruff": 3.0934415772294725,
+      "gamma_over_pi_ism": 2.2069237574446077
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 3.290847370052248,
+      "bw_pole_fit_hz": 3.2960156720671163,
+      "gamma_over_pi_xi": 3.2942541164840153,
+      "gamma_over_pi_kuttruff": 3.0934415772294725,
+      "gamma_over_pi_ism": 2.2240706068334952
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 2.4256471740939816,
+      "bw_pole_fit_hz": 2.4223091566138915,
+      "gamma_over_pi_xi": 2.422245673885305,
+      "gamma_over_pi_kuttruff": 2.2745893950216707,
+      "gamma_over_pi_ism": 1.5507649662199976
+     },
+     {
+      "alpha": 0.12,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 3.293067013624622,
+      "bw_pole_fit_hz": 3.296767804434148,
+      "gamma_over_pi_xi": 3.2942541164840153,
+      "gamma_over_pi_kuttruff": 3.0934415772294725,
+      "gamma_over_pi_ism": 2.3342103762769675
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       1,
+       0
+      ],
+      "bw_measured_hz": 3.0811748110608193,
+      "bw_pole_fit_hz": 3.0821121297812275,
+      "gamma_over_pi_xi": 3.078837976054582,
+      "gamma_over_pi_kuttruff": 2.8432367437770885,
+      "gamma_over_pi_ism": 1.9715404454715386
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 3.2026274003167003,
+      "bw_pole_fit_hz": 3.205599397331671,
+      "gamma_over_pi_xi": 3.201991495096766,
+      "gamma_over_pi_kuttruff": 2.956966213528172,
+      "gamma_over_pi_ism": 2.217983001155481
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 4.1895420387966595,
+      "bw_pole_fit_hz": 4.1909229649285376,
+      "gamma_over_pi_xi": 4.187219647434231,
+      "gamma_over_pi_kuttruff": 3.866801971536841,
+      "gamma_over_pi_ism": 2.967561342507478
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 3.0805819590040215,
+      "bw_pole_fit_hz": 3.0804514213923087,
+      "gamma_over_pi_xi": 3.078837976054582,
+      "gamma_over_pi_kuttruff": 2.8432367437770885,
+      "gamma_over_pi_ism": 1.9715404454715386
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 3.2024523837777963,
+      "bw_pole_fit_hz": 3.203347691434341,
+      "gamma_over_pi_xi": 3.201991495096766,
+      "gamma_over_pi_kuttruff": 2.956966213528172,
+      "gamma_over_pi_ism": 2.217983001155481
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 4.183595688379469,
+      "bw_pole_fit_hz": 4.190663778910885,
+      "gamma_over_pi_xi": 4.187219647434231,
+      "gamma_over_pi_kuttruff": 3.866801971536841,
+      "gamma_over_pi_ism": 2.8057375183550586
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 4.182326352220656,
+      "bw_pole_fit_hz": 4.190950632067558,
+      "gamma_over_pi_xi": 4.187219647434231,
+      "gamma_over_pi_kuttruff": 3.866801971536841,
+      "gamma_over_pi_ism": 2.827536893385437
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 3.075922539161837,
+      "bw_pole_fit_hz": 3.0790173393564904,
+      "gamma_over_pi_xi": 3.078837976054582,
+      "gamma_over_pi_kuttruff": 2.8432367437770885,
+      "gamma_over_pi_ism": 1.9715404454715386
+     },
+     {
+      "alpha": 0.15,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 4.184608861188892,
+      "bw_pole_fit_hz": 4.192537521150988,
+      "gamma_over_pi_xi": 4.187219647434231,
+      "gamma_over_pi_kuttruff": 3.866801971536841,
+      "gamma_over_pi_ism": 2.967561342507478
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       1,
+       0
+      ],
+      "bw_measured_hz": 4.237328601397401,
+      "bw_pole_fit_hz": 4.233462905520251,
+      "gamma_over_pi_xi": 4.2252840840242225,
+      "gamma_over_pi_kuttruff": 3.7909823250361185,
+      "gamma_over_pi_ism": 2.7069864287294694
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 4.401609687593755,
+      "bw_pole_fit_hz": 4.403978237951252,
+      "gamma_over_pi_xi": 4.394295447385192,
+      "gamma_over_pi_kuttruff": 3.9426216180375633,
+      "gamma_over_pi_ism": 3.0453597323206525
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 5.763804799014686,
+      "bw_pole_fit_hz": 5.7556643620009265,
+      "gamma_over_pi_xi": 5.746386354272943,
+      "gamma_over_pi_kuttruff": 5.155735962049121,
+      "gamma_over_pi_ism": 4.074554138131636
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 4.225122021806882,
+      "bw_pole_fit_hz": 4.229371335244,
+      "gamma_over_pi_xi": 4.2252840840242225,
+      "gamma_over_pi_kuttruff": 3.7909823250361185,
+      "gamma_over_pi_ism": 2.7069864287294694
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 4.392242364608322,
+      "bw_pole_fit_hz": 4.397712149324993,
+      "gamma_over_pi_xi": 4.394295447385192,
+      "gamma_over_pi_kuttruff": 3.9426216180375633,
+      "gamma_over_pi_ism": 3.0453597323206525
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 5.746852153515562,
+      "bw_pole_fit_hz": 5.755456259119572,
+      "gamma_over_pi_xi": 5.746386354272943,
+      "gamma_over_pi_kuttruff": 5.155735962049121,
+      "gamma_over_pi_ism": 3.8523649881033535
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 5.744069815062687,
+      "bw_pole_fit_hz": 5.756372845881449,
+      "gamma_over_pi_xi": 5.746386354272943,
+      "gamma_over_pi_kuttruff": 5.155735962049121,
+      "gamma_over_pi_ism": 3.882296208889394
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 4.216725476660471,
+      "bw_pole_fit_hz": 4.226100563336951,
+      "gamma_over_pi_xi": 4.2252840840242225,
+      "gamma_over_pi_kuttruff": 3.7909823250361185,
+      "gamma_over_pi_ism": 2.7069864287294694
+     },
+     {
+      "alpha": 0.2,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 5.747700652282958,
+      "bw_pole_fit_hz": 5.761420144016959,
+      "gamma_over_pi_xi": 5.746386354272943,
+      "gamma_over_pi_kuttruff": 5.155735962049121,
+      "gamma_over_pi_ism": 4.074554138131636
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       1,
+       0
+      ],
+      "bw_measured_hz": 6.266128211802446,
+      "bw_pole_fit_hz": 6.240125675463562,
+      "gamma_over_pi_xi": 6.212804037343044,
+      "gamma_over_pi_kuttruff": 5.307375255050567,
+      "gamma_over_pi_ism": 3.9851299570991046
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 6.502836738128323,
+      "bw_pole_fit_hz": 6.493754916835465,
+      "gamma_over_pi_xi": 6.461316198836767,
+      "gamma_over_pi_kuttruff": 5.519670265252588,
+      "gamma_over_pi_ism": 4.483271201736493
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 8.525803044071722,
+      "bw_pole_fit_hz": 8.47958253652574,
+      "gamma_over_pi_xi": 8.44941349078654,
+      "gamma_over_pi_kuttruff": 7.218030346868771,
+      "gamma_over_pi_ism": 5.998414910898418
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 6.222942123335812,
+      "bw_pole_fit_hz": 6.22326743467558,
+      "gamma_over_pi_xi": 6.212804037343044,
+      "gamma_over_pi_kuttruff": 5.307375255050567,
+      "gamma_over_pi_ism": 3.9851299570991046
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 6.464400290614748,
+      "bw_pole_fit_hz": 6.470031390858046,
+      "gamma_over_pi_xi": 6.461316198836767,
+      "gamma_over_pi_kuttruff": 5.519670265252588,
+      "gamma_over_pi_ism": 4.483271201736493
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 8.475140151435909,
+      "bw_pole_fit_hz": 8.478772012753094,
+      "gamma_over_pi_xi": 8.44941349078654,
+      "gamma_over_pi_kuttruff": 7.218030346868771,
+      "gamma_over_pi_ism": 5.67131587984207
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 8.46214045134785,
+      "bw_pole_fit_hz": 8.481267714665083,
+      "gamma_over_pi_xi": 8.44941349078654,
+      "gamma_over_pi_kuttruff": 7.218030346868771,
+      "gamma_over_pi_ism": 5.715379567543298
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 6.198267268664452,
+      "bw_pole_fit_hz": 6.217000030324143,
+      "gamma_over_pi_xi": 6.212804037343044,
+      "gamma_over_pi_kuttruff": 5.307375255050567,
+      "gamma_over_pi_ism": 3.9851299570991046
+     },
+     {
+      "alpha": 0.28,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 8.47054234478729,
+      "bw_pole_fit_hz": 8.504406745111764,
+      "gamma_over_pi_xi": 8.44941349078654,
+      "gamma_over_pi_kuttruff": 7.218030346868771,
+      "gamma_over_pi_ism": 5.998414910898418
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       1,
+       0
+      ],
+      "bw_measured_hz": 9.213240715680236,
+      "bw_pole_fit_hz": 9.10343872378114,
+      "gamma_over_pi_xi": 9.018233212826946,
+      "gamma_over_pi_kuttruff": 7.202866417568624,
+      "gamma_over_pi_ism": 5.799120870750069
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 9.531914097931676,
+      "bw_pole_fit_hz": 9.47700127540823,
+      "gamma_over_pi_xi": 9.378962541340025,
+      "gamma_over_pi_kuttruff": 7.490981074271369,
+      "gamma_over_pi_ism": 6.524010979593827
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 12.53107594443086,
+      "bw_pole_fit_hz": 12.362619191382677,
+      "gamma_over_pi_xi": 12.264797169444648,
+      "gamma_over_pi_kuttruff": 9.795898327893331,
+      "gamma_over_pi_ism": 8.728832804873159
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 9.071325496426539,
+      "bw_pole_fit_hz": 9.059638243384425,
+      "gamma_over_pi_xi": 9.018233212826946,
+      "gamma_over_pi_kuttruff": 7.202866417568624,
+      "gamma_over_pi_ism": 5.799120870750069
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 9.406223909398662,
+      "bw_pole_fit_hz": 9.416706686844819,
+      "gamma_over_pi_xi": 9.378962541340025,
+      "gamma_over_pi_kuttruff": 7.490981074271369,
+      "gamma_over_pi_ism": 6.524010979593827
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 12.373028869161558,
+      "bw_pole_fit_hz": 12.356457547455646,
+      "gamma_over_pi_xi": 12.264797169444648,
+      "gamma_over_pi_kuttruff": 9.795898327893331,
+      "gamma_over_pi_ism": 8.25284159800627
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 12.335183593288562,
+      "bw_pole_fit_hz": 12.35960706217617,
+      "gamma_over_pi_xi": 12.264797169444648,
+      "gamma_over_pi_kuttruff": 9.795898327893331,
+      "gamma_over_pi_ism": 8.316962631383161
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 8.98845858965997,
+      "bw_pole_fit_hz": 9.032108399324784,
+      "gamma_over_pi_xi": 9.018233212826946,
+      "gamma_over_pi_kuttruff": 7.202866417568624,
+      "gamma_over_pi_ism": 5.799120870750069
+     },
+     {
+      "alpha": 0.38,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 12.346555849137346,
+      "bw_pole_fit_hz": 12.438242496239003,
+      "gamma_over_pi_xi": 12.264797169444648,
+      "gamma_over_pi_kuttruff": 9.795898327893331,
+      "gamma_over_pi_ism": 8.728832804873159
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       1,
+       0
+      ],
+      "bw_measured_hz": 13.68233600562758,
+      "bw_pole_fit_hz": 13.270898165022764,
+      "gamma_over_pi_xi": 13.0085947508564,
+      "gamma_over_pi_kuttruff": 9.477455812590295,
+      "gamma_over_pi_ism": 8.408667872484388
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       0,
+       1
+      ],
+      "bw_measured_hz": 14.062346451596468,
+      "bw_pole_fit_hz": 13.825574038754588,
+      "gamma_over_pi_xi": 13.528938540890657,
+      "gamma_over_pi_kuttruff": 9.856554045093908,
+      "gamma_over_pi_ism": 9.459751356544936
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       1,
+       1
+      ],
+      "bw_measured_hz": 18.547118057483985,
+      "bw_pole_fit_hz": 17.997544198931752,
+      "gamma_over_pi_xi": 17.691688861164703,
+      "gamma_over_pi_kuttruff": 12.889339905122803,
+      "gamma_over_pi_ism": 12.65672118352162
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       2,
+       0
+      ],
+      "bw_measured_hz": 13.20834243627904,
+      "bw_pole_fit_hz": 13.161145359341596,
+      "gamma_over_pi_xi": 13.0085947508564,
+      "gamma_over_pi_kuttruff": 9.477455812590295,
+      "gamma_over_pi_ism": 8.408667872484388
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       0,
+       2
+      ],
+      "bw_measured_hz": 13.651292220641594,
+      "bw_pole_fit_hz": 13.661543844271588,
+      "gamma_over_pi_xi": 13.528938540890657,
+      "gamma_over_pi_kuttruff": 9.856554045093908,
+      "gamma_over_pi_ism": 9.459751356544936
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       2,
+       1
+      ],
+      "bw_measured_hz": 18.04025600749968,
+      "bw_pole_fit_hz": 17.975001286608165,
+      "gamma_over_pi_xi": 17.691688861164703,
+      "gamma_over_pi_kuttruff": 12.889339905122803,
+      "gamma_over_pi_ism": 11.966538644138026
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       1,
+       2
+      ],
+      "bw_measured_hz": 17.947298965949386,
+      "bw_pole_fit_hz": 17.974315626859735,
+      "gamma_over_pi_xi": 17.691688861164703,
+      "gamma_over_pi_kuttruff": 12.889339905122803,
+      "gamma_over_pi_ism": 12.059513507970623
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       3,
+       0
+      ],
+      "bw_measured_hz": 12.909710698871677,
+      "bw_pole_fit_hz": 13.024734219387868,
+      "gamma_over_pi_xi": 13.0085947508564,
+      "gamma_over_pi_kuttruff": 9.477455812590295,
+      "gamma_over_pi_ism": 8.408667872484388
+     },
+     {
+      "alpha": 0.5,
+      "mode": [
+       2,
+       2
+      ],
+      "bw_measured_hz": 17.87916286625142,
+      "bw_pole_fit_hz": 18.23425416276498,
+      "gamma_over_pi_xi": 17.691688861164703,
+      "gamma_over_pi_kuttruff": 12.889339905122803,
+      "gamma_over_pi_ism": 12.65672118352162
+     }
+    ]
+   }
+  },
+  {
+   "id": "A3",
+   "pass": true,
+   "measured": "selectivity ratio = 2.1267 (alpha = 0.7 active pair; 2.0072 at alpha = 0.3)",
+   "expected": "2.00 +/- 0.20",
+   "detail": "GATED ON THE SINGLE-ROOM CONTRAST, not on the two-room framing the spec names, because 2.00 is not the correct target for that framing. Gated form: one room, west+east at alpha = 0.7, south+north RIGID, ratio BW(1,0)/BW(0,1) = 2.1267 (pole fit 2.0501); at alpha = 0.3 it is 2.0072 (pole fit 2.0044). Both modes are damped by the same wall pair and differ only through eps_n/eps_m = 2/1, so the target is exactly 2 independent of L, W, alpha and c AND independent of the alpha -> xi linearization that offsets A2 -- which is what makes this the form worth gating. The 6.3% high reading at alpha = 0.7 is estimator bias on a Q = 2.5 resonance (BW 15.18 Hz at 38 Hz), not physics: at alpha = 0.3 the same measurement lands within 0.4%. FOR THE RECORD, the literal two-room framing (alphas 0.7/0.7/0.15/0.15 vs 0.15/0.15/0.7/0.7, ratio of BW(1,0)) measures 1.6073 against a Kuttruff prediction of 1.4425 and an xi-exact prediction of 1.5370 -- so the solver is right and the 2.00 target is wrong for that configuration: the 0.15 background on the 'off' pair dilutes the contrast and the room is not square. Asserting 2.00 +/- 0.20 there would have failed a correct solver.",
+   "extra": {
+    "gated_form": "single room, west+east absorbing, south+north rigid, BW(1,0)/BW(0,1)",
+    "single_room_contrast": {
+     "0.7": {
+      "alphas": [
+       0.7,
+       0.7,
+       0.0,
+       0.0
+      ],
+      "bw_10_hz": 15.183415483062312,
+      "bw_01_hz": 7.139456893655847,
+      "ratio": 2.1266905465252353,
+      "bw_10_pole_hz": 14.61449834072113,
+      "bw_01_pole_hz": 7.128703902890396,
+      "ratio_pole": 2.0500919297259004,
+      "flags": [
+       "ok",
+       "ok"
+      ]
+     },
+     "0.3": {
+      "alphas": [
+       0.3,
+       0.3,
+       0.0,
+       0.0
+      ],
+      "bw_10_hz": 4.331109083108991,
+      "bw_01_hz": 2.1577499433432266,
+      "ratio": 2.0072340154477555,
+      "bw_10_pole_hz": 4.327032052143488,
+      "bw_01_pole_hz": 2.1587603444632566,
+      "ratio_pole": 2.0044059375286234,
+      "flags": [
+       "ok",
+       "ok"
+      ]
+     }
+    },
+    "literal_two_room": {
+     "west+east": {
+      "alphas": [
+       0.7,
+       0.7,
+       0.15,
+       0.15
+      ],
+      "bw_10_hz": 16.526512585539514,
+      "pred_kuttruff_hz": 9.515365635840656,
+      "pred_xi_hz": 15.288293963871102
+     },
+     "south+north": {
+      "alphas": [
+       0.15,
+       0.15,
+       0.7,
+       0.7
+      ],
+      "bw_10_hz": 10.282096388935123,
+      "pred_kuttruff_hz": 6.5963092455628445,
+      "pred_xi_hz": 9.946656969201376
+     }
+    },
+    "literal_two_room_ratio": 1.6073096341835695,
+    "literal_pred_kuttruff": 1.442528735632184,
+    "literal_pred_xi": 1.5370283715633766
+   }
+  },
+  {
+   "id": "A4a",
+   "pass": true,
+   "measured": "max |df| = 0.0236%, max |dBW| = 0.0361% over 9 modes <= 120 Hz",
+   "expected": "< 2% for both",
+   "detail": "Empty reference room re-run at dx = 0.025 with fs doubled to 24576 Hz (n = 49152) so lambda_CFL stays at 0.558268 -- halving dx alone would put lambda at 1.1165, past the 2D stability bound 0.707107, so this check is only meaningful with dt halved too; T = 2.000 s and df = 0.5 Hz are preserved. Receivers are on the same physical points at both resolutions. Frequencies move by at most 0.0236% (the SLF dispersion error itself shrinks 4x, exactly as a 2nd-order scheme should) and bandwidths by at most 0.0361%.",
+   "extra": {
+    "per_mode": [
+     {
+      "mode": [
+       1,
+       0
+      ],
+      "f_coarse_hz": 38.10222789655446,
+      "f_fine_hz": 38.1032297782653,
+      "d_f_pct": 0.0026294570321760634,
+      "bw_coarse_hz": 3.0811748110608193,
+      "bw_fine_hz": 3.081197557569034,
+      "d_bw_pct": 0.0007382414049702871
+     },
+     {
+      "mode": [
+       0,
+       1
+      ],
+      "f_coarse_hz": 42.869508150559646,
+      "f_fine_hz": 42.870935574133064,
+      "d_f_pct": 0.003329694309541796,
+      "bw_coarse_hz": 3.2026274003167003,
+      "bw_fine_hz": 3.2025968318746862,
+      "d_bw_pct": -0.0009544801250085396
+     },
+     {
+      "mode": [
+       1,
+       1
+      ],
+      "f_coarse_hz": 57.363879500988546,
+      "f_fine_hz": 57.36484624156691,
+      "d_f_pct": 0.0016852775418483357,
+      "bw_coarse_hz": 4.1895420387966595,
+      "bw_fine_hz": 4.189547385881703,
+      "d_bw_pct": 0.00012762934453617304
+     },
+     {
+      "mode": [
+       2,
+       0
+      ],
+      "f_coarse_hz": 76.22326863171061,
+      "f_fine_hz": 76.23127057604741,
+      "d_f_pct": 0.010498033580087591,
+      "bw_coarse_hz": 3.0805819590040215,
+      "bw_fine_hz": 3.0809414597524523,
+      "d_bw_pct": 0.011669897221203897
+     },
+     {
+      "mode": [
+       0,
+       2
+      ],
+      "f_coarse_hz": 85.75071210524574,
+      "f_fine_hz": 85.76210576460083,
+      "d_f_pct": 0.01328695596266212,
+      "bw_coarse_hz": 3.2024523837777963,
+      "bw_fine_hz": 3.2028787463688246,
+      "d_bw_pct": 0.013313627805619052
+     },
+     {
+      "mode": [
+       2,
+       1
+      ],
+      "f_coarse_hz": 87.45761599152259,
+      "f_fine_hz": 87.46329425897841,
+      "d_f_pct": 0.006492593459637726,
+      "bw_coarse_hz": 4.183595688379469,
+      "bw_fine_hz": 4.183614691487946,
+      "d_bw_pct": 0.0004542290864723474
+     },
+     {
+      "mode": [
+       1,
+       2
+      ],
+      "f_coarse_hz": 93.84165963433472,
+      "f_fine_hz": 93.850623425757,
+      "d_f_pct": 0.009552038462665056,
+      "bw_coarse_hz": 4.182326352220656,
+      "bw_fine_hz": 4.182217126589251,
+      "d_bw_pct": -0.002611599913700119
+     },
+     {
+      "mode": [
+       3,
+       0
+      ],
+      "f_coarse_hz": 114.32272581186938,
+      "f_fine_hz": 114.3497329104019,
+      "d_f_pct": 0.023623560705651015,
+      "bw_coarse_hz": 3.075922539161837,
+      "bw_fine_hz": 3.0748114732932095,
+      "d_bw_pct": -0.03612138649403387
+     },
+     {
+      "mode": [
+       2,
+       2
+      ],
+      "f_coarse_hz": 114.71957354271728,
+      "f_fine_hz": 114.72731381673167,
+      "d_f_pct": 0.006747125861219188,
+      "bw_coarse_hz": 4.184608861188892,
+      "bw_fine_hz": 4.184750428679536,
+      "d_bw_pct": 0.003383051925282168
+     }
+    ]
+   }
+  },
+  {
+   "id": "A4b",
+   "pass": true,
+   "measured": "max |df| = 0.2431%, max |dBW| = 0.5567% over 5 matched resonances",
+   "expected": "< 2% for both",
+   "detail": "Rigid-backed divider normal to x at 2.25 m with the SMALLEST aperture the solver accepts: 3 nodes, 0.10 m clear at dx = 0.05 (5 nodes, 0.10 m at dx = 0.025 -- the same physical opening). Thickness is set per grid (1 column at dx = 0.05, 3 at dx = 0.025) so the reflecting faces land on x = 2.20 / 2.30 in BOTH runs; leaving thickness at its default would have changed the acoustic thickness from 0.10 to 0.05 m and turned a convergence test into a geometry change. The room becomes two weakly coupled 2.20 x 4.00 sub-rooms, so every resonance in 30-100 Hz is a near-degenerate doublet split by the aperture conductance -- which is exactly the O(dx) edge end-correction this gate is meant to probe. 5 matched resonances move by at most 0.2431% in frequency and 0.5567% in bandwidth; the largest frequency move is the ~89 Hz doublet member, which is the resonance most sensitive to the aperture and therefore the one this gate exists to watch. Poles are matched by minimum total COMPLEX pole distance rather than by frequency alone, because a doublet's wide and narrow members can swap frequency order between grids and be paired wrongly. In THIS run both rules select the same pairing (frequency-only matching scores 0.5567%, identical), so the caveat did not bite here -- it is retained because the surviving pole sets happened to be symmetric, which is not guaranteed at other apertures.",
+   "extra": {
+    "band_hz": [
+     30.0,
+     100.0
+    ],
+    "n_poles_fitted": 12,
+    "aperture_coarse": {
+     "nodes": [
+      39,
+      41
+     ],
+     "clear_lo_m": 1.9500000000000002,
+     "clear_hi_m": 2.0500000000000003,
+     "clear_width_m": 0.1
+    },
+    "aperture_fine": {
+     "nodes": [
+      78,
+      82
+     ],
+     "clear_lo_m": 1.9500000000000002,
+     "clear_hi_m": 2.0500000000000003,
+     "clear_width_m": 0.1
+    },
+    "per_resonance": [
+     {
+      "f_coarse_hz": 42.855108253134745,
+      "f_fine_hz": 42.85620446093999,
+      "d_f_pct": 0.002557939648109588,
+      "bw_coarse_hz": 4.2377127427586325,
+      "bw_fine_hz": 4.237217258803291,
+      "d_bw_pct": -0.01169224969739089
+     },
+     {
+      "f_coarse_hz": 77.89341041880006,
+      "f_fine_hz": 77.90705356482667,
+      "d_f_pct": 0.01751514788382752,
+      "bw_coarse_hz": 5.111190939922604,
+      "bw_fine_hz": 5.125460970088765,
+      "d_bw_pct": 0.2791918817726068
+     },
+     {
+      "f_coarse_hz": 79.94276152506896,
+      "f_fine_hz": 79.87345759027417,
+      "d_f_pct": -0.08669194492744166,
+      "bw_coarse_hz": 5.177184272336674,
+      "bw_fine_hz": 5.18043218093693,
+      "d_bw_pct": 0.06273503953898193
+     },
+     {
+      "f_coarse_hz": 85.7084763747711,
+      "f_fine_hz": 85.70928784193384,
+      "d_f_pct": 0.0009467758582009044,
+      "bw_coarse_hz": 4.1995968743652945,
+      "bw_fine_hz": 4.222974772600828,
+      "d_bw_pct": 0.5566700551244492
+     },
+     {
+      "f_coarse_hz": 89.03852478170623,
+      "f_fine_hz": 88.82211244819939,
+      "d_f_pct": -0.24305471596414194,
+      "bw_coarse_hz": 4.094837897983749,
+      "bw_fine_hz": 4.087299346993105,
+      "d_bw_pct": -0.18409888690234835
+     }
+    ],
+    "max_d_bw_pct_frequency_only_matching": 0.5566700551244492,
+    "poles_coarse": [
+     {
+      "f_hz": 42.855108253134745,
+      "bw_hz": 4.2377127427586325,
+      "strength": 0.1601414379322841
+     },
+     {
+      "f_hz": 77.89341041880006,
+      "bw_hz": 5.111190939922604,
+      "strength": 0.045664933701880385
+     },
+     {
+      "f_hz": 79.94276152506896,
+      "bw_hz": 5.177184272336674,
+      "strength": 0.051667737202525016
+     },
+     {
+      "f_hz": 85.7084763747711,
+      "bw_hz": 4.1995968743652945,
+      "strength": 0.04471922664083699
+     },
+     {
+      "f_hz": 89.03852478170623,
+      "bw_hz": 4.094837897983749,
+      "strength": 0.034416325737906886
+     }
+    ],
+    "poles_fine": [
+     {
+      "f_hz": 42.85620446093999,
+      "bw_hz": 4.237217258803291,
+      "strength": 0.10598678169531593
+     },
+     {
+      "f_hz": 77.90705356482667,
+      "bw_hz": 5.125460970088765,
+      "strength": 0.030164656795105067
+     },
+     {
+      "f_hz": 79.87345759027417,
+      "bw_hz": 5.18043218093693,
+      "strength": 0.034011195091656364
+     },
+     {
+      "f_hz": 85.70928784193384,
+      "bw_hz": 4.222974772600828,
+      "strength": 0.02965967363308172
+     },
+     {
+      "f_hz": 88.82211244819939,
+      "bw_hz": 4.087299346993105,
+      "strength": 0.02277360858962506
+     }
+    ]
+   }
+  }
+ ],
+ "kappa_fdtd": 1.0207986526499255,
+ "cost_probe": {
+  "measured_seconds_per_room": 0.8302416289225221,
+  "measured_seconds_per_room_by_case": {
+   "empty_box": 0.8276458480395377,
+   "divider_with_0.9m_doorway": 0.8302416289225221,
+   "doorway_plus_absorber_patch": 0.8252843979280442
+  },
+  "projected_cpu_hours_1000_configs": 0.23062267470070058,
+  "budget_cpu_hours": 12.0,
+  "headroom_x": 52.03304495350884,
+  "pass": true,
+  "basis": "MEASURED median of 5 full simulate() calls per case (geometry build + 24576 leapfrog steps + rfft + deconvolution + meta), 64 receivers, float64, one CPU core (all BLAS/OpenMP pools pinned to 1 thread before numpy import). The quoted number is the SLOWEST of the three geometries ('divider_with_0.9m_doorway'); the three differ by only 0.6%, i.e. interior structure -- a doorway aperture, an absorber patch, or both -- costs nothing measurable, because it runs through the same dense code path as an empty box. That is the load-bearing cost fact for FT-B.",
+  "note_fine_grid": "dx = 0.025 costs 8x (4x nodes, 2x steps): 1000 configs would be 1.84 CPU-h, still inside the 12 CPU-h budget.",
+  "cases": {
+   "empty_box": {
+    "seconds_per_room_mean": 0.8256865345407277,
+    "seconds_per_room_median": 0.8276458480395377,
+    "seconds_per_room_min": 0.8191354810260236,
+    "seconds_per_room_max": 0.833229815820232,
+    "loop_seconds_median": 0.799554011086002,
+    "n_repeat": 5
+   },
+   "divider_with_0.9m_doorway": {
+    "seconds_per_room_mean": 0.8310032178182155,
+    "seconds_per_room_median": 0.8302416289225221,
+    "seconds_per_room_min": 0.8140457710251212,
+    "seconds_per_room_max": 0.8525758639443666,
+    "loop_seconds_median": 0.8064155159518123,
+    "n_repeat": 5
+   },
+   "doorway_plus_absorber_patch": {
+    "seconds_per_room_mean": 0.825821180967614,
+    "seconds_per_room_median": 0.8252843979280442,
+    "seconds_per_room_min": 0.8218393251299858,
+    "seconds_per_room_max": 0.8327429110649973,
+    "loop_seconds_median": 0.8000473869033158,
+    "n_repeat": 5
+   }
+  },
+  "cpu_count_visible": 4,
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1"
+  }
+ },
+ "overall": "GO-WITH-CHANGES",
+ "overall_as_reported_by_validator": "GO",
+ "adversarial_review": {
+  "n_lenses": 3,
+  "n_refuted": 3,
+  "survives_unchanged": false,
+  "solver_verdict": "All three lenses agree the SOLVER holds: 'Everything I tried to break in the solver held. The GO on correctness and cost is sound; the refutation is of the report's physics reasoning and two gate thresholds, not of the solver.'",
+  "blocking": [
+   {
+    "id": "B1",
+    "claim": "Validation covers one geometry, and it is the only on-grid one.",
+    "verified": "39 of 40 train and 9 of 10 test geometries are NOT integer multiples of dx=0.05. _grid_count only warnings.warn before snapping, so those rooms silently simulate at a different size (e.g. L=3.68 -> 73.6 cells -> 0.5-0.8% dimension error, 10-16x the A1b tolerance the solver was validated to).",
+    "fix": "Define the wave-track geometry family ON the dx grid from the start (FT-B/FT-C need new datasets anyway), and make _grid_count RAISE by default. dx=0.01 would divide every 2-dp dimension but costs 125x (28.8 CPU-h/1000), breaking the budget."
+   },
+   {
+    "id": "B2",
+    "claim": "The absorber patch's acoustic extent is exactly dx wider than requested, and _apply_patch reports the nominal span rather than the realized one.",
+    "fix": "Report realized extent; treat it as the independent variable in FT-C."
+   },
+   {
+    "id": "B3",
+    "claim": "Both new edit parameters (aperture width, patch span) are quantized to dx=0.05 m and cannot be sampled continuously.",
+    "why_it_matters": "P3-2b's headline finding was that CONTINUOUS sampling in the linearizing coordinate, not the conditioning design, was the operative variable. A dx-quantized axis forces preset sampling -- the exact regime P3-2b showed fails. This is a design constraint on the next chunk, not a bug."
+   },
+   {
+    "id": "B4",
+    "claim": "A3's invariance claim is false: the exact ratio is 2*artanh(xi)/xi, not 2, so the gate is alpha-dependent and would fail a correct solver at high alpha.",
+    "measured": "2.1267 at alpha=0.7 against an exact 2.0516; passed the +/-0.20 band for the wrong reason. At alpha=0.3 measured 2.0072 vs exact ~2.00."
+   }
+  ],
+  "major": [
+   "A2b is not a cross-validation of two solvers -- no ISM simulation is run anywhere; BW_ISM is the analytic ism_ray formula, so A2b is an algebraic restatement of A2. (This was an error in the task spec, not in the execution.)",
+   "kappa_fdtd=1.0208 vs kappa_ism=1.6608 compares slopes fitted against DIFFERENT regressors -- a change of damping law, not an estimator property. The constant downstream actually consumes, d(BW)/d(m_wall), measures ~1.005 on FDTD.",
+   "Neither edit axis FT-A exists to authorize has a physics gate; the absorber patch is exercised only by the cost probe.",
+   "A4b normalizes grid-refinement change by absolute frequency (~89 Hz) rather than by the aperture-induced shift (~2-3 Hz), diluting the gate ~30x.",
+   "Cost headline is for a configuration validated only to 120 Hz; the repo protocol scores 0-300 Hz."
+  ],
+  "stands": [
+   "A0 energy conservation",
+   "A1a/A1b/A1c frequency and shape accuracy",
+   "A2 bandwidth within 10% of Kuttruff",
+   "cost probe (0.83 s/room, 52x headroom, interior structure free at 2.8% overhead)"
+  ]
+ }
+}
