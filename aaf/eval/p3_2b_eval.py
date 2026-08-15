@@ -222,7 +222,7 @@ def _split_block(recs: Sequence[dict], cells: Sequence[dict]) -> dict:
 # --------------------------------------------------------------------------- driver
 def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_dir: str,
         limit: Optional[int], rx_chunk: int, with_decay: bool, device_str: str,
-        n_boot: int) -> dict:
+        n_boot: int, arm_spec: Optional[str] = None) -> dict:
     t0 = time.time()
     arm_path = Path(arm_dir)
     arm = arm_path.name
@@ -245,8 +245,27 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
     print("[arm] {} | ckpt {} (iter {}) | cond {} ({}d) | band 0:{} | {}".format(
         arm, ckpt.name, it, cond_source, cond_dim, hi_idx, device), flush=True)
 
-    splits, ctx = build_splits()
-    assert_split_counts(splits)
+    # ``--arm-spec p3_2c:<ARM>`` swaps in that arm's manifest and its per-arm expected
+    # counts. Split ASSIGNMENT is unchanged -- P3-2c designates S2 by the frozen W015
+    # predicate precisely so the density curve compares the same 20 rooms in every arm (see
+    # aaf.eval.p3_2c_splits). Only XTRAP's split set differs, by separating its
+    # beyond-edge west configs out of S1.
+    if arm_spec:
+        family, _, arm_name = arm_spec.partition(":")
+        if family != "p3_2c" or not arm_name:
+            raise ValueError(
+                f"--arm-spec must look like 'p3_2c:<ARM>', got {arm_spec!r}")
+        from aaf.eval.p3_2c_splits import (assert_split_counts_p3_2c,
+                                           build_splits_p3_2c, curve_point)
+        from aaf.eval.p3_2c_splits import split_order as _split_order
+        splits, ctx = build_splits_p3_2c(arm_name)
+        assert_split_counts_p3_2c(splits, arm_name)
+        split_names = _split_order(arm_name)
+        ctx["curve_point"] = curve_point(arm_name)
+    else:
+        splits, ctx = build_splits()
+        assert_split_counts(splits)
+        split_names = SPLIT_ORDER
     if limit:
         splits = {k: v[:limit] for k, v in splits.items()}
         print("[limit] {} configs per split (counts already asserted on the full set)"
@@ -256,7 +275,7 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
     baselines = ctx["baselines"]
     geoms: Dict[Tuple[float, float], GeomCtx] = {}
     records: List[dict] = []
-    cells_by_split: Dict[str, List[dict]] = {k: [] for k in SPLIT_ORDER}
+    cells_by_split: Dict[str, List[dict]] = {k: [] for k in split_names}
     maps: Dict[Tuple, Dict[str, np.ndarray]] = {}
     selectivity: Dict[str, Dict[str, Dict[str, dict]]] = {}
     floor_bw: Dict[str, List[float]] = {f: [] for f in FAMILIES}
@@ -304,7 +323,7 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
 
     n_total = sum(len(v) for v in splits.values())
     done = 0
-    for split_name in SPLIT_ORDER:
+    for split_name in split_names:
         for c in splits[split_name]:
             assert isinstance(c, EvalConfig)
             done += 1
@@ -360,7 +379,7 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
 
     # ------------------------------------------------------------------ splits
     splits_out = {}
-    for name in SPLIT_ORDER:
+    for name in split_names:
         recs = [r for r in records if r["split"] == name]
         splits_out[name] = _split_block(recs, cells_by_split[name])
     s5_slab_labels = set(c.label for c in s5_slab_subset(splits))
@@ -435,7 +454,7 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
                 "edit_gain": splits_out[n]["edit"]["edit_gain"],
                 "E_BW_hz": splits_out[n]["edit"]["E_BW_hz"],
                 "null_E_BW_hz": splits_out[n]["edit_detail"]["gt_effect_size_hz"]}
-            for n in SPLIT_ORDER},
+            for n in split_names},
         "C2_floor_hz": float(np.mean(c2_axial)) if c2_axial else _nan(),
         "C2_detail": {
             "gt_within_family_bw_std_hz": {f: _mean(floor_bw[f]) for f in FAMILIES},
@@ -481,6 +500,12 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
             "theory_slope_ism_ray": slope,
             "kappa": KAPPA,
             "manifest_sha": ctx["manifest_sha"],
+            "arm_spec": arm_spec,
+            "p3_2c": {k: ctx[k] for k in
+                      ("arm", "arm_spec", "manifest_path", "s2_designation",
+                       "s2x_extra_curve_points", "training_support_m",
+                       "curve_point", "annotations")
+                      if k in ctx} or None,
             "train_manifest_sha": meta.get("manifest_sha"),
             "n_train_configs": meta.get("n_configs"),
             "total_iters": total_iters,
@@ -517,9 +542,11 @@ def main():
     ap.add_argument("--no-decay", action="store_true", help="skip per-mode gamma fits")
     ap.add_argument("--n-boot", type=int, default=2000)
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--arm-spec", default=None,
+                    help="p3_2c:<ARM> -- use that arm's manifest and counts")
     a = ap.parse_args()
     s = run(a.arm_dir, a.out, a.checkpoint, a.data_dir, a.limit, a.rx_chunk,
-            not a.no_decay, a.device, a.n_boot)
+            not a.no_decay, a.device, a.n_boot, a.arm_spec)
     print(json.dumps({"arm": s["arm"], "iter": s["iter"],
                       "in_dist_val_lsd_db": s["in_dist_val_lsd_db"],
                       "S2": s["splits"][S2]["edit"],
