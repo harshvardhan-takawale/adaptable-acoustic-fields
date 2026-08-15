@@ -146,19 +146,7 @@ def fit_cell(points: Sequence[dict], L: float, W: float, wall: str, family: str,
     }
     if not valid_pts:
         out["reject_reason"] = "no paired-valid modes"
-        # PUBLICATION POLICY (P3-2c audit A1). The gate consumes slab_local; the `all`
-    # aggregate pools slab and non-slab cells and is DIAGNOSTIC ONLY. Publishing `all`
-    # once put rho = 0.887 beside a FAIL verdict whose gate had used 0.509, so the
-    # published value is now named explicitly and asserted by tests.
-    _own = (out.get("aggregate") or {}).get("own_family") or {}
-    out["rho_published"] = (_own.get("slab_local") or {}).get("rho_median")
-    out["publication_policy"] = {
-        "gate_source": "aggregate.own_family.slab_local.rho_median",
-        "diagnostic_only": ["aggregate.own_family.all"],
-        "note": "'all' pools slab and non-slab cells; it is not the gated number and "
-                "must never appear in a human-facing table",
-    }
-    return out
+        return out
 
     x = np.array([p["d_m"] for p in valid_pts], dtype=float)
     span = float(x.max() - x.min())
@@ -287,8 +275,26 @@ def slope_fit(cells: Sequence[dict], n_boot: int = N_BOOTSTRAP) -> dict:
     }
     raw = [c["rho_vs_raw_theory"] for c in own
            if c["fitted"] and np.isfinite(c["rho_vs_raw_theory"])]
+    # PUBLICATION POLICY (P3-2c audit A1). The gate consumes slab_local; the `all` aggregate
+    # pools slab and non-slab cells and is DIAGNOSTIC ONLY. Publishing `all` once put
+    # rho = 0.887 beside a FAIL verdict whose gate had used 0.509, so the published value is
+    # named explicitly here and asserted by tests.
+    #
+    # This block belongs in slope_fit, NOT in _fit_cell: only this function builds
+    # ``aggregate``. Placed in _fit_cell it read out.get("aggregate") -> None on every call,
+    # so rho_published was silently always None -- and, because it carried a `return out` at
+    # function-body indentation, it also made the entire per-cell regression unreachable.
+    # See tests/test_p3_2b_slopefit_regression.py, which fits synthetic data end-to-end.
     return {
         "aggregate": agg,
+        "rho_published": ((agg.get("own_family") or {}).get("slab_local") or {})
+        .get("rho_median"),
+        "publication_policy": {
+            "gate_source": "aggregate.own_family.slab_local.rho_median",
+            "diagnostic_only": ["aggregate.own_family.all"],
+            "note": "'all' pools slab and non-slab cells; it is not the gated number and "
+                    "must never appear in a human-facing table",
+        },
         "per_cell": list(cells),
         "kappa": KAPPA,
         "rho_vs_raw_theory_median": float(np.median(raw)) if raw else float("nan"),

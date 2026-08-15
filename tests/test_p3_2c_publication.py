@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import glob
 import json
+import math
 import os
 import re
 
@@ -43,6 +44,13 @@ def test_published_rho_is_the_gated_rho():
         used = float(v["rho_used"])
         slab = _slab_local_rho(d)
         assert slab is not None, f"{f}: slab_local.rho_median missing"
+        # NaN must be reported as its own failure. `abs(nan - nan) < 1e-9` is False, so a
+        # NaN summary does fail this test -- but as an opaque "assert nan < 1e-09", which
+        # reads like a tolerance problem rather than "the slope fit produced nothing".
+        # That is exactly the confusion the A1 regression created.
+        assert math.isfinite(used) and math.isfinite(float(slab)), (
+            f"{f}: rho is not finite (rho_used={used}, slab_local={slab}) -- the slope fit "
+            f"produced no fitted cells; re-run this eval rather than adjusting the test")
         assert abs(used - float(slab)) < 1e-9, (
             f"{f}: verdict.rho_used={used} but slab_local.rho_median={slab}")
         pub = d["slope_fit"].get("rho_published")
