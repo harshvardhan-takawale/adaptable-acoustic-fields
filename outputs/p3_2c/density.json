@@ -1,0 +1,444 @@
+{
+ "schema": "p3_2c.density/1",
+ "arms": [
+  {
+   "arm": "W015",
+   "axis": "interior_gap",
+   "x_gap_m": 0.16128210751524685,
+   "gap_detail": {
+    "n_draws": 431,
+    "max_gap_m": 0.16128210751524685,
+    "bracketing_m": [
+     0.6179525133589395,
+     0.7792346208741864
+    ],
+    "density_per_unit_m": 301.66907145708575
+   },
+   "west_edit_slope": 0.9805692051594449,
+   "west_rho_median": 0.9277255187150186,
+   "west_n_cells": 9,
+   "west_rho_per_geom": {
+    "3.18x4.08": 0.8184042697801297,
+    "3.27x4.98": 0.8126609843156811,
+    "3.44x3.14": 1.3552712343350926,
+    "4.39x4.78": 1.1889907591513815,
+    "4.51x4.00": 1.4870747096721464,
+    "5.25x3.60": 0.8571834748634644,
+    "5.56x4.90": 0.8927829980711874,
+    "5.82x4.04": 1.5805248430833228,
+    "5.93x3.18": 0.9277255187150186
+   },
+   "north_edit_slope": 0.9497059574789278,
+   "north_rho_median": 0.9649086272418201,
+   "north_n_cells": 9,
+   "north_rho_per_geom": {
+    "3.18x4.08": 1.695512886709217,
+    "3.27x4.98": 0.8086515869914361,
+    "3.44x3.14": 1.0870411243051832,
+    "4.39x4.78": 1.5350447569400405,
+    "4.51x4.00": 0.9649086272418201,
+    "4.68x3.16": 0.7054455556745854,
+    "5.25x3.60": 0.9294932037555912,
+    "5.56x4.90": 1.180354238752681,
+    "5.93x3.18": 0.6396474091407672
+   },
+   "s2_edit_slope": 0.9588345128623671,
+   "s2_rho_slab_local": 0.9472009154987057,
+   "s2_frac_modes_dropped": 0.26268656716417915,
+   "s2_n_cells": 18,
+   "in_dist_val_lsd_db": 1.0132012367248535,
+   "verdict": "PASS",
+   "west_d_support_m": 0.07519466720100576,
+   "s2_west_is_arm_holdout": true
+  },
+  {
+   "arm": "W030",
+   "axis": "interior_gap",
+   "x_gap_m": 0.30601990842227167,
+   "gap_detail": {
+    "n_draws": 431,
+    "max_gap_m": 0.30601990842227167,
+    "bracketing_m": [
+     0.5372294913850679,
+     0.8432493998073396
+    ],
+    "density_per_unit_m": 335.67498657272483
+   },
+   "west_edit_slope": 0.8368039111965335,
+   "west_rho_median": 0.9133926282458698,
+   "west_n_cells": 10,
+   "west_rho_per_geom": {
+    "3.18x4.08": 0.6779049168101532,
+    "3.27x4.98": 0.6767609774173702,
+    "3.44x3.14": 1.3585413250557747,
+    "4.39x4.78": 0.9604216708970704,
+    "4.51x4.00": 0.8663635855946692,
+    "4.68x3.16": 0.6943716367117052,
+    "5.25x3.60": 1.1335457087240262,
+    "5.56x4.90": 1.0159600425880908,
+    "5.82x4.04": 1.8473468853843835,
+    "5.93x3.18": 0.7056405484294476
+   },
+   "north_edit_slope": 1.0762674223836515,
+   "north_rho_median": 1.0722524454647093,
+   "north_n_cells": 7,
+   "north_rho_per_geom": {
+    "3.18x4.08": 1.7149107584187095,
+    "3.27x4.98": 1.0722524454647093,
+    "3.44x3.14": 0.8391973058485154,
+    "4.39x4.78": 1.1298235452762544,
+    "4.68x3.16": 0.8663936401309126,
+    "5.25x3.60": 1.1341733284582145,
+    "5.93x3.18": 0.7838685596360919
+   },
+   "s2_edit_slope": 1.0679098996602658,
+   "s2_rho_slab_local": 0.9604216708970704,
+   "s2_frac_modes_dropped": 0.25671641791044775,
+   "s2_n_cells": 17,
+   "in_dist_val_lsd_db": 0.955973207950592,
+   "verdict": "PASS",
+   "west_d_support_m": 0.1501022192473943,
+   "s2_west_is_arm_holdout": true
+  },
+  {
+   "arm": "W060",
+   "axis": "interior_gap",
+   "x_gap_m": 0.6026751457040078,
+   "gap_detail": {
+    "n_draws": 431,
+    "max_gap_m": 0.6026751457040078,
+    "bracketing_m": [
+     0.39182851058525575,
+     0.9945036562892635
+    ],
+    "density_per_unit_m": 436.5331209121872
+   },
+   "west_edit_slope": 0.9775102520674068,
+   "west_rho_median": 1.1682135433444167,
+   "west_n_cells": 8,
+   "west_rho_per_geom": {
+    "3.18x4.08": 0.8380520989332468,
+    "3.27x4.98": 0.8689117912335611,
+    "3.44x3.14": 1.6405508844876717,
+    "4.39x4.78": 1.4138233432449772,
+    "5.25x3.60": 1.2579017911808799,
+    "5.56x4.90": 1.0898365117467386,
+    "5.82x4.04": 1.246590574942095,
+    "5.93x3.18": 0.8737552087800011
+   },
+   "north_edit_slope": 1.0754739260384383,
+   "north_rho_median": 1.2654624209278855,
+   "north_n_cells": 9,
+   "north_rho_per_geom": {
+    "3.18x4.08": 1.5091282215475237,
+    "3.27x4.98": 1.044175903366034,
+    "3.44x3.14": 1.1050160434332754,
+    "4.39x4.78": 1.9944162963489485,
+    "4.51x4.00": 1.4149789663995216,
+    "4.68x3.16": 0.5478497002709284,
+    "5.25x3.60": 1.2654624209278855,
+    "5.56x4.90": 1.8340589284650393,
+    "5.93x3.18": 0.6350117677974556
+   },
+   "s2_edit_slope": 1.072188335770967,
+   "s2_rho_slab_local": 1.246590574942095,
+   "s2_frac_modes_dropped": 0.22686567164179106,
+   "s2_n_cells": 17,
+   "in_dist_val_lsd_db": 1.0216684341430664,
+   "verdict": "PASS",
+   "west_d_support_m": 0.30131866997468953,
+   "s2_west_is_arm_holdout": true
+  },
+  {
+   "arm": "W100",
+   "axis": "interior_gap",
+   "x_gap_m": 1.0032728272442846,
+   "gap_detail": {
+    "n_draws": 431,
+    "max_gap_m": 1.0032728272442846,
+    "bracketing_m": [
+     0.1913736032254075,
+     1.194646430469692
+    ],
+    "density_per_unit_m": 734.5833293789639
+   },
+   "west_edit_slope": 0.5082450806587905,
+   "west_rho_median": 0.8180139653242332,
+   "west_n_cells": 7,
+   "west_rho_per_geom": {
+    "3.18x4.08": 0.5436816234222425,
+    "3.27x4.98": 0.7480549980602784,
+    "3.44x3.14": 1.2113570224552477,
+    "5.25x3.60": 0.9945726496380818,
+    "5.56x4.90": 0.7904670216839376,
+    "5.82x4.04": 1.1920330681882811,
+    "5.93x3.18": 0.8180139653242332
+   },
+   "north_edit_slope": 1.1046702085724678,
+   "north_rho_median": 1.2808896385425292,
+   "north_n_cells": 8,
+   "north_rho_per_geom": {
+    "3.18x4.08": 1.3781952664899915,
+    "3.27x4.98": 1.1546964802682382,
+    "3.44x3.14": 1.183584010595067,
+    "4.39x4.78": 1.4003765357157567,
+    "4.68x3.16": 0.7453761127566619,
+    "5.25x3.60": 1.4069158958950694,
+    "5.56x4.90": 1.399455038788735,
+    "5.93x3.18": 0.9110782086356601
+   },
+   "s2_edit_slope": 1.1479777297383078,
+   "s2_rho_slab_local": 1.1546964802682382,
+   "s2_frac_modes_dropped": 0.29850746268656714,
+   "s2_n_cells": 15,
+   "in_dist_val_lsd_db": 0.951737642288208,
+   "verdict": "PASS",
+   "west_d_support_m": 0.5014992499097467,
+   "s2_west_is_arm_holdout": true
+  },
+  {
+   "arm": "XTRAP",
+   "axis": "beyond_edge",
+   "x_gap_m": null,
+   "gap_detail": {
+    "train_edge_m": 1.0981963751721202,
+    "exclusion_threshold_m": 1.1,
+    "points": [
+     {
+      "alpha": 0.7,
+      "m": 1.203972804325936,
+      "beyond_edge_m": 0.10577642915381569
+     },
+     {
+      "alpha": 0.75,
+      "m": 1.3862943611198906,
+      "beyond_edge_m": 0.28809798594777036
+     },
+     {
+      "alpha": 0.8,
+      "m": 1.6094379124341005,
+      "beyond_edge_m": 0.5112415372619803
+     }
+    ]
+   },
+   "west_edit_slope": 0.9040846569526018,
+   "west_rho_median": 0.44401648701720564,
+   "west_n_cells": 9,
+   "west_rho_per_geom": {
+    "3.18x4.08": 0.35119230585097444,
+    "3.27x4.98": 0.44401648701720564,
+    "3.44x3.14": 0.5981422608131919,
+    "4.39x4.78": 0.6822172921111397,
+    "4.51x4.00": 0.5922767952436397,
+    "5.25x3.60": 0.36565457586026046,
+    "5.56x4.90": 0.3081199283082012,
+    "5.82x4.04": 1.2700960111272463,
+    "5.93x3.18": 0.2953103121304031
+   },
+   "north_edit_slope": 1.0462855215438367,
+   "north_rho_median": 1.1817327957487318,
+   "north_n_cells": 9,
+   "north_rho_per_geom": {
+    "3.18x4.08": 1.6194237580930917,
+    "3.27x4.98": 0.7429947305008617,
+    "3.44x3.14": 1.3838781884305096,
+    "4.39x4.78": 1.1817327957487318,
+    "4.51x4.00": 1.388089966597041,
+    "4.68x3.16": 0.675763759793051,
+    "5.25x3.60": 0.9713660475010477,
+    "5.56x4.90": 1.633677207985129,
+    "5.93x3.18": 0.6709874228727835
+   },
+   "s2_edit_slope": 1.0569150326856143,
+   "s2_rho_slab_local": 0.6789905259520954,
+   "s2_frac_modes_dropped": 0.2078239608801956,
+   "s2_n_cells": 18,
+   "in_dist_val_lsd_db": 0.9820435047149658,
+   "verdict": "FAIL",
+   "west_d_support_m": 0.0001480109530808127,
+   "s2_west_is_arm_holdout": false,
+   "extrap_points": [
+    {
+     "alpha": 0.7,
+     "m": 1.203972804325936,
+     "beyond_edge_m": 0.10577642915381569,
+     "edit_slope": 0.9172318683766606
+    },
+    {
+     "alpha": 0.75,
+     "m": 1.3862943611198906,
+     "beyond_edge_m": 0.28809798594777036,
+     "edit_slope": 0.5970056655395064
+    },
+    {
+     "alpha": 0.8,
+     "m": 1.6094379124341005,
+     "beyond_edge_m": 0.5112415372619803,
+     "edit_slope": 0.3128469267354443
+    }
+   ],
+   "train_edge_m": 1.0981963751721202,
+   "note": "west@0.50 (m=0.6931) is BELOW this arm's exclusion threshold of 1.10 and is therefore TRAINED here -- its S2 west entry is an interpolation control, not a holdout. The extrapolation measurement is S2X."
+  }
+ ],
+ "breakpoint": {
+  "metric": "west_rho_median",
+  "threshold": 0.8,
+  "x": [
+   0.16128210751524685,
+   0.30601990842227167,
+   0.6026751457040078,
+   1.0032728272442846
+  ],
+  "y": [
+   0.9277255187150186,
+   0.9133926282458698,
+   1.1682135433444167,
+   0.8180139653242332
+  ],
+  "geometries_used": [
+   "3.18x4.08",
+   "3.27x4.98",
+   "3.44x3.14",
+   "5.25x3.60",
+   "5.56x4.90",
+   "5.82x4.04",
+   "5.93x3.18"
+  ],
+  "n_boot": 4000,
+  "frac_bootstrap_with_crossing": 0.5055,
+  "censoring_fraction": 0.49450000000000005,
+  "point_estimate": null,
+  "ci95": [
+   0.18024157942003782,
+   0.9905163869978613
+  ],
+  "verdict": "NO_CROSSING_IN_RANGE",
+  "bound": "> 1.0033",
+  "statement": "The S2-west curve never crosses 0.80 within the sampled range; the smallest value observed is 0.818 at gap 1.0033. The breakpoint is therefore bounded BELOW at > 1.0033 and is not estimated by interpolation."
+ },
+ "breakpoint_by_slope": {
+  "metric": "west_edit_slope",
+  "threshold": 0.8,
+  "x": [
+   0.16128210751524685,
+   0.30601990842227167,
+   0.6026751457040078,
+   1.0032728272442846
+  ],
+  "y": [
+   0.9805692051594449,
+   0.8368039111965335,
+   0.9775102520674068,
+   0.5082450806587905
+  ],
+  "geometries_used": [
+   "3.18x4.08",
+   "3.27x4.98",
+   "3.44x3.14",
+   "5.25x3.60",
+   "5.56x4.90",
+   "5.82x4.04",
+   "5.93x3.18"
+  ],
+  "n_boot": 4000,
+  "frac_bootstrap_with_crossing": 0.5055,
+  "censoring_fraction": 0.49450000000000005,
+  "point_estimate": 0.7542103538558899,
+  "ci95": [
+   0.18024157942003782,
+   0.9905163869978613
+  ],
+  "verdict": "CROSSING",
+  "statement": "Breakpoint at realized gap 0.7542 m."
+ },
+ "breakpoint_metric_agreement": {
+  "agree": false,
+  "rho": "NO_CROSSING_IN_RANGE",
+  "slope": "CROSSING",
+  "note": "The two gated metrics disagree about whether the curve crosses at all. Neither is 'the' answer; both are reported and the disagreement is itself evidence that the interior-gap sweep is under-powered."
+ },
+ "within_run_extrapolation": {
+  "available": true,
+  "axis": "beyond_edge_m",
+  "train_edge_m": 1.0981963751721202,
+  "points": [
+   {
+    "alpha": 0.7,
+    "beyond_edge_m": 0.10577642915381569,
+    "edit_slope": 0.9172318683766606
+   },
+   {
+    "alpha": 0.75,
+    "beyond_edge_m": 0.28809798594777036,
+    "edit_slope": 0.5970056655395064
+   },
+   {
+    "alpha": 0.8,
+    "beyond_edge_m": 0.5112415372619803,
+    "edit_slope": 0.3128469267354443
+   }
+  ],
+  "monotone_decreasing": true,
+  "threshold": 0.8,
+  "breakpoint_beyond_edge_m": 0.17252267464817983,
+  "statement": "Within a single trained model, the edit slope decays monotonically with distance beyond the training edge (0.917 -> 0.597 -> 0.313 at +0.106/+0.288/+0.511), crossing 0.80 at +0.173 in m."
+ },
+ "reportable": {
+  "pass": false,
+  "note": "PRE-REGISTERED: the interior-gap curve is reportable only if the north control holds. north's slab and draws are byte-identical across arms, so its spread IS the one-seed-per-arm realization noise. If the control fails, cross-arm differences of comparable size cannot be attributed to gap width, and the curve needs replicate seeds before it means anything. The within-run XTRAP curve is unaffected -- it is a single model."
+ },
+ "dataset_rule": {
+  "bounded": true,
+  "delta_m": 1.0032728272442846,
+  "draws_per_wall": 2,
+  "sentence": "No breakpoint was found up to a realized gap of 1.003 in m. Sampling the absorption axis at intervals no coarser than dm = 1.003 -- i.e. >= 2 draws per wall over m in [0.02, 1.61] -- is SUFFICIENT, and is an upper bound on what is necessary: the true requirement is looser than this and was not reached by this sweep."
+ },
+ "north_control": {
+  "pass": false,
+  "tolerance": 0.15,
+  "reference_arm": "W015",
+  "per_arm": {
+   "W015": {
+    "north_rho_median": 0.9649086272418201,
+    "delta_vs_W015": 0.0,
+    "within_tol": true
+   },
+   "W030": {
+    "north_rho_median": 1.0722524454647093,
+    "delta_vs_W015": 0.10734381822288919,
+    "within_tol": true
+   },
+   "W060": {
+    "north_rho_median": 1.2654624209278855,
+    "delta_vs_W015": 0.3005537936860654,
+    "within_tol": false
+   },
+   "W100": {
+    "north_rho_median": 1.2808896385425292,
+    "delta_vs_W015": 0.3159810113007091,
+    "within_tol": false
+   },
+   "XTRAP": {
+    "north_rho_median": 1.1817327957487318,
+    "delta_vs_W015": 0.21682416850691166,
+    "within_tol": false
+   }
+  },
+  "north_edit_slope_range": [
+   0.9497059574789278,
+   1.1046702085724678
+  ],
+  "interpretation": "north's slab and draws are byte-identical across arms, so this spread is the run-to-run floor. A west effect smaller than it is not attributable to the manipulation with one seed per arm."
+ },
+ "p3_2_reference": {
+  "gap_m": 1.04,
+  "slope": 0.133,
+  "note": "P3-2: discrete presets, raw-alpha conditioning"
+ },
+ "thresholds": {
+  "slope": 0.8,
+  "rho_tol": 0.25,
+  "north_control_tol": 0.15
+ }
+}
