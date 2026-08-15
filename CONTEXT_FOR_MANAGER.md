@@ -2,7 +2,66 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunk **P3-2b COMPLETE (2026-08-14)** — corrected conditioning + attribution ladder. **Verdict: S2 PASSES (unseen geometry x NEVER-SEEN wall/absorption combination). The cause is CONTINUOUS ALPHA SAMPLING, not the fit and not mainly the coordinate change.** Prior: P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+**Last updated**: Chunks **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+
+1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
+2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
+
+**Also fixed this chunk: a regression I introduced.** The P3-2c audit A1 commit (`ee6ead0`) made the entire per-cell slope regression dead code, so **every rho computed between `ee6ead0` and `ad91b3a` was NaN**. Caught because P3-2c re-evaluates P3-2b arm C as its first curve point and reproduced every number except rho. The A1 guard tests could not have caught it — they asserted over stored `summary.json` files produced by the pre-A1 code, validating documents rather than the code that writes them. `tests/test_p3_2b_slopefit_regression.py` now fits synthetic data end-to-end. No published number changed.
+
+Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+
+## Phase 3 — P3-2c (COMPLETE): the density sweep, and why it does not answer its question
+
+**Read `tasks/CHUNK_P3_2C_RESULTS.md` + `outputs/p3_2c/density.json` + `outputs/p3_2c/selection_bias.json`.**
+
+Five arms widen the held-out west band; everything else is identical by construction (479 new
+sims, 92% reuse; dataset gate G0-G5 PASS on every arm; manifest deltas exactly as designed).
+
+| arm | realized gap (m) | d_support | west slope | west rho | north slope | **north rho (control)** | gate |
+|---|---:|---:|---:|---:|---:|---:|:---:|
+| W015 | 0.1613 | 0.0752 | 0.981 | 0.928 | 0.950 | 0.965 | PASS |
+| W030 | 0.3060 | 0.1501 | 0.837 | 0.913 | 1.076 | 1.072 | PASS |
+| W060 | 0.6027 | 0.3013 | 0.978 | 1.168 | 1.075 | 1.265 | PASS |
+| W100 | 1.0033 | 0.5015 | 0.508 | 0.818 | 1.105 | 1.281 | PASS |
+| XTRAP | beyond-edge | 0.0001 | 0.904 | 0.444 | 1.046 | 1.182 | FAIL |
+
+- **The control is the finding.** north's slab and draws are byte-identical in every arm, yet its
+  rho rises monotonically with the manipulation. Mechanism: repairing a rejected west draw pushes it
+  OUT of the slab toward the extremes of m, so a wider slab re-shapes the whole training marginal
+  rather than removing a band. North's rooms are the same rooms; their west walls are not.
+- **The two gated metrics disagree** about whether a breakpoint exists: rho never crosses 0.80
+  (bound > 1.0033), slope crosses at 0.7542, and **49.5%** of paired bootstrap resamples show no
+  crossing. Reported as a disagreement, not resolved by picking one.
+- **Not a fit-quality artifact**: in-dist LSD 0.952-1.022, NOT monotone in gap width (W100, the
+  widest gap, fits best). **Not a selection artifact**: 93 of 93-94 modes always-valid, full-pool and
+  always-valid slopes agree to 3 dp, GT effect size RISES (6.162 -> 8.204 Hz) while the model's
+  response falls.
+- **W015 reproduces P3-2b arm C byte-for-byte** (slope 0.959, rho 0.947, 18 cells, dropped 0.2627).
+- **XTRAP's S2-west is TRAINED there** (m=0.6931 < its 1.10 threshold, d_support 0.0001) — an
+  interpolation control, not a hold-out. The annotation layer flags this mechanically; unflagged it
+  would have read as a spectacular pass at the widest exclusion in the sweep.
+
+**What the manager should decide**: whether to re-run the sweep with the training marginal held
+fixed by construction AND replicate seeds (one seed per arm cannot separate the explanations even in
+principle), or to accept the extrapolation rule (dm ~ 0.17) and move on.
+
+## Phase 3 — FT-1 (FT-A COMPLETE, FT-B/FT-C NOT RUN)
+
+**Read `tasks/CHUNK_FT1_RESULTS.md` + `outputs/ft1/solver_validation.json`.**
+
+Gates A0/A1a/A1b/A1c/A2/A4a all PASS (energy 3.5e-16 relative; 0.020% vs exact SLF discrete
+dispersion; shape Pearson 0.99993; +8.37% vs Kuttruff). Cost **measured**, not estimated.
+
+Four blocking issues, none in the solver's numerics — all three adversarial lenses agreed the solver
+holds — and all in what the validation covers:
+
+- **B1** every gate ran the one on-grid geometry; 39/40 train + 9/10 test rooms are off the dx grid
+  and `_grid_count` only warns before snapping (0.5-0.8% dimension error, 10-16x the validated tolerance)
+- **B2** the absorber patch is dx wider than requested and reports the nominal span
+- **B3** both edit parameters are dx-quantized -> cannot be sampled continuously, colliding with D52
+- **B4** A3's invariance claim is false (exact ratio `2*artanh(xi)/xi`); it PASSED for the wrong reason
+
 
 ## Phase 3 — P3-2b (COMPLETE): material editing, corrected training distribution
 
