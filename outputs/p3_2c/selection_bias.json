@@ -1,0 +1,38 @@
+{
+ "schema": "p3_2c.selection_bias/1",
+ "split": "S2X_unseen_geom_west_extrap",
+ "n_always_valid_modes": 93,
+ "n_modes_per_point": {
+  "0.7": 93,
+  "0.75": 93,
+  "0.8": 94
+ },
+ "points": [
+  {
+   "alpha": 0.7,
+   "n_full": 93,
+   "n_common": 93,
+   "slope_full": 0.9415245690232439,
+   "slope_common": 0.9415245690232439
+  },
+  {
+   "alpha": 0.75,
+   "n_full": 93,
+   "n_common": 93,
+   "slope_full": 0.6412852871148359,
+   "slope_common": 0.6412852871148361
+  },
+  {
+   "alpha": 0.8,
+   "n_full": 94,
+   "n_common": 93,
+   "slope_full": 0.3561663002472812,
+   "slope_common": 0.3560210971166376
+  }
+ ],
+ "full_monotone_decreasing": true,
+ "common_monotone_decreasing": true,
+ "max_abs_delta": 0.0001452031306435897,
+ "verdict": "NO_SELECTION_BIAS",
+ "note": "The three extrapolation points share essentially the same measurable-mode population, so the decay is a change in the model's response, not in which modes are scored."
+}

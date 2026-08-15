@@ -18,6 +18,25 @@ at **+0.173 in m**:
 |---|---:|---:|---:|
 | west edit slope | 0.917 | 0.597 | 0.313 |
 
+### The extrapolation curve is not a selection artifact
+
+About 40% of candidate modes are dropped as unmeasurable at these absorptions, so if the
+measurable-mode population shifted between the three points, the decay could be bookkeeping
+rather than model behaviour. Recomputing each point over the intersection of modes measurable
+at *all three*:
+
+| alpha | n (full pool) | slope (full) | n (always-valid) | slope (always-valid) | delta |
+|---|---:|---:|---:|---:|---:|
+| 0.70 | 93 | 0.942 | 93 | 0.942 | +0.000 |
+| 0.75 | 93 | 0.641 | 93 | 0.641 | +0.000 |
+| 0.80 | 94 | 0.356 | 93 | 0.356 | -0.000 |
+
+93 of 93-94 modes are always-valid and the two curves agree to three decimals. Per-point drop
+rates are 0.3961 / 0.3961 / 0.3896. Verdict: **NO_SELECTION_BIAS**
+(`outputs/p3_2c/selection_bias.json`). Ground-truth effect size rises monotonically across the
+three points (6.162 -> 7.141 -> 8.204 Hz) while the model's slope falls, so the model is
+under-responding progressively -- the signal is growing while the response shrinks.
+
 ## The five arms
 
 All four interior-gap arms PASS the frozen P3-2b acceptance gate. XTRAP fails it, correctly:
