@@ -1,0 +1,902 @@
+{
+ "gate": "A2b-fix",
+ "what": "simulated pyroomacoustics ShoeBox 2D ISM (max_order=60) vs simulated FDTD, per mode, same room and receivers",
+ "why": "FT-A's A2b ran no ISM simulation -- BW_ISM was the analytic ism_ray formula, so it restated A2. This is the only gate that independently validates the alpha->impedance calibration; a mis-calibrated xi would keep every formula-scored gate self-consistent and wrong.",
+ "criterion": "axial modes only, |FDTD - ISM| / ISM <= 10%; tangential reported but excluded because grazing-incidence absorption makes the two laws differ by 30-44% there BY PHYSICS (D48/D54)",
+ "tolerance": 0.1,
+ "n_axial_modes_judged": 18,
+ "worst_rel_diff_axial": 0.38684235603494804,
+ "pass": null,
+ "verdict": "INCONCLUSIVE -- the gate as specified is confounded; NOT escalated",
+ "cases": [
+  {
+   "case": "uniform_a015",
+   "L": 4.5,
+   "W": 4.0,
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "src": [
+    1.665,
+    1.16
+   ],
+   "n_rx": 64,
+   "cond_phi": 1.481420980810891,
+   "seconds": {
+    "fdtd": 0.9897738480940461,
+    "ism": 1.3352424388285726
+   },
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_analytic_hz": 38.11111111111111,
+     "family": "x_axial",
+     "fdtd_bw_hz": 3.0811549618132332,
+     "ism_bw_hz": 3.625435572440388,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.15012833623761884,
+     "kuttruff_bw_hz": 2.8432367437770885,
+     "ism_ray_bw_hz": 1.9715404454715386
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_analytic_hz": 42.875,
+     "family": "y_axial",
+     "fdtd_bw_hz": 3.202612357869313,
+     "ism_bw_hz": 4.02110430003146,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.20354904550865383,
+     "kuttruff_bw_hz": 2.956966213528172,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_analytic_hz": 57.364818618413295,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.189459999991065,
+     "ism_bw_hz": 5.124752220794392,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.1825048666759436,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.967561342507478
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_analytic_hz": 76.22222222222221,
+     "family": "x_axial",
+     "fdtd_bw_hz": 3.0804777393358194,
+     "ism_bw_hz": 3.572690897662227,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.13777098898997528,
+     "kuttruff_bw_hz": 2.8432367437770885,
+     "ism_ray_bw_hz": 1.9715404454715386
+    },
+    {
+     "mode": [
+      0,
+      2
+     ],
+     "f_analytic_hz": 85.75,
+     "family": "y_axial",
+     "fdtd_bw_hz": 3.202870323321605,
+     "ism_bw_hz": 3.9850374325357905,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.19627597543455716,
+     "kuttruff_bw_hz": 2.956966213528172,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      2,
+      1
+     ],
+     "f_analytic_hz": 87.45337492340606,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.1836376067153225,
+     "ism_bw_hz": 4.829946620968457,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.13381286895538036,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.8057375183550586
+    },
+    {
+     "mode": [
+      1,
+      2
+     ],
+     "f_analytic_hz": 93.83772850044622,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.182469502204327,
+     "ism_bw_hz": 4.879900341547227,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.1429190742698183,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.827536893385437
+    },
+    {
+     "mode": [
+      3,
+      0
+     ],
+     "f_analytic_hz": 114.33333333333333,
+     "family": "x_axial",
+     "fdtd_bw_hz": 3.0760116561116178,
+     "ism_bw_hz": 3.5232005199970757,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.12692688404968477,
+     "kuttruff_bw_hz": 2.8432367437770885,
+     "ism_ray_bw_hz": 1.9715404454715386
+    },
+    {
+     "mode": [
+      2,
+      2
+     ],
+     "f_analytic_hz": 114.72963723682659,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.185665452211197,
+     "ism_bw_hz": 5.117588014977116,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.18210191208017484,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.967561342507478
+    },
+    {
+     "mode": [
+      3,
+      1
+     ],
+     "f_analytic_hz": 122.1080535268297,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.180781405133487,
+     "ism_bw_hz": 4.502116923580573,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.07137431654962988,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.6247966686027357
+    },
+    {
+     "mode": [
+      0,
+      3
+     ],
+     "f_analytic_hz": 128.625,
+     "family": "y_axial",
+     "fdtd_bw_hz": 3.19635301065847,
+     "ism_bw_hz": 3.942889103236922,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.18933732931154013,
+     "kuttruff_bw_hz": 2.956966213528172,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      1,
+      3
+     ],
+     "f_analytic_hz": 134.15232914535423,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.181259114323666,
+     "ism_bw_hz": 4.621017795222599,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.09516489664973245,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.686689547600156
+    },
+    {
+     "mode": [
+      3,
+      2
+     ],
+     "f_analytic_hz": 142.91666666666669,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.184231986355968,
+     "ism_bw_hz": 4.997189558304939,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.16268295658264528,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.9080221570705196
+    },
+    {
+     "mode": [
+      2,
+      3
+     ],
+     "f_analytic_hz": 149.5132695966944,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.184879733765854,
+     "ism_bw_hz": 5.008570923114348,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.16445632935877846,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.913208029316511
+    },
+    {
+     "mode": [
+      4,
+      0
+     ],
+     "f_analytic_hz": 152.44444444444443,
+     "family": "x_axial",
+     "fdtd_bw_hz": 3.1072858462700026,
+     "ism_bw_hz": 3.6146229994842827,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.14035686523509217,
+     "kuttruff_bw_hz": 2.8432367437770885,
+     "ism_ray_bw_hz": 1.9715404454715386
+    },
+    {
+     "mode": [
+      4,
+      1
+     ],
+     "f_analytic_hz": 158.35900437605468,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.182135818935933,
+     "ism_bw_hz": 4.276896115014779,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.02215632400940802,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.4984143506274017
+    },
+    {
+     "mode": [
+      0,
+      4
+     ],
+     "f_analytic_hz": 171.5,
+     "family": "y_axial",
+     "fdtd_bw_hz": 3.193049075729192,
+     "ism_bw_hz": 3.9153048732675586,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.18446987422861924,
+     "kuttruff_bw_hz": 2.956966213528172,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      3,
+      3
+     ],
+     "f_analytic_hz": 172.09445585523986,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.182758693925763,
+     "ism_bw_hz": 5.0959027642796855,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.17919181597315997,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.9675613425074783
+    },
+    {
+     "mode": [
+      4,
+      2
+     ],
+     "f_analytic_hz": 174.90674984681212,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.184170351909302,
+     "ism_bw_hz": 4.8211228720037695,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.13211704762665297,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.8057375183550586
+    },
+    {
+     "mode": [
+      1,
+      4
+     ],
+     "f_analytic_hz": 175.68354160285892,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.177339529997965,
+     "ism_bw_hz": 4.464350632992222,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.06428955218552979,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.5928534768800877
+    },
+    {
+     "mode": [
+      2,
+      4
+     ],
+     "f_analytic_hz": 187.67545700089244,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.187631946745341,
+     "ism_bw_hz": 4.850495686670257,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.13665896905063635,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.827536893385437
+    },
+    {
+     "mode": [
+      5,
+      0
+     ],
+     "f_analytic_hz": 190.55555555555557,
+     "family": "x_axial",
+     "fdtd_bw_hz": 3.067707937259712,
+     "ism_bw_hz": 3.4711938883718005,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.11623837909594494,
+     "kuttruff_bw_hz": 2.8432367437770885,
+     "ism_ray_bw_hz": 1.9715404454715386
+    },
+    {
+     "mode": [
+      5,
+      1
+     ],
+     "f_analytic_hz": 195.31944444444449,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.178373733196764,
+     "ism_bw_hz": 4.121871698166331,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.01370785875153984,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.410328410469777
+    },
+    {
+     "mode": [
+      4,
+      3
+     ],
+     "f_analytic_hz": 199.458515152839,
+     "family": "tangential",
+     "fdtd_bw_hz": 4.183881666274459,
+     "ism_bw_hz": 5.028735318097034,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.16800519382719933,
+     "kuttruff_bw_hz": 3.866801971536841,
+     "ism_ray_bw_hz": 2.9371443529717176
+    }
+   ]
+  },
+  {
+   "case": "west_a070",
+   "L": 4.5,
+   "W": 4.0,
+   "alphas": [
+    0.7,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "src": [
+    1.665,
+    1.16
+   ],
+   "n_rx": 64,
+   "cond_phi": 1.481420980810891,
+   "seconds": {
+    "fdtd": 0.9130371259525418,
+    "ism": 0.12048451416194439
+   },
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_analytic_hz": 38.11111111111111,
+     "family": "x_axial",
+     "fdtd_bw_hz": 9.503732556582236,
+     "ism_bw_hz": 14.624041693085196,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.3501295499536245,
+     "kuttruff_bw_hz": 6.179301189808872,
+     "ism_ray_bw_hz": 8.288553616373838
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_analytic_hz": 42.875,
+     "family": "y_axial",
+     "fdtd_bw_hz": 6.088460883377614,
+     "ism_bw_hz": 4.592215072444851,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.3258222420615365,
+     "kuttruff_bw_hz": 4.624998436544065,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_analytic_hz": 57.364818618413295,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.791071208278147,
+     "ism_bw_hz": 12.302257386603387,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.12283812074772994,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 7.164356462667293
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_analytic_hz": 76.22222222222221,
+     "family": "x_axial",
+     "fdtd_bw_hz": 9.43706384535605,
+     "ism_bw_hz": 14.329158040628002,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.3414083494229886,
+     "kuttruff_bw_hz": 6.179301189808872,
+     "ism_ray_bw_hz": 8.288553616373838
+    },
+    {
+     "mode": [
+      0,
+      2
+     ],
+     "f_analytic_hz": 85.75,
+     "family": "y_axial",
+     "fdtd_bw_hz": 5.178559079912361,
+     "ism_bw_hz": 4.3470082828306005,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.19129266451277324,
+     "kuttruff_bw_hz": 4.624998436544065,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      2,
+      1
+     ],
+     "f_analytic_hz": 87.45337492340606,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.668963578475598,
+     "ism_bw_hz": 14.048018107282786,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.2405360317022524,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 8.31149166580708
+    },
+    {
+     "mode": [
+      1,
+      2
+     ],
+     "f_analytic_hz": 93.83772850044622,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.799846351901294,
+     "ism_bw_hz": 9.340699251783704,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.15621390441823196,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 5.393118932655121
+    },
+    {
+     "mode": [
+      3,
+      0
+     ],
+     "f_analytic_hz": 114.33333333333333,
+     "family": "x_axial",
+     "fdtd_bw_hz": 9.390200576874065,
+     "ism_bw_hz": 14.263844018642999,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.3416781223489986,
+     "kuttruff_bw_hz": 6.179301189808872,
+     "ism_ray_bw_hz": 8.288553616373838
+    },
+    {
+     "mode": [
+      2,
+      2
+     ],
+     "f_analytic_hz": 114.72963723682659,
+     "family": "tangential",
+     "fdtd_bw_hz": 11.164518866477053,
+     "ism_bw_hz": 12.146154423937872,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.0808186297653349,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 7.164356462667293
+    },
+    {
+     "mode": [
+      3,
+      1
+     ],
+     "f_analytic_hz": 122.1080535268297,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.53156543318913,
+     "ism_bw_hz": 14.436559560316454,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.2704934032802013,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 8.539600415606506
+    },
+    {
+     "mode": [
+      0,
+      3
+     ],
+     "f_analytic_hz": 128.625,
+     "family": "y_axial",
+     "fdtd_bw_hz": 4.420059029675272,
+     "ism_bw_hz": 4.216178194076349,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.04835678811805724,
+     "kuttruff_bw_hz": 4.624998436544065,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      1,
+      3
+     ],
+     "f_analytic_hz": 134.15232914535423,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.624447114764706,
+     "ism_bw_hz": 8.040658200064712,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.32134047367903285,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 4.4812792679602005
+    },
+    {
+     "mode": [
+      3,
+      2
+     ],
+     "f_analytic_hz": 142.91666666666669,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.654111212561219,
+     "ism_bw_hz": 13.404830804660975,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.20520360399799356,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 7.961632693792358
+    },
+    {
+     "mode": [
+      2,
+      3
+     ],
+     "f_analytic_hz": 149.5132695966944,
+     "family": "tangential",
+     "fdtd_bw_hz": 12.770713071962888,
+     "ism_bw_hz": 10.26893371268099,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.243626011159511,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 6.1336364434100314
+    },
+    {
+     "mode": [
+      4,
+      0
+     ],
+     "f_analytic_hz": 152.44444444444443,
+     "family": "x_axial",
+     "fdtd_bw_hz": 9.710631297403552,
+     "ism_bw_hz": 15.837087563010186,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.38684235603494804,
+     "kuttruff_bw_hz": 6.179301189808872,
+     "ism_ray_bw_hz": 8.288553616373838
+    },
+    {
+     "mode": [
+      4,
+      1
+     ],
+     "f_analytic_hz": 158.35900437605468,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.838073894084062,
+     "ism_bw_hz": 14.733116819473423,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.26437331442598133,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 8.579493018561061
+    },
+    {
+     "mode": [
+      0,
+      4
+     ],
+     "f_analytic_hz": 171.5,
+     "family": "y_axial",
+     "fdtd_bw_hz": 3.9855951326195225,
+     "ism_bw_hz": 4.1228737804866284,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.033296834969054716,
+     "kuttruff_bw_hz": 4.624998436544065,
+     "ism_ray_bw_hz": 2.217983001155481
+    },
+    {
+     "mode": [
+      3,
+      3
+     ],
+     "f_analytic_hz": 172.09445585523986,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.75447680124114,
+     "ism_bw_hz": 12.065499386012249,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.10865879171905651,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 7.164356462667294
+    },
+    {
+     "mode": [
+      4,
+      2
+     ],
+     "f_analytic_hz": 174.90674984681212,
+     "family": "tangential",
+     "fdtd_bw_hz": 11.031498637855918,
+     "ism_bw_hz": 14.939565147132896,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.26159171775003026,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 8.31149166580708
+    },
+    {
+     "mode": [
+      1,
+      4
+     ],
+     "f_analytic_hz": 175.68354160285892,
+     "family": "tangential",
+     "fdtd_bw_hz": 9.659731023397711,
+     "ism_bw_hz": 7.242263515021506,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.3337999926904105,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 3.963206036090404
+    },
+    {
+     "mode": [
+      2,
+      4
+     ],
+     "f_analytic_hz": 187.67545700089244,
+     "family": "tangential",
+     "fdtd_bw_hz": 14.593249007134517,
+     "ism_bw_hz": 8.988380246045011,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": 0.6235682745571107,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 5.393118932655121
+    },
+    {
+     "mode": [
+      5,
+      0
+     ],
+     "f_analytic_hz": 190.55555555555557,
+     "family": "x_axial",
+     "fdtd_bw_hz": 9.39314582118871,
+     "ism_bw_hz": 14.01747926697152,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.3298976483367325,
+     "kuttruff_bw_hz": 6.179301189808872,
+     "ism_ray_bw_hz": 8.288553616373838
+    },
+    {
+     "mode": [
+      5,
+      1
+     ],
+     "f_analytic_hz": 195.31944444444449,
+     "family": "tangential",
+     "fdtd_bw_hz": 10.510972629832509,
+     "ism_bw_hz": 14.317040475978303,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.26584180246830796,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 8.573268089398846
+    },
+    {
+     "mode": [
+      4,
+      3
+     ],
+     "f_analytic_hz": 199.458515152839,
+     "family": "tangential",
+     "fdtd_bw_hz": 11.212210179432788,
+     "ism_bw_hz": 14.03689967285078,
+     "fdtd_flag": "ok",
+     "ism_flag": "ok",
+     "fdtd_valid": true,
+     "ism_valid": true,
+     "rel_diff_fdtd_vs_ism": -0.20123314686656307,
+     "kuttruff_bw_hz": 7.202866417568624,
+     "ism_ray_bw_hz": 7.765183720699521
+    }
+   ]
+  }
+ ],
+ "verdict_as_specified": "FAIL -- STOP AND ESCALATE: a boundary-calibration error would invalidate every topological-edit dataset built on this solver",
+ "diagnosis": {
+  "finding": "The measured -3 dB widths of the two simulators cannot be compared with a single estimator, because the repo estimator's kappa was calibrated on ISM data and FDTD data does not carry it. FT-A already measured this: kappa_ism = 1.6608 vs kappa_fdtd = 1.0208.",
+  "evidence": {
+   "west_a070_x_axial": {
+    "raw_gamma_over_pi": 8.289,
+    "kappa_ism_calibrated": 14.067,
+    "ism_measured": 14.62,
+    "fdtd_measured": 9.5,
+    "reading": "ISM tracks the CALIBRATED value; FDTD tracks the RAW value"
+   },
+   "ratio_check": {
+    "ism_over_fdtd": 1.539,
+    "kappa_ism_over_kappa_fdtd": 1.627
+   },
+   "cross_check": "FDTD uniform-alpha (1,0) measures 3.08 Hz here, reproducing FT-A's independently-run validated A2 (3.0812 Hz) exactly, so the FDTD side of the measurement is sound."
+  },
+  "self_criticism": "This gate committed the D54 error it was written to guard against: it scored against a target embedding a calibration assumption without stating the assumption or quantifying its error at the operating point. A 38.68% 'failure' was almost entirely kappa.",
+  "corrected_specification": "Compare kappa-FREE quantities: (a) the underlying decay rate gamma from a one-pole fit on the source-deconvolved H_deconv, which is what the boundary actually sets, and/or (b) a ratio that cancels kappa (e.g. the x-axial bandwidth at alpha=0.70 divided by the same mode's bandwidth at alpha=0.15, measured within each solver). Only then is a 10% criterion meaningful.",
+  "what_this_does_and_does_not_establish": {
+   "does_not": "that the alpha->impedance calibration is correct -- still unverified",
+   "does": "that the 38.68% discrepancy is not evidence of mis-calibration, so the STOP-AND-ESCALATE trigger is not met on this evidence"
+  }
+ },
+ "history": {
+  "first_attempt": "a raw receiver-averaged spectrum with no walk caps: it reported FDTD (1,0) = 8.77 Hz against the validated 3.08 Hz and ISM bandwidths of 6114 Hz inside a 0-300 Hz band, because unprojected neighbouring modes let the -3 dB walk run off the array. Replaced with the repo estimator on the modally-projected spectrum, applied identically to both streams."
+ }
+}
