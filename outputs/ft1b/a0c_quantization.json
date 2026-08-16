@@ -1,0 +1,146 @@
+{
+ "gate": "A0c",
+ "floor_hz": 0.04,
+ "dx_compared": [
+  0.02,
+  0.01
+ ],
+ "fs_for_dx": {
+  "0.02": 30720.0,
+  "0.01": 61440.0
+ },
+ "lambda_held_at": 0.5582682291666667,
+ "cases": {
+  "aperture_0.5m": {
+   "max_df_hz": 0.30176811253045344,
+   "max_dbw_hz": 0.4145959056258448,
+   "median_dbw_hz": 0.0057138086881707295,
+   "d_level_db": 0.055941706571629446,
+   "n_modes_compared": 20,
+   "dbw_over_floor": 10.36489764064612,
+   "realized_dx002": [
+    {
+     "type": "slab",
+     "axis": "x",
+     "pos_m": 4.0,
+     "alpha": 0.15,
+     "normal_nodes": [
+      200,
+      200
+     ],
+     "normal_pos_m": [
+      4.0,
+      4.0
+     ],
+     "tangential_nodes": [
+      0,
+      150
+     ],
+     "n_solid_nodes": 124,
+     "apertures": [
+      {
+       "nodes": [
+        62,
+        88
+       ],
+       "clear_lo_m": 1.24,
+       "clear_hi_m": 1.76,
+       "clear_width_m": 0.52,
+       "n_open_nodes": 27,
+       "symmetric_about_m": 1.5
+      }
+     ],
+     "note": "the reflecting plane sits at the first AIR node on each side, i.e. one dx outside the solid block; aperture clear width is (jb - ja) * dx"
+    }
+   ],
+   "realized_dx001": [
+    {
+     "type": "slab",
+     "axis": "x",
+     "pos_m": 4.0,
+     "alpha": 0.15,
+     "normal_nodes": [
+      400,
+      400
+     ],
+     "normal_pos_m": [
+      4.0,
+      4.0
+     ],
+     "tangential_nodes": [
+      0,
+      300
+     ],
+     "n_solid_nodes": 250,
+     "apertures": [
+      {
+       "nodes": [
+        125,
+        175
+       ],
+       "clear_lo_m": 1.25,
+       "clear_hi_m": 1.75,
+       "clear_width_m": 0.5,
+       "n_open_nodes": 51,
+       "symmetric_about_m": 1.5
+      }
+     ],
+     "note": "the reflecting plane sits at the first AIR node on each side, i.e. one dx outside the solid block; aperture clear width is (jb - ja) * dx"
+    }
+   ]
+  },
+  "patch_0.5m": {
+   "max_df_hz": 0.03088169089681969,
+   "max_dbw_hz": 0.012320059274230744,
+   "median_dbw_hz": 0.0011184143323390572,
+   "d_level_db": 0.03831149216122176,
+   "n_modes_compared": 24,
+   "dbw_over_floor": 0.3080014818557686,
+   "realized_dx002": [
+    {
+     "type": "patch",
+     "wall": "west",
+     "alpha": 0.7,
+     "nodes": [
+      88,
+      112
+     ],
+     "n_nodes": 25,
+     "span_m": [
+      1.76,
+      2.24
+     ],
+     "width_requested_m": 0.5,
+     "width_realized_m": 0.5,
+     "width_error_m": 0.0,
+     "centre_realized_m": 2.0,
+     "note": "width_realized_m is the ABSORBING extent (corner nodes own dx/2); report it, never the nominal span"
+    }
+   ],
+   "realized_dx001": [
+    {
+     "type": "patch",
+     "wall": "west",
+     "alpha": 0.7,
+     "nodes": [
+      176,
+      225
+     ],
+     "n_nodes": 50,
+     "span_m": [
+      1.76,
+      2.25
+     ],
+     "width_requested_m": 0.5,
+     "width_realized_m": 0.5,
+     "width_error_m": 0.0,
+     "centre_realized_m": 2.005,
+     "note": "width_realized_m is the ABSORBING extent (corner nodes own dx/2); report it, never the nominal span"
+    }
+   ]
+  }
+ },
+ "b3_closed": false,
+ "verdict": "B3 NOT closed at dx=0.02: at least one observable exceeds the floor; use the finer grid and report the required dx",
+ "derived_rule": "the edit-parameter quantum must be <~10% of the required sampling interval in the axis's linearizing coordinate; FT-B measures that interval for the aperture axis and Part 3 measures it for absorption"
+}
