@@ -189,7 +189,7 @@ def test_alpha_zero_gives_the_rigid_update_coefficients():
     lam = 343.0 / 12288.0 / 0.05
     lam2 = lam * lam
     geom = F.build_geometry(1.0, 0.8, (0.0, 0.0, 0.0, 0.0), dx=0.05)
-    coef = F.build_coefficients(geom, lam)
+    coef = F.build_coefficients(geom, lam, lam)
 
     assert np.all(coef["B"] == 0.0)
     assert np.allclose(coef["cP"], -1.0, atol=0.0, rtol=0.0)
@@ -381,7 +381,7 @@ def test_discrete_dispersion_relation_is_exact():
     L, W, dx, fs, c = 0.30, 0.20, 0.05, 12288.0, 343.0
     dt = 1.0 / fs
     geom = F.build_geometry(L, W, (0.0,) * 4, dx=dx)
-    A, cP = _update_matrix(geom, F.build_coefficients(geom, c / fs / dx))
+    A, cP = _update_matrix(geom, F.build_coefficients(geom, c / fs / dx, c / fs / dx))
     assert np.all(cP == -1.0)
     mu = np.clip(np.linalg.eigvals(A).real / 2.0, -1.0, 1.0)
     got = np.sort(np.arccos(mu) / (2 * np.pi * dt))
@@ -412,7 +412,7 @@ def test_modal_damping_follows_the_locally_reacting_law():
     alphas = (alpha,) * 4
     dt = 1.0 / fs
     geom = F.build_geometry(L, W, alphas, dx=dx)
-    A, cP = _update_matrix(geom, F.build_coefficients(geom, c / fs / dx))
+    A, cP = _update_matrix(geom, F.build_coefficients(geom, c / fs / dx, c / fs / dx))
     nn = A.shape[0]
     comp = np.zeros((2 * nn, 2 * nn))
     comp[:nn, :nn] = A
@@ -435,7 +435,7 @@ def test_modal_damping_follows_the_locally_reacting_law():
 
 def test_rigid_walls_are_lossless_in_the_operator_spectrum():
     geom = F.build_geometry(0.30, 0.20, (0.0,) * 4, dx=0.05)
-    A, cP = _update_matrix(geom, F.build_coefficients(geom, 343.0 / 12288.0 / 0.05))
+    A, cP = _update_matrix(geom, F.build_coefficients(geom, 343.0 / 12288.0 / 0.05, 343.0 / 12288.0 / 0.05))
     nn = A.shape[0]
     comp = np.zeros((2 * nn, 2 * nn))
     comp[:nn, :nn] = A
@@ -483,13 +483,26 @@ def test_absorbing_divider_damps_more_than_a_rigid_one():
 
 
 def test_partial_wall_absorber_patch():
+    """The realized ABSORBING extent must equal the requested span.
+
+    Updated for the A0b fix (FT-A blocker B2). The previous expectation encoded the bug: an
+    inclusive slice ``j0:j1+1`` painted ``round(a/dx) + 1`` nodes, so a 0.40 m request
+    absorbed like 0.45 m -- one full cell too wide, and reported as nominal. The corrected
+    rule paints 8 nodes (5..12), realizing 0.40 m exactly.
+    """
     patch = {"type": "patch", "wall": "north", "span": (0.20, 0.60), "alpha": 0.8}
     geom = F.build_geometry(1.0, 0.8, (0.1,) * 4, dx=0.05, extra_walls=[patch])
     north = geom.face_alpha[F.YP, :, -1]
-    assert np.allclose(north[4:13], 0.8)
-    assert np.allclose(north[:4], 0.1)
+    assert np.allclose(north[5:13], 0.8)
+    assert np.allclose(north[:5], 0.1)
     assert np.allclose(north[13:], 0.1)
     assert geom.adm[F.YP, 6, -1] == pytest.approx(F.wall_admittance(0.8))
+
+    spec = geom.specs[0]
+    assert spec["n_nodes"] == 8
+    assert spec["width_requested_m"] == pytest.approx(0.40)
+    assert spec["width_realized_m"] == pytest.approx(0.40)
+    assert abs(spec["width_error_m"]) < 1e-12
 
 
 def test_zero_width_channel_is_rejected():

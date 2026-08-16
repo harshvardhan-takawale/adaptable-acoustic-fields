@@ -273,7 +273,8 @@ class Geometry:
 
     nx: int
     ny: int
-    dx: float
+    dx_x: float
+    dx_y: float
     L_grid: float
     W_grid: float
     solid: np.ndarray
@@ -288,26 +289,34 @@ class Geometry:
         return ~self.solid
 
 
-def _grid_count(length: float, dx: float, name: str) -> Tuple[int, float]:
-    """Node count and realized length for one axis. Warns if ``length`` is not on the grid."""
+def _fit_axis(length: float, dx_target: float, name: str) -> Tuple[int, float]:
+    """Node count and the EXACT spacing that fits ``length`` on an integer number of cells.
+
+    Replaces the old snap-and-warn. Snapping was a silent 0.5-0.8% dimension error on 39 of
+    40 training and 9 of 10 test geometries -- none of which is an integer multiple of the
+    0.05 m target -- which is ~30x the frequency tolerance the solver was validated to, and
+    systematic on the very axis the model conditions on (FT-A blocker B1).
+
+    Fitting per axis instead makes every room land on its own grid exactly. The induced
+    spacing variation is tiny (measured over all 50 geometries: dx in [0.049688, 0.050328],
+    max deviation 0.656%) and the dispersion knock-on is ~1e-4 % against an existing 0.020%.
+    """
     length = float(length)
     if length <= 0.0:
         raise ValueError("{} must be positive, got {!r}".format(name, length))
-    n_cells = int(round(length / dx))
+    n_cells = int(round(length / dx_target))
     if n_cells < 2:
         raise ValueError(
-            "{}={!r} spans only {} cells at dx={!r}; need >= 2".format(name, length, n_cells, dx)
+            "{}={!r} spans only {} cells at dx_target={!r}; need >= 2".format(
+                name, length, n_cells, dx_target)
         )
-    realized = n_cells * dx
-    if abs(realized - length) > 1e-9:
-        warnings.warn(
-            "{}={!r} is not an integer multiple of dx={!r}; the grid realizes {!r} "
-            "(error {:.3e} m). Modal frequencies shift accordingly.".format(
-                name, length, dx, realized, realized - length
-            ),
-            stacklevel=3,
+    dx_axis = length / n_cells
+    if abs(n_cells * dx_axis - length) > 1e-12:
+        raise AssertionError(
+            "{}={!r} did not fit exactly: {} cells x {!r} = {!r}".format(
+                name, length, n_cells, dx_axis, n_cells * dx_axis)
         )
-    return n_cells + 1, realized
+    return n_cells + 1, dx_axis
 
 
 def _span_nodes(lo: float, hi: float, dx: float, n_nodes: int, what: str) -> Tuple[int, int]:
@@ -327,20 +336,27 @@ def _apply_slab(
     spec: Dict[str, Any],
     solid: np.ndarray,
     face_alpha: np.ndarray,
-    dx: float,
+    dx_x: float,
+    dx_y: float,
 ) -> Dict[str, Any]:
-    """Add one interior slab (optionally with apertures) to ``solid`` / ``face_alpha``."""
+    """Add one interior slab (optionally with apertures) to ``solid`` / ``face_alpha``.
+
+    Takes both spacings because this one function indexes along a NORMAL axis (``pos``,
+    ``thickness``) and a TANGENTIAL axis (``span``, ``apertures``); under per-axis fitting
+    those are different metres-per-node.
+    """
     nx, ny = solid.shape
     axis = str(spec.get("axis", "x")).lower()
     if axis not in ("x", "y"):
         raise ValueError("slab 'axis' must be 'x' or 'y', got {!r}".format(spec.get("axis")))
     n_norm, n_tan = (nx, ny) if axis == "x" else (ny, nx)
+    dx_norm, dx_tan = (dx_x, dx_y) if axis == "x" else (dx_y, dx_x)
 
     if "pos" not in spec:
         raise ValueError("slab spec requires 'pos' (metres along its normal axis)")
-    thickness = float(spec.get("thickness", dx))
-    k = max(1, int(round(thickness / dx)))
-    centre = int(round(float(spec["pos"]) / dx))
+    thickness = float(spec.get("thickness", dx_norm))
+    k = max(1, int(round(thickness / dx_norm)))
+    centre = int(round(float(spec["pos"]) / dx_norm))
     n0 = centre - (k - 1) // 2
     n1 = n0 + k - 1
     if n1 < 0 or n0 > n_norm - 1:
@@ -354,7 +370,7 @@ def _apply_slab(
     if span is None:
         t0, t1 = 0, n_tan - 1
     else:
-        t0, t1 = _span_nodes(span[0], span[1], dx, n_tan, "slab span")
+        t0, t1 = _span_nodes(span[0], span[1], dx_tan, n_tan, "slab span")
 
     mask = np.zeros_like(solid)
     if axis == "x":
@@ -364,12 +380,12 @@ def _apply_slab(
 
     apertures_out = []
     for ap in spec.get("apertures", ()) or ():
-        ja, jb = _span_nodes(ap[0], ap[1], dx, n_tan, "aperture")
+        ja, jb = _span_nodes(ap[0], ap[1], dx_tan, n_tan, "aperture")
         if jb - ja < 2:
             raise ValueError(
                 "aperture [{!r}, {!r}] resolves to {} node(s) at dx={!r}; a usable aperture "
                 "needs >= 3 nodes (the two edge nodes carry the boundary condition)".format(
-                    ap[0], ap[1], jb - ja + 1, dx
+                    ap[0], ap[1], jb - ja + 1, dx_tan
                 )
             )
         if axis == "x":
@@ -379,9 +395,11 @@ def _apply_slab(
         apertures_out.append(
             {
                 "nodes": [int(ja), int(jb)],
-                "clear_lo_m": float(ja * dx),
-                "clear_hi_m": float(jb * dx),
-                "clear_width_m": float((jb - ja) * dx),
+                "clear_lo_m": float(ja * dx_tan),
+                "clear_hi_m": float(jb * dx_tan),
+                "clear_width_m": float((jb - ja) * dx_tan),
+                "n_open_nodes": int(jb - ja + 1),
+                "symmetric_about_m": float(0.5 * (ja + jb) * dx_tan),
             }
         )
 
@@ -402,7 +420,7 @@ def _apply_slab(
         "pos_m": float(spec["pos"]),
         "alpha": alpha,
         "normal_nodes": [int(n0), int(n1)],
-        "normal_pos_m": [float(n0 * dx), float(n1 * dx)],
+        "normal_pos_m": [float(n0 * dx_norm), float(n1 * dx_norm)],
         "tangential_nodes": [int(t0), int(t1)],
         "n_solid_nodes": int(mask.sum()),
         "apertures": apertures_out,
@@ -413,8 +431,56 @@ def _apply_slab(
     }
 
 
+def wall_node_extent(j0: int, j1: int, dx: float, n_axis: int) -> float:
+    """Absorbing extent of boundary nodes ``[j0, j1]`` along a flat wall.
+
+    An interior wall node owns a ``dx`` strip; the two corner nodes own ``dx/2`` (which is
+    exactly the ``mu`` energy weighting the update already applies). So a full wall of
+    ``n_axis`` nodes measures ``(n_axis - 1) * dx``, as it must.
+    """
+    w = (j1 - j0 + 1) * dx
+    if j0 == 0:
+        w -= 0.5 * dx
+    if j1 == n_axis - 1:
+        w -= 0.5 * dx
+    return w
+
+
+def _patch_nodes(lo: float, hi: float, dx: float, n_axis: int) -> Tuple[int, int, float]:
+    """Node range whose REALIZED extent best matches the requested span.
+
+    The old rule took ``j0 = round(lo/dx)``, ``j1 = round(hi/dx)`` and painted the inclusive
+    slice ``j0:j1+1``, i.e. ``round(a/dx) + 1`` nodes -- so the realized absorbing extent was
+    ``a + dx``, one cell too wide, and it reported the nominal span anyway. The error is
+    absolute in ``dx``, so it dominated short patches: a nominal 0.20 m patch absorbed like
+    0.25 m (+25%) at dx=0.05. That is the FT-C independent variable, wrong at source
+    (FT-A blocker B2).
+
+    Choosing the node count that minimizes |realized - requested| fixes it for interior
+    patches and for corner-touching ones alike, because the corner half-strips are folded
+    into :func:`wall_node_extent`.
+    """
+    a = abs(float(hi) - float(lo))
+    centre = 0.5 * (float(lo) + float(hi))
+    jc = int(round(centre / dx))
+    best = None
+    for n_nodes in range(max(1, int(a / dx) - 1), int(a / dx) + 4):
+        j0 = jc - (n_nodes - 1) // 2
+        j1 = j0 + n_nodes - 1
+        j0c, j1c = max(0, j0), min(n_axis - 1, j1)
+        if j1c < j0c:
+            continue
+        w = wall_node_extent(j0c, j1c, dx, n_axis)
+        key = (abs(w - a), abs(0.5 * (j0c + j1c) * dx - centre))
+        if best is None or key < best[0]:
+            best = (key, j0c, j1c, w)
+    if best is None:
+        raise ValueError("patch span [{!r}, {!r}] falls outside the wall".format(lo, hi))
+    return best[1], best[2], best[3]
+
+
 def _apply_patch(
-    spec: Dict[str, Any], face_alpha: np.ndarray, dx: float, nx: int, ny: int
+    spec: Dict[str, Any], face_alpha: np.ndarray, dx_x: float, dx_y: float, nx: int, ny: int
 ) -> Dict[str, Any]:
     """Override the absorption of a segment of one outer wall (partial-wall absorber)."""
     wall = str(spec.get("wall", "")).strip().lower()
@@ -428,23 +494,33 @@ def _apply_patch(
     d = WALL_DIR[wall]
     span = spec.get("span")
     if d in (XM, XP):  # runs along y
-        lo, hi = (0.0, (ny - 1) * dx) if span is None else (span[0], span[1])
-        j0, j1 = _span_nodes(lo, hi, dx, ny, "patch span")
+        dxw, n_axis = dx_y, ny
+        lo, hi = (0.0, (ny - 1) * dxw) if span is None else (span[0], span[1])
+        j0, j1, realized = _patch_nodes(lo, hi, dxw, n_axis)
         i = 0 if d == XM else nx - 1
         face_alpha[d, i, j0 : j1 + 1] = alpha
         nodes = [int(j0), int(j1)]
     else:  # runs along x
-        lo, hi = (0.0, (nx - 1) * dx) if span is None else (span[0], span[1])
-        i0, i1 = _span_nodes(lo, hi, dx, nx, "patch span")
+        dxw, n_axis = dx_x, nx
+        lo, hi = (0.0, (nx - 1) * dxw) if span is None else (span[0], span[1])
+        j0, j1, realized = _patch_nodes(lo, hi, dxw, n_axis)
         j = 0 if d == YM else ny - 1
-        face_alpha[d, i0 : i1 + 1, j] = alpha
-        nodes = [int(i0), int(i1)]
+        face_alpha[d, j0 : j1 + 1, j] = alpha
+        nodes = [int(j0), int(j1)]
+    requested = abs(float(hi) - float(lo))
     return {
         "type": "patch",
         "wall": wall,
         "alpha": alpha,
         "nodes": nodes,
-        "span_m": [float(nodes[0] * dx), float(nodes[1] * dx)],
+        "n_nodes": int(nodes[1] - nodes[0] + 1),
+        "span_m": [float(nodes[0] * dxw), float(nodes[1] * dxw)],
+        "width_requested_m": float(requested),
+        "width_realized_m": float(realized),
+        "width_error_m": float(realized - requested),
+        "centre_realized_m": float(0.5 * (nodes[0] + nodes[1]) * dxw),
+        "note": ("width_realized_m is the ABSORBING extent (corner nodes own dx/2); report "
+                 "it, never the nominal span"),
     }
 
 
@@ -501,8 +577,9 @@ def build_geometry(
     if dx <= 0.0:
         raise ValueError("dx must be positive, got {!r}".format(dx))
 
-    nx, L_grid = _grid_count(L, dx, "L")
-    ny, W_grid = _grid_count(W, dx, "W")
+    nx, dx_x = _fit_axis(L, dx, "L")
+    ny, dx_y = _fit_axis(W, dx, "W")
+    L_grid, W_grid = float(L), float(W)      # exact by construction now
 
     solid = np.zeros((nx, ny), dtype=bool)
     face_alpha = np.zeros((4, nx, ny), dtype=np.float64)
@@ -517,7 +594,7 @@ def build_geometry(
     for spec in _iter_specs(extra_walls):
         kind = str(spec.get("type", "slab")).lower()
         if kind == "slab":
-            specs_out.append(_apply_slab(spec, solid, face_alpha, dx))
+            specs_out.append(_apply_slab(spec, solid, face_alpha, dx_x, dx_y))
         elif kind == "patch":
             patches.append(spec)  # applied last so it wins over slab-induced faces
         elif kind == "mask":
@@ -538,7 +615,7 @@ def build_geometry(
         else:
             raise ValueError("unknown extra_walls type {!r}".format(kind))
     for spec in patches:
-        specs_out.append(_apply_patch(spec, face_alpha, dx, nx, ny))
+        specs_out.append(_apply_patch(spec, face_alpha, dx_x, dx_y, nx, ny))
 
     blocked = np.zeros((4, nx, ny), dtype=bool)
     blocked[XP, :-1, :] = solid[1:, :]
@@ -567,7 +644,8 @@ def build_geometry(
     return Geometry(
         nx=nx,
         ny=ny,
-        dx=dx,
+        dx_x=dx_x,
+        dx_y=dx_y,
         L_grid=L_grid,
         W_grid=W_grid,
         solid=solid,
@@ -579,7 +657,7 @@ def build_geometry(
 
 
 def build_coefficients(
-    geom: Geometry, lam: float, dtype: Any = np.float64
+    geom: Geometry, lam_x: float, lam_y: float, dtype: Any = np.float64
 ) -> Dict[str, np.ndarray]:
     """Assemble the per-node update coefficients (the single boundary code path).
 
@@ -590,8 +668,8 @@ def build_coefficients(
     Solid nodes get all-zero coefficients, so they stay identically zero without a mask pass.
     ``mu`` is the energy weight (1 interior, 1/2 wall, 1/4 corner).
     """
-    lam = float(lam)
-    lam2 = lam * lam
+    lam_x, lam_y = float(lam_x), float(lam_y)
+    lx2, ly2 = lam_x * lam_x, lam_y * lam_y
     blocked = geom.blocked
     open_f = (~blocked).astype(np.float64)
     aW, aE, aS, aN = open_f[XM], open_f[XP], open_f[YM], open_f[YP]
@@ -603,16 +681,21 @@ def build_coefficients(
     wN = aN + 1.0 - aS
     wS = aS + 1.0 - aN
 
-    B = lam * np.sum(np.where(blocked, geom.adm, 0.0), axis=0)
+    # Per-DIRECTION Courant weighting. A single `lam * sum(..., axis=0)` over all four faces
+    # is correct only on an isotropic grid; with dx_x != dx_y it mis-scales absorption
+    # anisotropically -- a stable, plausible-looking solver with the wrong wall physics.
+    # XM/XP are x-normal faces (weight lam_x); YM/YP are y-normal (weight lam_y).
+    adm_blocked = np.where(blocked, geom.adm, 0.0)
+    B = lam_x * (adm_blocked[XM] + adm_blocked[XP]) + lam_y * (adm_blocked[YM] + adm_blocked[YP])
     den = 1.0 + B
     keep = geom.air.astype(np.float64)
 
     out = {
-        "cE": lam2 * wE / den,
-        "cW": lam2 * wW / den,
-        "cN": lam2 * wN / den,
-        "cS": lam2 * wS / den,
-        "cC": np.full((geom.nx, geom.ny), 2.0 * (1.0 - 2.0 * lam2)) / den,
+        "cE": lx2 * wE / den,
+        "cW": lx2 * wW / den,
+        "cN": ly2 * wN / den,
+        "cS": ly2 * wS / den,
+        "cC": np.full((geom.nx, geom.ny), 2.0 * (1.0 - lx2 - ly2)) / den,
         "cP": (B - 1.0) / den,
         "B": B,
     }
@@ -631,9 +714,9 @@ def build_coefficients(
 def _snap_nodes(
     pos: np.ndarray, geom: Geometry, name: str
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    dx = geom.dx
-    i = np.rint(pos[:, 0] / dx).astype(np.int64)
-    j = np.rint(pos[:, 1] / dx).astype(np.int64)
+    dx_x, dx_y = geom.dx_x, geom.dx_y
+    i = np.rint(pos[:, 0] / dx_x).astype(np.int64)
+    j = np.rint(pos[:, 1] / dx_y).astype(np.int64)
     bad = (i < 0) | (i > geom.nx - 1) | (j < 0) | (j > geom.ny - 1)
     if bad.any():
         raise ValueError(
@@ -647,7 +730,7 @@ def _snap_nodes(
             "{} has {} point(s) that snap onto a solid node of the interior structure: "
             "{}".format(name, int(on_solid.sum()), pos[on_solid].tolist())
         )
-    snapped = np.stack([i * dx, j * dx], axis=1)
+    snapped = np.stack([i * dx_x, j * dx_y], axis=1)
     offset = np.linalg.norm(snapped - pos, axis=1)
     return i, j, snapped, offset
 
@@ -722,18 +805,28 @@ def simulate(
         raise ValueError("n must be an even integer >= 16, got {!r}".format(n))
 
     dt = 1.0 / fs
-    lam = c * dt / dx
-    if lam <= 0.0:
-        raise ValueError("lambda_CFL must be positive, got {!r}".format(lam))
-    if lam > CFL_MAX_2D:
-        raise ValueError(
-            "CFL violation: lambda = c*dt/dx = {:.10f} exceeds the 2D standard-leapfrog "
-            "stability bound 1/sqrt(2) = {:.10f} (c={!r}, fs={!r}, dx={!r}). Raise fs or "
-            "dx.".format(lam, CFL_MAX_2D, c, fs, dx)
-        )
-
     geom = build_geometry(L, W, alphas, dx=dx, extra_walls=extra_walls)
-    coef = build_coefficients(geom, lam, dtype=dtype)
+    lam_x = c * dt / geom.dx_x
+    lam_y = c * dt / geom.dx_y
+    # Anisotropic stability bound. `lam <= 1/sqrt(2)` is the ISOTROPIC special case of
+    # lam_x^2 + lam_y^2 <= 1 and is not a valid bound once the spacings differ, so the
+    # general form is asserted here. dt stays FROZEN at 1/fs rather than being recomputed
+    # per room: exact fitting moves dx by at most 0.656% across the 50-room family (measured
+    # worst case sqrt(lam_x^2+lam_y^2) = 0.794, a 20.6% margin), while a per-room dt would
+    # make df = fs/n room-dependent and destroy the exactly-0.5 Hz rfft bin grid that
+    # `fs = 12288` was frozen to provide.
+    cfl = float(np.hypot(lam_x, lam_y))
+    if lam_x <= 0.0 or lam_y <= 0.0:
+        raise ValueError("lambda must be positive, got ({!r}, {!r})".format(lam_x, lam_y))
+    if cfl > 1.0:
+        raise ValueError(
+            "CFL violation: sqrt(lam_x^2 + lam_y^2) = {:.10f} exceeds the 2D "
+            "standard-leapfrog bound 1.0 (lam_x={:.10f}, lam_y={:.10f}, c={!r}, fs={!r}, "
+            "dx_x={!r}, dx_y={!r}). Raise fs or dx.".format(
+                cfl, lam_x, lam_y, c, fs, geom.dx_x, geom.dx_y)
+        )
+    lam = 0.5 * (lam_x + lam_y)          # reported only
+    coef = build_coefficients(geom, lam_x, lam_y, dtype=dtype)
     nx, ny = geom.nx, geom.ny
 
     src_pos = np.asarray(src, dtype=np.float64).reshape(1, 2)
@@ -819,7 +912,7 @@ def simulate(
         mu_y = np.where(geom.blocked[YM] | geom.blocked[YP], 0.5, 1.0)
         wxf = open_x * 0.5 * (mu_y[:-1, :] + mu_y[1:, :])
         wyf = open_y * 0.5 * (mu_x[:, :-1] + mu_x[:, 1:])
-        lam2 = lam * lam
+        lx2e, ly2e = lam_x * lam_x, lam_y * lam_y
 
     i_prev, i_cur, i_nxt = 0, 1, 2
     t_start = time.perf_counter()
@@ -851,7 +944,7 @@ def simulate(
             kin = 0.5 * float(np.sum(mu * d * d))
             gx = (pn[1:, :] - pn[:-1, :]) * (pc[1:, :] - pc[:-1, :])
             gy = (pn[:, 1:] - pn[:, :-1]) * (pc[:, 1:] - pc[:, :-1])
-            pot = 0.5 * lam2 * (float(np.sum(wxf * gx)) + float(np.sum(wyf * gy)))
+            pot = 0.5 * (lx2e * float(np.sum(wxf * gx)) + ly2e * float(np.sum(wyf * gy)))
             energy[step] = kin + pot
 
         i_prev, i_cur, i_nxt = i_cur, i_nxt, i_prev
@@ -879,6 +972,10 @@ def simulate(
         "L_grid": geom.L_grid,
         "W_grid": geom.W_grid,
         "dx": dx,
+        "dx_target": dx,
+        "dx_x": geom.dx_x,
+        "dx_y": geom.dx_y,
+        "dx_exact_fit": True,
         "fs": fs,
         "dt": dt,
         "n": n,
@@ -886,12 +983,16 @@ def simulate(
         "df_hz": fs / n,
         "c": c,
         "lambda_CFL": lam,
+        "lambda_CFL_x": lam_x,
+        "lambda_CFL_y": lam_y,
+        "lambda_CFL_aniso": cfl,
+        "lambda_CFL_aniso_max": 1.0,
         "lambda_CFL_max": CFL_MAX_2D,
         "grid_shape": [nx, ny],
         "n_nodes": int(nx * ny),
         "n_air_nodes": n_air,
         "n_boundary_nodes": n_boundary,
-        "points_per_wavelength_at_300hz": float(c / 300.0 / dx),
+        "points_per_wavelength_at_300hz": float(c / 300.0 / max(geom.dx_x, geom.dx_y)),
         "walls": list(WALLS_2D),
         "alphas": [float(v) for v in alphas],
         "alpha_per_wall": {w: float(v) for w, v in zip(WALLS_2D, alphas)},
