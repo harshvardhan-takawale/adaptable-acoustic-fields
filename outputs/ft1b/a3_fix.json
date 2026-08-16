@@ -1,0 +1,42 @@
+{
+ "gate": "A3-fix",
+ "target_formula": "2*artanh(xi)/xi, xi = (1-sqrt(1-alpha))/(1+sqrt(1-alpha))",
+ "derived_independently": true,
+ "derivation_note": "D54 requires every analytic target be derived twice. My independent derivation gives 2.060036 at alpha=0.70; the FT-A review quoted 2.0516 -- a 0.4% difference. I score against my own derivation and flag the disagreement rather than silently adopting either.",
+ "tolerance": 0.1,
+ "per_case": [
+  {
+   "alpha": 0.3,
+   "xi": 0.08893315643949634,
+   "exact_target": 2.0052979013591408,
+   "measured": 2.0072,
+   "rel_vs_exact": 0.0009485366935107916,
+   "pass": true,
+   "limit_value": 2.0,
+   "limit_rel_error": -0.0026419522782874212,
+   "rel_vs_limit": 0.0036000000000000476
+  },
+  {
+   "alpha": 0.7,
+   "xi": 0.2922212642709539,
+   "exact_target": 2.060036266234181,
+   "measured": 2.1267,
+   "rel_vs_exact": 0.03236046610367815,
+   "pass": true,
+   "limit_value": 2.0,
+   "limit_rel_error": -0.029143305493320046,
+   "rel_vs_limit": 0.06335000000000002
+  }
+ ],
+ "pass": true,
+ "verdict": "PASS against the exact target at both operating points (alpha=0.30: +0.09%, alpha=0.70: +3.24%)",
+ "d54_limit_statement": {
+  "limit": "the value 2 is the xi -> 0 limit of 2*artanh(xi)/xi",
+  "error_at_operating_points": {
+   "alpha_0.30": "-0.26% (negligible)",
+   "alpha_0.70": "-2.91% (NOT negligible)"
+  },
+  "error_at_alpha_0.80": "-5.07%"
+ },
+ "severity_correction": "B4 is upheld -- the invariance claim was false and the gate passed against a target that is only a limit. But its PRACTICAL severity was overstated: the limit error at the tested points is 0.26% and 2.91%, both comfortably inside the original +/-0.20 band (i.e. +/-10%), and even at alpha=0.80 it is 5.07%. The limit would not break a +/-10% band until alpha > ~0.9. So the original gate would NOT have failed a correct solver at any alpha this project uses -- it would merely have passed for a slightly wrong reason."
+}
