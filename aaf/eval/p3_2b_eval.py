@@ -250,11 +250,20 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
     # predicate precisely so the density curve compares the same 20 rooms in every arm (see
     # aaf.eval.p3_2c_splits). Only XTRAP's split set differs, by separating its
     # beyond-edge west configs out of S1.
-    if arm_spec:
+    if arm_spec and arm_spec.startswith("p3_2d:"):
+        run_name = arm_spec.split(":", 1)[1]
+        from aaf.eval.p3_2d_splits import (assert_split_counts_p3_2d,
+                                           build_splits_p3_2d, curve_point)
+        from aaf.eval.p3_2d_splits import split_order as _p3_2d_order
+        splits, ctx = build_splits_p3_2d(run_name)
+        assert_split_counts_p3_2d(splits, run_name)
+        split_names = _p3_2d_order(run_name)
+        ctx["curve_point"] = curve_point(run_name)
+    elif arm_spec:
         family, _, arm_name = arm_spec.partition(":")
         if family != "p3_2c" or not arm_name:
             raise ValueError(
-                f"--arm-spec must look like 'p3_2c:<ARM>', got {arm_spec!r}")
+                f"--arm-spec must look like 'p3_2c:<ARM>' or 'p3_2d:<RUN>', got {arm_spec!r}")
         from aaf.eval.p3_2c_splits import (assert_split_counts_p3_2c,
                                            build_splits_p3_2c, curve_point)
         from aaf.eval.p3_2c_splits import split_order as _split_order
@@ -501,6 +510,11 @@ def run(arm_dir: str, out_dir: Optional[str], checkpoint: Optional[str], data_di
             "kappa": KAPPA,
             "manifest_sha": ctx["manifest_sha"],
             "arm_spec": arm_spec,
+            "p3_2d": {k: ctx[k] for k in
+                      ("run", "realized_delta_m", "nominal_delta_m", "grid_m", "midpoints",
+                       "near_preset_grid_values", "midpoint_policy", "curve_point",
+                       "delta_axis_note")
+                      if k in ctx} or None,
             "p3_2c": {k: ctx[k] for k in
                       ("arm", "arm_spec", "manifest_path", "s2_designation",
                        "s2x_extra_curve_points", "training_support_m",
