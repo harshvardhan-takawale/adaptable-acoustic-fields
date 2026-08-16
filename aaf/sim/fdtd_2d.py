@@ -479,6 +479,63 @@ def _patch_nodes(lo: float, hi: float, dx: float, n_axis: int) -> Tuple[int, int
     return best[1], best[2], best[3]
 
 
+def _apply_wall_segments(
+    spec: Dict[str, Any], face_alpha: np.ndarray, dx_x: float, dx_y: float, nx: int, ny: int
+) -> Dict[str, Any]:
+    """Partition ONE wall into k contiguous segments that tile it exactly.
+
+    Not k independent patches. ``_patch_nodes`` optimizes each span's realized extent on its
+    own, which is right for an isolated absorber but does NOT tile: measured on a 4-segment
+    wall at dx=0.02, 10 of 16 segments missed their nominal extent by up to dx/2 and some
+    boundary nodes were left at the baseline, because neighbouring segments each rounded
+    toward their own best fit. A segmented wall must be a PARTITION -- every boundary node
+    belongs to exactly one segment -- so the split is done on node indices and the realized
+    metre extents are reported, not requested.
+
+    ``alphas`` is a k-sequence in order of increasing coordinate along the wall.
+    """
+    wall = str(spec.get("wall", "")).strip().lower()
+    if wall not in WALL_DIR:
+        raise ValueError("segments 'wall' must be one of {}, got {!r}".format(
+            list(WALLS_2D), spec.get("wall")))
+    alphas = [float(a) for a in spec["alphas"]]
+    k = len(alphas)
+    if k < 1:
+        raise ValueError("segments needs >= 1 alpha")
+    for a in alphas:
+        if not 0.0 <= a <= 1.0:
+            raise ValueError("segment alpha must be in [0, 1], got {!r}".format(a))
+    d = WALL_DIR[wall]
+    along_y = d in (XM, XP)
+    n_axis, dxw = (ny, dx_y) if along_y else (nx, dx_x)
+    if n_axis < k:
+        raise ValueError("wall has {} nodes but {} segments were requested".format(n_axis, k))
+
+    # Node-index partition: bounds[i]..bounds[i+1]-1 inclusive. Exact tiling by construction.
+    bounds = [int(round(i * n_axis / k)) for i in range(k + 1)]
+    out_segs = []
+    for i, a in enumerate(alphas):
+        j0, j1 = bounds[i], bounds[i + 1] - 1
+        if along_y:
+            face_alpha[d, 0 if d == XM else nx - 1, j0:j1 + 1] = a
+        else:
+            face_alpha[d, j0:j1 + 1, 0 if d == YM else ny - 1] = a
+        out_segs.append({
+            "index": i, "alpha": a, "nodes": [j0, j1], "n_nodes": j1 - j0 + 1,
+            "extent_realized_m": float(wall_node_extent(j0, j1, dxw, n_axis)),
+            "extent_nominal_m": float((n_axis - 1) * dxw / k),
+        })
+    covered = sum(s["n_nodes"] for s in out_segs)
+    if covered != n_axis:
+        raise AssertionError(
+            "segments do not tile {}: {} nodes covered of {}".format(wall, covered, n_axis))
+    return {"type": "wall_segments", "wall": wall, "k": k,
+            "n_axis_nodes": int(n_axis), "segments": out_segs,
+            "tiles_exactly": True,
+            "note": ("partition by node index; extent_realized_m sums to (n_axis-1)*dx because "
+                     "the two corner nodes own dx/2 each")}
+
+
 def _apply_patch(
     spec: Dict[str, Any], face_alpha: np.ndarray, dx_x: float, dx_y: float, nx: int, ny: int
 ) -> Dict[str, Any]:
@@ -595,7 +652,7 @@ def build_geometry(
         kind = str(spec.get("type", "slab")).lower()
         if kind == "slab":
             specs_out.append(_apply_slab(spec, solid, face_alpha, dx_x, dx_y))
-        elif kind == "patch":
+        elif kind in ("patch", "wall_segments"):
             patches.append(spec)  # applied last so it wins over slab-induced faces
         elif kind == "mask":
             m = np.asarray(spec["solid"], dtype=bool)
@@ -615,7 +672,10 @@ def build_geometry(
         else:
             raise ValueError("unknown extra_walls type {!r}".format(kind))
     for spec in patches:
-        specs_out.append(_apply_patch(spec, face_alpha, dx_x, dx_y, nx, ny))
+        if str(spec.get("type", "")).lower() == "wall_segments":
+            specs_out.append(_apply_wall_segments(spec, face_alpha, dx_x, dx_y, nx, ny))
+        else:
+            specs_out.append(_apply_patch(spec, face_alpha, dx_x, dx_y, nx, ny))
 
     blocked = np.zeros((4, nx, ny), dtype=bool)
     blocked[XP, :-1, :] = solid[1:, :]
