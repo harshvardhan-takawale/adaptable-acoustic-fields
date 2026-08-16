@@ -5,6 +5,67 @@
  "rho_tol": 0.25,
  "runs": [
   {
+   "run": "G010",
+   "n_grid_points": 16,
+   "x_realized_delta_m": 0.10600000000000001,
+   "nominal_delta_m": 0.1,
+   "slope": 1.0195761653217255,
+   "pearson": 0.8740298439468546,
+   "edit_gain": 1.088068838735058,
+   "E_BW_hz": 1.591524396809947,
+   "n_configs": 560,
+   "n_cells": 4686,
+   "frac_modes_dropped": 0.45663265306122447,
+   "in_dist_val_lsd_db": 1.0610345602035522,
+   "rho_slab_local": 1.121802321362985,
+   "trained_value_control": {
+    "n_configs": 40,
+    "slope": 0.4648377995930067,
+    "note": "midpoint within 0.03 of the always-trained baseline; NOT a hold-out, excluded from the curve"
+   },
+   "S1": 0.9616964840989781,
+   "S4": 0.683740430724407,
+   "S5": 1.0432726281522524
+  },
+  {
+   "run": "G015",
+   "n_grid_points": 11,
+   "x_realized_delta_m": 0.159,
+   "nominal_delta_m": 0.15,
+   "slope": 1.061623627120445,
+   "pearson": 0.874564090946618,
+   "edit_gain": 1.0795001623076705,
+   "E_BW_hz": 1.464251255248443,
+   "n_configs": 400,
+   "n_cells": 3328,
+   "frac_modes_dropped": 0.4597402597402598,
+   "in_dist_val_lsd_db": 1.0313762426376343,
+   "rho_slab_local": 1.1184221699355386,
+   "trained_value_control": null,
+   "S1": 1.0202910029220134,
+   "S4": 0.7973396905579295,
+   "S5": 1.0476583457037563
+  },
+  {
+   "run": "G020",
+   "n_grid_points": 9,
+   "x_realized_delta_m": 0.19875,
+   "nominal_delta_m": 0.2,
+   "slope": 1.0915311742343858,
+   "pearson": 0.8890318878641028,
+   "edit_gain": 1.0772000554793686,
+   "E_BW_hz": 1.474752842707959,
+   "n_configs": 320,
+   "n_cells": 2711,
+   "frac_modes_dropped": 0.4498782467532467,
+   "in_dist_val_lsd_db": 0.9871118068695068,
+   "rho_slab_local": 1.1480361521207514,
+   "trained_value_control": null,
+   "S1": 1.0234597274014625,
+   "S4": 0.7734650519015205,
+   "S5": 1.0719654026635377
+  },
+  {
    "run": "G030",
    "n_grid_points": 6,
    "x_realized_delta_m": 0.318,
@@ -57,16 +118,19 @@
  "reportable": true,
  "confound_check_in_distribution_fit": {
   "in_dist_val_lsd_db": {
+   "G010": 1.0610345602035522,
+   "G015": 1.0313762426376343,
+   "G020": 0.9871118068695068,
    "G030": 1.0065518617630005,
    "G050": 0.9791886210441589
   },
-  "spread_db": 0.027363240718841553,
-  "spearman_vs_delta": NaN,
-  "monotone_in_delta": true,
+  "spread_db": 0.08184593915939331,
+  "spearman_vs_delta": -0.8999999999999998,
+  "monotone_in_delta": false,
   "best_fitting_run": "G050",
-  "worst_fitting_run": "G030",
+  "worst_fitting_run": "G010",
   "conservative": true,
-  "statement": "In-distribution fit quality does not track Delta (spread 0.027 dB, Spearman +nan, monotone=True). The best-fitting run is G050 and the worst is G030. So a degradation of the midpoint score with Delta cannot be attributed to the coarse arms simply training better or worse; and where the fit does lean, it leans toward the COARSE arms, which makes any observed degradation conservative."
+  "statement": "In-distribution fit quality does not track Delta (spread 0.082 dB, Spearman -0.900, monotone=False). The best-fitting run is G050 and the worst is G010. So a degradation of the midpoint score with Delta cannot be attributed to the coarse arms simply training better or worse; and where the fit does lean, it leans toward the COARSE arms, which makes any observed degradation conservative."
  },
  "g050_p3_2_consistency": {
   "g050_slope": 1.1815455976450595,
@@ -76,5 +140,5 @@
   "reproduces_failure_regime": false,
   "note": "G050 samples the axis at 0.530 in m and P3-2's effective gap was ~1.04, so these are not the same quantity; the check is whether the COARSEST interval reproduces a failure regime, which closes the loop as a measurement rather than an interpolation."
  },
- "dataset_rule": "No crossing within the sampled range; Delta* is bounded, not estimated. Smallest slope 1.160 at Delta = 0.3180."
+ "dataset_rule": "No crossing within the sampled range; Delta* is bounded, not estimated. Smallest slope 1.020 at Delta = 0.1060."
 }

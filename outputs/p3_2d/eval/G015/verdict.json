@@ -1,0 +1,58 @@
+{
+ "arm": "p3_2d_G015_mlinear",
+ "iter": 60000,
+ "mid_training": false,
+ "split": "S2_unseen_geom_slab",
+ "passed": true,
+ "criteria": {
+  "edit_bw_slope": {
+   "name": "edit_bw_slope",
+   "value": 1.0752532374588857,
+   "op": ">=",
+   "threshold": 0.8,
+   "pass": true,
+   "note": "predicted delta-BW regressed on GT delta-BW, pooled over S2 modes"
+  },
+  "edit_bw_pearson": {
+   "name": "edit_bw_pearson",
+   "value": 0.8677377867311381,
+   "op": ">=",
+   "threshold": 0.8,
+   "pass": true,
+   "note": "association between predicted and GT delta-BW on S2"
+  },
+  "edit_gain": {
+   "name": "edit_gain",
+   "value": 1.0950093800076532,
+   "op": ">",
+   "threshold": 1.0,
+   "pass": true,
+   "note": "LSD(model baseline render vs edited GT) / LSD(model edited render vs edited GT)"
+  },
+  "abs_rho_minus_1": {
+   "name": "abs_rho_minus_1",
+   "value": 0.11842216993553856,
+   "op": "<=",
+   "threshold": 0.25,
+   "pass": true,
+   "note": "|rho - 1| with rho = a_fit / a_theory (kappa-scaled) from slope_fit.aggregate.own_family.slab_local.rho_median"
+  }
+ },
+ "criteria_failed": [],
+ "blockers": [],
+ "rho_used": 1.1184221699355386,
+ "thresholds": {
+  "spec": "p3_2b.accept/1",
+  "split": "S2_unseen_geom_slab",
+  "edit_bw_slope_min": 0.8,
+  "edit_bw_pearson_min": 0.8,
+  "edit_gain_min_exclusive": 1.0,
+  "rho_abs_dev_max": 0.25,
+  "rho_source": "slope_fit.aggregate.own_family.slab_local.rho_median",
+  "blocker_min_n_cells": 40,
+  "blocker_max_frac_modes_dropped": 0.5
+ },
+ "thresholds_sha256": "a8479c5e1dcc3ab5b2a505809e0f9d9f7dd4590f009f3549c9070e860a33caa1",
+ "one_line": "P3-2b p3_2d_G015_mlinear iter 60000 S2_unseen_geom_slab: PASS | edit_bw_slope=1.075>=0.80; edit_bw_pearson=0.868>=0.80; edit_gain=1.095>1.00; abs_rho_minus_1=0.118<=0.25 | blockers: none | thr a8479c5e1dcc",
+ "total_iters": 60000
+}
