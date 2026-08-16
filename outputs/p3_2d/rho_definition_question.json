@@ -1,0 +1,35 @@
+{
+ "issue": "which rho gates P3-2d",
+ "why_it_matters": "the choice FLIPS the headline verdict for the two coarsest runs",
+ "measured": {
+  "G020": {
+   "slab_local": 1.148,
+   "all": 1.062
+  },
+  "G030": {
+   "slab_local": 1.308,
+   "all": 1.202
+  },
+  "G050": {
+   "slab_local": 1.274,
+   "all": 1.183
+  }
+ },
+ "with_slab_local": "G020 PASS, G030 FAIL (0.308), G050 FAIL (0.274) -> Delta* ~ 0.275",
+ "with_all": "all three PASS (|rho-1| = 0.062 / 0.202 / 0.183) -> no crossing in range",
+ "the_subtlety": "`slab_local` means 'own-family cells on a wall that HAS a hold-out slab', and wall_has_slab is decided by the FROZEN p3_2b HOLDOUT_SLABS = {west, north}. P3-2d has no slab at all -- its hold-out is the midpoint set -- so `slab_local` here is simply 'west and north cells', an arbitrary half of the walls inherited from a different experiment's design. `all` is every own-family cell, which is what 'no distinguished wall' should mean.",
+ "tension_with_A1": "The A1 publication policy says `all` is diagnostic-only and must never be the published rho. That policy was written for P3-2b/P3-2c, where slab_local WAS the gated quantity because a slab existed. Applying it unchanged to P3-2d would gate on an arbitrary wall subset; overriding it silently would breach a guard that exists precisely to stop rho-shopping. Neither is mine to decide unilaterally.",
+ "position": "I am NOT choosing. Both are reported side by side, the verdict is reported under BOTH, and the second seed is launched at the G020/G030 bracket because that pair is the crossing under slab_local and the closest approach under `all`.",
+ "second_seed": {
+  "runs": [
+   "G020_s2",
+   "G030_s2"
+  ],
+  "jobs": [
+   7258961,
+   7258962
+  ],
+  "seed": 20260816,
+  "note": "same manifest, same data, different training seed"
+ }
+}
