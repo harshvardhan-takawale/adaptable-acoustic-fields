@@ -1,0 +1,974 @@
+{
+ "pass": true,
+ "runs": [
+  {
+   "run": "G010",
+   "n_grid_points": 16,
+   "realized_delta_m": 0.10600000000000001,
+   "nominal_delta_m": 0.1,
+   "H1_on_grid": {
+    "pass": true,
+    "detail": {
+     "n_configs": 960,
+     "kinds": {
+      "baseline": 40,
+      "single": 440,
+      "two": 320,
+      "four": 160
+     },
+     "n_grid_values_used": 16,
+     "n_edited_draws": 1720,
+     "per_wall_n": {
+      "west": 431,
+      "east": 430,
+      "south": 430,
+      "north": 429
+     }
+    }
+   },
+   "H2_count_and_mix": {
+    "pass": true,
+    "expected_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    },
+    "got_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    }
+   },
+   "H3_preset_collision": {
+    "pass": true,
+    "collisions": [],
+    "note": "a grid alpha within 1e-9 of a preset would format as 2 dp instead of 6 dp and the training room would share a filename with a frozen test room"
+   },
+   "H4_near_preset": {
+    "pass": true,
+    "near_preset": [
+     {
+      "grid_m": 0.3380000000000001,
+      "preset_alpha": 0.3,
+      "preset_m": 0.35667494393873234,
+      "d_m": 0.018674943938732258
+     },
+     {
+      "grid_m": 1.1860000000000002,
+      "preset_alpha": 0.7,
+      "preset_m": 1.203972804325936,
+      "d_m": 0.017972804325935732
+     }
+    ],
+    "affected_presets": [
+     0.3,
+     0.7
+    ],
+    "action": "excluded from the cross-run S1/S4 comparison and reported"
+   },
+   "H5_midpoint_margin": {
+    "pass": true,
+    "n_midpoints": 15,
+    "n_headline": 14,
+    "n_excluded_as_trained_value": 1,
+    "min_d_headline": 0.05299806929266371,
+    "midpoints": [
+     {
+      "index": 0,
+      "m": 0.073,
+      "alpha": 0.070399,
+      "bracketing_m": [
+       0.02,
+       0.126
+      ],
+      "d_to_nearest_train_m": 0.05299999999999999,
+      "d_to_baseline_m": 0.08951892949777492,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299982620917605
+     },
+     {
+      "index": 1,
+      "m": 0.179,
+      "alpha": 0.163894,
+      "bracketing_m": [
+       0.126,
+       0.232
+      ],
+      "d_to_nearest_train_m": 0.05299999999999999,
+      "d_to_baseline_m": 0.01648107050222508,
+      "near_trained_value": true,
+      "headline": false,
+      "d_to_any_trained_m": 0.01648107050222508
+     },
+     {
+      "index": 2,
+      "m": 0.28500000000000003,
+      "alpha": 0.247986,
+      "bracketing_m": [
+       0.232,
+       0.3380000000000001
+      ],
+      "d_to_nearest_train_m": 0.05300000000000002,
+      "d_to_baseline_m": 0.12248107050222512,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299984449549647
+     },
+     {
+      "index": 3,
+      "m": 0.39100000000000007,
+      "alpha": 0.32362,
+      "bracketing_m": [
+       0.3380000000000001,
+       0.44400000000000006
+      ],
+      "d_to_nearest_train_m": 0.05299999999999999,
+      "d_to_baseline_m": 0.22848107050222516,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.052999596326076204
+     },
+     {
+      "index": 4,
+      "m": 0.49700000000000005,
+      "alpha": 0.391647,
+      "bracketing_m": [
+       0.44400000000000006,
+       0.55
+      ],
+      "d_to_nearest_train_m": 0.05299999999999999,
+      "d_to_baseline_m": 0.33448107050222514,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.052999343959246714
+     },
+     {
+      "index": 5,
+      "m": 0.6030000000000001,
+      "alpha": 0.452832,
+      "bracketing_m": [
+       0.55,
+       0.6560000000000001
+      ],
+      "d_to_nearest_train_m": 0.05300000000000005,
+      "d_to_baseline_m": 0.4404810705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299976905808079
+     },
+     {
+      "index": 6,
+      "m": 0.7090000000000001,
+      "alpha": 0.507864,
+      "bracketing_m": [
+       0.6560000000000001,
+       0.7620000000000001
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 0.5464810705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05300006184598205
+     },
+     {
+      "index": 7,
+      "m": 0.8150000000000002,
+      "alpha": 0.557361,
+      "bracketing_m": [
+       0.7620000000000001,
+       0.8680000000000001
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 0.6524810705022253,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.052999938154018045
+     },
+     {
+      "index": 8,
+      "m": 0.921,
+      "alpha": 0.601879,
+      "bracketing_m": [
+       0.8680000000000001,
+       0.9740000000000001
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 0.7584810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.052999297019584946
+     },
+     {
+      "index": 9,
+      "m": 1.0270000000000001,
+      "alpha": 0.64192,
+      "bracketing_m": [
+       0.9740000000000001,
+       1.08
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 0.8644810705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299860317732774
+     },
+     {
+      "index": 10,
+      "m": 1.133,
+      "alpha": 0.677934,
+      "bracketing_m": [
+       1.08,
+       1.1860000000000002
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 0.9704810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299864504463225
+     },
+     {
+      "index": 11,
+      "m": 1.2390000000000003,
+      "alpha": 0.710326,
+      "bracketing_m": [
+       1.1860000000000002,
+       1.2920000000000003
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 1.0764810705022254,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299924176970716
+     },
+     {
+      "index": 12,
+      "m": 1.3450000000000002,
+      "alpha": 0.73946,
+      "bracketing_m": [
+       1.2920000000000003,
+       1.3980000000000001
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 1.1824810705022253,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299858915189981
+     },
+     {
+      "index": 13,
+      "m": 1.451,
+      "alpha": 0.765664,
+      "bracketing_m": [
+       1.3980000000000001,
+       1.5040000000000002
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 1.2884810705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05300141084810006
+     },
+     {
+      "index": 14,
+      "m": 1.5570000000000002,
+      "alpha": 0.789233,
+      "bracketing_m": [
+       1.5040000000000002,
+       1.61
+      ],
+      "d_to_nearest_train_m": 0.052999999999999936,
+      "d_to_baseline_m": 1.3944810705022253,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.05299806929266371
+     }
+    ]
+   },
+   "H6_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": [],
+    "n_configs": 1770
+   },
+   "rows_sha256": "e95f800818e15b5ab97356e6a36a22faef238c8800be21a28a86123f5b44a1ca",
+   "pass": true
+  },
+  {
+   "run": "G015",
+   "n_grid_points": 11,
+   "realized_delta_m": 0.159,
+   "nominal_delta_m": 0.15,
+   "H1_on_grid": {
+    "pass": true,
+    "detail": {
+     "n_configs": 960,
+     "kinds": {
+      "baseline": 40,
+      "single": 440,
+      "two": 320,
+      "four": 160
+     },
+     "n_grid_values_used": 11,
+     "n_edited_draws": 1720,
+     "per_wall_n": {
+      "west": 431,
+      "east": 430,
+      "south": 430,
+      "north": 429
+     }
+    }
+   },
+   "H2_count_and_mix": {
+    "pass": true,
+    "expected_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    },
+    "got_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    }
+   },
+   "H3_preset_collision": {
+    "pass": true,
+    "collisions": [],
+    "note": "a grid alpha within 1e-9 of a preset would format as 2 dp instead of 6 dp and the training room would share a filename with a frozen test room"
+   },
+   "H4_near_preset": {
+    "pass": true,
+    "near_preset": [
+     {
+      "grid_m": 0.179,
+      "preset_alpha": 0.15,
+      "preset_m": 0.1625189294977749,
+      "d_m": 0.01648107050222508
+     },
+     {
+      "grid_m": 0.338,
+      "preset_alpha": 0.3,
+      "preset_m": 0.35667494393873234,
+      "d_m": 0.018674943938732314
+     }
+    ],
+    "affected_presets": [
+     0.15,
+     0.3
+    ],
+    "action": "excluded from the cross-run S1/S4 comparison and reported"
+   },
+   "H5_midpoint_margin": {
+    "pass": true,
+    "n_midpoints": 10,
+    "n_headline": 10,
+    "n_excluded_as_trained_value": 0,
+    "min_d_headline": 0.06301892949777492,
+    "midpoints": [
+     {
+      "index": 0,
+      "m": 0.09949999999999999,
+      "alpha": 0.09471,
+      "bracketing_m": [
+       0.02,
+       0.179
+      ],
+      "d_to_nearest_train_m": 0.07949999999999999,
+      "d_to_baseline_m": 0.06301892949777492,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.06301892949777492
+     },
+     {
+      "index": 1,
+      "m": 0.2585,
+      "alpha": 0.227791,
+      "bracketing_m": [
+       0.179,
+       0.338
+      ],
+      "d_to_nearest_train_m": 0.07950000000000002,
+      "d_to_baseline_m": 0.0959810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.0795001203232252
+     },
+     {
+      "index": 2,
+      "m": 0.4175,
+      "alpha": 0.341309,
+      "bracketing_m": [
+       0.338,
+       0.497
+      ],
+      "d_to_nearest_train_m": 0.07949999999999996,
+      "d_to_baseline_m": 0.25498107050222507,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.07949959632607612
+     },
+     {
+      "index": 3,
+      "m": 0.5765,
+      "alpha": 0.438139,
+      "bracketing_m": [
+       0.497,
+       0.656
+      ],
+      "d_to_nearest_train_m": 0.07950000000000002,
+      "d_to_baseline_m": 0.4139810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.07949976905808087
+     },
+     {
+      "index": 4,
+      "m": 0.7355,
+      "alpha": 0.520734,
+      "bracketing_m": [
+       0.656,
+       0.8150000000000001
+      ],
+      "d_to_nearest_train_m": 0.07950000000000002,
+      "d_to_baseline_m": 0.5729810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.07950023094191916
+     },
+     {
+      "index": 5,
+      "m": 0.8945000000000001,
+      "alpha": 0.591188,
+      "bracketing_m": [
+       0.8150000000000001,
+       0.974
+      ],
+      "d_to_nearest_train_m": 0.0794999999999999,
+      "d_to_baseline_m": 0.7319810705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.0794992604329261
+     },
+     {
+      "index": 6,
+      "m": 1.0535,
+      "alpha": 0.651285,
+      "bracketing_m": [
+       0.974,
+       1.133
+      ],
+      "d_to_nearest_train_m": 0.0794999999999999,
+      "d_to_baseline_m": 0.8909810705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.07949878549689338
+     },
+     {
+      "index": 7,
+      "m": 1.2125,
+      "alpha": 0.702547,
+      "bracketing_m": [
+       1.133,
+       1.292
+      ],
+      "d_to_nearest_train_m": 0.0794999999999999,
+      "d_to_baseline_m": 1.049981070502225,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.07949924176970757
+     },
+     {
+      "index": 8,
+      "m": 1.3715000000000002,
+      "alpha": 0.746274,
+      "bracketing_m": [
+       1.292,
+       1.451
+      ],
+      "d_to_nearest_train_m": 0.0794999999999999,
+      "d_to_baseline_m": 1.2089810705022253,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.07949929610347772
+     },
+     {
+      "index": 9,
+      "m": 1.5305,
+      "alpha": 0.783573,
+      "bracketing_m": [
+       1.451,
+       1.61
+      ],
+      "d_to_nearest_train_m": 0.0794999999999999,
+      "d_to_baseline_m": 1.367981070502225,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.0794980692926639
+     }
+    ]
+   },
+   "H6_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": [],
+    "n_configs": 1570
+   },
+   "rows_sha256": "986846f74a4a47287a690257c5e7628424732dd1f8af11877e4cfbbaa9a72581",
+   "pass": true
+  },
+  {
+   "run": "G020",
+   "n_grid_points": 9,
+   "realized_delta_m": 0.19875,
+   "nominal_delta_m": 0.2,
+   "H1_on_grid": {
+    "pass": true,
+    "detail": {
+     "n_configs": 960,
+     "kinds": {
+      "baseline": 40,
+      "single": 440,
+      "two": 320,
+      "four": 160
+     },
+     "n_grid_values_used": 9,
+     "n_edited_draws": 1720,
+     "per_wall_n": {
+      "west": 431,
+      "east": 430,
+      "south": 430,
+      "north": 429
+     }
+    }
+   },
+   "H2_count_and_mix": {
+    "pass": true,
+    "expected_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    },
+    "got_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    }
+   },
+   "H3_preset_collision": {
+    "pass": true,
+    "collisions": [],
+    "note": "a grid alpha within 1e-9 of a preset would format as 2 dp instead of 6 dp and the training room would share a filename with a frozen test room"
+   },
+   "H4_near_preset": {
+    "pass": true,
+    "near_preset": [
+     {
+      "grid_m": 1.2125000000000001,
+      "preset_alpha": 0.7,
+      "preset_m": 1.203972804325936,
+      "d_m": 0.008527195674064236
+     }
+    ],
+    "affected_presets": [
+     0.7
+    ],
+    "action": "excluded from the cross-run S1/S4 comparison and reported"
+   },
+   "H5_midpoint_margin": {
+    "pass": true,
+    "n_midpoints": 8,
+    "n_headline": 8,
+    "n_excluded_as_trained_value": 0,
+    "min_d_headline": 0.043143929497774916,
+    "midpoints": [
+     {
+      "index": 0,
+      "m": 0.119375,
+      "alpha": 0.112525,
+      "bracketing_m": [
+       0.02,
+       0.21875
+      ],
+      "d_to_nearest_train_m": 0.09937499999999999,
+      "d_to_baseline_m": 0.043143929497774916,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.043143929497774916
+     },
+     {
+      "index": 1,
+      "m": 0.318125,
+      "alpha": 0.272488,
+      "bracketing_m": [
+       0.21875,
+       0.41750000000000004
+      ],
+      "d_to_nearest_train_m": 0.09937499999999999,
+      "d_to_baseline_m": 0.15560607050222508,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.09937553055239531
+     },
+     {
+      "index": 2,
+      "m": 0.5168750000000001,
+      "alpha": 0.403619,
+      "bracketing_m": [
+       0.41750000000000004,
+       0.6162500000000001
+      ],
+      "d_to_nearest_train_m": 0.09937499999999999,
+      "d_to_baseline_m": 0.3543560705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.09937410436903038
+     },
+     {
+      "index": 3,
+      "m": 0.7156250000000001,
+      "alpha": 0.511114,
+      "bracketing_m": [
+       0.6162500000000001,
+       0.8150000000000001
+      ],
+      "d_to_nearest_train_m": 0.09937499999999999,
+      "d_to_baseline_m": 0.5531060705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.0993757395670739
+     },
+     {
+      "index": 4,
+      "m": 0.9143749999999999,
+      "alpha": 0.599233,
+      "bracketing_m": [
+       0.8150000000000001,
+       1.01375
+      ],
+      "d_to_nearest_train_m": 0.09937499999999988,
+      "d_to_baseline_m": 0.751856070502225,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.09937421763612764
+     },
+     {
+      "index": 5,
+      "m": 1.1131250000000001,
+      "alpha": 0.671469,
+      "bracketing_m": [
+       1.01375,
+       1.2125000000000001
+      ],
+      "d_to_nearest_train_m": 0.09937499999999999,
+      "d_to_baseline_m": 0.9506060705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.09937404967038899
+     },
+     {
+      "index": 6,
+      "m": 1.3118750000000001,
+      "alpha": 0.730685,
+      "bracketing_m": [
+       1.2125000000000001,
+       1.4112500000000001
+      ],
+      "d_to_nearest_train_m": 0.09937499999999999,
+      "d_to_baseline_m": 1.1493560705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.099375950329611
+     },
+     {
+      "index": 7,
+      "m": 1.510625,
+      "alpha": 0.779228,
+      "bracketing_m": [
+       1.4112500000000001,
+       1.61
+      ],
+      "d_to_nearest_train_m": 0.09937499999999999,
+      "d_to_baseline_m": 1.3481060705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.09937306929266376
+     }
+    ]
+   },
+   "H6_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": [],
+    "n_configs": 1490
+   },
+   "rows_sha256": "7a82a602f90e3de3352cf11bc15cfec5eda459e1ac7a8fdddd1f0493af974df4",
+   "pass": true
+  },
+  {
+   "run": "G030",
+   "n_grid_points": 6,
+   "realized_delta_m": 0.318,
+   "nominal_delta_m": 0.3,
+   "H1_on_grid": {
+    "pass": true,
+    "detail": {
+     "n_configs": 960,
+     "kinds": {
+      "baseline": 40,
+      "single": 440,
+      "two": 320,
+      "four": 160
+     },
+     "n_grid_values_used": 6,
+     "n_edited_draws": 1720,
+     "per_wall_n": {
+      "west": 431,
+      "east": 430,
+      "south": 430,
+      "north": 429
+     }
+    }
+   },
+   "H2_count_and_mix": {
+    "pass": true,
+    "expected_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    },
+    "got_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    }
+   },
+   "H3_preset_collision": {
+    "pass": true,
+    "collisions": [],
+    "note": "a grid alpha within 1e-9 of a preset would format as 2 dp instead of 6 dp and the training room would share a filename with a frozen test room"
+   },
+   "H4_near_preset": {
+    "pass": true,
+    "near_preset": [
+     {
+      "grid_m": 0.338,
+      "preset_alpha": 0.3,
+      "preset_m": 0.35667494393873234,
+      "d_m": 0.018674943938732314
+     }
+    ],
+    "affected_presets": [
+     0.3
+    ],
+    "action": "excluded from the cross-run S1/S4 comparison and reported"
+   },
+   "H5_midpoint_margin": {
+    "pass": true,
+    "n_midpoints": 5,
+    "n_headline": 4,
+    "n_excluded_as_trained_value": 1,
+    "min_d_headline": 0.1589980692926638,
+    "midpoints": [
+     {
+      "index": 0,
+      "m": 0.17900000000000002,
+      "alpha": 0.163894,
+      "bracketing_m": [
+       0.02,
+       0.338
+      ],
+      "d_to_nearest_train_m": 0.159,
+      "d_to_baseline_m": 0.01648107050222511,
+      "near_trained_value": true,
+      "headline": false,
+      "d_to_any_trained_m": 0.01648107050222511
+     },
+     {
+      "index": 1,
+      "m": 0.497,
+      "alpha": 0.391647,
+      "bracketing_m": [
+       0.338,
+       0.656
+      ],
+      "d_to_nearest_train_m": 0.15899999999999997,
+      "d_to_baseline_m": 0.3344810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.15899959632607613
+     },
+     {
+      "index": 2,
+      "m": 0.815,
+      "alpha": 0.557361,
+      "bracketing_m": [
+       0.656,
+       0.974
+      ],
+      "d_to_nearest_train_m": 0.15899999999999992,
+      "d_to_baseline_m": 0.652481070502225,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.15899929701958504
+     },
+     {
+      "index": 3,
+      "m": 1.133,
+      "alpha": 0.677934,
+      "bracketing_m": [
+       0.974,
+       1.292
+      ],
+      "d_to_nearest_train_m": 0.15900000000000003,
+      "d_to_baseline_m": 0.9704810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.15899924176970748
+     },
+     {
+      "index": 4,
+      "m": 1.451,
+      "alpha": 0.765664,
+      "bracketing_m": [
+       1.292,
+       1.61
+      ],
+      "d_to_nearest_train_m": 0.15900000000000003,
+      "d_to_baseline_m": 1.2884810705022252,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.1589980692926638
+     }
+    ]
+   },
+   "H6_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": [],
+    "n_configs": 1370
+   },
+   "rows_sha256": "2df2e2df2eddbbac1ce4b305a8a592e535e0fca3ca50c3bfe3f65911e47c24ac",
+   "pass": true
+  },
+  {
+   "run": "G050",
+   "n_grid_points": 4,
+   "realized_delta_m": 0.53,
+   "nominal_delta_m": 0.5,
+   "H1_on_grid": {
+    "pass": true,
+    "detail": {
+     "n_configs": 960,
+     "kinds": {
+      "baseline": 40,
+      "single": 440,
+      "two": 320,
+      "four": 160
+     },
+     "n_grid_values_used": 4,
+     "n_edited_draws": 1720,
+     "per_wall_n": {
+      "west": 431,
+      "east": 430,
+      "south": 430,
+      "north": 429
+     }
+    }
+   },
+   "H2_count_and_mix": {
+    "pass": true,
+    "expected_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    },
+    "got_mix": {
+     "baseline": 40,
+     "single": 440,
+     "two": 320,
+     "four": 160
+    }
+   },
+   "H3_preset_collision": {
+    "pass": true,
+    "collisions": [],
+    "note": "a grid alpha within 1e-9 of a preset would format as 2 dp instead of 6 dp and the training room would share a filename with a frozen test room"
+   },
+   "H4_near_preset": {
+    "pass": true,
+    "near_preset": [],
+    "affected_presets": [],
+    "action": "none"
+   },
+   "H5_midpoint_margin": {
+    "pass": true,
+    "n_midpoints": 3,
+    "n_headline": 3,
+    "n_excluded_as_trained_value": 0,
+    "min_d_headline": 0.12248107050222512,
+    "midpoints": [
+     {
+      "index": 0,
+      "m": 0.28500000000000003,
+      "alpha": 0.247986,
+      "bracketing_m": [
+       0.02,
+       0.55
+      ],
+      "d_to_nearest_train_m": 0.265,
+      "d_to_baseline_m": 0.12248107050222512,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.12248107050222512
+     },
+     {
+      "index": 1,
+      "m": 0.8150000000000001,
+      "alpha": 0.557361,
+      "bracketing_m": [
+       0.55,
+       1.08
+      ],
+      "d_to_nearest_train_m": 0.265,
+      "d_to_baseline_m": 0.6524810705022251,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.2649986031773278
+     },
+     {
+      "index": 2,
+      "m": 1.3450000000000002,
+      "alpha": 0.73946,
+      "bracketing_m": [
+       1.08,
+       1.61
+      ],
+      "d_to_nearest_train_m": 0.2649999999999999,
+      "d_to_baseline_m": 1.1824810705022253,
+      "near_trained_value": false,
+      "headline": true,
+      "d_to_any_trained_m": 0.2649980692926637
+     }
+    ]
+   },
+   "H6_sims_built": {
+    "pass": true,
+    "n_missing": 0,
+    "missing": [],
+    "n_configs": 1290
+   },
+   "rows_sha256": "6c63677dd7eec7a9860954fe7cab5a6314f97ded3ec2d40588f90d772cb2ab21",
+   "pass": true
+  }
+ ]
+}

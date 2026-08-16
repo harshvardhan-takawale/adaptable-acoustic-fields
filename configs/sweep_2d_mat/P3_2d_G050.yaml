@@ -1,0 +1,37 @@
+run_id: p3_2d_G050_mlinear
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
+data_dir: data/track_c_2d
+
+# --- P3-2 protocol: band-limited to the modal regime (bins 0..600) ---
+band_max_hz: 300
+
+# --- conditioning arm: physical parameters -> Fourier features -> FiLM, no latent table ---
+cond_source: m_linear
+cond_dim: 60
+conditioning_type: film
+latent_dim: 16               # unused by this arm; kept >0 to satisfy the model's check
+
+# --- 2D backbone recipe (Phase-1 lineage, NOT the 3D P3-1 hashgrid) ---
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+
+# --- optimization ---
+n_iters: 60000
+batch_size: 8
+rx_per_config: 4
+grad_accum_steps: 2
+lr_network: 2.0e-4
+
+# --- validation on HELD-OUT receivers of training configs ---
+val_every: 2000
+val_max_configs: 88
+ckpt_every: 2000
+ckpt_keep_last: 10
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+configs_manifest: configs/sweeps_2d_mat/p3_2d_G050_manifest.json
+max_rows_per_render: 8
