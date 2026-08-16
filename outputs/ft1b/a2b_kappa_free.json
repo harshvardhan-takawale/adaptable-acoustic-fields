@@ -1,0 +1,906 @@
+{
+ "gate": "A2b (kappa-free rebuild)",
+ "supersedes": "outputs/ft1b/a2b_cross_solver.json (INCONCLUSIVE: circular via kappa)",
+ "why_kappa_free": "kappa was fitted on ISM data in the P3-2 gate, so scoring FDTD-vs-ISM through a kappa-scaled width estimator conflates the boundary admittance with the width convention. T2 and T3 use no width estimator at all.",
+ "isolation": {
+  "criterion": "single-slope Schroeder EDC, r^2 >= 0.98 in BOTH solvers and BOTH alpha cases",
+  "why_not_frequency_separation": "at alpha=0.70 the modal bandwidth is ~6-7 Hz while (1,0) and (0,1) are 4.8 Hz apart, so a 3x-width separation rule isolates 0 of 24 modes; the modal projection is what separates them here",
+  "n_clean": 7,
+  "n_modes": 24,
+  "modes": [
+   {
+    "mode": [
+     1,
+     0
+    ],
+    "f_hz": 38.11111111111111,
+    "min_edc_r2": 0.9255380698335307,
+    "clean": false
+   },
+   {
+    "mode": [
+     0,
+     1
+    ],
+    "f_hz": 42.875,
+    "min_edc_r2": 0.98569229781852,
+    "clean": true
+   },
+   {
+    "mode": [
+     1,
+     1
+    ],
+    "f_hz": 57.364818618413295,
+    "min_edc_r2": 0.9231913782969569,
+    "clean": false
+   },
+   {
+    "mode": [
+     2,
+     0
+    ],
+    "f_hz": 76.22222222222221,
+    "min_edc_r2": 0.9158066181455857,
+    "clean": false
+   },
+   {
+    "mode": [
+     0,
+     2
+    ],
+    "f_hz": 85.75,
+    "min_edc_r2": 0.9860335880065442,
+    "clean": true
+   },
+   {
+    "mode": [
+     2,
+     1
+    ],
+    "f_hz": 87.45337492340606,
+    "min_edc_r2": 0.9482245319810926,
+    "clean": false
+   },
+   {
+    "mode": [
+     1,
+     2
+    ],
+    "f_hz": 93.83772850044622,
+    "min_edc_r2": 0.9880145553014079,
+    "clean": true
+   },
+   {
+    "mode": [
+     3,
+     0
+    ],
+    "f_hz": 114.33333333333333,
+    "min_edc_r2": 0.9238073607745081,
+    "clean": false
+   },
+   {
+    "mode": [
+     2,
+     2
+    ],
+    "f_hz": 114.72963723682659,
+    "min_edc_r2": 0.9626232140716579,
+    "clean": false
+   },
+   {
+    "mode": [
+     3,
+     1
+    ],
+    "f_hz": 122.1080535268297,
+    "min_edc_r2": 0.9504551142346929,
+    "clean": false
+   },
+   {
+    "mode": [
+     0,
+     3
+    ],
+    "f_hz": 128.625,
+    "min_edc_r2": 0.986499053342287,
+    "clean": true
+   },
+   {
+    "mode": [
+     1,
+     3
+    ],
+    "f_hz": 134.15232914535423,
+    "min_edc_r2": 0.9893146027675381,
+    "clean": true
+   },
+   {
+    "mode": [
+     3,
+     2
+    ],
+    "f_hz": 142.91666666666669,
+    "min_edc_r2": 0.9548289930735198,
+    "clean": false
+   },
+   {
+    "mode": [
+     2,
+     3
+    ],
+    "f_hz": 149.5132695966944,
+    "min_edc_r2": 0.9650330801968503,
+    "clean": false
+   },
+   {
+    "mode": [
+     4,
+     0
+    ],
+    "f_hz": 152.44444444444443,
+    "min_edc_r2": 0.9426432040927349,
+    "clean": false
+   },
+   {
+    "mode": [
+     4,
+     1
+    ],
+    "f_hz": 158.35900437605468,
+    "min_edc_r2": 0.9620330240167763,
+    "clean": false
+   },
+   {
+    "mode": [
+     0,
+     4
+    ],
+    "f_hz": 171.5,
+    "min_edc_r2": 0.9870214679820491,
+    "clean": true
+   },
+   {
+    "mode": [
+     3,
+     3
+    ],
+    "f_hz": 172.09445585523986,
+    "min_edc_r2": 0.9726411725432432,
+    "clean": false
+   },
+   {
+    "mode": [
+     4,
+     2
+    ],
+    "f_hz": 174.90674984681212,
+    "min_edc_r2": 0.951371896152164,
+    "clean": false
+   },
+   {
+    "mode": [
+     1,
+     4
+    ],
+    "f_hz": 175.68354160285892,
+    "min_edc_r2": 0.9874837968576201,
+    "clean": true
+   },
+   {
+    "mode": [
+     2,
+     4
+    ],
+    "f_hz": 187.67545700089244,
+    "min_edc_r2": 0.942910249362901,
+    "clean": false
+   },
+   {
+    "mode": [
+     5,
+     0
+    ],
+    "f_hz": 190.55555555555557,
+    "min_edc_r2": 0.9261157302806742,
+    "clean": false
+   },
+   {
+    "mode": [
+     5,
+     1
+    ],
+    "f_hz": 195.31944444444449,
+    "min_edc_r2": 0.9503640563135118,
+    "clean": false
+   },
+   {
+    "mode": [
+     4,
+     3
+    ],
+    "f_hz": 199.458515152839,
+    "min_edc_r2": 0.9615537753893838,
+    "clean": false
+   }
+  ]
+ },
+ "T1_modal_frequency": {
+  "pass": false,
+  "worst_rel": 0.01048037292806015,
+  "tol": 0.01,
+  "note": "necessary, not sufficient: silent on the admittance"
+ },
+ "T2_edc_decay_rate": {
+  "pass": false,
+  "worst_rel": 0.615540946829945,
+  "tol": 0.1,
+  "primary": true,
+  "per_mode": [
+   {
+    "mode": [
+     0,
+     1
+    ],
+    "case": "a015",
+    "rel": 0.032475509669743115,
+    "fdtd_db_s": -86.77513337424274,
+    "ism_db_s": -89.68779006784906,
+    "fdtd_r2": 0.9993368848744594,
+    "ism_r2": 0.98569229781852
+   },
+   {
+    "mode": [
+     0,
+     1
+    ],
+    "case": "a070",
+    "rel": 0.615540946829945,
+    "fdtd_db_s": -165.68685853539648,
+    "ism_db_s": -102.5581300557633,
+    "fdtd_r2": 0.9977942140685969,
+    "ism_r2": 0.9906868192762927
+   },
+   {
+    "mode": [
+     0,
+     2
+    ],
+    "case": "a015",
+    "rel": 0.024268075512284427,
+    "fdtd_db_s": -86.76352506277397,
+    "ism_db_s": -88.92147821065407,
+    "fdtd_r2": 0.9996423999665974,
+    "ism_r2": 0.9860335880065442
+   },
+   {
+    "mode": [
+     0,
+     2
+    ],
+    "case": "a070",
+    "rel": 0.47120406788802033,
+    "fdtd_db_s": -145.0246088340229,
+    "ism_db_s": -98.57545394243795,
+    "fdtd_r2": 0.9989376506580281,
+    "ism_r2": 0.9920376793936144
+   },
+   {
+    "mode": [
+     1,
+     2
+    ],
+    "case": "a015",
+    "rel": 0.028143371106760497,
+    "fdtd_db_s": -113.49953467107264,
+    "ism_db_s": -110.39271162045654,
+    "fdtd_r2": 0.9995975898489561,
+    "ism_r2": 0.9880145553014079
+   },
+   {
+    "mode": [
+     1,
+     2
+    ],
+    "case": "a070",
+    "rel": 0.1417750025200875,
+    "fdtd_db_s": -239.0127953815027,
+    "ism_db_s": -209.33440901575327,
+    "fdtd_r2": 0.9918287902224946,
+    "ism_r2": 0.9891192311736021
+   },
+   {
+    "mode": [
+     0,
+     3
+    ],
+    "case": "a015",
+    "rel": 0.02099750345443362,
+    "fdtd_db_s": -86.72532297907013,
+    "ism_db_s": -88.58539511909571,
+    "fdtd_r2": 0.9996978893634451,
+    "ism_r2": 0.986499053342287
+   },
+   {
+    "mode": [
+     0,
+     3
+    ],
+    "case": "a070",
+    "rel": 0.25555523850127737,
+    "fdtd_db_s": -121.43893694929137,
+    "ism_db_s": -96.72130164041988,
+    "fdtd_r2": 0.9982133839846467,
+    "ism_r2": 0.993882154013932
+   },
+   {
+    "mode": [
+     1,
+     3
+    ],
+    "case": "a015",
+    "rel": 0.07832559692545966,
+    "fdtd_db_s": -113.46668902035772,
+    "ism_db_s": -105.2248869394141,
+    "fdtd_r2": 0.9996764383828507,
+    "ism_r2": 0.9893146027675381
+   },
+   {
+    "mode": [
+     1,
+     3
+    ],
+    "case": "a070",
+    "rel": 0.061959205389277204,
+    "fdtd_db_s": -178.32935838212413,
+    "ism_db_s": -167.92486705433737,
+    "fdtd_r2": 0.9959296604486468,
+    "ism_r2": 0.9900870564593384
+   },
+   {
+    "mode": [
+     0,
+     4
+    ],
+    "case": "a015",
+    "rel": 0.01679264767891194,
+    "fdtd_db_s": -86.63227877723529,
+    "ism_db_s": -88.11191105591286,
+    "fdtd_r2": 0.9997188192975076,
+    "ism_r2": 0.9870214679820491
+   },
+   {
+    "mode": [
+     0,
+     4
+    ],
+    "case": "a070",
+    "rel": 0.1353925342555009,
+    "fdtd_db_s": -106.46844298792138,
+    "ism_db_s": -93.77236486563197,
+    "fdtd_r2": 0.997179127522667,
+    "ism_r2": 0.9930899314561025
+   },
+   {
+    "mode": [
+     1,
+     4
+    ],
+    "case": "a015",
+    "rel": 0.12123879695349572,
+    "fdtd_db_s": -113.41461525942958,
+    "ism_db_s": -101.15116919570305,
+    "fdtd_r2": 0.9997025980545555,
+    "ism_r2": 0.9908659624412588
+   },
+   {
+    "mode": [
+     1,
+     4
+    ],
+    "case": "a070",
+    "rel": 0.14548189405620962,
+    "fdtd_db_s": -165.26012654563516,
+    "ism_db_s": -144.27126906427185,
+    "fdtd_r2": 0.9944827938067899,
+    "ism_r2": 0.9874837968576201
+   }
+  ]
+ },
+ "T3_within_solver_ratio": {
+  "pass": false,
+  "worst_rel": 0.6697674973358998,
+  "tol": 0.1,
+  "note": "alpha=0.70 / alpha=0.15 inside each solver, then compared -- any multiplicative bias cancels",
+  "per_mode": [
+   {
+    "mode": [
+     0,
+     1
+    ],
+    "fdtd_ratio": 1.9093817790037177,
+    "ism_ratio": 1.1435015845320504,
+    "rel": 0.6697674973358998
+   },
+   {
+    "mode": [
+     0,
+     2
+    ],
+    "fdtd_ratio": 1.6714928160087625,
+    "ism_ratio": 1.1085674229224316,
+    "rel": 0.5077953595301707
+   },
+   {
+    "mode": [
+     1,
+     2
+    ],
+    "fdtd_ratio": 2.1058482404722962,
+    "ism_ratio": 1.89627019703502,
+    "rel": 0.11052119247824987
+   },
+   {
+    "mode": [
+     0,
+     3
+    ],
+    "fdtd_ratio": 1.4002707949395456,
+    "ism_ratio": 1.0918425267549592,
+    "rel": 0.28248420502657945
+   },
+   {
+    "mode": [
+     1,
+     3
+    ],
+    "fdtd_ratio": 1.5716450345187125,
+    "ism_ratio": 1.5958664526864672,
+    "rel": 0.015177597177370685
+   },
+   {
+    "mode": [
+     0,
+     4
+    ],
+    "fdtd_ratio": 1.2289696691656058,
+    "ism_ratio": 1.0642416415883567,
+    "rel": 0.15478442220264588
+   },
+   {
+    "mode": [
+     1,
+     4
+    ],
+    "fdtd_ratio": 1.4571325412303509,
+    "ism_ratio": 1.4262936376458668,
+    "rel": 0.021621707319247688
+   }
+  ]
+ },
+ "verdict": "PARTIAL -- alpha=0.15 validated; alpha=0.70 unresolved. FT-B stays gated.",
+ "rows": [
+  {
+   "mode": [
+    0,
+    1
+   ],
+   "f_analytic_hz": 42.875,
+   "family": "y_axial",
+   "a015": {
+    "fdtd_f_hz": 42.845370919885546,
+    "ism_f_hz": 42.96171514867943,
+    "fdtd_edc": {
+     "slope_db_per_s": -86.77513337424274,
+     "r2": 0.9993368848744594,
+     "n_samples": 2828,
+     "band_hz": [
+      34.004101359415486,
+      51.745898640584514
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -89.68779006784906,
+     "r2": 0.98569229781852,
+     "n_samples": 822,
+     "band_hz": [
+      34.004101359415486,
+      51.745898640584514
+     ]
+    }
+   },
+   "a070": {
+    "fdtd_f_hz": 43.18970142718538,
+    "ism_f_hz": 43.08431695876317,
+    "fdtd_edc": {
+     "slope_db_per_s": -165.68685853539648,
+     "r2": 0.9977942140685969,
+     "n_samples": 1436,
+     "band_hz": [
+      29.000004690367806,
+      56.7499953096322
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -102.5581300557633,
+     "r2": 0.9906868192762927,
+     "n_samples": 718,
+     "band_hz": [
+      29.000004690367806,
+      56.7499953096322
+     ]
+    }
+   },
+   "clean": true,
+   "min_edc_r2": 0.98569229781852
+  },
+  {
+   "mode": [
+    0,
+    2
+   ],
+   "f_analytic_hz": 85.75,
+   "family": "y_axial",
+   "a015": {
+    "fdtd_f_hz": 85.73496959241126,
+    "ism_f_hz": 85.78747477507937,
+    "fdtd_edc": {
+     "slope_db_per_s": -86.76352506277397,
+     "r2": 0.9996423999665974,
+     "n_samples": 2800,
+     "band_hz": [
+      76.87910135941549,
+      94.62089864058451
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -88.92147821065407,
+     "r2": 0.9860335880065442,
+     "n_samples": 838,
+     "band_hz": [
+      76.87910135941549,
+      94.62089864058451
+     ]
+    }
+   },
+   "a070": {
+    "fdtd_f_hz": 86.40680858205232,
+    "ism_f_hz": 85.88037725829257,
+    "fdtd_edc": {
+     "slope_db_per_s": -145.0246088340229,
+     "r2": 0.9989376506580281,
+     "n_samples": 1713,
+     "band_hz": [
+      71.8750046903678,
+      99.6249953096322
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -98.57545394243795,
+     "r2": 0.9920376793936144,
+     "n_samples": 763,
+     "band_hz": [
+      71.8750046903678,
+      99.6249953096322
+     ]
+    }
+   },
+   "clean": true,
+   "min_edc_r2": 0.9860335880065442
+  },
+  {
+   "mode": [
+    1,
+    2
+   ],
+   "f_analytic_hz": 93.83772850044622,
+   "family": "tangential",
+   "a015": {
+    "fdtd_f_hz": 93.82246266707779,
+    "ism_f_hz": 93.851734172823,
+    "fdtd_edc": {
+     "slope_db_per_s": -113.49953467107264,
+     "r2": 0.9995975898489561,
+     "n_samples": 2144,
+     "band_hz": [
+      82.2373225858357,
+      105.43813441505674
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -110.39271162045654,
+     "r2": 0.9880145553014079,
+     "n_samples": 678,
+     "band_hz": [
+      82.2373225858357,
+      105.43813441505674
+     ]
+    }
+   },
+   "a070": {
+    "fdtd_f_hz": 94.416117845698,
+    "ism_f_hz": 94.14347419151886,
+    "fdtd_edc": {
+     "slope_db_per_s": -239.0127953815027,
+     "r2": 0.9918287902224946,
+     "n_samples": 1158,
+     "band_hz": [
+      72.22912924774035,
+      115.44632775315209
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -209.33440901575327,
+     "r2": 0.9891192311736021,
+     "n_samples": 355,
+     "band_hz": [
+      72.22912924774035,
+      115.44632775315209
+     ]
+    }
+   },
+   "clean": true,
+   "min_edc_r2": 0.9880145553014079
+  },
+  {
+   "mode": [
+    0,
+    3
+   ],
+   "f_analytic_hz": 128.625,
+   "family": "y_axial",
+   "a015": {
+    "fdtd_f_hz": 128.59056362511734,
+    "ism_f_hz": 128.67731164037914,
+    "fdtd_edc": {
+     "slope_db_per_s": -86.72532297907013,
+     "r2": 0.9996978893634451,
+     "n_samples": 2812,
+     "band_hz": [
+      119.75410135941549,
+      137.49589864058453
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -88.58539511909571,
+     "r2": 0.986499053342287,
+     "n_samples": 845,
+     "band_hz": [
+      119.75410135941549,
+      137.49589864058453
+     ]
+    }
+   },
+   "a070": {
+    "fdtd_f_hz": 129.2682876202217,
+    "ism_f_hz": 128.75631287738432,
+    "fdtd_edc": {
+     "slope_db_per_s": -121.43893694929137,
+     "r2": 0.9982133839846467,
+     "n_samples": 2049,
+     "band_hz": [
+      114.7500046903678,
+      142.4999953096322
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -96.72130164041988,
+     "r2": 0.993882154013932,
+     "n_samples": 779,
+     "band_hz": [
+      114.7500046903678,
+      142.4999953096322
+     ]
+    }
+   },
+   "clean": true,
+   "min_edc_r2": 0.986499053342287
+  },
+  {
+   "mode": [
+    1,
+    3
+   ],
+   "f_analytic_hz": 134.15232914535423,
+   "family": "tangential",
+   "a015": {
+    "fdtd_f_hz": 134.12619999989747,
+    "ism_f_hz": 134.19592979907932,
+    "fdtd_edc": {
+     "slope_db_per_s": -113.46668902035772,
+     "r2": 0.9996764383828507,
+     "n_samples": 2147,
+     "band_hz": [
+      122.55192323074371,
+      145.75273505996475
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -105.2248869394141,
+     "r2": 0.9893146027675381,
+     "n_samples": 717,
+     "band_hz": [
+      122.55192323074371,
+      145.75273505996475
+     ]
+    }
+   },
+   "a070": {
+    "fdtd_f_hz": 135.40871447715924,
+    "ism_f_hz": 134.52639634558716,
+    "fdtd_edc": {
+     "slope_db_per_s": -178.32935838212413,
+     "r2": 0.9959296604486468,
+     "n_samples": 1451,
+     "band_hz": [
+      112.54372989264836,
+      155.76092839806012
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -167.92486705433737,
+     "r2": 0.9900870564593384,
+     "n_samples": 439,
+     "band_hz": [
+      112.54372989264836,
+      155.76092839806012
+     ]
+    }
+   },
+   "clean": true,
+   "min_edc_r2": 0.9893146027675381
+  },
+  {
+   "mode": [
+    0,
+    4
+   ],
+   "f_analytic_hz": 171.5,
+   "family": "y_axial",
+   "a015": {
+    "fdtd_f_hz": 171.4244726469914,
+    "ism_f_hz": 171.56043725903473,
+    "fdtd_edc": {
+     "slope_db_per_s": -86.63227877723529,
+     "r2": 0.9997188192975076,
+     "n_samples": 2803,
+     "band_hz": [
+      162.62910135941547,
+      180.37089864058453
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -88.11191105591286,
+     "r2": 0.9870214679820491,
+     "n_samples": 855,
+     "band_hz": [
+      162.62910135941547,
+      180.37089864058453
+     ]
+    }
+   },
+   "a070": {
+    "fdtd_f_hz": 172.00060876890905,
+    "ism_f_hz": 171.61912505783548,
+    "fdtd_edc": {
+     "slope_db_per_s": -106.46844298792138,
+     "r2": 0.997179127522667,
+     "n_samples": 2317,
+     "band_hz": [
+      157.6250046903678,
+      185.3749953096322
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -93.77236486563197,
+     "r2": 0.9930899314561025,
+     "n_samples": 796,
+     "band_hz": [
+      157.6250046903678,
+      185.3749953096322
+     ]
+    }
+   },
+   "clean": true,
+   "min_edc_r2": 0.9870214679820491
+  },
+  {
+   "mode": [
+    1,
+    4
+   ],
+   "f_analytic_hz": 175.68354160285892,
+   "family": "tangential",
+   "a015": {
+    "fdtd_f_hz": 175.60613016740135,
+    "ism_f_hz": 175.72979159501094,
+    "fdtd_edc": {
+     "slope_db_per_s": -113.41461525942958,
+     "r2": 0.9997025980545555,
+     "n_samples": 2140,
+     "band_hz": [
+      164.0831356882484,
+      187.28394751746944
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -101.15116919570305,
+     "r2": 0.9908659624412588,
+     "n_samples": 744,
+     "band_hz": [
+      164.0831356882484,
+      187.28394751746944
+     ]
+    }
+   },
+   "a070": {
+    "fdtd_f_hz": 177.52477063617926,
+    "ism_f_hz": 176.050893034746,
+    "fdtd_edc": {
+     "slope_db_per_s": -165.26012654563516,
+     "r2": 0.9944827938067899,
+     "n_samples": 1554,
+     "band_hz": [
+      154.07494235015304,
+      197.2921408555648
+     ]
+    },
+    "ism_edc": {
+     "slope_db_per_s": -144.27126906427185,
+     "r2": 0.9874837968576201,
+     "n_samples": 494,
+     "band_hz": [
+      154.07494235015304,
+      197.2921408555648
+     ]
+    }
+   },
+   "clean": true,
+   "min_edc_r2": 0.9874837968576201
+  }
+ ],
+ "stratified_result": {
+  "by_incidence_on_the_absorbing_wall": "In the a070 case the absorber is WEST (x-normal), so a mode with n_x = 0 strikes it at GRAZING incidence -- exactly where ISM (cos_theta_x = 0, no absorption) and a locally-reacting wall (absorbs at grazing) must differ (D48/D54).",
+  "uniform_a015": {
+   "median_rel": 0.0281,
+   "worst_rel": 0.1212,
+   "reading": "the two solvers agree well; the admittance is validated at low absorption"
+  },
+  "a070_oblique_nx_ge_1": {
+   "T2_worst": 0.1455,
+   "T3_worst": 0.1105,
+   "n_modes": 3
+  },
+  "a070_grazing_nx_0": {
+   "T2_worst": 0.6155,
+   "T3_worst": 0.6698,
+   "n_modes": 4,
+   "direction": "FDTD MORE damped than ISM, which is the physically correct direction"
+  },
+  "quantitative_test_of_the_grazing_explanation": {
+   "method": "compare observed FDTD/ISM decay ratio against the predicted kuttruff/ism_ray ratio",
+   "observed_range": [
+    1.062,
+    1.616
+   ],
+   "predicted_range": [
+    1.336,
+    2.085
+   ],
+   "pearson_r": 0.5815,
+   "median_abs_diff": 0.614,
+   "conclusion": "The grazing story is directionally right but QUANTITATIVELY SHORT: FDTD shows only ~55-75% of the predicted wave-vs-ray excess. So 'it is just grazing physics' is NOT established, and a scoped PASS would be rationalizing."
+  }
+ },
+ "what_is_and_is_not_established": {
+  "established": "the alpha->admittance mapping is not grossly mis-scaled -- a scale error would also corrupt the a015 case, and there FDTD and ISM agree to 2.81% median",
+  "not_established": "the admittance at HIGH absorption and grazing incidence. Both T2 and T3 fail there, so the spec's 'T2 fails while T3 passes -> scale error' branch does not apply and the diagnosis is genuinely open.",
+  "candidates": [
+   "partial under-absorption at grazing incidence in the KvW boundary",
+   "the kuttruff/ism_ray analytic ratio is itself a poor predictor for these modes (both are approximations)",
+   "ISM max_order=60 truncation at alpha=0.70"
+  ]
+ },
+ "decision": "FT-B remains GATED. FT-C is unaffected (single room, no aperture, no diffraction)."
+}
