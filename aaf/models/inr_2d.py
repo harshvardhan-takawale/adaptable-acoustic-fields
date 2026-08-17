@@ -251,10 +251,11 @@ class INR2D_AutoDecoder(nn.Module):
         # a new arm must be registered in BOTH or the model rejects a config the feature
         # builder is perfectly happy with.
         if cond_source not in ("latent", "geom_alpha_fourier", "m_linear", "m_segment",
+                               "m_token",
                                "aperture"):
             raise ValueError(
                 f"cond_source must be 'latent', 'geom_alpha_fourier', 'm_linear', "
-                f"'m_segment' or 'aperture', got {cond_source!r}"
+                f"'m_segment', 'm_token' or 'aperture', got {cond_source!r}"
             )
         if conditioning_type not in ("concat", "film", "film_lora"):
             raise ValueError(
@@ -274,6 +275,33 @@ class INR2D_AutoDecoder(nn.Module):
         # layers (same in_features -> same RNG draws -> same init).
         self.cond_source = str(cond_source)
         self.cond_dim = int(cond_dim) if cond_dim is not None else self.latent_dim
+
+        # --- Track A2 shared segment encoder (D58) -----------------------------------------
+        # The conditioning vector arrives as [32 geometry | 16 tokens x 26]. ONE MLP is applied
+        # to every token and the results are mean-pooled, so the encoder has NO per-segment
+        # parameters. That is the whole point: Track A gave each segment private dims, so
+        # holding out east_3 held out its WEIGHTS and the model produced no window effect there
+        # (recovered -0.069 vs 1.079 at a trained position). Here a held-out position differs
+        # only in its (cx, cy, nx, ny) VALUES, which this encoder already learned to read from
+        # the other 15 segments.
+        #
+        # It lives in the model rather than in conditioning_2d because it is LEARNED and must
+        # receive gradient; conditioning_2d is a fixed, tcnn-free, CPU-testable featurizer.
+        self.segment_encoder = None
+        if self.cond_source == "m_token":
+            from aaf.models.conditioning_2d import (D_TOK, N_SEG_COND, TOKEN_AGG_DIM,
+                                                    TOKEN_COND_DIM, TOKEN_DIM_2D)
+            if self.cond_dim != TOKEN_DIM_2D:
+                raise ValueError(
+                    f"m_token expects cond_dim={TOKEN_DIM_2D}, got {self.cond_dim}")
+            self._tok_n, self._tok_d = N_SEG_COND, D_TOK
+            self._tok_geom = TOKEN_DIM_2D - N_SEG_COND * D_TOK          # 32
+            self.segment_encoder = nn.Sequential(
+                nn.Linear(D_TOK, TOKEN_AGG_DIM), nn.ReLU(),
+                nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM),
+            )
+            # Everything downstream (FiLM, concat) sees the REDUCED width.
+            self.cond_dim = TOKEN_COND_DIM                               # 96
         self.l_head_out_dim = int(l_head_out_dim)
         self.n_freq_bins = int(n_freq_bins)
         self.signal_output_dim = 2 * self.n_freq_bins
@@ -499,6 +527,11 @@ class INR2D_AutoDecoder(nn.Module):
         tx_flat = self._normalize_unit(tx.reshape(-1, 2))
         tx_view_flat = self._normalize_unit(tx_view.reshape(-1, 2))
         z_s_flat = self._expand_z_s(z_s, B, N).to(pts_flat.dtype)  # [B*N, latent_dim]
+        if self.segment_encoder is not None:
+            # [B*N, 32 + 16*26] -> shared MLP per token -> mean-pool -> [B*N, 32 + 64]
+            g = z_s_flat[:, :self._tok_geom]
+            t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
+            z_s_flat = torch.cat([g, self.segment_encoder(t).mean(dim=1)], dim=-1)
 
         # Sigma branch.
         pos_emb = self._pos_encoding(pts_flat)

@@ -182,6 +182,8 @@ def cond_dim_for(cond_source: str) -> int:
         return MLINEAR_DIM_2D
     if cond_source == COND_SOURCE_SEG:
         return SEGMENT_DIM_2D
+    if cond_source == COND_SOURCE_TOK:
+        return TOKEN_DIM_2D
     if cond_source == COND_SOURCE_APER:
         return APERTURE_DIM_2D
     raise ValueError(f"no fixed cond_dim for cond_source {cond_source!r}")
@@ -221,6 +223,10 @@ def build_cond_vector_2d(
         if alphas is None:
             raise ValueError(f"{COND_SOURCE_SEG} requires 16 segment alphas")
         return segment_features_2d(L, W, alphas, device=device, dtype=dtype)
+    if cond_source == COND_SOURCE_TOK:
+        if alphas is None:
+            raise ValueError(f"{COND_SOURCE_TOK} requires 16 segment alphas")
+        return segment_token_features_2d(L, W, alphas, device=device, dtype=dtype)
     if cond_source == COND_SOURCE_APER:
         if x0 is None or a is None:
             raise ValueError(
@@ -333,3 +339,75 @@ def aperture_features_2d(L, W, x0, a, device=None, dtype=torch.float32) -> torch
     ah = u[3:]                                                               # [1]
     fb = _fourier_block(ah, N_K_APER)                                        # [6]
     return torch.cat([_fourier_block(u[:3], N_K_GEOM), ah, fb])
+
+
+# ----------------------------------------------------------------------
+# Track A2: shared-encoder TOKEN conditioning (D58)
+# ----------------------------------------------------------------------
+COND_SOURCE_TOK = "m_token"
+N_K_TOK_POS = 4          # Fourier k = 0..3 on the segment centre
+N_K_TOK_M = 3            # Fourier k = 0..2 on m_hat
+D_TOK = 2 * 2 * N_K_TOK_POS + 2 + 1 + (1 + 2 * N_K_TOK_M)      # 16 + 2 + 1 + 7 = 26
+TOKEN_DIM_2D = 2 * 2 * N_K_GEOM + N_SEG_COND * D_TOK            # 32 + 416 = 448
+TOKEN_AGG_DIM = 64
+TOKEN_COND_DIM = 2 * 2 * N_K_GEOM + TOKEN_AGG_DIM               # 32 + 64 = 96 after the encoder
+"""Per-segment TOKEN conditioning.
+
+Track A gave each segment 7 PRIVATE dims. Holding out east_3 therefore held out its
+PARAMETERS: those dims sat at the baseline value in all 400 training configs, so the network
+never received gradient for them and produced no window effect at that position (recovered
+fraction -0.069 versus 1.079 at a trained position, against an identical -5.28 dB ground
+truth). That is the same pathology as P3-1's per-room latent, one level down -- a discrete
+index is a memorization slot.
+
+Here every segment is described by WHAT IT IS rather than by WHICH SLOT IT OCCUPIES:
+
+    [cx, cy]   segment centre in normalized room coordinates -> Fourier k=0..3   16
+    [nx, ny]   inward normal                                 -> raw               2
+    extent     segment length as a fraction of its wall      -> raw               1
+    m_hat      -ln(1-alpha)/3.0                              -> identity + k=0..2  7
+                                                                             D_TOK = 26
+
+The 16 tokens are flattened after the 32-d geometry block, so the stored width is 448 and the
+trainer needs no change. `aaf.models.inr_2d` then applies ONE shared MLP to every token and
+mean-pools, giving 32 + 64 = 96 into the existing FiLM generator. Because that MLP has no
+per-segment parameters, a held-out position differs from a trained one only in its (cx, cy,
+nx, ny) VALUES -- which the encoder has already learned to read from the other 15 segments.
+"""
+
+
+def segment_geometry(L: float, W: float, index: int):
+    """(cx, cy, nx, ny, extent) for a segment, normalized. Order matches SEGMENT_NAMES."""
+    n_per = 4
+    wall = index // n_per
+    k = index % n_per
+    frac_lo, frac_hi = k / n_per, (k + 1) / n_per
+    mid = 0.5 * (frac_lo + frac_hi)
+    if wall == 0:      # west, x = 0, runs along y
+        return 0.0, mid, 1.0, 0.0, 1.0 / n_per
+    if wall == 1:      # east, x = L
+        return 1.0, mid, -1.0, 0.0, 1.0 / n_per
+    if wall == 2:      # south, y = 0, runs along x
+        return mid, 0.0, 0.0, 1.0, 1.0 / n_per
+    return mid, 1.0, 0.0, -1.0, 1.0 / n_per     # north
+
+
+def segment_token_features_2d(L, W, alphas, device=None, dtype=torch.float32) -> torch.Tensor:
+    """448-d: [32 geometry | 16 tokens x 26]. The tokens are reshaped by the model."""
+    a = [float(x) for x in alphas]
+    if len(a) != N_SEG_COND:
+        raise ValueError("expected {} segment alphas, got {}".format(N_SEG_COND, len(a)))
+    u = torch.tensor([(L - 3.0) / 3.0, (W - 3.0) / 2.0], device=device, dtype=dtype)
+    geom = _fourier_block(u, N_K_GEOM)                                    # [32]
+    toks = []
+    for i in range(N_SEG_COND):
+        cx, cy, nx, ny, ext = segment_geometry(L, W, i)
+        pos = torch.tensor([cx, cy], device=device, dtype=dtype)
+        mh = torch.tensor([m_hat_seg(a[i])], device=device, dtype=dtype)
+        toks.append(torch.cat([
+            _fourier_block(pos, N_K_TOK_POS),                              # 16
+            torch.tensor([nx, ny, ext], device=device, dtype=dtype),       # 3
+            mh,                                                            # 1
+            _fourier_block(mh, N_K_TOK_M),                                 # 6
+        ]))
+    return torch.cat([geom, torch.cat(toks)])
