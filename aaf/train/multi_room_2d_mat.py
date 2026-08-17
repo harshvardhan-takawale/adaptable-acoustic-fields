@@ -131,8 +131,14 @@ class P32Trainer:
         if cfg.configs_manifest:
             # P3-2b: the sampled set is FROZEN in git, so the dataset, the trainer and the
             # eval cannot disagree about which rooms exist.
-            from aaf.data.mat_configs_cont import configs_from_rows
             man = json.load(open(cfg.configs_manifest))
+            # Dispatch on the manifest schema: P3-3-FAST rows carry 16 SEGMENT absorptions,
+            # not 4 wall absorptions, so they need their own config class. Everything after
+            # this point is schema-agnostic -- it only touches .alphas, .filename and .strata.
+            if str(man.get("schema", "")).startswith("p3_3fast.trackA"):
+                from aaf.data.seg_configs import configs_from_rows
+            else:
+                from aaf.data.mat_configs_cont import configs_from_rows
             self.manifest_sha = str(man.get("rows_sha256", ""))
             self.configs = configs_from_rows(man["configs"], split="train",
                                              kinds=tuple(cfg.config_kinds))

@@ -180,6 +180,8 @@ def cond_dim_for(cond_source: str) -> int:
         return FOURIER_DIM_2D
     if cond_source == COND_SOURCE_M:
         return MLINEAR_DIM_2D
+    if cond_source == COND_SOURCE_SEG:
+        return SEGMENT_DIM_2D
     raise ValueError(f"no fixed cond_dim for cond_source {cond_source!r}")
 
 
@@ -211,6 +213,10 @@ def build_cond_vector_2d(
         if alphas is None:
             raise ValueError(f"{COND_SOURCE_M} requires alphas")
         return m_linear_features_2d(L, W, alphas, device=device, dtype=dtype)
+    if cond_source == COND_SOURCE_SEG:
+        if alphas is None:
+            raise ValueError(f"{COND_SOURCE_SEG} requires 16 segment alphas")
+        return segment_features_2d(L, W, alphas, device=device, dtype=dtype)
     if cond_source == "latent":
         if model is None or room_ids is None:
             raise ValueError("latent arm requires model + room_ids")
@@ -219,3 +225,42 @@ def build_cond_vector_2d(
         f"unknown cond_source {cond_source!r}; expected {COND_SOURCE!r}, "
         f"{COND_SOURCE_M!r} or 'latent'"
     )
+
+
+# ----------------------------------------------------------------------
+# P3-3-FAST Track 1: per-segment conditioning (D56)
+# ----------------------------------------------------------------------
+COND_SOURCE_SEG = "m_segment"
+N_SEG_COND = 16
+N_K_SEG = 3
+SEGMENT_DIM_2D = 2 * 2 * N_K_GEOM + N_SEG_COND * (1 + 2 * N_K_SEG)   # 32 + 112 = 144
+"""Per segment: identity + 3 octaves of sin/cos = 7 dims, x 16 segments = 112, plus the
+32-dim geometry block, which is BYTE-IDENTICAL to fourier_features_2d's so the geometry
+encoding is shared with every earlier 2D arm.
+
+Segment order is aaf.data.seg_configs.SEGMENT_NAMES:
+  [32:39] west_1 ... [53:60] west_4 | [60:67] east_1 ... | south_* | north_*
+i.e. offset 32 + 7*i for flat index i. Those offsets are load-bearing and are asserted
+end-to-end in tests/test_seg_configs.py, from a manifest row through to geom.face_alpha.
+"""
+
+M_NORM_SEG_COND = 3.0
+"""m_max for this chunk. P3-2b used ln(5) = 1.6094, so the normalized coordinate DIFFERS and a
+model trained here is not numerically comparable to a P3-2b model. The wider range is what
+admits alpha = 0.95, the open-window value."""
+
+
+def m_hat_seg(alpha: float) -> float:
+    return m_of_alpha(alpha) / M_NORM_SEG_COND
+
+
+def segment_features_2d(L, W, alphas, device=None, dtype=torch.float32) -> torch.Tensor:
+    """144-d features of (L, W, 16 segment absorptions)."""
+    a = [float(x) for x in alphas]
+    if len(a) != N_SEG_COND:
+        raise ValueError("expected {} segment alphas, got {}".format(N_SEG_COND, len(a)))
+    u = torch.tensor([(L - 3.0) / 3.0, (W - 3.0) / 2.0], device=device, dtype=dtype)
+    mh = torch.tensor([m_hat_seg(x) for x in a], device=device, dtype=dtype)
+    fb = _fourier_block(mh, N_K_SEG).reshape(N_SEG_COND, 2 * N_K_SEG)
+    per_seg = torch.cat([mh[:, None], fb], dim=1)                     # [16, 7]
+    return torch.cat([_fourier_block(u, N_K_GEOM), per_seg.reshape(-1)])
