@@ -1,0 +1,2444 @@
+{
+ "part": "P3-3 Part 0",
+ "0a_gate": {
+  "pass": false,
+  "tolerance": 0.15,
+  "worst_rel": 0.3878307236301796,
+  "n_modes_judged": 36,
+  "families_present": [
+   "x_axial",
+   "y_axial"
+  ],
+  "per_family_worst": {
+   "x_axial": 0.044099297714282476,
+   "y_axial": 0.3878307236301796
+  },
+  "reference": "analytic locally-reacting modal damping (NOT ISM)"
+ },
+ "derivation_cross_check_D54": {
+  "method_1": "exact -ln(R) = 2 artanh(xi) round-trip decay, derived in this file",
+  "method_2": "the first-order limit reproduces modal_damping_2d(kuttruff) exactly",
+  "limit_stated_D54": "first-order uses artanh(xi)->xi and xi->alpha/4; error +0.06% at alpha=0.15, +45.7% at alpha=0.70",
+  "n_disagreements": 0,
+  "agree": true
+ },
+ "0b_selectivity_measurement": {
+  "what": "west-edit d(gamma) ratio, x_axial / y_axial, per solver",
+  "theory": "~2 for a wave solver (eps 2 vs 1); >>2 for a ray solver (0 at grazing)",
+  "measured": {
+   "4.5x4.0_a070_west": {
+    "fdtd": 3.6629873053378854,
+    "ism": 22.674283487221345
+   },
+   "6.0x3.0_a070_west": {
+    "fdtd": 10.083997421987963,
+    "ism": 43.551261399204314
+   }
+  },
+  "gate": null
+ },
+ "cases": [
+  {
+   "case": "4.5x4.0_a015",
+   "L": 4.5,
+   "W": 4.0,
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 38.11111111111111,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.677776530857079,
+     "gamma_theory_first_order": 8.932291666666666,
+     "gamma_repo_kuttruff": 8.932291666666666,
+     "first_order_rel_error": -0.0770305929066944,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -83.61327177708934,
+      "gamma": 9.626333658519284,
+      "r2": 0.9993279146564037
+     },
+     "ism": {
+      "slope_db_per_s": -80.04164785603452,
+      "gamma": 9.215135258599195,
+      "r2": 0.9893808420676843
+     },
+     "fdtd_rel_vs_theory": -0.005315567286945692,
+     "ism_rel_vs_theory": -0.04780450042246545
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 42.875,
+     "family": "y_axial",
+     "gamma_theory_exact": 10.064887592091363,
+     "gamma_theory_first_order": 9.289583333333333,
+     "gamma_repo_kuttruff": 9.289583333333333,
+     "first_order_rel_error": -0.07703059290669449,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -86.91755553668467,
+      "gamma": 10.00675338491261,
+      "r2": 0.9994203036489495
+     },
+     "ism": {
+      "slope_db_per_s": -89.25401702343382,
+      "gamma": 10.275748454399777,
+      "r2": 0.9881573775173275
+     },
+     "fdtd_rel_vs_theory": -0.005775942020895792,
+     "ism_rel_vs_theory": 0.020950145779481975
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 57.364818618413295,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.59412054086208,
+      "gamma": 13.078006430457886,
+      "r2": 0.999439673892186
+     },
+     "ism": {
+      "slope_db_per_s": -115.18579783140555,
+      "gamma": 13.261255050561015,
+      "r2": 0.9894203631260182
+     },
+     "fdtd_rel_vs_theory": -0.00636461606595194,
+     "ism_rel_vs_theory": 0.007558172086797252
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 76.22222222222221,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.677776530857079,
+     "gamma_theory_first_order": 8.932291666666666,
+     "gamma_repo_kuttruff": 8.932291666666666,
+     "first_order_rel_error": -0.0770305929066944,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -83.53297414975468,
+      "gamma": 9.617089052534105,
+      "r2": 0.9997136793729735
+     },
+     "ism": {
+      "slope_db_per_s": -79.98629287083705,
+      "gamma": 9.208762280412266,
+      "r2": 0.9892077762529397
+     },
+     "fdtd_rel_vs_theory": -0.006270807982543822,
+     "ism_rel_vs_theory": -0.048463017197120206
+    },
+    {
+     "mode": [
+      0,
+      2
+     ],
+     "f_hz": 85.75,
+     "family": "y_axial",
+     "gamma_theory_exact": 10.064887592091363,
+     "gamma_theory_first_order": 9.289583333333333,
+     "gamma_repo_kuttruff": 9.289583333333333,
+     "first_order_rel_error": -0.07703059290669449,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -86.89444855474461,
+      "gamma": 10.004093095304649,
+      "r2": 0.9997408660977188
+     },
+     "ism": {
+      "slope_db_per_s": -88.57707755805838,
+      "gamma": 10.197812918308134,
+      "r2": 0.9886921129648928
+     },
+     "fdtd_rel_vs_theory": -0.006040255912493711,
+     "ism_rel_vs_theory": 0.013206836638813451
+    },
+    {
+     "mode": [
+      2,
+      1
+     ],
+     "f_hz": 87.45337492340606,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.6445333989539,
+      "gamma": 13.083810425234763,
+      "r2": 0.9996702715685862
+     },
+     "ism": {
+      "slope_db_per_s": -109.97837235897197,
+      "gamma": 12.661728037275864,
+      "r2": 0.9893592364383591
+     },
+     "fdtd_rel_vs_theory": -0.0059236425422624665,
+     "ism_rel_vs_theory": -0.03799244430050231
+    },
+    {
+     "mode": [
+      1,
+      2
+     ],
+     "f_hz": 93.83772850044622,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.62448627387442,
+      "gamma": 13.081502414666492,
+      "r2": 0.9996799672095398
+     },
+     "ism": {
+      "slope_db_per_s": -110.12294147961805,
+      "gamma": 12.678372172381211,
+      "r2": 0.9902881881684665
+     },
+     "fdtd_rel_vs_theory": -0.0060989996182298474,
+     "ism_rel_vs_theory": -0.03672786306148908
+    },
+    {
+     "mode": [
+      3,
+      0
+     ],
+     "f_hz": 114.33333333333333,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.677776530857079,
+     "gamma_theory_first_order": 8.932291666666666,
+     "gamma_repo_kuttruff": 8.932291666666666,
+     "first_order_rel_error": -0.0770305929066944,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -83.4879058474464,
+      "gamma": 9.611900372481026,
+      "r2": 0.9997825486048864
+     },
+     "ism": {
+      "slope_db_per_s": -79.28306746222849,
+      "gamma": 9.12780046326843,
+      "r2": 0.99006095038745
+     },
+     "fdtd_rel_vs_theory": -0.006806951799931558,
+     "ism_rel_vs_theory": -0.05682876287079774
+    },
+    {
+     "mode": [
+      2,
+      2
+     ],
+     "f_hz": 114.72963723682659,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.68287056576654,
+      "gamma": 13.088224154675283,
+      "r2": 0.9997362303033774
+     },
+     "ism": {
+      "slope_db_per_s": -115.64242548599951,
+      "gamma": 13.31382625208686,
+      "r2": 0.9892262315228341
+     },
+     "fdtd_rel_vs_theory": -0.005588298025456129,
+     "ism_rel_vs_theory": 0.011552405174980445
+    },
+    {
+     "mode": [
+      3,
+      1
+     ],
+     "f_hz": 122.1080535268297,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.61634172032907,
+      "gamma": 13.08056473828736,
+      "r2": 0.9997523934358027
+     },
+     "ism": {
+      "slope_db_per_s": -102.9931547684104,
+      "gamma": 11.857525142508521,
+      "r2": 0.991426368864894
+     },
+     "fdtd_rel_vs_theory": -0.0061702420078048915,
+     "ism_rel_vs_theory": -0.09909384047675761
+    },
+    {
+     "mode": [
+      0,
+      3
+     ],
+     "f_hz": 128.625,
+     "family": "y_axial",
+     "gamma_theory_exact": 10.064887592091363,
+     "gamma_theory_first_order": 9.289583333333333,
+     "gamma_repo_kuttruff": 9.289583333333333,
+     "first_order_rel_error": -0.07703059290669449,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -86.80627527102128,
+      "gamma": 9.993941770869565,
+      "r2": 0.9997925346124562
+     },
+     "ism": {
+      "slope_db_per_s": -88.26834555942705,
+      "gamma": 10.162268833419194,
+      "r2": 0.9891017326548456
+     },
+     "fdtd_rel_vs_theory": -0.007048843871594245,
+     "ism_rel_vs_theory": 0.009675343160747247
+    },
+    {
+     "mode": [
+      1,
+      3
+     ],
+     "f_hz": 134.15232914535423,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.59941323658971,
+      "gamma": 13.0786157745721,
+      "r2": 0.9997625744012615
+     },
+     "ism": {
+      "slope_db_per_s": -105.16672165606252,
+      "gamma": 12.107766278215184,
+      "r2": 0.9914002763422298
+     },
+     "fdtd_rel_vs_theory": -0.006318319569915333,
+     "ism_rel_vs_theory": -0.08008112257696404
+    },
+    {
+     "mode": [
+      3,
+      2
+     ],
+     "f_hz": 142.91666666666669,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.68375595452467,
+      "gamma": 13.08832608882308,
+      "r2": 0.9997739424807746
+     },
+     "ism": {
+      "slope_db_per_s": -113.96209567915173,
+      "gamma": 13.120371133858796,
+      "r2": 0.9890136304137332
+     },
+     "fdtd_rel_vs_theory": -0.005580553314775492,
+     "ism_rel_vs_theory": -0.0031458480868371383
+    },
+    {
+     "mode": [
+      2,
+      3
+     ],
+     "f_hz": 149.5132695966944,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.69080166268098,
+      "gamma": 13.089137255951595,
+      "r2": 0.9997796898106204
+     },
+     "ism": {
+      "slope_db_per_s": -113.39523843194804,
+      "gamma": 13.055109281495456,
+      "r2": 0.990015873423331
+     },
+     "fdtd_rel_vs_theory": -0.005518922792917145,
+     "ism_rel_vs_theory": -0.008104286215317587
+    },
+    {
+     "mode": [
+      4,
+      0
+     ],
+     "f_hz": 152.44444444444443,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.677776530857079,
+     "gamma_theory_first_order": 8.932291666666666,
+     "gamma_repo_kuttruff": 8.932291666666666,
+     "first_order_rel_error": -0.0770305929066944,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -83.4317280429599,
+      "gamma": 9.605432663722638,
+      "r2": 0.999807516846077
+     },
+     "ism": {
+      "slope_db_per_s": -78.98163883588984,
+      "gamma": 9.093097210187977,
+      "r2": 0.9904067757365813
+     },
+     "fdtd_rel_vs_theory": -0.0074752570390291765,
+     "ism_rel_vs_theory": -0.06041463334112772
+    },
+    {
+     "mode": [
+      4,
+      1
+     ],
+     "f_hz": 158.35900437605468,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.57525807289201,
+      "gamma": 13.07583480857964,
+      "r2": 0.9997899242172182
+     },
+     "ism": {
+      "slope_db_per_s": -97.69976220792687,
+      "gamma": 11.248100802451773,
+      "r2": 0.9932655660067086
+     },
+     "fdtd_rel_vs_theory": -0.0065296106582260665,
+     "ism_rel_vs_theory": -0.14539643187943205
+    },
+    {
+     "mode": [
+      0,
+      4
+     ],
+     "f_hz": 171.5,
+     "family": "y_axial",
+     "gamma_theory_exact": 10.064887592091363,
+     "gamma_theory_first_order": 9.289583333333333,
+     "gamma_repo_kuttruff": 9.289583333333333,
+     "first_order_rel_error": -0.07703059290669449,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -86.73127306660736,
+      "gamma": 9.985306822978306,
+      "r2": 0.9998141904254946
+     },
+     "ism": {
+      "slope_db_per_s": -87.91134831941031,
+      "gamma": 10.121168007264068,
+      "r2": 0.9895104766616278
+     },
+     "fdtd_rel_vs_theory": -0.007906771773148212,
+     "ism_rel_vs_theory": 0.005591757946400465
+    },
+    {
+     "mode": [
+      3,
+      3
+     ],
+     "f_hz": 172.09445585523986,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.67826726172336,
+      "gamma": 13.087694179711864,
+      "r2": 0.9997921335434403
+     },
+     "ism": {
+      "slope_db_per_s": -115.45411290209803,
+      "gamma": 13.292145964661122,
+      "r2": 0.9897117829738414
+     },
+     "fdtd_rel_vs_theory": -0.005628564244856779,
+     "ism_rel_vs_theory": 0.009905189230056056
+    },
+    {
+     "mode": [
+      4,
+      2
+     ],
+     "f_hz": 174.90674984681212,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -114.095705939916,
+      "gamma": 13.135753583594141,
+      "r2": 0.9997781875742817
+     },
+     "ism": {
+      "slope_db_per_s": -109.65757265051104,
+      "gamma": 12.624794605948916,
+      "r2": 0.990349059319047
+     },
+     "fdtd_rel_vs_theory": -0.001977126659003253,
+     "ism_rel_vs_theory": -0.040798557327873686
+    },
+    {
+     "mode": [
+      1,
+      4
+     ],
+     "f_hz": 175.68354160285892,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.5365760855654,
+      "gamma": 13.07138138021036,
+      "r2": 0.9997963367624779
+     },
+     "ism": {
+      "slope_db_per_s": -101.82035169321193,
+      "gamma": 11.722501198610043,
+      "r2": 0.9917698570409322
+     },
+     "fdtd_rel_vs_theory": -0.00686797140388421,
+     "ism_rel_vs_theory": -0.1093526340512425
+    },
+    {
+     "mode": [
+      2,
+      4
+     ],
+     "f_hz": 187.67545700089244,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.74766484063998,
+      "gamma": 13.09568387124703,
+      "r2": 0.9998162977168153
+     },
+     "ism": {
+      "slope_db_per_s": -110.32139950795471,
+      "gamma": 12.70122049726286,
+      "r2": 0.9905920155572574
+     },
+     "fdtd_rel_vs_theory": -0.005021526753456746,
+     "ism_rel_vs_theory": -0.03499190244801569
+    },
+    {
+     "mode": [
+      5,
+      0
+     ],
+     "f_hz": 190.55555555555557,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.677776530857079,
+     "gamma_theory_first_order": 8.932291666666666,
+     "gamma_repo_kuttruff": 8.932291666666666,
+     "first_order_rel_error": -0.0770305929066944,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -83.36094142518179,
+      "gamma": 9.597283053178671,
+      "r2": 0.9998194516750354
+     },
+     "ism": {
+      "slope_db_per_s": -78.58075566768893,
+      "gamma": 9.046943829831395,
+      "r2": 0.9909898820320602
+     },
+     "fdtd_rel_vs_theory": -0.00831735238169206,
+     "ism_rel_vs_theory": -0.0651836399625789
+    },
+    {
+     "mode": [
+      5,
+      1
+     ],
+     "f_hz": 195.31944444444449,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.52728214115321,
+      "gamma": 13.070311375317427,
+      "r2": 0.9998044077940849
+     },
+     "ism": {
+      "slope_db_per_s": -94.69536027847505,
+      "gamma": 10.902206247645857,
+      "r2": 0.9934831062077915
+     },
+     "fdtd_rel_vs_theory": -0.00694926779475647,
+     "ism_rel_vs_theory": -0.17167666584267838
+    },
+    {
+     "mode": [
+      4,
+      3
+     ],
+     "f_hz": 199.458515152839,
+     "family": "tangential",
+     "gamma_theory_exact": 13.161776081965627,
+     "gamma_theory_first_order": 12.147916666666667,
+     "gamma_repo_kuttruff": 12.147916666666667,
+     "first_order_rel_error": -0.07703059290669427,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -113.67994499953082,
+      "gamma": 13.087887336415132,
+      "r2": 0.9998031269554005
+     },
+     "ism": {
+      "slope_db_per_s": -114.11461973625265,
+      "gamma": 13.137931114868973,
+      "r2": 0.9904770464626527
+     },
+     "fdtd_rel_vs_theory": -0.005613888664443803,
+     "ism_rel_vs_theory": -0.0018116830850303262
+    }
+   ]
+  },
+  {
+   "case": "4.5x4.0_a070_west",
+   "L": 4.5,
+   "W": 4.0,
+   "alphas": [
+    0.7,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 38.11111111111111,
+     "family": "x_axial",
+     "gamma_theory_exact": 29.523258701193704,
+     "gamma_theory_first_order": 19.412847222222222,
+     "gamma_repo_kuttruff": 19.412847222222222,
+     "first_order_rel_error": -0.3424558102240486,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -249.5623575314303,
+      "gamma": 28.731928211216093,
+      "r2": 0.9941458693858879
+     },
+     "ism": {
+      "slope_db_per_s": -317.07094150314623,
+      "gamma": 36.50414116633658,
+      "r2": 0.9743593803157725
+     },
+     "fdtd_rel_vs_theory": -0.026803629571745587,
+     "ism_rel_vs_theory": 0.23645365627814727
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 42.875,
+     "family": "y_axial",
+     "gamma_theory_exact": 19.987628677259675,
+     "gamma_theory_first_order": 14.529861111111112,
+     "gamma_repo_kuttruff": 14.529861111111112,
+     "first_order_rel_error": -0.27305728229572196,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -166.7452440518829,
+      "gamma": 19.197255664075985,
+      "r2": 0.9984283275219402
+     },
+     "ism": {
+      "slope_db_per_s": -105.84623403641545,
+      "gamma": 12.185998032090462,
+      "r2": 0.9895852816579598
+     },
+     "fdtd_rel_vs_theory": -0.03954311068840861,
+     "ism_rel_vs_theory": -0.39032297283195405
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 57.364818618413295,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -226.75416809856205,
+      "gamma": 26.10603836190075,
+      "r2": 0.9061647374719
+     },
+     "ism": {
+      "slope_db_per_s": -286.07704137235146,
+      "gamma": 32.935836545590874,
+      "r2": 0.989567777034012
+     },
+     "fdtd_rel_vs_theory": -0.20908188852432602,
+     "ism_rel_vs_theory": -0.0021638182173581424
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 76.22222222222221,
+     "family": "x_axial",
+     "gamma_theory_exact": 29.523258701193704,
+     "gamma_theory_first_order": 19.412847222222222,
+     "gamma_repo_kuttruff": 19.412847222222222,
+     "first_order_rel_error": -0.3424558102240486,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -254.69370175491096,
+      "gamma": 29.32269604701647,
+      "r2": 0.9985737485123293
+     },
+     "ism": {
+      "slope_db_per_s": -337.26784588521394,
+      "gamma": 38.829395714075346,
+      "r2": 0.9759524477911682
+     },
+     "fdtd_rel_vs_theory": -0.006793377933213168,
+     "ism_rel_vs_theory": 0.3152137474751515
+    },
+    {
+     "mode": [
+      0,
+      2
+     ],
+     "f_hz": 85.75,
+     "family": "y_axial",
+     "gamma_theory_exact": 19.987628677259675,
+     "gamma_theory_first_order": 14.529861111111112,
+     "gamma_repo_kuttruff": 14.529861111111112,
+     "first_order_rel_error": -0.27305728229572196,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -145.63576622897023,
+      "gamma": 16.766937216279626,
+      "r2": 0.9991380993992102
+     },
+     "ism": {
+      "slope_db_per_s": -100.49392378771033,
+      "gamma": 11.569790542503076,
+      "r2": 0.993377413625306
+     },
+     "fdtd_rel_vs_theory": -0.1611342452366195,
+     "ism_rel_vs_theory": -0.4211524173617324
+    },
+    {
+     "mode": [
+      2,
+      1
+     ],
+     "f_hz": 87.45337492340606,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -284.1762610926425,
+      "gamma": 32.71700112873513,
+      "r2": 0.9963529385323211
+     },
+     "ism": {
+      "slope_db_per_s": -327.8276925143249,
+      "gamma": 37.74255789270602,
+      "r2": 0.982603149717364
+     },
+     "fdtd_rel_vs_theory": -0.008793736254869875,
+     "ism_rel_vs_theory": 0.1434623743725664
+    },
+    {
+     "mode": [
+      1,
+      2
+     ],
+     "f_hz": 93.83772850044622,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -241.85867496757925,
+      "gamma": 27.84500897958201,
+      "r2": 0.9925458079496161
+     },
+     "ism": {
+      "slope_db_per_s": -210.40974761991473,
+      "gamma": 24.224317414512754,
+      "r2": 0.9948092489604775
+     },
+     "fdtd_rel_vs_theory": -0.1563973969985882,
+     "ism_rel_vs_theory": -0.26609119638638534
+    },
+    {
+     "mode": [
+      3,
+      0
+     ],
+     "f_hz": 114.33333333333333,
+     "family": "x_axial",
+     "gamma_theory_exact": 29.523258701193704,
+     "gamma_theory_first_order": 19.412847222222222,
+     "gamma_repo_kuttruff": 19.412847222222222,
+     "first_order_rel_error": -0.3424558102240486,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -254.86639518568154,
+      "gamma": 29.34257811298399,
+      "r2": 0.9992859990193864
+     },
+     "ism": {
+      "slope_db_per_s": -330.70286116217625,
+      "gamma": 38.07357391612533,
+      "r2": 0.9789167881507812
+     },
+     "fdtd_rel_vs_theory": -0.006119940553933806,
+     "ism_rel_vs_theory": 0.28961285410495413
+    },
+    {
+     "mode": [
+      2,
+      2
+     ],
+     "f_hz": 114.72963723682659,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -269.50307819757086,
+      "gamma": 31.027688518686766,
+      "r2": 0.9947423566573775
+     },
+     "ism": {
+      "slope_db_per_s": -280.86856777154907,
+      "gamma": 32.336188862067836,
+      "r2": 0.9886387596912805
+     },
+     "fdtd_rel_vs_theory": -0.05997377057142909,
+     "ism_rel_vs_theory": -0.020330964332295236
+    },
+    {
+     "mode": [
+      3,
+      1
+     ],
+     "f_hz": 122.1080535268297,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -285.44132381003294,
+      "gamma": 32.86264685647341,
+      "r2": 0.999042747032112
+     },
+     "ism": {
+      "slope_db_per_s": -334.1901785360279,
+      "gamma": 38.47506616610383,
+      "r2": 0.9854711541796238
+     },
+     "fdtd_rel_vs_theory": -0.004381199878022365,
+     "ism_rel_vs_theory": 0.16565471363924025
+    },
+    {
+     "mode": [
+      0,
+      3
+     ],
+     "f_hz": 128.625,
+     "family": "y_axial",
+     "gamma_theory_exact": 19.987628677259675,
+     "gamma_theory_first_order": 14.529861111111112,
+     "gamma_repo_kuttruff": 14.529861111111112,
+     "first_order_rel_error": -0.27305728229572196,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -121.51223670855049,
+      "gamma": 13.989613243073611,
+      "r2": 0.998556943821365
+     },
+     "ism": {
+      "slope_db_per_s": -98.1094902386014,
+      "gamma": 11.295272485232422,
+      "r2": 0.9957894696741952
+     },
+     "fdtd_rel_vs_theory": -0.30008639499142414,
+     "ism_rel_vs_theory": -0.4348868158590879
+    },
+    {
+     "mode": [
+      1,
+      3
+     ],
+     "f_hz": 134.15232914535423,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -178.39491812056502,
+      "gamma": 20.538473956515322,
+      "r2": 0.9959757140784293
+     },
+     "ism": {
+      "slope_db_per_s": -169.47173441736777,
+      "gamma": 19.51115446766385,
+      "r2": 0.9918698539409259
+     },
+     "fdtd_rel_vs_theory": -0.3777588614139811,
+     "ism_rel_vs_theory": -0.40888290937333605
+    },
+    {
+     "mode": [
+      3,
+      2
+     ],
+     "f_hz": 142.91666666666669,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -287.8908869882394,
+      "gamma": 33.14466323939768,
+      "r2": 0.9990970920748098
+     },
+     "ism": {
+      "slope_db_per_s": -308.5983718550056,
+      "gamma": 35.52870053777846,
+      "r2": 0.9892211536594773
+     },
+     "fdtd_rel_vs_theory": 0.004162871876395414,
+     "ism_rel_vs_theory": 0.07639054011098731
+    },
+    {
+     "mode": [
+      2,
+      3
+     ],
+     "f_hz": 149.5132695966944,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -243.0234139645016,
+      "gamma": 27.979104512159118,
+      "r2": 0.9674292233689533
+     },
+     "ism": {
+      "slope_db_per_s": -240.70143172691658,
+      "gamma": 27.71177642783611,
+      "r2": 0.9898299731970356
+     },
+     "fdtd_rel_vs_theory": -0.1523347895698795,
+     "ism_rel_vs_theory": -0.16043385924357353
+    },
+    {
+     "mode": [
+      4,
+      0
+     ],
+     "f_hz": 152.44444444444443,
+     "family": "x_axial",
+     "gamma_theory_exact": 29.523258701193704,
+     "gamma_theory_first_order": 19.412847222222222,
+     "gamma_repo_kuttruff": 19.412847222222222,
+     "first_order_rel_error": -0.3424558102240486,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -253.59625237649368,
+      "gamma": 29.19634751806351,
+      "r2": 0.9990837229007232
+     },
+     "ism": {
+      "slope_db_per_s": -309.8349133038906,
+      "gamma": 35.67106263313205,
+      "r2": 0.9849920993144419
+     },
+     "fdtd_rel_vs_theory": -0.011073004726167807,
+     "ism_rel_vs_theory": 0.20823595369876213
+    },
+    {
+     "mode": [
+      4,
+      1
+     ],
+     "f_hz": 158.35900437605468,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -288.72002143850426,
+      "gamma": 33.240120870661066,
+      "r2": 0.996556937183753
+     },
+     "ism": {
+      "slope_db_per_s": -315.23521416146855,
+      "gamma": 36.292795245749154,
+      "r2": 0.9831227304626065
+     },
+     "fdtd_rel_vs_theory": 0.00705489127811982,
+     "ism_rel_vs_theory": 0.09953983358244359
+    },
+    {
+     "mode": [
+      0,
+      4
+     ],
+     "f_hz": 171.5,
+     "family": "y_axial",
+     "gamma_theory_exact": 19.987628677259675,
+     "gamma_theory_first_order": 14.529861111111112,
+     "gamma_repo_kuttruff": 14.529861111111112,
+     "first_order_rel_error": -0.27305728229572196,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -106.27891425976817,
+      "gamma": 12.235812183706726,
+      "r2": 0.9975681335953324
+     },
+     "ism": {
+      "slope_db_per_s": -94.8249207934201,
+      "gamma": 10.917122453163513,
+      "r2": 0.9950202338989607
+     },
+     "fdtd_rel_vs_theory": -0.3878307236301796,
+     "ism_rel_vs_theory": -0.45380602024170374
+    },
+    {
+     "mode": [
+      3,
+      3
+     ],
+     "f_hz": 172.09445585523986,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -294.138100749621,
+      "gamma": 33.863900303382906,
+      "r2": 0.9977309825053797
+     },
+     "ism": {
+      "slope_db_per_s": -279.8365618049269,
+      "gamma": 32.21737478433658,
+      "r2": 0.9896495221085165
+     },
+     "fdtd_rel_vs_theory": 0.025953141716061938,
+     "ism_rel_vs_theory": -0.0239305992011796
+    },
+    {
+     "mode": [
+      4,
+      2
+     ],
+     "f_hz": 174.90674984681212,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -272.98176432234993,
+      "gamma": 31.428187059392844,
+      "r2": 0.9865929666896919
+     },
+     "ism": {
+      "slope_db_per_s": -296.1966343572427,
+      "gamma": 34.100897743299754,
+      "r2": 0.9722664818901243
+     },
+     "fdtd_rel_vs_theory": -0.04784011991663278,
+     "ism_rel_vs_theory": 0.03313330306437138
+    },
+    {
+     "mode": [
+      1,
+      4
+     ],
+     "f_hz": 175.68354160285892,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -166.4143824633351,
+      "gamma": 19.15916381599426,
+      "r2": 0.9953591886658929
+     },
+     "ism": {
+      "slope_db_per_s": -147.4183201568956,
+      "gamma": 16.972161321374575,
+      "r2": 0.9868041914270007
+     },
+     "fdtd_rel_vs_theory": -0.419546947233707,
+     "ism_rel_vs_theory": -0.4858051767995371
+    },
+    {
+     "mode": [
+      2,
+      4
+     ],
+     "f_hz": 187.67545700089244,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -320.1243711075075,
+      "gamma": 36.85568024081203,
+      "r2": 0.9464401483489319
+     },
+     "ism": {
+      "slope_db_per_s": -212.6090263536792,
+      "gamma": 24.477518735898,
+      "r2": 0.9894783888549525
+     },
+     "fdtd_rel_vs_theory": 0.11659320380666123,
+     "ism_rel_vs_theory": -0.2584201163030348
+    },
+    {
+     "mode": [
+      5,
+      0
+     ],
+     "f_hz": 190.55555555555557,
+     "family": "x_axial",
+     "gamma_theory_exact": 29.523258701193704,
+     "gamma_theory_first_order": 19.412847222222222,
+     "gamma_repo_kuttruff": 19.412847222222222,
+     "first_order_rel_error": -0.3424558102240486,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -254.50903997754375,
+      "gamma": 29.301436074225897,
+      "r2": 0.9995383967833975
+     },
+     "ism": {
+      "slope_db_per_s": -325.254182657245,
+      "gamma": 37.446271621026746,
+      "r2": 0.9809540442663969
+     },
+     "fdtd_rel_vs_theory": -0.007513487220800531,
+     "ism_rel_vs_theory": 0.2683651218865177
+    },
+    {
+     "mode": [
+      5,
+      1
+     ],
+     "f_hz": 195.31944444444449,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -285.26908669513654,
+      "gamma": 32.842817325812376,
+      "r2": 0.9994732684694657
+     },
+     "ism": {
+      "slope_db_per_s": -331.04989162445753,
+      "gamma": 38.11352727458852,
+      "r2": 0.9869661863843978
+     },
+     "fdtd_rel_vs_theory": -0.00498196261055413,
+     "ism_rel_vs_theory": 0.15470139880309836
+    },
+    {
+     "mode": [
+      4,
+      3
+     ],
+     "f_hz": 199.458515152839,
+     "family": "tangential",
+     "gamma_theory_exact": 33.00725825230225,
+     "gamma_theory_first_order": 22.62847222222222,
+     "gamma_repo_kuttruff": 22.62847222222222,
+     "first_order_rel_error": -0.31443950753940947,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -273.3065660749761,
+      "gamma": 31.465581243081612,
+      "r2": 0.9827096330609828
+     },
+     "ism": {
+      "slope_db_per_s": -274.23171678531713,
+      "gamma": 31.572093154801813,
+      "r2": 0.9694107870812346
+     },
+     "fdtd_rel_vs_theory": -0.04670721201489393,
+     "ism_rel_vs_theory": -0.04348028807876931
+    }
+   ]
+  },
+  {
+   "case": "6.0x3.0_a015",
+   "L": 6.0,
+   "W": 3.0,
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 28.583333333333332,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.290665469622796,
+     "gamma_theory_first_order": 8.575,
+     "gamma_repo_kuttruff": 8.575,
+     "first_order_rel_error": -0.07703059290669448,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -80.3284928282206,
+      "gamma": 9.248159506446994,
+      "r2": 0.9990388172920712
+     },
+     "ism": {
+      "slope_db_per_s": -63.5710727474511,
+      "gamma": 7.318890222696046,
+      "r2": 0.9921191422879005
+     },
+     "fdtd_rel_vs_theory": -0.004575125787790121,
+     "ism_rel_vs_theory": -0.2122318636241678
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 57.166666666666664,
+     "family": "y_axial",
+     "gamma_theory_exact": 11.613331837028495,
+     "gamma_theory_first_order": 10.718749999999998,
+     "gamma_repo_kuttruff": 10.718749999999998,
+     "first_order_rel_error": -0.07703059290669452,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -100.23671236464243,
+      "gamma": 11.54017798307788,
+      "r2": 0.9995093199871995
+     },
+     "ism": {
+      "slope_db_per_s": -118.0876194102531,
+      "gamma": 13.595339606060156,
+      "r2": 0.9842585381033274
+     },
+     "fdtd_rel_vs_theory": -0.006299127156374495,
+     "ism_rel_vs_theory": 0.17066659222740316
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 57.166666666666664,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.290665469622796,
+     "gamma_theory_first_order": 8.575,
+     "gamma_repo_kuttruff": 8.575,
+     "first_order_rel_error": -0.07703059290669448,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -80.2270218915063,
+      "gamma": 9.236477233134469,
+      "r2": 0.9996431545690876
+     },
+     "ism": {
+      "slope_db_per_s": -62.43129480454126,
+      "gamma": 7.187668437662667,
+      "r2": 0.9920383551329691
+     },
+     "fdtd_rel_vs_theory": -0.005832546297733347,
+     "ism_rel_vs_theory": -0.22635590947022993
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 63.91427635686899,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.36820162074322,
+      "gamma": 13.857901336121255,
+      "r2": 0.9994693022432558
+     },
+     "ism": {
+      "slope_db_per_s": -128.6149441518984,
+      "gamma": 14.807342657021152,
+      "r2": 0.9883619398356497
+     },
+     "fdtd_rel_vs_theory": -0.005603966588348948,
+     "ism_rel_vs_theory": 0.06252472480297178
+    },
+    {
+     "mode": [
+      2,
+      1
+     ],
+     "f_hz": 80.84587531566193,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.33823398723564,
+      "gamma": 13.854451184811913,
+      "r2": 0.9996176072919573
+     },
+     "ism": {
+      "slope_db_per_s": -121.74193740168326,
+      "gamma": 14.016058512666508,
+      "r2": 0.9899865695217207
+     },
+     "fdtd_rel_vs_theory": -0.005851537753236513,
+     "ism_rel_vs_theory": 0.0057448563825760485
+    },
+    {
+     "mode": [
+      3,
+      0
+     ],
+     "f_hz": 85.75,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.290665469622796,
+     "gamma_theory_first_order": 8.575,
+     "gamma_repo_kuttruff": 8.575,
+     "first_order_rel_error": -0.07703059290669448,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -80.19790236963861,
+      "gamma": 9.233124724286087,
+      "r2": 0.9997520072792213
+     },
+     "ism": {
+      "slope_db_per_s": -61.36283833868036,
+      "gamma": 7.064657841122447,
+      "r2": 0.9935564717568043
+     },
+     "fdtd_rel_vs_theory": -0.00619339330695386,
+     "ism_rel_vs_theory": -0.23959614473027907
+    },
+    {
+     "mode": [
+      3,
+      1
+     ],
+     "f_hz": 103.05867395701236,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.28986916416018,
+      "gamma": 13.848882978779969,
+      "r2": 0.9997016663355384
+     },
+     "ism": {
+      "slope_db_per_s": -112.24714249983221,
+      "gamma": 12.922929852564604,
+      "r2": 0.9910609256682488
+     },
+     "fdtd_rel_vs_theory": -0.0062510933466185525,
+     "ism_rel_vs_theory": -0.07269435149232803
+    },
+    {
+     "mode": [
+      0,
+      2
+     ],
+     "f_hz": 114.33333333333333,
+     "family": "y_axial",
+     "gamma_theory_exact": 11.613331837028495,
+     "gamma_theory_first_order": 10.718749999999998,
+     "gamma_repo_kuttruff": 10.718749999999998,
+     "first_order_rel_error": -0.07703059290669452,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -100.15886733070694,
+      "gamma": 11.531215742342706,
+      "r2": 0.9997800371132467
+     },
+     "ism": {
+      "slope_db_per_s": -117.60847966658802,
+      "gamma": 13.540176604498948,
+      "r2": 0.9840979341601355
+     },
+     "fdtd_rel_vs_theory": -0.007070847181337421,
+     "ism_rel_vs_theory": 0.16591662018360742
+    },
+    {
+     "mode": [
+      4,
+      0
+     ],
+     "f_hz": 114.33333333333333,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.290665469622796,
+     "gamma_theory_first_order": 8.575,
+     "gamma_repo_kuttruff": 8.575,
+     "first_order_rel_error": -0.07703059290669448,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -80.17150130633411,
+      "gamma": 9.230085189545878,
+      "r2": 0.9997877673165113
+     },
+     "ism": {
+      "slope_db_per_s": -61.47933282631955,
+      "gamma": 7.078069764655145,
+      "r2": 0.9925140434314781
+     },
+     "fdtd_rel_vs_theory": -0.006520553374243657,
+     "ism_rel_vs_theory": -0.2381525534636954
+    },
+    {
+     "mode": [
+      1,
+      2
+     ],
+     "f_hz": 117.85210246557146,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.27752354906164,
+      "gamma": 13.847461637315481,
+      "r2": 0.9997339142056614
+     },
+     "ism": {
+      "slope_db_per_s": -125.28650663940465,
+      "gamma": 14.424142127059635,
+      "r2": 0.9890475132556316
+     },
+     "fdtd_rel_vs_theory": -0.006353083992974636,
+     "ism_rel_vs_theory": 0.035027553495961344
+    },
+    {
+     "mode": [
+      2,
+      2
+     ],
+     "f_hz": 127.82855271373798,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.60677782796544,
+      "gamma": 13.885368437035902,
+      "r2": 0.9996478383076719
+     },
+     "ism": {
+      "slope_db_per_s": -128.54437463993477,
+      "gamma": 14.799218041707784,
+      "r2": 0.9881154338569045
+     },
+     "fdtd_rel_vs_theory": -0.0036330205167638186,
+     "ism_rel_vs_theory": 0.061941729943602204
+    },
+    {
+     "mode": [
+      4,
+      1
+     ],
+     "f_hz": 127.82855271373798,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.29738317023751,
+      "gamma": 13.849748060699085,
+      "r2": 0.9997430552659814
+     },
+     "ism": {
+      "slope_db_per_s": -105.24570929173291,
+      "gamma": 12.116860065836457,
+      "r2": 0.9907026910467819
+     },
+     "fdtd_rel_vs_theory": -0.0061890179999928045,
+     "ism_rel_vs_theory": -0.13053518749872683
+    },
+    {
+     "mode": [
+      3,
+      2
+     ],
+     "f_hz": 142.91666666666669,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.25181721731774,
+      "gamma": 13.844502086502029,
+      "r2": 0.999766107267402
+     },
+     "ism": {
+      "slope_db_per_s": -126.66184878612272,
+      "gamma": 14.582484243299609,
+      "r2": 0.9888523004719849
+     },
+     "fdtd_rel_vs_theory": -0.0065654513289944314,
+     "ism_rel_vs_theory": 0.04638964711259167
+    },
+    {
+     "mode": [
+      5,
+      0
+     ],
+     "f_hz": 142.91666666666669,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.290665469622796,
+     "gamma_theory_first_order": 8.575,
+     "gamma_repo_kuttruff": 8.575,
+     "first_order_rel_error": -0.07703059290669448,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -80.13609148585813,
+      "gamma": 9.2260084833072,
+      "r2": 0.9998068500301063
+     },
+     "ism": {
+      "slope_db_per_s": -60.55040412268144,
+      "gamma": 6.9711228953825755,
+      "r2": 0.9940234101500505
+     },
+     "fdtd_rel_vs_theory": -0.00695934930893823,
+     "ism_rel_vs_theory": -0.24966377078416052
+    },
+    {
+     "mode": [
+      5,
+      1
+     ],
+     "f_hz": 153.92596073726125,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.26398169157068,
+      "gamma": 13.845902573355975,
+      "r2": 0.9997726173684796
+     },
+     "ism": {
+      "slope_db_per_s": -97.1345087058553,
+      "gamma": 11.183023588070139,
+      "r2": 0.9936549372241591
+     },
+     "fdtd_rel_vs_theory": -0.006464957138811464,
+     "ism_rel_vs_theory": -0.1975441282338934
+    },
+    {
+     "mode": [
+      4,
+      2
+     ],
+     "f_hz": 161.69175063132386,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.04586652872578,
+      "gamma": 13.820791137229843,
+      "r2": 0.9996566617341588
+     },
+     "ism": {
+      "slope_db_per_s": -124.7331058673843,
+      "gamma": 14.360429508654363,
+      "r2": 0.9846486241232779
+     },
+     "fdtd_rel_vs_theory": -0.0082668686888676,
+     "ism_rel_vs_theory": 0.030455751930645394
+    },
+    {
+     "mode": [
+      0,
+      3
+     ],
+     "f_hz": 171.5,
+     "family": "y_axial",
+     "gamma_theory_exact": 11.613331837028495,
+     "gamma_theory_first_order": 10.718749999999998,
+     "gamma_repo_kuttruff": 10.718749999999998,
+     "first_order_rel_error": -0.07703059290669452,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -99.5546932759304,
+      "gamma": 11.461657633737596,
+      "r2": 0.999362516828405
+     },
+     "ism": {
+      "slope_db_per_s": -116.70957808164405,
+      "gamma": 13.43668673502091,
+      "r2": 0.9849419196080585
+     },
+     "fdtd_rel_vs_theory": -0.013060352138332383,
+     "ism_rel_vs_theory": 0.15700532143400434
+    },
+    {
+     "mode": [
+      6,
+      0
+     ],
+     "f_hz": 171.5,
+     "family": "x_axial",
+     "gamma_theory_exact": 9.290665469622796,
+     "gamma_theory_first_order": 8.575,
+     "gamma_repo_kuttruff": 8.575,
+     "first_order_rel_error": -0.07703059290669448,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -80.0935682056322,
+      "gamma": 9.221112809749528,
+      "r2": 0.9998156956192704
+     },
+     "ism": {
+      "slope_db_per_s": -60.26004652934981,
+      "gamma": 6.937694242080423,
+      "r2": 0.994199815180951
+     },
+     "fdtd_rel_vs_theory": -0.007486294722448187,
+     "ism_rel_vs_theory": -0.2532618610836609
+    },
+    {
+     "mode": [
+      1,
+      3
+     ],
+     "f_hz": 173.8656289910241,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.25454670365806,
+      "gamma": 13.844816330229966,
+      "r2": 0.9998104867115802
+     },
+     "ism": {
+      "slope_db_per_s": -123.06791905126762,
+      "gamma": 14.16871779166234,
+      "r2": 0.9890113811690068
+     },
+     "fdtd_rel_vs_theory": -0.006542902264095952,
+     "ism_rel_vs_theory": 0.016699168858539126
+    },
+    {
+     "mode": [
+      2,
+      3
+     ],
+     "f_hz": 180.77687290629237,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.2857624934791,
+      "gamma": 13.848410180845363,
+      "r2": 0.9980650557450375
+     },
+     "ism": {
+      "slope_db_per_s": -127.15961415098795,
+      "gamma": 14.639791598746978,
+      "r2": 0.9889907747789793
+     },
+     "fdtd_rel_vs_theory": -0.0062850197240240345,
+     "ism_rel_vs_theory": 0.0505018287164279
+    },
+    {
+     "mode": [
+      6,
+      1
+     ],
+     "f_hz": 180.77687290629237,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.24406981129843,
+      "gamma": 13.843610133421558,
+      "r2": 0.9997943224554854
+     },
+     "ism": {
+      "slope_db_per_s": -91.97640717957603,
+      "gamma": 10.589175203942116,
+      "r2": 0.9943964686268123
+     },
+     "fdtd_rel_vs_theory": -0.006629454859088669,
+     "ism_rel_vs_theory": -0.24015667563929352
+    },
+    {
+     "mode": [
+      5,
+      2
+     ],
+     "f_hz": 183.02263445328893,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.3780986689878,
+      "gamma": 13.859040775908886,
+      "r2": 0.9997943792473905
+     },
+     "ism": {
+      "slope_db_per_s": -116.76289003807543,
+      "gamma": 13.442824500828772,
+      "r2": 0.9909119972335125
+     },
+     "fdtd_rel_vs_theory": -0.0055222042509178206,
+     "ism_rel_vs_theory": -0.035388473532416496
+    },
+    {
+     "mode": [
+      3,
+      3
+     ],
+     "f_hz": 191.74282907060697,
+     "family": "tangential",
+     "gamma_theory_exact": 13.935998204434195,
+     "gamma_theory_first_order": 12.862499999999999,
+     "gamma_repo_kuttruff": 12.862499999999999,
+     "first_order_rel_error": -0.07703059290669453,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -120.40435075578284,
+      "gamma": 13.862063159094598,
+      "r2": 0.9998039687735223
+     },
+     "ism": {
+      "slope_db_per_s": -129.05175471070916,
+      "gamma": 14.857632331080154,
+      "r2": 0.9882502213904255
+     },
+     "fdtd_rel_vs_theory": -0.005305328276812825,
+     "ism_rel_vs_theory": 0.06613334137433445
+    }
+   ]
+  },
+  {
+   "case": "6.0x3.0_a070_west",
+   "L": 6.0,
+   "W": 3.0,
+   "alphas": [
+    0.7,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 28.583333333333332,
+     "family": "x_axial",
+     "gamma_theory_exact": 24.17477709737526,
+     "gamma_theory_first_order": 16.435416666666665,
+     "gamma_repo_kuttruff": 16.435416666666665,
+     "first_order_rel_error": -0.32014195620231317,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -200.7194997943248,
+      "gamma": 23.10868640498169,
+      "r2": 0.9908250004415288
+     },
+     "ism": {
+      "slope_db_per_s": -240.82847944078895,
+      "gamma": 27.726403336439187,
+      "r2": 0.9765244374115403
+     },
+     "fdtd_rel_vs_theory": -0.044099297714282476,
+     "ism_rel_vs_theory": 0.14691453926371636
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 57.166666666666664,
+     "family": "y_axial",
+     "gamma_theory_exact": 19.055387650904727,
+     "gamma_theory_first_order": 14.648958333333333,
+     "gamma_repo_kuttruff": 14.648958333333333,
+     "first_order_rel_error": -0.231243226235924,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -148.3361443565002,
+      "gamma": 17.07782973737451,
+      "r2": 0.9980687459094516
+     },
+     "ism": {
+      "slope_db_per_s": -127.93804391936864,
+      "gamma": 14.72941163777779,
+      "r2": 0.9941439315761529
+     },
+     "fdtd_rel_vs_theory": -0.10377946383244131,
+     "ism_rel_vs_theory": -0.2270211497335529
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 57.166666666666664,
+     "family": "x_axial",
+     "gamma_theory_exact": 24.17477709737526,
+     "gamma_theory_first_order": 16.435416666666665,
+     "gamma_repo_kuttruff": 16.435416666666665,
+     "first_order_rel_error": -0.32014195620231317,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -208.808935561843,
+      "gamma": 24.040017115432697,
+      "r2": 0.9981998886531276
+     },
+     "ism": {
+      "slope_db_per_s": -252.37273746672287,
+      "gamma": 29.0554851584488,
+      "r2": 0.9802947339200544
+     },
+     "fdtd_rel_vs_theory": -0.005574404322312992,
+     "ism_rel_vs_theory": 0.20189257759913148
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 63.91427635686899,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -218.85539986061713,
+      "gamma": 25.196659062015407,
+      "r2": 0.9777731504794006
+     },
+     "ism": {
+      "slope_db_per_s": -206.4602221502979,
+      "gamma": 23.769611490975755,
+      "r2": 0.9870155184738921
+     },
+     "fdtd_rel_vs_theory": -0.1257264733295547,
+     "ism_rel_vs_theory": -0.17524216148442448
+    },
+    {
+     "mode": [
+      2,
+      1
+     ],
+     "f_hz": 80.84587531566193,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -235.7488024144278,
+      "gamma": 27.141583906533008,
+      "r2": 0.9940551208568327
+     },
+     "ism": {
+      "slope_db_per_s": -246.0554091334329,
+      "gamma": 28.32817585605968,
+      "r2": 0.9889257550447806
+     },
+     "fdtd_rel_vs_theory": -0.05824148261152889,
+     "ism_rel_vs_theory": -0.017069122185564386
+    },
+    {
+     "mode": [
+      3,
+      0
+     ],
+     "f_hz": 85.75,
+     "family": "x_axial",
+     "gamma_theory_exact": 24.17477709737526,
+     "gamma_theory_first_order": 16.435416666666665,
+     "gamma_repo_kuttruff": 16.435416666666665,
+     "first_order_rel_error": -0.32014195620231317,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -208.53903177139696,
+      "gamma": 24.00894329321152,
+      "r2": 0.9991377400909147
+     },
+     "ism": {
+      "slope_db_per_s": -249.04607712244498,
+      "gamma": 28.67248923253937,
+      "r2": 0.9843124834600062
+     },
+     "fdtd_rel_vs_theory": -0.0068597862762401415,
+     "ism_rel_vs_theory": 0.18604978722440604
+    },
+    {
+     "mode": [
+      3,
+      1
+     ],
+     "f_hz": 103.05867395701236,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -253.25089777709468,
+      "gamma": 29.15658710044486,
+      "r2": 0.9986615280818267
+     },
+     "ism": {
+      "slope_db_per_s": -264.34397064859513,
+      "gamma": 30.43372431191554,
+      "r2": 0.9887417468192907
+     },
+     "fdtd_rel_vs_theory": 0.011675086258082818,
+     "ism_rel_vs_theory": 0.055989185645877584
+    },
+    {
+     "mode": [
+      0,
+      2
+     ],
+     "f_hz": 114.33333333333333,
+     "family": "y_axial",
+     "gamma_theory_exact": 19.055387650904727,
+     "gamma_theory_first_order": 14.648958333333333,
+     "gamma_repo_kuttruff": 14.648958333333333,
+     "first_order_rel_error": -0.231243226235924,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -112.89042777360442,
+      "gamma": 12.996990806661127,
+      "r2": 0.9979683562004964
+     },
+     "ism": {
+      "slope_db_per_s": -120.10581610961822,
+      "gamma": 13.827693087794552,
+      "r2": 0.9886366454234281
+     },
+     "fdtd_rel_vs_theory": -0.3179361635267469,
+     "ism_rel_vs_theory": -0.2743420736896932
+    },
+    {
+     "mode": [
+      4,
+      0
+     ],
+     "f_hz": 114.33333333333333,
+     "family": "x_axial",
+     "gamma_theory_exact": 24.17477709737526,
+     "gamma_theory_first_order": 16.435416666666665,
+     "gamma_repo_kuttruff": 16.435416666666665,
+     "first_order_rel_error": -0.32014195620231317,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -207.41788663836843,
+      "gamma": 23.879866689691802,
+      "r2": 0.9983873900121726
+     },
+     "ism": {
+      "slope_db_per_s": -237.40453201974668,
+      "gamma": 27.332206821894818,
+      "r2": 0.9816286174045402
+     },
+     "fdtd_rel_vs_theory": -0.012199095217944161,
+     "ism_rel_vs_theory": 0.13060843174692074
+    },
+    {
+     "mode": [
+      1,
+      2
+     ],
+     "f_hz": 117.85210246557146,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -169.02724181562235,
+      "gamma": 19.459980365727596,
+      "r2": 0.9991052614052207
+     },
+     "ism": {
+      "slope_db_per_s": -160.03936925116528,
+      "gamma": 18.425213296495144,
+      "r2": 0.9785774632941453
+     },
+     "fdtd_rel_vs_theory": -0.3247777167041034,
+     "ism_rel_vs_theory": -0.36068205833422484
+    },
+    {
+     "mode": [
+      2,
+      2
+     ],
+     "f_hz": 127.82855271373798,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -303.02000312913384,
+      "gamma": 34.88646710420763,
+      "r2": 0.9702460884046122
+     },
+     "ism": {
+      "slope_db_per_s": -215.50659058434124,
+      "gamma": 24.811113146073758,
+      "r2": 0.989163093606003
+     },
+     "fdtd_rel_vs_theory": 0.21049042863972672,
+     "ism_rel_vs_theory": -0.13910414323388884
+    },
+    {
+     "mode": [
+      4,
+      1
+     ],
+     "f_hz": 127.82855271373798,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -233.3071121794807,
+      "gamma": 26.860473929698095,
+      "r2": 0.9791095371719359
+     },
+     "ism": {
+      "slope_db_per_s": -243.50519212906417,
+      "gamma": 28.03457127315171,
+      "r2": 0.9619155541983706
+     },
+     "fdtd_rel_vs_theory": -0.06799543492023817,
+     "ism_rel_vs_theory": -0.027256612261680257
+    },
+    {
+     "mode": [
+      3,
+      2
+     ],
+     "f_hz": 142.91666666666669,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -259.66653977173326,
+      "gamma": 29.895215181386924,
+      "r2": 0.9924200434957126
+     },
+     "ism": {
+      "slope_db_per_s": -240.53912461746947,
+      "gamma": 27.69309013130112,
+      "r2": 0.991488277958993
+     },
+     "fdtd_rel_vs_theory": 0.037303999029163065,
+     "ism_rel_vs_theory": -0.03910532289598948
+    },
+    {
+     "mode": [
+      5,
+      0
+     ],
+     "f_hz": 142.91666666666669,
+     "family": "x_axial",
+     "gamma_theory_exact": 24.17477709737526,
+     "gamma_theory_first_order": 16.435416666666665,
+     "gamma_repo_kuttruff": 16.435416666666665,
+     "first_order_rel_error": -0.32014195620231317,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -208.61860852237223,
+      "gamma": 24.018104905238747,
+      "r2": 0.9995269607084362
+     },
+     "ism": {
+      "slope_db_per_s": -245.84481181770997,
+      "gamma": 28.303929944069274,
+      "r2": 0.986201110894439
+     },
+     "fdtd_rel_vs_theory": -0.006480812274108702,
+     "ism_rel_vs_theory": 0.17080417453538102
+    },
+    {
+     "mode": [
+      5,
+      1
+     ],
+     "f_hz": 153.92596073726125,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -248.43523330794454,
+      "gamma": 28.602163239468545,
+      "r2": 0.9991052541036265
+     },
+     "ism": {
+      "slope_db_per_s": -266.02860014860386,
+      "gamma": 30.627674450612442,
+      "r2": 0.9912073389457614
+     },
+     "fdtd_rel_vs_theory": -0.0075623095813017556,
+     "ism_rel_vs_theory": 0.06271886640789523
+    },
+    {
+     "mode": [
+      4,
+      2
+     ],
+     "f_hz": 161.69175063132386,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -242.0553916195606,
+      "gamma": 27.86765682110181,
+      "r2": 0.9667744965135455
+     },
+     "ism": {
+      "slope_db_per_s": -237.4058999320744,
+      "gamma": 27.332364308621532,
+      "r2": 0.9488675665386741
+     },
+     "fdtd_rel_vs_theory": -0.0330482089287924,
+     "ism_rel_vs_theory": -0.05162178535154626
+    },
+    {
+     "mode": [
+      0,
+      3
+     ],
+     "f_hz": 171.5,
+     "family": "y_axial",
+     "gamma_theory_exact": 19.055387650904727,
+     "gamma_theory_first_order": 14.648958333333333,
+     "gamma_repo_kuttruff": 14.648958333333333,
+     "first_order_rel_error": -0.231243226235924,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -101.87249041974383,
+      "gamma": 11.728503891334045,
+      "r2": 0.9936852358710062
+     },
+     "ism": {
+      "slope_db_per_s": -120.95088486399447,
+      "gamma": 13.924985223613643,
+      "r2": 0.9878695962498419
+     },
+     "fdtd_rel_vs_theory": -0.38450457654283465,
+     "ism_rel_vs_theory": -0.269236318949801
+    },
+    {
+     "mode": [
+      6,
+      0
+     ],
+     "f_hz": 171.5,
+     "family": "x_axial",
+     "gamma_theory_exact": 24.17477709737526,
+     "gamma_theory_first_order": 16.435416666666665,
+     "gamma_repo_kuttruff": 16.435416666666665,
+     "first_order_rel_error": -0.32014195620231317,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -208.52248417199826,
+      "gamma": 24.007038180426502,
+      "r2": 0.9996277453840127
+     },
+     "ism": {
+      "slope_db_per_s": -244.39415953904523,
+      "gamma": 28.136917428470706,
+      "r2": 0.9870824672949456
+     },
+     "fdtd_rel_vs_theory": -0.00693859208186738,
+     "ism_rel_vs_theory": 0.1638956303562208
+    },
+    {
+     "mode": [
+      1,
+      3
+     ],
+     "f_hz": 173.8656289910241,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -164.76890962427728,
+      "gamma": 18.969721754487203,
+      "r2": 0.99414250923912
+     },
+     "ism": {
+      "slope_db_per_s": -161.03874483164984,
+      "gamma": 18.540270662191443,
+      "r2": 0.9878608120319438
+     },
+     "fdtd_rel_vs_theory": -0.341788707088771,
+     "ism_rel_vs_theory": -0.3566897985418003
+    },
+    {
+     "mode": [
+      2,
+      3
+     ],
+     "f_hz": 180.77687290629237,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -401.7060328481957,
+      "gamma": 46.2481161501016,
+      "r2": 0.9823025942182195
+     },
+     "ism": {
+      "slope_db_per_s": -197.97060106216998,
+      "gamma": 22.792207742841192,
+      "r2": 0.9971128841466499
+     },
+     "fdtd_rel_vs_theory": 0.6047168598383038,
+     "ism_rel_vs_theory": -0.20915611093936326
+    },
+    {
+     "mode": [
+      6,
+      1
+     ],
+     "f_hz": 180.77687290629237,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -248.18997418695787,
+      "gamma": 28.57392673967331,
+      "r2": 0.9993467750550339
+     },
+     "ism": {
+      "slope_db_per_s": -265.63300224490916,
+      "gamma": 30.582129558819087,
+      "r2": 0.9899166220554548
+     },
+     "fdtd_rel_vs_theory": -0.008542059483701481,
+     "ism_rel_vs_theory": 0.06113855002261587
+    },
+    {
+     "mode": [
+      5,
+      2
+     ],
+     "f_hz": 183.02263445328893,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -256.09762764887836,
+      "gamma": 29.484328988772358,
+      "r2": 0.9985598146744225
+     },
+     "ism": {
+      "slope_db_per_s": -259.8859089459278,
+      "gamma": 29.920470990905063,
+      "r2": 0.9906308349570393
+     },
+     "fdtd_rel_vs_theory": 0.02304707235514731,
+     "ism_rel_vs_theory": 0.03818032495800922
+    },
+    {
+     "mode": [
+      3,
+      3
+     ],
+     "f_hz": 191.74282907060697,
+     "family": "tangential",
+     "gamma_theory_exact": 28.82010983218666,
+     "gamma_theory_first_order": 20.722916666666663,
+     "gamma_repo_kuttruff": 20.722916666666663,
+     "first_order_rel_error": -0.28095636042569655,
+     "derivations_agree": true,
+     "fdtd": {
+      "slope_db_per_s": -290.7722112712607,
+      "gamma": 33.476387956506,
+      "r2": 0.9828600386372046
+     },
+     "ism": {
+      "slope_db_per_s": -214.3540208856933,
+      "gamma": 24.678418655736586,
+      "r2": 0.9957467858094519
+     },
+     "fdtd_rel_vs_theory": 0.16156351073718508,
+     "ism_rel_vs_theory": -0.14370837587248128
+    }
+   ]
+  }
+ ]
+}
