@@ -1,0 +1,125 @@
+{
+ "gate": "P3-3-FAST Track 2b dataset",
+ "manifest": "configs/sweeps_2d_mat/p3_3fast_trackB_manifest.json",
+ "data_dir": "data/track_p3_3fast_B",
+ "rows_sha256": "50d01b696a27afe30e309c8e5dd04d6ff271ab16f788f7fc16849b7d08d58c2d",
+ "band_hz": [
+  20.0,
+  300.0
+ ],
+ "i_all_built": {
+  "pass": false,
+  "n_total": 472,
+  "n_built": 392,
+  "n_missing": 80,
+  "n_malformed": 0,
+  "missing_examples": [
+   "L8.54_W4.14_x4.14_a1.3748.h5",
+   "L8.54_W4.14_x4.14_a0.6562.h5",
+   "L8.54_W4.14_x4.14_a1.2870.h5",
+   "L8.54_W4.14_x4.14_a1.8556.h5",
+   "L8.54_W4.14_x4.14_a2.0143.h5",
+   "L8.54_W4.14_x4.14_a1.4533.h5",
+   "L8.54_W4.14_x4.14_a2.0263.h5",
+   "L8.54_W4.14_x4.14_a1.9759.h5"
+  ],
+  "malformed_examples": []
+ },
+ "ii_filenames_unique": {
+  "pass": true,
+  "n_rows": 472,
+  "n_unique": 472,
+  "duplicates": []
+ },
+ "iii_holdout_band_exact": {
+  "pass": true,
+  "band": [
+   0.9,
+   1.1
+  ],
+  "n_train_in_band": 0,
+  "n_test_in_band": 18,
+  "min_test_in_band": 3,
+  "train_offenders": [],
+  "test_a_values_in_band": [
+   0.95,
+   1.0,
+   1.05
+  ]
+ },
+ "iv_divider_physics": {
+  "pass": true,
+  "n_sealed_checked": 22,
+  "n_open_checked": 20,
+  "sealed_max_ratio_B_over_A": 0.0,
+  "sealed_threshold": 1e-06,
+  "open_max_abs_ld_db": 2.031089561865962,
+  "open_threshold_db": 3.0,
+  "sealed_examples": [
+   {
+    "file": "L7.40_W4.23_x4.27_a0.0000.h5",
+    "split": "train",
+    "mean_abs_H_roomA": 0.8316394686698914,
+    "mean_abs_H_roomB": 0.0,
+    "ratio_B_over_A": 0.0,
+    "ld_db": -Infinity,
+    "n_rx_A": 40,
+    "n_rx_B": 24
+   },
+   {
+    "file": "L7.30_W3.59_x3.99_a0.0000.h5",
+    "split": "train",
+    "mean_abs_H_roomA": 0.8540904521942139,
+    "mean_abs_H_roomB": 0.0,
+    "ratio_B_over_A": 0.0,
+    "ld_db": -Infinity,
+    "n_rx_A": 32,
+    "n_rx_B": 32
+   },
+   {
+    "file": "L8.20_W3.64_x4.88_a0.0000.h5",
+    "split": "train",
+    "mean_abs_H_roomA": 0.8975728750228882,
+    "mean_abs_H_roomB": 0.0,
+    "ratio_B_over_A": 0.0,
+    "ld_db": -Infinity,
+    "n_rx_A": 40,
+    "n_rx_B": 24
+   }
+  ],
+  "open_examples": [
+   {
+    "file": "L7.40_W4.23_x4.27_a4.2300.h5",
+    "split": "train",
+    "mean_abs_H_roomA": 0.8133941292762756,
+    "mean_abs_H_roomB": 0.7486783266067505,
+    "ratio_B_over_A": 0.9204373373986525,
+    "ld_db": -0.720115451147614,
+    "n_rx_A": 40,
+    "n_rx_B": 24
+   },
+   {
+    "file": "L7.30_W3.59_x3.99_a3.5900.h5",
+    "split": "train",
+    "mean_abs_H_roomA": 0.8760910034179688,
+    "mean_abs_H_roomB": 0.7435041069984436,
+    "ratio_B_over_A": 0.8486608173097857,
+    "ld_db": -1.4253169749416326,
+    "n_rx_A": 32,
+    "n_rx_B": 32
+   },
+   {
+    "file": "L8.20_W3.64_x4.88_a3.6400.h5",
+    "split": "train",
+    "mean_abs_H_roomA": 0.8204280138015747,
+    "mean_abs_H_roomB": 0.7375075817108154,
+    "ratio_B_over_A": 0.898930277006833,
+    "ld_db": -0.9254798357573896,
+    "n_rx_A": 40,
+    "n_rx_B": 24
+   }
+  ],
+  "note": "sealed room-B energy is EXACTLY zero when the divider disconnects room B; any non-zero value here means extra_walls did not reach the solver"
+ },
+ "pass": false
+}

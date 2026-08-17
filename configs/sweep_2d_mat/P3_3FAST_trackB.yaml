@@ -1,0 +1,48 @@
+run_id: p3_3fast_trackB
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml   # geometry comes from configs_manifest
+data_dir: data/track_p3_3fast_B
+
+# --- P3-2 protocol: band-limited to the modal regime (bins 0..600) ---
+band_max_hz: 300
+
+# --- conditioning arm: (L, W, x0) Fourier + sqrt(a) aperture block -> FiLM, no latent table
+# sqrt(a) is FT-B's measured linearizing coordinate (pooled r^2 = 0.9870 for the inter-room
+# level difference; raw a gives 0.905). Block layout: [0:16] L [16:32] W [32:48] x0
+# [48:55] aperture.
+cond_source: aperture
+cond_dim: 55
+conditioning_type: film
+latent_dim: 16               # unused by this arm; kept >0 to satisfy the model's check
+
+# --- SEALED rooms are in the dataset but NOT in training ---
+# a = 0 is a topological discontinuity, not the small-aperture limit: the divider disconnects
+# room B exactly, so H_B == 0 (a -inf level difference). Its conditioning coordinate
+# sqrt(0) = 0 is also the limit of a vanishing doorway, so training on it would force the
+# network to fit a discontinuity in the coordinate and would smear every narrow aperture
+# nearby. The 20 sealed rooms stay on disk for the end-point demonstration and the eval.
+config_kinds: ["open", "aperture"]
+
+# --- 2D backbone recipe (Phase-1 lineage, NOT the 3D P3-1 hashgrid) ---
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+
+# --- optimization ---
+n_iters: 30000
+batch_size: 8
+rx_per_config: 4
+grad_accum_steps: 2
+lr_network: 2.0e-4
+
+# --- validation on HELD-OUT receivers of training configs ---
+val_every: 2000
+val_max_configs: 40
+ckpt_every: 2000
+ckpt_keep_last: 10
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+configs_manifest: configs/sweeps_2d_mat/p3_3fast_trackB_manifest.json
+max_rows_per_render: 8

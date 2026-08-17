@@ -137,6 +137,11 @@ class P32Trainer:
             # this point is schema-agnostic -- it only touches .alphas, .filename and .strata.
             if str(man.get("schema", "")).startswith("p3_3fast.trackA"):
                 from aaf.data.seg_configs import configs_from_rows
+            elif str(man.get("schema", "")).startswith("p3_3fast.trackB"):
+                # Track 2b rows carry a divider (x0) and a doorway width (a); their four wall
+                # alphas are all baseline, so the aperture lives on the config object, not in
+                # the alpha vector. Everything after this point stays schema-agnostic.
+                from aaf.data.aperture_configs import configs_from_rows
             else:
                 from aaf.data.mat_configs_cont import configs_from_rows
             self.manifest_sha = str(man.get("rows_sha256", ""))
@@ -184,8 +189,11 @@ class P32Trainer:
             rx_list.append(rx)
             geom_id.append(geom_index[key])
             cfg_id.append(ci)
+            # x0 / a exist only on Track 2b's ApertureConfig; every other arm ignores them.
             conds.append(
-                build_cond_vector_2d(cfg.cond_source, c.L, c.W, c.alphas).numpy())
+                build_cond_vector_2d(cfg.cond_source, c.L, c.W, c.alphas,
+                                     x0=getattr(c, "x0", None),
+                                     a=getattr(c, "a", None)).numpy())
         self.src = torch.tensor(src, device=self.device)
         self.H = torch.tensor(np.stack(H_list), device=self.device)          # [C,64,B]
         self.rx = torch.tensor(np.stack(rx_list), device=self.device)        # [C,64,2]

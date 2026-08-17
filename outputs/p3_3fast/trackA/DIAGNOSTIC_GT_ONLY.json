@@ -1,0 +1,552 @@
+{
+  "meta": {
+    "manifest": "configs/sweeps_2d_mat/p3_3fast_trackA_manifest.json",
+    "data_dir": "data/track_p3_3fast_A",
+    "train_dir": "outputs/p3_3fast/p3_3fast_trackA",
+    "n_test_configs": 120,
+    "n_geometries": 10,
+    "holdout_segment": "east_3",
+    "holdout_index": 6,
+    "band_hi_hz": 300.0,
+    "eps_usable": 1e-08,
+    "gt_only": true,
+    "gt_n_bins": 601,
+    "gt_band_hi_hz": 300.0,
+    "hi_idx": 601,
+    "wall_seconds": 0.7,
+    "render_seconds": 0.0,
+    "n_renders": 0
+  },
+  "segment_discrimination": {
+    "per_geometry": [
+      {
+        "geom_id": 0,
+        "L": 4.51,
+        "W": 4.0,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.1953905820846558,
+        "gt_spread_mag_rel": 0.028655485078095535,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.4546629190444946,
+          "min": 1.2848780155181885,
+          "max": 1.558720588684082,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.5808910429477692,
+        "gt_positional_fraction": 0.7561498861146689
+      },
+      {
+        "geom_id": 1,
+        "L": 3.27,
+        "W": 4.98,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.2377673387527466,
+        "gt_spread_mag_rel": 0.0625148684197595,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.503609577814738,
+          "min": 1.29655921459198,
+          "max": 1.6753917932510376,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.6346087157726288,
+        "gt_positional_fraction": 0.7572254612429938
+      },
+      {
+        "geom_id": 2,
+        "L": 5.93,
+        "W": 3.18,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.2879558801651,
+        "gt_spread_mag_rel": 0.0876464037426164,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.5596290628115337,
+          "min": 1.2094151973724365,
+          "max": 1.7227840423583984,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.6197428703308105,
+        "gt_positional_fraction": 0.795160703440573
+      },
+      {
+        "geom_id": 3,
+        "L": 5.56,
+        "W": 4.9,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.2405561208724976,
+        "gt_spread_mag_rel": 0.0322518767846829,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.504981279373169,
+          "min": 1.3236443996429443,
+          "max": 1.5770506858825684,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.6933653950691223,
+        "gt_positional_fraction": 0.7325980113239876
+      },
+      {
+        "geom_id": 4,
+        "L": 3.44,
+        "W": 3.14,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.0473562479019165,
+        "gt_spread_mag_rel": 0.02595866217891682,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.2760910391807556,
+          "min": 1.1865496635437012,
+          "max": 1.3971631526947021,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.4524207413196564,
+        "gt_positional_fraction": 0.7211107760347033
+      },
+      {
+        "geom_id": 5,
+        "L": 3.18,
+        "W": 4.08,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.1271846294403076,
+        "gt_spread_mag_rel": 0.0441887711963925,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.3675772746404011,
+          "min": 1.1634267568588257,
+          "max": 1.5447043180465698,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.5480438470840454,
+        "gt_positional_fraction": 0.7281348209635765
+      },
+      {
+        "geom_id": 6,
+        "L": 5.82,
+        "W": 4.04,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.2654271125793457,
+        "gt_spread_mag_rel": 0.05905021307417114,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.5338045954704285,
+          "min": 1.3849798440933228,
+          "max": 1.7068387269973755,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.650680661201477,
+        "gt_positional_fraction": 0.7666092796278853
+      },
+      {
+        "geom_id": 7,
+        "L": 4.68,
+        "W": 3.16,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.1713443994522095,
+        "gt_spread_mag_rel": 0.05950487177513986,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.4220815102259319,
+          "min": 1.2324222326278687,
+          "max": 1.6145801544189453,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.5685868859291077,
+        "gt_positional_fraction": 0.7467513658055334
+      },
+      {
+        "geom_id": 8,
+        "L": 4.39,
+        "W": 4.78,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.1855888366699219,
+        "gt_spread_mag_rel": 0.02612353451407558,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.443161944548289,
+          "min": 1.3078830242156982,
+          "max": 1.5183184146881104,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.677539974451065,
+        "gt_positional_fraction": 0.7067425246053392
+      },
+      {
+        "geom_id": 9,
+        "L": 5.25,
+        "W": 3.6,
+        "edited": [
+          "west_3",
+          "east_3",
+          "south_3",
+          "north_3"
+        ],
+        "alpha": 0.7,
+        "gt_spread_db": 1.2355036735534668,
+        "gt_spread_mag_rel": 0.05530342407486176,
+        "gt_pairwise_lsd_db": {
+          "mean": 1.4977803627649944,
+          "min": 1.3517287969589233,
+          "max": 1.6575833559036255,
+          "n_pairs": 6
+        },
+        "frac_gt": 1.0,
+        "gt_edit_lsd_vs_baseline_db": 1.638901174068451,
+        "gt_positional_fraction": 0.75386099729639
+      }
+    ],
+    "aggregate": {
+      "n_geometries": 10,
+      "gt_spread_db": {
+        "mean": 1.1994074821472167,
+        "sd": 0.07148999917908887,
+        "sem": 0.022607122732948848,
+        "n": 10
+      },
+      "gt_spread_mag_rel": {
+        "mean": 0.0481198110838712,
+        "sd": 0.02025208877357141,
+        "sem": 0.0064042727900411696,
+        "n": 10
+      },
+      "frac_gt": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "sem": 0.0,
+        "n": 10
+      },
+      "gt_edit_lsd_vs_baseline_db": {
+        "mean": 1.6064781308174134,
+        "sd": 0.07134444861934347,
+        "sem": 0.022561095604598062,
+        "n": 10
+      },
+      "gt_positional_fraction": {
+        "mean": 0.746434382645565,
+        "sd": 0.025364940919140655,
+        "sem": 0.008021098602008928,
+        "n": 10
+      },
+      "gt_pairwise_lsd_db": {
+        "mean": 1.4563379565874734,
+        "sd": 0.08479105814711307,
+        "sem": 0.02681328689606537,
+        "n": 10
+      }
+    }
+  },
+  "holdout_position": {
+    "skipped": "requires model predictions (no GT-only form of this test)"
+  },
+  "window": {
+    "per_config": [
+      {
+        "geom_id": 0,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -5.306434426454485,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 0,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -5.385107416730017,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 1,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -6.427703253967289,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 1,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -6.427282697173485,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 2,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -4.2419114316044,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 2,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -4.2411506637798375,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 3,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -5.255078818812036,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 3,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -5.254687570605215,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 4,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -5.361659168445568,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 4,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -5.361394389903779,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 5,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -6.065631948929978,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 5,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -6.150337075591903,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 6,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -4.806648853422281,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 6,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -4.733366103439386,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 7,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -4.776516404497871,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 7,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -4.6837989103165825,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 8,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -5.738319204777975,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 8,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -5.737852733582618,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 9,
+        "slot": "t_window_seen",
+        "edited": [
+          "west_2"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": false,
+        "d_energy_gt_db": -4.754125625716082,
+        "frac_gt": 1.0
+      },
+      {
+        "geom_id": 9,
+        "slot": "t_window_holdout",
+        "edited": [
+          "east_3"
+        ],
+        "alpha": 0.95,
+        "touches_holdout": true,
+        "d_energy_gt_db": -4.8345697020826215,
+        "frac_gt": 1.0
+      }
+    ],
+    "by_slot": {
+      "t_window_seen": {
+        "n": 10,
+        "d_energy_gt_db": {
+          "mean": -5.273402913662797,
+          "sd": 0.6653134960775887,
+          "sem": 0.21039060056546813,
+          "n": 10
+        },
+        "frac_gt": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "sem": 0.0,
+          "n": 10
+        }
+      },
+      "t_window_holdout": {
+        "n": 10,
+        "d_energy_gt_db": {
+          "mean": -5.2809547263205445,
+          "sd": 0.685853726527671,
+          "sem": 0.21688599175416867,
+          "n": 10
+        },
+        "frac_gt": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "sem": 0.0,
+          "n": 10
+        }
+      }
+    }
+  }
+}

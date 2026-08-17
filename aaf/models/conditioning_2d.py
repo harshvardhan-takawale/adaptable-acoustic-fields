@@ -182,6 +182,8 @@ def cond_dim_for(cond_source: str) -> int:
         return MLINEAR_DIM_2D
     if cond_source == COND_SOURCE_SEG:
         return SEGMENT_DIM_2D
+    if cond_source == COND_SOURCE_APER:
+        return APERTURE_DIM_2D
     raise ValueError(f"no fixed cond_dim for cond_source {cond_source!r}")
 
 
@@ -194,6 +196,8 @@ def build_cond_vector_2d(
     *,
     model=None,
     room_ids: Optional[torch.Tensor] = None,
+    x0: Optional[float] = None,
+    a: Optional[float] = None,
     dtype: torch.dtype = torch.float32,
 ) -> torch.Tensor:
     """Per-config conditioning vector fed to the FiLM generator.
@@ -217,6 +221,12 @@ def build_cond_vector_2d(
         if alphas is None:
             raise ValueError(f"{COND_SOURCE_SEG} requires 16 segment alphas")
         return segment_features_2d(L, W, alphas, device=device, dtype=dtype)
+    if cond_source == COND_SOURCE_APER:
+        if x0 is None or a is None:
+            raise ValueError(
+                f"{COND_SOURCE_APER} requires x0 (divider position) and a (aperture width); "
+                "the four wall alphas carry no divider information")
+        return aperture_features_2d(L, W, x0, a, device=device, dtype=dtype)
     if cond_source == "latent":
         if model is None or room_ids is None:
             raise ValueError("latent arm requires model + room_ids")
@@ -264,3 +274,62 @@ def segment_features_2d(L, W, alphas, device=None, dtype=torch.float32) -> torch
     fb = _fourier_block(mh, N_K_SEG).reshape(N_SEG_COND, 2 * N_K_SEG)
     per_seg = torch.cat([mh[:, None], fb], dim=1)                     # [16, 7]
     return torch.cat([_fourier_block(u, N_K_GEOM), per_seg.reshape(-1)])
+
+
+# ----------------------------------------------------------------------
+# P3-3-FAST Track 2b: doorway-aperture conditioning
+# ----------------------------------------------------------------------
+COND_SOURCE_APER = "aperture"
+N_GEOM_APER = 3                 # (L, W, x0) -- the divider position is a THIRD geometry dim
+N_K_APER = 3                    # pi, 2pi, 4pi on the aperture coordinate
+APERTURE_DIM_2D = N_GEOM_APER * 2 * N_K_GEOM + (1 + 2 * N_K_APER)     # 48 + 7 = 55
+"""55 dims. Layout (offsets are load-bearing, asserted in tests/test_aperture_configs.py):
+
+    [ 0:16] L      [16:32] W      [32:48] x0      [48:55] aperture
+
+Geometry: 8 octaves of sin/cos per dim, the same idiom as every earlier 2D arm, but over
+THREE dims -- the divider position x0 is geometry, not material, and a model without it
+cannot tell which sub-room a receiver is in.
+
+Aperture: one IDENTITY channel + 3 octaves =
+``[sqrt_a_hat, sin(pi u), sin(2pi u), sin(4pi u), cos(pi u), cos(2pi u), cos(4pi u)]``.
+
+The identity channel is in **sqrt(a)**, which is the linearizing coordinate FT-B measured
+(pooled r^2 = 0.9870 for the inter-room level difference vs sqrt a; raw a gives 0.905, a^2
+0.704). Exactly the role m = -ln(1-alpha) plays on the absorption axis: because the target law
+is near-linear in sqrt(a), FiLM can represent it with near-zero interpolation error, and the
+top feature at 4*pi means one half-period per delta-u ~ 0.4 rather than free cycles between
+training samples (the P3-2 failure mode that flipped the sign of an interpolated prediction).
+
+NOTE a = 0 (sealed) maps to u = 0, which is also the limit of the open configs' coordinate as
+a -> 0, yet its physics is discontinuous (room B disconnects, H_B == 0). The conditioning
+CANNOT separate the sealed case from a vanishing doorway, which is precisely why sealed rooms
+are excluded from training rather than encoded with a flag."""
+
+A_NORM_APER = 4.0
+"""sqrt-normalizer, frozen at the FT-B domain width so the coordinate does not move with W.
+u = sqrt(a)/2 in [0, ~1.06]: trained apertures reach 0.79 (a = 2.5), fully-open rooms 1.06."""
+
+
+def normalize_params_aper_2d(L, W, x0, a, device=None, dtype=torch.float32) -> torch.Tensor:
+    """u = ((L-8)/1, (W-4)/0.5, (x0/L - 0.5)/0.1, sqrt(a)/sqrt(4)) -> [4], all ~[-1, 1].
+
+    The geometry box is the Track 2b sampling box (L in [7, 9], W in [3.5, 4.5],
+    x0/L in [0.4, 0.6]) rather than the P3-2 box, so this arm's geometry block is NOT
+    comparable to the earlier 2D arms' -- these rooms are twice as long.
+    """
+    if float(a) < 0.0:
+        raise ValueError("aperture a must be >= 0, got {!r}".format(a))
+    return torch.tensor(
+        [(float(L) - 8.0) / 1.0, (float(W) - 4.0) / 0.5,
+         (float(x0) / float(L) - 0.5) / 0.1,
+         math.sqrt(float(a)) / math.sqrt(A_NORM_APER)],
+        device=device, dtype=dtype)
+
+
+def aperture_features_2d(L, W, x0, a, device=None, dtype=torch.float32) -> torch.Tensor:
+    """55-d features of (L, W, x0, a). See :data:`APERTURE_DIM_2D` for the block layout."""
+    u = normalize_params_aper_2d(L, W, x0, a, device=device, dtype=dtype)     # [4]
+    ah = u[3:]                                                               # [1]
+    fb = _fourier_block(ah, N_K_APER)                                        # [6]
+    return torch.cat([_fourier_block(u[:3], N_K_GEOM), ah, fb])
