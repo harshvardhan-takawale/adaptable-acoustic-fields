@@ -1,0 +1,11 @@
+{
+ "pass": true,
+ "n_missing": 0,
+ "bad_tile": 0,
+ "bad_alphas": 0,
+ "window_energy_db_vs_baseline": [
+  -5.306434631347656,
+  -6.427703499794006,
+  -4.241911470890045
+ ]
+}
