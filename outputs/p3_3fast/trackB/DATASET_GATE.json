@@ -8,21 +8,12 @@
   300.0
  ],
  "i_all_built": {
-  "pass": false,
+  "pass": true,
   "n_total": 472,
-  "n_built": 392,
-  "n_missing": 80,
+  "n_built": 472,
+  "n_missing": 0,
   "n_malformed": 0,
-  "missing_examples": [
-   "L8.54_W4.14_x4.14_a1.3748.h5",
-   "L8.54_W4.14_x4.14_a0.6562.h5",
-   "L8.54_W4.14_x4.14_a1.2870.h5",
-   "L8.54_W4.14_x4.14_a1.8556.h5",
-   "L8.54_W4.14_x4.14_a2.0143.h5",
-   "L8.54_W4.14_x4.14_a1.4533.h5",
-   "L8.54_W4.14_x4.14_a2.0263.h5",
-   "L8.54_W4.14_x4.14_a1.9759.h5"
-  ],
+  "missing_examples": [],
   "malformed_examples": []
  },
  "ii_filenames_unique": {
@@ -49,8 +40,8 @@
  },
  "iv_divider_physics": {
   "pass": true,
-  "n_sealed_checked": 22,
-  "n_open_checked": 20,
+  "n_sealed_checked": 26,
+  "n_open_checked": 26,
   "sealed_max_ratio_B_over_A": 0.0,
   "sealed_threshold": 1e-06,
   "open_max_abs_ld_db": 2.031089561865962,
@@ -121,5 +112,5 @@
   ],
   "note": "sealed room-B energy is EXACTLY zero when the divider disconnects room B; any non-zero value here means extra_walls did not reach the solver"
  },
- "pass": false
+ "pass": true
 }

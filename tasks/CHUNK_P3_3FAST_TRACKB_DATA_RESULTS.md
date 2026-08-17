@@ -109,3 +109,95 @@ python scripts/gate_p3_3fast_trackB_dataset.py          # rewrite DATASET_GATE.j
 The worklist is the FULL stable list and is never filtered on `.done` — filtering would shrink
 it as the build progresses and race the array index against the config mapping, which silently
 left 79 of 479 P3-2c configs unbuilt.
+
+---
+
+# Track 2b, part 2: the evaluation harness (2026-08-17)
+
+**Status: harness built, tested, and dry-run on ground truth. Training (job 7266375) is still
+running, so no scored EVAL.json exists yet — the eval is one `sbatch` away.**
+
+```bash
+sbatch scripts/slurm/p3_3fast_trackB_eval.sh \
+    --checkpoint outputs/p3_3fast/p3_3fast_trackB/ckpt_iter0030000.pt
+```
+
+Pin the checkpoint explicitly while training is live: without `--checkpoint` the driver takes
+the newest `ckpt_iter*.pt` at job start and races the trainer's `ckpt_every` window. The job
+writes `outputs/p3_3fast/trackB/EVAL.json` + `EVAL.md` and then the demo figure. Measured cost
+on an RTX A5000: **~6.6 s per config**, so ~8 min for the 72 test configs.
+
+## What it measures
+
+Four observables, predicted vs ground truth, per test config; **every one reported held-out
+band (`a in [0.9, 1.1]`, n = 18) vs seen apertures (n = 48) separately**, with the 6 sealed
+configs excluded from all of it and reported alone.
+
+1. `level_difference` — `20 log10(<|H|>_roomB / <|H|>_roomA)` per ISO third-octave band inside
+   20-300 Hz and pooled. Room membership by receiver x against the domain's `x0`.
+2. `mode_split` — each sub-room projected onto its OWN analytic basis (room B shifted into its
+   local frame); peak POSITION (`migration_*_hz`) and two-peak SPLITTING (`split_hz`).
+3. `decay` — band-limited Schroeder EDC per sub-room, single- vs two-segment slope over FT-B's
+   frozen -5..-25 dB window, so double-slope verdicts stay comparable to FT-B's.
+4. `lsd` — band-limited, whole-domain and per sub-room, always beside `gt_dynamic_range_db`.
+
+`frac_modes_dropped` / `frac_usable` sit next to every number they gate. Design rationale and
+the caveats that bound each observable are D59.
+
+## The GT-only result (a real result, and the harness's own validation)
+
+`python scripts/p3_3fast_trackB_eval.py --gt-only` runs on CPU in **18 s** and writes
+`outputs/p3_3fast/trackB/EVAL_GT_ONLY.{json,md}`. The `sqrt(a)` fit of the inter-room level
+difference over the 66 non-sealed test configs:
+
+| fit | n | sqrt(a) span | slope (dB per sqrt m) | intercept dB | r | r^2 |
+|---|---|---|---|---|---|---|
+| GT pooled, 6 domains | 66 | 1.710 | 7.611 | -15.289 | 0.9737 | 0.9481 |
+| GT held-out band | 18 | **0.050** | 8.717 | -16.079 | 0.3249 | 0.1055 |
+| GT seen apertures | 48 | 1.710 | 7.648 | -15.449 | 0.9782 | 0.9569 |
+
+Per-domain: r^2 **0.9693 +/- 0.0093**, slope **7.636 +/- 0.701**.
+
+**The held-out row's r^2 is not a failure — it is the x-range.** Three aperture values inside
+the band means `sqrt(a)` spans 0.050 against 1.710, so a within-band regression is degenerate
+by construction. The test that answers the question is the seen-line residual: fit `sqrt(a)`
+on the seen apertures only, then score the held-out points against that line.
+
+| side | seen-line slope | RMS resid seen | RMS resid held-out | ratio |
+|---|---|---|---|---|
+| GROUND TRUTH | 7.648 | 0.851 dB | **0.679 dB** | **0.798** |
+
+The held-out band sits ON the seen line in the ground truth (ratio < 1), which is what makes
+the same test meaningful when the model's numbers land in the same table. FT-B's single-domain
+slope was 6.808 (r^2 0.9870) and CONTEXT's one-training-domain check gave 7.62 / 0.966 — three
+independent measurements of the same law agreeing.
+
+Other GT-side facts the model will be scored against: T60 ~**3.32 s** in both sub-rooms, **no**
+double-slope decay anywhere (0/66 in room B — expected, the two sub-rooms have identical
+absorption so there is no slow/fast pair), in-band dynamic range **~75 dB**, and 6/6 sealed
+configs with room-B energy **exactly zero**.
+
+## Caveats, all enforced in code rather than only stated
+
+* **The modal split is resolution-limited and mostly reads 0.** FT-B resolved sub-linewidth
+  splitting via an even/odd decomposition that only exists when `x0 = L/2`; Track 2b varies
+  `x0`, so that route is closed and a two-peak search needs a separation of order the linewidth
+  (Kuttruff median **3.83 Hz**). The usable modal observable is peak migration. **16.3 of 26.5
+  modes per config** are flagged `degenerate` and excluded, leaving ~8 usable;
+  `frac_modes_dropped` runs **0.46-0.50**.
+* **Absolute LSD is NOT comparable to P3-2b's ~1.0 dB.** ~75 dB of dynamic range here against
+  ~22 dB on the ISM corpus; use `lsd_over_dynamic_range` for anything cross-chunk.
+* **The 8x8 grid leaves 3-5 columns per sub-room**, so the projection basis blows up above
+  ~160 Hz; an f_max ladder backs off to the first rung with `cond(Phi) <= 5` (140 Hz clears all
+  twelve sub-rooms) and records the rung it used.
+* **`a = 0` never enters a fit or an aggregate** (D57b), and every dB is guarded against log(0).
+
+## Files
+
+* `scripts/p3_3fast_trackB_eval.py` — the harness (`--gt-only` runs without a GPU).
+* `scripts/p3_3fast_trackB_demo_fig.py` — 1920x1200 predicted-vs-GT spectra at
+  a = 0 (sealed, labelled topological) / 0.3 / **1.0 (HELD OUT)** / 2.0, both sub-rooms.
+* `scripts/slurm/p3_3fast_trackB_eval.sh` — runs both; forwards `"$@"` to each.
+* `tests/test_p3_3fast_trackB_eval.py` — 20 CPU-only tests: the held-out/seen split, the
+  room-A/room-B assignment (including on-divider receivers, which belong to neither), the
+  third-octave banding, the sealed guards, and the GT/renderer rfft bin alignment.

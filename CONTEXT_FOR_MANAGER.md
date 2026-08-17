@@ -40,6 +40,43 @@ everything else is done and tested. **No training launched.**
   and linear in `sqrt(a)` (slope 7.62, r^2 **0.966**, 18 points) — FT-B's law reproduces on the
   training geometry.
 
+### Track 2b eval harness — BUILT, DRY-RUN ON GT, one `sbatch` from a scored result
+
+Training (job **7266375**) is still running. The harness is finished and validated; run it the
+moment a converged checkpoint exists (see `tasks/CHUNK_P3_3FAST_TRACKB_DATA_RESULTS.md` part 2
+and **D59**):
+
+```bash
+sbatch scripts/slurm/p3_3fast_trackB_eval.sh \
+    --checkpoint outputs/p3_3fast/p3_3fast_trackB/ckpt_iter0030000.pt
+```
+
+Pin `--checkpoint` while training is live or the driver races the trainer's `ckpt_every` write.
+Writes `outputs/p3_3fast/trackB/EVAL.{json,md}` + a 1920x1200 demo figure; ~8 min on one A5000
+(6.6 s/config, 72 test configs), whole GPU path smoke-tested against the iter-6000 checkpoint.
+
+- **Everything is reported held-out band (n = 18) vs seen (n = 48), never pooled**, with the 6
+  sealed configs excluded from every fit and aggregate and reported alone as a topological
+  reference. Four observables: inter-room level difference (per third-octave + pooled), sub-room
+  modal peak migration + splitting, Schroeder decay (FT-B's frozen -5..-25 dB window), LSD.
+- **GT-only dry run is a real result** (`--gt-only`, CPU, 18 s,
+  `outputs/p3_3fast/trackB/EVAL_GT_ONLY.{json,md}`). `sqrt(a)` fit of the level difference over
+  the 66 non-sealed test configs: **pooled slope 7.611, r^2 0.9481 (n = 66)**; seen 7.648 /
+  0.9569 (n = 48); per-domain **r^2 0.9693 +/- 0.0093, slope 7.636 +/- 0.701**. Agrees with
+  FT-B's single-domain 6.808 / 0.9870 and with the training-domain check above.
+- **Do NOT read the within-band r^2 as the answer.** Three aperture values inside the band means
+  `sqrt(a)` spans **0.050** against 1.710 for the seen set, so the within-band fit (r^2 0.106) is
+  degenerate by construction. The headline test is the **seen-line residual**: fit on seen only,
+  score the held-out points against that line. On GT: **0.679 dB held-out vs 0.851 dB seen,
+  ratio 0.798** — the held-out band sits on the seen line, so the test can see the effect.
+- **Caveats enforced in code**: the two-peak split is resolution-limited and mostly reads 0
+  (FT-B's even/odd trick needs `x0 = L/2`, which Track 2b does not have), so the usable modal
+  observable is peak MIGRATION; 16.3 of 26.5 modes/config are flagged degenerate,
+  `frac_modes_dropped` 0.46-0.50. **Absolute LSD is not comparable to P3-2b's ~1.0 dB** — this
+  corpus spans ~75 dB against the ISM corpus's ~22 dB.
+- `tests/test_p3_3fast_trackB_eval.py` — 20 CPU-only tests (split logic, room assignment,
+  third-octave banding, sealed guards, GT/renderer bin alignment). All pass.
+
 ## Phase 3 — P3-2c (COMPLETE): the density sweep, and why it does not answer its question
 
 **Read `tasks/CHUNK_P3_2C_RESULTS.md` + `outputs/p3_2c/density.json` + `outputs/p3_2c/selection_bias.json`.**
