@@ -11,6 +11,35 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
 
+## Phase 3 — P3-3-FAST Track 2b (2026-08-17): doorway-aperture dataset + conditioning arm
+
+**Read `tasks/CHUNK_P3_3FAST_TRACKB_DATA_RESULTS.md` + `outputs/p3_3fast/trackB/DATASET_GATE.json`.**
+Dataset **building** on scavenger (job 7265361, 60-way, ~200-250 s/room x 472 rooms);
+everything else is done and tested. **No training launched.**
+
+- **Axis**: one interior slab at `x = x0` with a centred doorway of width `a`; the
+  conditioning coordinate is **`sqrt(a)`** (FT-B: pooled r^2 **0.9870**; raw `a` 0.905).
+- **`a = 0` is a TOPOLOGICAL discontinuity, not the small-aperture limit** — a sealed one-node
+  divider disconnects room B exactly (`H_B == 0`, level difference `-inf`). Sealed rooms stay
+  in the dataset, flagged `sealed`, but are excluded from training (`config_kinds`) and from
+  every continuous fit. The conditioning cannot separate them from a vanishing doorway.
+- **472 rooms**: 20 train domains x 20 configs + 6 frozen test domains x 12. The hold-out is an
+  **exact band** `a in [0.9, 1.1]` — 0 training apertures inside, 18 test apertures inside.
+- **dx = 0.01 is forced** (FT-1b A0c) and **fs must scale with it**: fs = 61440, n = 122880.
+  ~22x Track A's per-room cost.
+- **New arm `aperture`, cond_dim 55**: `[0:16] L | [16:32] W | [32:48] x0 | [48:55] aperture`
+  (identity `sqrt(a)/2` + 3 octaves). Trainer dispatches on manifest schema
+  `p3_3fast.trackB/1`. Config: `configs/sweep_2d_mat/P3_3FAST_trackB.yaml`.
+- Gate at 15:26: (ii) unique filenames **PASS** (472/472), (iii) exact hold-out band **PASS**
+  (0 train / 18 test in band), (iv) divider physics **PASS** (22 sealed rooms at room-B energy
+  **exactly 0**; 20 fully-open rooms within **2.03 dB**). (i) completeness **FAIL — 392/472
+  built, 0 malformed**, build still running. Re-run
+  `python scripts/gate_p3_3fast_trackB_dataset.py` when the array drains; resubmit the same
+  array first if any task hit its wall limit (idempotent, `.done` sentinels).
+- Sanity beyond the gate: on the one fully-built domain the level difference is monotone in `a`
+  and linear in `sqrt(a)` (slope 7.62, r^2 **0.966**, 18 points) — FT-B's law reproduces on the
+  training geometry.
+
 ## Phase 3 — P3-2c (COMPLETE): the density sweep, and why it does not answer its question
 
 **Read `tasks/CHUNK_P3_2C_RESULTS.md` + `outputs/p3_2c/density.json` + `outputs/p3_2c/selection_bias.json`.**
@@ -561,6 +590,7 @@ adaptable-acoustic-fields/
 
 ## Pointers
 
+- **P3-3-FAST Track A localization diagnostic (PARTIAL, action needed)**: [outputs/p3_3fast/trackA/DIAGNOSTIC.md](outputs/p3_3fast/trackA/DIAGNOSTIC.md). The Track A run (job 7265212, `cond_source=m_segment`, 16 per-segment alphas, FiLM) has plateaued at **4.54-4.68 dB** in-dist val LSD over iters 8000-12000 where P3-2b reached ~1.0. `scripts/p3_3fast_trackA_diag.py` implements the three relative tests (segment discrimination / `east_3` hold-out / window energy) and its GT half is final; the prediction half was NOT run because it needs a GPU and the task forbade submitting a SLURM job. One command finishes it: `sbatch scripts/slurm/p3_3fast_trackA_diag.sh --checkpoint outputs/p3_3fast/p3_3fast_trackA/ckpt_iter0012000.pt`. **Key GT finding, already decisive for interpretation**: a single-segment alpha=0.70 edit is only **1.61 dB** LSD from baseline and **75%** of that is positional (spread across the 4 edit positions = 1.20 dB), so the model's own fit error is ~3x the entire signal it is being asked to resolve. A low spread ratio therefore cannot be published as a clean FiLM-cannot-localize finding without a converged-checkpoint or P3-2b-architecture control. GT window energy drop is -5.27 dB and is identical at the seen and held-out positions.
 - **P3-3 fast-track meeting pack (figures only, no new compute)**: [outputs/p3_3fast/meeting_assets/FIGURE_MANIFEST.md](outputs/p3_3fast/meeting_assets/FIGURE_MANIFEST.md) — 4 figures at 2560×1440 rendered by `scripts/p3_3fast_figures.py` from JSON already on disk (`outputs/ft1b/patch_sweep.json`, `outputs/ft1b/a2b_grazing_diagnostic.json`, `outputs/p3_2d/sampling_law.json` + per-run `summary.json`). The manifest lists every plotted number with its JSON key, and flags two places where the requested caption text disagreed with the files: the Part-0a grazing range (spec quoted the 6.0×3.0 room alone) and `rho_published` (it is `slab_local`, not `all` — `publication_policy` marks `all` diagnostic-only, and the definitional question is still open in `outputs/p3_2d/SAMPLING_LAW.md`).
 - **Read first (Chunk 3.8 — meeting deck)**: [outputs/meeting_assets/DECK_NARRATIVE.md](outputs/meeting_assets/DECK_NARRATIVE.md) — 10-slide narrative with per-slide talking points, exact numeric claims, anticipated Dolby reviewer Q&A. Then [tasks/CHUNK_3_8_RESULTS.md](tasks/CHUNK_3_8_RESULTS.md) (asset checklist + honesty audit).
 - **Background (Chunk 3.7)**: [tasks/CHUNK_3_7_RESULTS.md](tasks/CHUNK_3_7_RESULTS.md) — V0/V1 GREEN, **I1 modal 2.55 dB** (project best), ranked next-iteration recommendations. [outputs/spatial_nodes_check/SUMMARY.md](outputs/spatial_nodes_check/SUMMARY.md) (V1 cross-L correlation matrix). [outputs/meeting_assets/00_README.md](outputs/meeting_assets/00_README.md) (deck manifest).

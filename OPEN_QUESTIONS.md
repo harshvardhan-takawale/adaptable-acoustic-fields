@@ -101,3 +101,17 @@ This question closes in Phase 3 with a deliberate ISM+ray-tracing hybrid pass th
 P3-2's ground truth is pyroomacoustics ISM, whose angle-independent reflection coefficient gives `gamma ~ cos(theta)` and therefore **no grazing-incidence absorption**: an axial mode is damped only by the wall pair it bounces between, and measured selectivity is ~29:1 (D48; `dAIC = 73` favouring the ray law over Kuttruff). A real locally-reacting wall follows Kuttruff, where every wall sits at a pressure antinode of every mode, giving only **~2:1** selectivity and **no invariant family**.
 
 So P3-2 can support *"the model learns the simulator's per-wall law"* and cannot, on its own evidence, support *"wall-selective editing works in real rooms"*. **Open question for the manager**: is the 2:1 regime the target worth pursuing (a materially harder learning problem, since the edit signal is ~15x weaker relative to the non-edited family), and if so should it be approached by (a) a wave-based / FEM 2D solver, (b) pyroomacoustics with `ray_tracing=True` and angle-dependent materials, or (c) measured RIRs? This decides whether P3-3 is "scale the same claim to 3D" or "re-establish the claim under realistic wall physics". Nothing in P3-2 needs to change to keep this option open — the Kuttruff law is already implemented and reported alongside every prediction.
+
+---
+
+### Q17 — Should the SEALED room get its own conditioning channel, or stay out of the training set? (P3-3-FAST Track 2b)
+
+Track 2b's edit axis is a doorway width `a`, and `a = 0` is **not** the small-aperture limit: a sealed one-node divider disconnects room B exactly, so `H_B == 0` and the inter-room level difference is `-inf` (FT-B). The conditioning coordinate `sqrt(a)/2` sends both a vanishing doorway and a sealed wall to 0, so the arm **cannot** represent the discontinuity: the two inputs are identical and the two targets are not.
+
+The dataset therefore builds and keeps the 26 sealed rooms (20 train domains + 6 test domains, flagged `sealed` in the manifest, used by dataset-gate item (iv) to prove the divider plumbing reaches the solver) but **excludes them from training** via `config_kinds: ["open", "aperture"]` (D57). That is a defensible default — training on an unrepresentable discontinuity would smear every narrow aperture near it — but it is a choice, and the alternative is a design question for the manager rather than a bug:
+
+* **(a) keep the exclusion** (current): the model learns a continuous law on `a in (0, W]`, and "what happens when the door is bricked up?" is out of scope.
+* **(b) add a binary `sealed` channel** to the conditioning (56-d instead of 55-d), making the topology explicit and letting one model cover both regimes. Costs a dimension whose value is 0 in 380 of 400 training rooms, and invites the network to route the whole aperture response through a switch.
+* **(c) predict the discontinuity from the physics instead**, i.e. keep the model continuous and special-case `a = 0` downstream in the renderer/eval.
+
+**What resolving it requires**: only (b) changes the arm, and it must be decided *before* the Track 2b model is trained, since the cond_dim is baked into the checkpoint. Nothing in the dataset needs to change either way — the sealed rooms are on disk under all three options.
