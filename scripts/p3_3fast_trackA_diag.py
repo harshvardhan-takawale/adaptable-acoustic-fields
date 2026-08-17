@@ -495,8 +495,12 @@ def run(train_dir: str, manifest: str, data_dir: str, out_dir: str,
         ckpt = Path(checkpoint) if checkpoint else find_checkpoint(train_dir)
         model, renderer, cfg, tmeta, it = load_model(ckpt, device)
         cond_source = str(cfg["cond_source"])
-        if cond_source != "m_segment" or int(cfg["cond_dim"]) != 144:
-            raise ValueError("expected m_segment/144 conditioning, got {}/{}".format(
+        # Track A2 uses the shared-encoder token arm; both are 16-segment conditionings and
+        # every diagnostic here is defined on the SEGMENT semantics, not on the encoding, so
+        # both are valid inputs. The pair (cond_source, cond_dim) must still be self-consistent.
+        _ok = {"m_segment": 144, "m_token": 448}
+        if cond_source not in _ok or int(cfg["cond_dim"]) != _ok[cond_source]:
+            raise ValueError("expected m_segment/144 or m_token/448 conditioning, got {}/{}".format(
                 cond_source, cfg["cond_dim"]))
         n_freq = int(cfg["n_time_samples"]) // 2 + 1
         _, hi_idx = band_indices(float(cfg["fs"]), n_freq, 0.0, BAND_HI_HZ)
