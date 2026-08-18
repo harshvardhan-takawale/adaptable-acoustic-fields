@@ -1,0 +1,636 @@
+{
+ "checkpoint": "outputs/p3_3fast/p3_3fast_trackA/ckpt_iter0018000.pt",
+ "iter": 18000,
+ "cond_source": "m_segment",
+ "lo_bins": [
+  0,
+  11,
+  21,
+  41
+ ],
+ "why": "bin 0 holds 87.3% of in-band power and sits 37.1 dB above the strongest room mode; all-bin energy ratios are therefore DC measurements. First room mode is 28.6-57 Hz so lo=41 (20.5 Hz) removes no modal content.",
+ "summary": {
+  "t_window_seen": {
+   "lo0": {
+    "from_hz": 0.0,
+    "n": 10,
+    "gt_delta_db_mean": -5.273403167724609,
+    "recovered_mean": 1.0892392987017014,
+    "recovered_sd": 0.09370642524966835
+   },
+   "lo11": {
+    "from_hz": 5.5,
+    "n": 10,
+    "gt_delta_db_mean": -1.5985459089279175,
+    "recovered_mean": 1.1748518329888118,
+    "recovered_sd": 0.16074193112053783
+   },
+   "lo21": {
+    "from_hz": 10.5,
+    "n": 10,
+    "gt_delta_db_mean": -1.6695619076490402,
+    "recovered_mean": 1.020552299241287,
+    "recovered_sd": 0.26220953917809275
+   },
+   "lo41": {
+    "from_hz": 20.5,
+    "n": 10,
+    "gt_delta_db_mean": -1.9569554403424263,
+    "recovered_mean": 1.1864301830710076,
+    "recovered_sd": 0.2810908176451249
+   }
+  },
+  "t_window_holdout": {
+   "lo0": {
+    "from_hz": 0.0,
+    "n": 10,
+    "gt_delta_db_mean": -5.280955076217651,
+    "recovered_mean": -0.05882850072924297,
+    "recovered_sd": 0.013779800093235928
+   },
+   "lo11": {
+    "from_hz": 5.5,
+    "n": 10,
+    "gt_delta_db_mean": -1.4828145503997803,
+    "recovered_mean": -0.03430936927205915,
+    "recovered_sd": 0.035727056433350175
+   },
+   "lo21": {
+    "from_hz": 10.5,
+    "n": 10,
+    "gt_delta_db_mean": -1.4598422646522522,
+    "recovered_mean": -0.08077965670808608,
+    "recovered_sd": 0.06359659370831235
+   },
+   "lo41": {
+    "from_hz": 20.5,
+    "n": 10,
+    "gt_delta_db_mean": -1.73222815990448,
+    "recovered_mean": -0.12258716384769519,
+    "recovered_sd": 0.055219997015899906
+   }
+  }
+ },
+ "per_config": [
+  {
+   "geom_id": 0,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -5.306434631347656,
+    "pred_delta_db": -5.875837802886963,
+    "recovered": 1.1073042845332663,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.580793857574463,
+    "pred_delta_db": -2.367703914642334,
+    "recovered": 1.4977942274366434,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.7076677083969116,
+    "pred_delta_db": -2.4488775432109833,
+    "recovered": 1.4340480476203938,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.9827788323163986,
+    "pred_delta_db": -3.274770602583885,
+    "recovered": 1.6516065983809731,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 0,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -5.38510799407959,
+    "pred_delta_db": 0.24804115295410156,
+    "recovered": -0.04606057171495893,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.5149542689323425,
+    "pred_delta_db": 0.09100854396820068,
+    "recovered": -0.06007345953243761,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.575760841369629,
+    "pred_delta_db": 0.24810880422592163,
+    "recovered": -0.15745333791279456,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.8556950241327286,
+    "pred_delta_db": 0.3413236141204834,
+    "recovered": -0.18393303300471114,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 1,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -6.427702903747559,
+    "pred_delta_db": -6.083259582519531,
+    "recovered": 0.9464126879561895,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.6111868619918823,
+    "pred_delta_db": -1.5803629159927368,
+    "recovered": 0.980868795093675,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.3508592545986176,
+    "pred_delta_db": -1.3020773231983185,
+    "recovered": 0.9638882206016395,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.5707291662693024,
+    "pred_delta_db": -1.619381196796894,
+    "recovered": 1.0309741689225438,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 1,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -6.42728328704834,
+    "pred_delta_db": 0.2899336814880371,
+    "recovered": -0.04510983389705015,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.524692177772522,
+    "pred_delta_db": -0.06537973880767822,
+    "recovered": 0.04288061535358163,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.205832064151764,
+    "pred_delta_db": -0.04364579916000366,
+    "recovered": 0.03619558681308252,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.4227469265460968,
+    "pred_delta_db": 0.02163112163543701,
+    "recovered": -0.01520377323038706,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 2,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -4.241909980773926,
+    "pred_delta_db": -5.205483436584473,
+    "recovered": 1.2271555643985508,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.630924642086029,
+    "pred_delta_db": -1.4699208736419678,
+    "recovered": 0.9012806819583461,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -2.0766443014144897,
+    "pred_delta_db": -1.0884449258446693,
+    "recovered": 0.524136427747055,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -2.4027148634195328,
+    "pred_delta_db": -1.579992906190455,
+    "recovered": 0.6575865202506036,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 2,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -4.241149425506592,
+    "pred_delta_db": 0.3558802604675293,
+    "recovered": -0.08391127611001835,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.3873523473739624,
+    "pred_delta_db": 0.010875463485717773,
+    "recovered": -0.007839006079676369,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.6385380923748016,
+    "pred_delta_db": 0.04377231001853943,
+    "recovered": -0.026714246206567215,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.9246231019496918,
+    "pred_delta_db": 0.16240098979324102,
+    "recovered": -0.0843806715344551,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 3,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -5.25507926940918,
+    "pred_delta_db": -5.457923412322998,
+    "recovered": 1.0385996352318818,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.6561082005500793,
+    "pred_delta_db": -1.8707185983657837,
+    "recovered": 1.129587183823147,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.7491169273853302,
+    "pred_delta_db": -1.9072311092168093,
+    "recovered": 1.090396576327139,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.892859861254692,
+    "pred_delta_db": -2.075110748410225,
+    "recovered": 1.0962833492780215,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 3,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -5.254688262939453,
+    "pred_delta_db": 0.24613380432128906,
+    "recovered": -0.04684080044428796,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.5965327620506287,
+    "pred_delta_db": 0.10607421398162842,
+    "recovered": -0.06644036157791332,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.6784831881523132,
+    "pred_delta_db": 0.16742616891860962,
+    "recovered": -0.09974849322316633,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.8410147726535797,
+    "pred_delta_db": 0.17420053482055664,
+    "recovered": -0.09462201901262833,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 4,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -5.361659526824951,
+    "pred_delta_db": -5.6093525886535645,
+    "recovered": 1.0461970889030492,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.5871620178222656,
+    "pred_delta_db": -2.0998382568359375,
+    "recovered": 1.3230144328410225,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.4660584926605225,
+    "pred_delta_db": -2.0193487405776978,
+    "recovered": 1.3773998450178442,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.9992874562740326,
+    "pred_delta_db": -3.04498340934515,
+    "recovered": 1.5230343189467743,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 4,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -5.361394882202148,
+    "pred_delta_db": 0.33946752548217773,
+    "recovered": -0.0633170159894554,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.521240472793579,
+    "pred_delta_db": 0.12983739376068115,
+    "recovered": -0.08534968407871114,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.3021588325500488,
+    "pred_delta_db": 0.2605518698692322,
+    "recovered": -0.2000922340318402,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.7917178571224213,
+    "pred_delta_db": 0.3993985056877136,
+    "recovered": -0.2229137272367009,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 5,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -6.065633296966553,
+    "pred_delta_db": -6.054489612579346,
+    "recovered": 0.9981628160092072,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.6655057668685913,
+    "pred_delta_db": -2.1494752168655396,
+    "recovered": 1.2905840733934448,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.4259129762649536,
+    "pred_delta_db": -1.768544316291809,
+    "recovered": 1.2402890959898172,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.775784194469452,
+    "pred_delta_db": -2.684230972081423,
+    "recovered": 1.511574987794835,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 5,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -6.150338649749756,
+    "pred_delta_db": 0.29415369033813477,
+    "recovered": -0.047827234740985075,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.5701484680175781,
+    "pred_delta_db": 0.055873990058898926,
+    "recovered": -0.035585163567012065,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.178801953792572,
+    "pred_delta_db": 0.08763313293457031,
+    "recovered": -0.07434084466235172,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.473470777273178,
+    "pred_delta_db": 0.19714117050170898,
+    "recovered": -0.13379374300625133,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 6,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -4.806649684906006,
+    "pred_delta_db": -6.074934005737305,
+    "recovered": 1.2638603609524541,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.5880250930786133,
+    "pred_delta_db": -1.8343406915664673,
+    "recovered": 1.1551081274228079,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.770256906747818,
+    "pred_delta_db": -1.4930931851267815,
+    "recovered": 0.8434330516861416,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.9565486907958984,
+    "pred_delta_db": -2.1480506286025047,
+    "recovered": 1.0978774199218655,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 6,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -4.733366966247559,
+    "pred_delta_db": 0.322268009185791,
+    "recovered": -0.06808430689693036,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.4095968008041382,
+    "pred_delta_db": -0.0012516975402832031,
+    "recovered": 0.0008879826767265237,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.5068919956684113,
+    "pred_delta_db": 0.055976808071136475,
+    "recovered": -0.037147193184410586,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.690448597073555,
+    "pred_delta_db": 0.17458817921578884,
+    "recovered": -0.10327920027738775,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 7,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -4.776515960693359,
+    "pred_delta_db": -5.435619354248047,
+    "recovered": 1.1379883159563466,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.4788323640823364,
+    "pred_delta_db": -1.77504301071167,
+    "recovered": 1.2003003544036865,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.6754521429538727,
+    "pred_delta_db": -1.3743667304515839,
+    "recovered": 0.820296023513112,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -2.041774094104767,
+    "pred_delta_db": -2.095702961087227,
+    "recovered": 1.026412749156809,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 7,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -4.683797359466553,
+    "pred_delta_db": 0.3614187240600586,
+    "recovered": -0.07716361241153723,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.3540679216384888,
+    "pred_delta_db": 0.07332801818847656,
+    "recovered": -0.05415386999179927,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.4554205536842346,
+    "pred_delta_db": 0.07990658283233643,
+    "recovered": -0.05490274452292283,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.802627295255661,
+    "pred_delta_db": 0.20862728357315063,
+    "recovered": -0.11573511846971211,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 8,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -5.738320350646973,
+    "pred_delta_db": -5.964789390563965,
+    "recovered": 1.0394660852093172,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.6577285528182983,
+    "pred_delta_db": -1.8784114718437195,
+    "recovered": 1.1331236761593078,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.720198541879654,
+    "pred_delta_db": -1.7427339777350426,
+    "recovered": 1.0131004853839511,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.9351030886173248,
+    "pred_delta_db": -2.109924405813217,
+    "recovered": 1.0903421209052,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 8,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -5.737853050231934,
+    "pred_delta_db": 0.26073217391967773,
+    "recovered": -0.045440720010969694,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.5436553955078125,
+    "pred_delta_db": 0.04726588726043701,
+    "recovered": -0.030619455221667573,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.5349234640598297,
+    "pred_delta_db": 0.13187050819396973,
+    "recovered": -0.0859134095488878,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.745731681585312,
+    "pred_delta_db": 0.18242627382278442,
+    "recovered": -0.10449846087293425,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 9,
+   "kind": "t_window_seen",
+   "lo0": {
+    "gt_delta_db": -4.754126071929932,
+    "pred_delta_db": -5.168905258178711,
+    "recovered": 1.0872461478667519,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.5291917324066162,
+    "pred_delta_db": -1.7384719848632812,
+    "recovered": 1.1368567773560372,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.7534518241882324,
+    "pred_delta_db": -1.5755382180213928,
+    "recovered": 0.8985352185257753,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -2.0119741559028625,
+    "pred_delta_db": -2.371332049369812,
+    "recovered": 1.1786095971524493,
+    "from_hz": 20.5
+   }
+  },
+  {
+   "geom_id": 9,
+   "kind": "t_window_holdout",
+   "lo0": {
+    "gt_delta_db": -4.83457088470459,
+    "pred_delta_db": 0.31197309494018555,
+    "recovered": -0.0645296350762366,
+    "from_hz": 0.0
+   },
+   "lo11": {
+    "gt_delta_db": -1.4059048891067505,
+    "pred_delta_db": 0.06579816341400146,
+    "recovered": -0.04680129070168231,
+    "from_hz": 5.5
+   },
+   "lo21": {
+    "gt_delta_db": -1.5216116607189178,
+    "pred_delta_db": 0.16384661197662354,
+    "recovered": -0.10767965060100204,
+    "from_hz": 10.5
+   },
+   "lo41": {
+    "gt_delta_db": -1.7742055654525757,
+    "pred_delta_db": 0.2972005307674408,
+    "recovered": -0.16751189183178386,
+    "from_hz": 20.5
+   }
+  }
+ ]
+}
