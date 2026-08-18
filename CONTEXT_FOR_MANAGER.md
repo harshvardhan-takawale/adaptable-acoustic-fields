@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **Arm C demo pack COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **Arm C demo pack v2 (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A and the Delta difference maps are done; the doorway figure is outstanding. See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -10,6 +10,60 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Also fixed this chunk: a regression I introduced.** The P3-2c audit A1 commit (`ee6ead0`) made the entire per-cell slope regression dead code, so **every rho computed between `ee6ead0` and `ad91b3a` was NaN**. Caught because P3-2c re-evaluates P3-2b arm C as its first curve point and reproduced every number except rho. The A1 guard tests could not have caught it — they asserted over stored `summary.json` files produced by the pre-A1 code, validating documents rather than the code that writes them. `tests/test_p3_2b_slopefit_regression.py` now fits synthetic data end-to-end. No published number changed.
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+
+## Phase 3 — Arm C demo pack **v2** (2026-08-18): the modal hierarchy and the Delta test
+
+**Items 1-3 DONE; the doorway figure is the one piece outstanding.** `outputs/armC_demo/v2/` —
+three figures, `FIGURE_MANIFEST.md`, `mode_screen.json`, `figures_v2.json`. Full writeup:
+`tasks/CHUNK_ARMC_V2_RESULTS.md`. Read `DECISIONS.md` **D62b / D62c**.
+
+Same checkpoint as v1, no training, no new library code, v1 figures untouched. Items 1-3 needed
+**zero new compute** — v1's cached dumps hold the full `(4096, 601)` spectra to 300 Hz.
+Tests: **449 passed**.
+
+**1. Mode screen — the abort rule did NOT trip.** 24 modes ≤ 200 Hz, median geometry:
+
+| | dB | linear |
+|---|---:|---:|
+| mean | **+0.822** | +0.681 |
+| ≥ 0.70 | **23/24** | 9/24 |
+| ≥ 0.85 | 9/24 | 1/24 |
+
+6 of the 21 modes above 60 Hz clear 0.85 (rule required zero), highest **198.9 Hz**. Accuracy is
+**NOT monotone in frequency**: +0.655 at (3,2) 138 Hz recovering to +0.891 at (4,3) 199 Hz.
+
+**2. New Fig A** — modes (1,0) 28.9 / (1,2) 111.7 / (4,3) 198.9 Hz × 4 scenarios, pred/ISM
+stacked. Per-cell dB Pearson 0.780–0.991; the held-out `north@0.70` column scores **highest in
+both higher-mode rows** (+0.885, +0.919).
+
+**3. Delta maps — the new headline, and it is mixed.** `Delta = edited − baseline` cancels the
+shared room structure raw correlation partly rewards. Over 24 modes (linear):
+
+| edit | mean | lowest 6 modes | highest 6 modes |
+|---|---:|---:|---:|
+| east curtain 0.50 | +0.586 | +0.871 | **+0.315** |
+| north absorber 0.70 ★ | +0.614 | +0.822 | **+0.391** |
+| two-wall | **+0.835** | +0.885 | **+0.876** |
+
+Delta is materially below raw-field (0.78–0.99) at every mode, but **the decay is not
+universal** — large edits hold across the band, small single-wall edits collapse above ~110 Hz.
+**Delta recovery tracks EDIT MAGNITUDE as well as frequency**, so editing claims must be scoped
+to edit size. Delta leads with linear (dB printed everywhere); the ordering is justified by
+null-divergence in the dB form and is flagged as the more favourable one.
+
+**Three things the manager should not miss.** (i) The **large** test geometry is the weak case —
+mean +0.735, only 4/35 modes ≥ 0.85 — so a headline taken from the median geometry alone is not
+representative. (ii) **11 of 24 modes are not isolated** (neighbour inside the Kuttruff
+linewidth), including Fig A2's mid row; those labels are nominal. (iii) Two of my own errors were
+caught in-flight and are recorded rather than silently fixed: the linewidth/isolation estimate,
+and a figE title claiming universal Delta decay.
+
+**4. Doorway (ground truth only, no model).** Dense FDTD pass done on FT-B's frozen 8.0 × 4.0
+domain (8192 receivers, 15.9 GB peak); sealed room B is **exactly zero**, matching
+`DATASET_GATE.json`. My level differences disagreed with FT-B's published table because FT-B uses
+`20log10(mean|H|)` (amplitude mean) where I used a power mean — switching estimators closes most
+of the gap. A reproduction pass on FT-B's exact protocol is running to attribute the remainder
+rather than leave it unexplained. `figF` awaits it.
 
 ## Phase 3 — Arm C demo pack (2026-08-18): dense zero-shot fields on the CLEAN corpus
 
