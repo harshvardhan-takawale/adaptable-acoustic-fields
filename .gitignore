@@ -176,3 +176,7 @@ slurm-*.out
 # sufficient guard for that — keep them structurally unpushable.
 /outputs/p3_2b/meeting_assets_SYNTHETIC/**
 /outputs/p3_2b/synthetic/**
+
+# P3-3-FAST meeting figures (small, and the pack is the deliverable); the blanket
+# /outputs/**/*.png rule above would otherwise drop them.
+!/outputs/p3_3fast/meeting_assets/**/*.png

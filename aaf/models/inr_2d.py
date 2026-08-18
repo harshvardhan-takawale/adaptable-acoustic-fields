@@ -254,10 +254,11 @@ class INR2D_AutoDecoder(nn.Module):
         # builder is perfectly happy with.
         if cond_source not in ("latent", "geom_alpha_fourier", "m_linear", "m_segment",
                                "m_token", "m_token_delta",
-                               "aperture"):
+                               "aperture", "aperture_token"):
             raise ValueError(
                 f"cond_source must be 'latent', 'geom_alpha_fourier', 'm_linear', "
-                f"'m_segment', 'm_token', 'm_token_delta' or 'aperture', got {cond_source!r}"
+                f"'m_segment', 'm_token', 'm_token_delta', 'aperture' or "
+                f"'aperture_token', got {cond_source!r}"
             )
         if conditioning_type not in ("concat", "film", "film_lora"):
             raise ValueError(
@@ -291,19 +292,29 @@ class INR2D_AutoDecoder(nn.Module):
         # receive gradient; conditioning_2d is a fixed, tcnn-free, CPU-testable featurizer.
         self.segment_encoder = None
         self.token_pool = None
-        if self.cond_source in ("m_token", "m_token_delta"):
-            from aaf.models.conditioning_2d import (D_TOK, N_SEG_COND, TOKEN_AGG_DIM,
+        if self.cond_source in ("m_token", "m_token_delta", "aperture_token"):
+            from aaf.models.conditioning_2d import (APER_TOKEN_COND_DIM, APER_TOKEN_DIM_2D,
+                                                    D_TOK, N_SEG_COND, TOKEN_AGG_DIM,
                                                     TOKEN_COND_DIM, TOKEN_DIM_2D)
-            if self.cond_dim != TOKEN_DIM_2D:
+            # Track B2 reuses this encoder VERBATIM -- same 16 tokens, same D_TOK = 26
+            # featurization -- and differs only in the width of the geometry block that rides
+            # in front of them: 32 for (L, W) on the absorption axis, 48 for (L, W, x0) on the
+            # aperture axis, since a model without the divider position cannot tell which
+            # sub-room a receiver is in.
+            if self.cond_source == "aperture_token":
+                _expect, _reduced = APER_TOKEN_DIM_2D, APER_TOKEN_COND_DIM
+            else:
+                _expect, _reduced = TOKEN_DIM_2D, TOKEN_COND_DIM
+            if self.cond_dim != _expect:
                 raise ValueError(
-                    f"m_token expects cond_dim={TOKEN_DIM_2D}, got {self.cond_dim}")
+                    f"{self.cond_source} expects cond_dim={_expect}, got {self.cond_dim}")
             self._tok_n, self._tok_d = N_SEG_COND, D_TOK
-            self._tok_geom = TOKEN_DIM_2D - N_SEG_COND * D_TOK          # 32
+            self._tok_geom = _expect - N_SEG_COND * D_TOK               # 32 (A2/A3) or 48 (B2)
             self.segment_encoder = nn.Sequential(
                 nn.Linear(D_TOK, TOKEN_AGG_DIM), nn.ReLU(),
                 nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM),
             )
-            self.token_pool = "delta" if self.cond_source == "m_token_delta" else "mean"
+            self.token_pool = "mean" if self.cond_source == "m_token" else "delta"
             if self.token_pool == "delta":
                 # DELTA-POOLING (A3). A2's mean-pool fixed transfer but diluted magnitude:
                 # 15 of 16 tokens sit at baseline, so one edit moves the mean by ~1/16 and the
@@ -314,6 +325,13 @@ class INR2D_AutoDecoder(nn.Module):
                 # transfer property is preserved by construction rather than re-argued.
                 # The baseline token is the same token with m_hat at the baseline value, so it
                 # is derivable here and conditioning_2d needs no change.
+                #
+                # TRACK B2: the divider's own alpha IS ALPHA_BASELINE, so a SEALED divider has
+                # every one of its 16 tokens at the baseline m_hat and the aggregate is
+                # EXACTLY ZERO. That is correct, not a bug -- a sealed divider is the
+                # un-edited room, and the doorway is the edit. (It is also why a = 0 must stay
+                # out of training: its physics, H_B == 0, is a topological discontinuity that
+                # no continuous coordinate -- and no zero aggregate -- can represent.)
                 from aaf.data.seg_configs import m_of_alpha as _m_of_alpha
                 from aaf.models.conditioning_2d import (M_NORM_SEG_COND, N_K_TOK_M,
                                                         N_K_TOK_POS)
@@ -330,7 +348,7 @@ class INR2D_AutoDecoder(nn.Module):
                 self.register_buffer("_tok_baseline_m",
                                      torch.tensor(base, dtype=torch.float32))
             # Everything downstream (FiLM, concat) sees the REDUCED width.
-            self.cond_dim = TOKEN_COND_DIM                               # 96
+            self.cond_dim = _reduced                          # 96 (A2/A3) or 112 (B2)
         self.l_head_out_dim = int(l_head_out_dim)
         self.n_freq_bins = int(n_freq_bins)
         self.signal_output_dim = 2 * self.n_freq_bins
@@ -557,7 +575,8 @@ class INR2D_AutoDecoder(nn.Module):
         tx_view_flat = self._normalize_unit(tx_view.reshape(-1, 2))
         z_s_flat = self._expand_z_s(z_s, B, N).to(pts_flat.dtype)  # [B*N, latent_dim]
         if self.segment_encoder is not None:
-            # [B*N, 32 + 16*26] -> shared MLP per token -> mean-pool -> [B*N, 32 + 64]
+            # [B*N, G + 16*26] -> shared MLP per token -> pool -> [B*N, G + 64]
+            # G = 32 for the m_token arms (L, W), 48 for aperture_token (L, W, x0).
             g = z_s_flat[:, :self._tok_geom]
             t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
             if self.token_pool == "delta":

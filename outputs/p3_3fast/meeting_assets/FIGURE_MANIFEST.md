@@ -22,6 +22,7 @@ Canvas: 12.8 x 7.2 in at 200 dpi = 2560 x 1440 px (floor: 1920 x 1080, dpi >= 16
 | 2 | [`fig2_two_solver_selectivity.png`](fig2_two_solver_selectivity.png) | written | 2560 x 1440 |
 | 3 | [`fig3_boundary_validation.png`](fig3_boundary_validation.png) | written | 2560 x 1440 |
 | 4 | [`fig4_p3_2d_sampling_law.png`](fig4_p3_2d_sampling_law.png) | written | 2560 x 1440 |
+| 5 | [`fig5_topological_edits.png`](fig5_topological_edits.png) | written | 3200 x 1984 |
 
 ---
 
@@ -363,4 +364,263 @@ Canvas: 12.8 x 7.2 in at 200 dpi = 2560 x 1440 px (floor: 1920 x 1080, dpi >= 16
 
 **DISCREPANCY vs the task spec -- read this**:
 - The task spec called rho_all 'the published rho_holdout'. The files say the opposite: slope_fit.rho_published equals aggregate.own_family.slab_local.rho_median in all 7 summaries read here (slab_local), and slope_fit.publication_policy names aggregate.own_family.all as 'diagnostic_only'. Both series are therefore plotted and both are labelled with their exact JSON path; rho_slab_local is annotated as the A1-gated number. This is an OPEN definitional question, escalated in outputs/p3_2d/SAMPLING_LAW.md, not resolved here.
+
+---
+
+## FIG 5 -- `fig5_topological_edits`
+
+**File**: `outputs/p3_3fast/meeting_assets/fig5_topological_edits.png` (3200 x 1984 px, 160 dpi)
+
+**Produced by**: `scripts/p3_3fast_demo_figure.py` (re-runnable; `sbatch scripts/slurm/p3_3fast_demo_figure.sh`). NOTE: `scripts/p3_3fast_figures.py` REWRITES this manifest from scratch, so re-run this script after it to restore this entry -- the append is idempotent and replaces its own section in place.
+
+**Source(s)** -- every plotted value comes from here:
+- `outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0030000.pt`
+- `configs/sweeps_2d_mat/p3_3fast_trackA_manifest.json`
+- `data/track_p3_3fast_A (corpus GT for panels a/d/e)`
+- `data/track_p3_3fast_A_demo (GT for panels b/c, simulated by this script through scripts/build_p3_3fast_trackA.build_one)`
+- `outputs/p3_3fast/trackA2/DIAGNOSTIC_30K.json/DIAGNOSTIC.json (geometry pick + the A2 aggregate recovery quoted)`
+- `outputs/p3_3fast/floored_lsd_30k.json (corpus-wide raw vs floored LSD quoted in the note)`
+- `outputs/p3_3fast/meeting_assets/fig5_topological_edits.json (sidecar written by this run)`
+
+**Caption** (as printed on the figure):
+
+> ZERO-SHOT room editing. One held-out test geometry (5.25 x 3.60 m; the 10 test geometries share no (L, W) with the 20 training geometries), five edits, ONE FORWARD PASS PER PANEL -- no optimisation, no per-room fitting, and no measurement of any edited room enters the prediction; the model is given only (L, W) and the 16 segment absorptions. Panels (c) and (d) edit east_3, a segment position that is at the baseline in ALL 400 training configs. In-band (0-300 Hz) energy change vs the baseline room and the fraction of it the model recovers: (b) GT -1.29 dB, recovered +1.187; (c) GT -1.32 dB, recovered +0.895; (d) GT -4.83 dB, recovered +1.009. For reference, the converged Track A2 aggregate over all 10 test geometries is +1.010 at the held-out window position and +1.106 at the seen one. Panel (e) is a separate forward pass whose output is bitwise identical to (a): closing the window restores the room exactly.
+
+**Figure note** (as printed on the figure):
+
+> LIMITATION: the open window is modelled as a MATCHED-IMPEDANCE boundary (alpha -> 0.95, a first-order absorbing condition). That captures the energy loss and the Q reduction of an aperture; it does NOT carry radiation reactance and does NOT carry edge diffraction at the rim, so the reactive near-field and the modal frequency pull of a real opening are absent from BOTH the model and this ground truth.  |  ACCURACY -- three LSDs, all quoted: raw over all 601 in-band bins 6.32-6.68 dB; over the 27 baseline modal-peak bins 7.00-7.28 dB; over bins within -40 dB of each config's own peak 1.48-1.71 dB; corpus-wide over all 120 test configs at this checkpoint 5.460 raw / 0.703 floored, i.e. this geometry is HARDER than the corpus mean, not an easy pick. READ THE THIRD ONE WITH CARE: in this corpus the per-config peak is the bin-0 (0,0) compliance term, ~46 dB above the strongest room mode, so a -40 dB floor keeps only bins 0-12 (0-6 Hz) and measures the near-DC term, not the modal content. The modal-peak LSD is the honest 'error on the physics' number here. No floor was ever used to select a model or a checkpoint.  |  MODE SHAPE -- a NEGATIVE result, stated: at the plotted mode the predicted map does NOT reproduce the ground-truth standing wave (GT-vs-prediction spatial correlation r = +0.24 to +0.60 over the five panels). The model gets the receiver-averaged spectrum and the ENERGY response to the edit right while placing the low-frequency field wrongly in space -- its map stays source-centred where the GT is a standing wave. The zero-shot claim on this figure is about energy, not about mode shape.  |  MAPS: 8 x 8 receiver grid (nearest-neighbour, not interpolated, 0.3 m inset from the walls), plotted only at modes the grid resolves (n_x <= 3, n_y <= 4); each ROW is referenced to its own panel-(a) peak -- which removes the constant +1.67 dB model-vs-GT level offset but no per-panel difference -- and then colour-scaled to its own range. Star = source, thick bar = the edited segment. Spectra y-limits crop the +63 dB near-DC term.
+
+**Exact numbers plotted**:
+
+- **checkpoint**: {"path": "outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0030000.pt", "iter": 30000, "cond_source": "m_token", "cond_dim": 448, "conditioning_type": "film", "n_train_configs": 400}
+- **geometry**
+  - **geom_id**: 9
+  - **L_m**: 5.25
+  - **W_m**: 3.6
+  - **selection_rule**: median of the 10 test geometries by t_window_holdout energy_recovered_frac in /fs/nexus-projects/multimodal_recon/adaptable-acoustic-fields/outputs/p3_3fast/trackA2/DIAGNOSTIC_30K.json/DIAGNOSTIC.json (lower median, deterministic; NOT the best geometry)
+  - **selection_ranking_window_holdout_recovery**
+    - {"geom_id": 1, "energy_recovered_frac": 0.8486300649104926}
+    - {"geom_id": 5, "energy_recovered_frac": 0.8692453150082657}
+    - {"geom_id": 3, "energy_recovered_frac": 0.9434920763873076}
+    - {"geom_id": 8, "energy_recovered_frac": 0.9497035401358247}
+    - {"geom_id": 9, "energy_recovered_frac": 1.0094877768470367}
+    - {"geom_id": 4, "energy_recovered_frac": 1.0178540275404908}
+    - {"geom_id": 0, "energy_recovered_frac": 1.0194778186845728}
+    - {"geom_id": 7, "energy_recovered_frac": 1.0549134506048545}
+    - {"geom_id": 2, "energy_recovered_frac": 1.171896985193954}
+    - {"geom_id": 6, "energy_recovered_frac": 1.2182713565067353}
+  - **source_pos_m**: [0.5, 0.5]
+  - **n_receivers**: 64
+  - **receiver_grid**: 8 x 8
+- **band**: {"hi_hz": 300.0, "df_hz": 0.5, "n_bins": 601, "usable_cell_fraction": 1.0, "eps_usable": 1e-08}
+- **mode_candidates**
+  - **n_baseline_modal_peaks**: 27
+  - **peak_bins_hz**
+    - 32.5
+    - 47.5
+    - 57.5
+    - 65.5
+    - 81
+    - 95.5
+    - 98
+    - 109
+    - 115.5
+    - 130.5
+    - 137
+    - 146
+    - 157
+    - 161.5
+    - 173
+    - 196
+    - 201.5
+    - 218
+    - 229
+    - 234
+    - 238.5
+    - 247
+    - 257.5
+    - 271.5
+    - 287
+    - 294
+    - 297.5
+  - **spatially_resolvable_bins_hz**
+    - 32.5
+    - 47.5
+    - 57.5
+    - 65.5
+    - 81
+    - 95.5
+    - 98
+    - 109
+    - 115.5
+    - 137
+    - 146
+    - 157
+    - 173
+    - 201.5
+  - **n_x_max**: 3
+  - **n_y_max**: 4
+  - **rx_spacing_m**: [0.661259, 0.42]
+  - **strongest_baseline_modal_peak_db**: 17.2285
+  - **bin0_level_db**: 63.336
+  - **bin0_above_strongest_mode_db**: 46.1075
+- **determinism**: {"panel_e_bitwise_identical_to_panel_a": true}
+- **level_offset_pred_minus_gt_db**: 1.6671
+- **aggregate_reference**
+  - **trackA2_window_holdout_recovery_mean**: 1.0103
+  - **trackA2_window_seen_recovery_mean**: 1.10622
+  - **corpus_lsd_raw_mean_db**: 5.46047
+  - **corpus_lsd_floor40_mean_db**: 0.702693
+  - **corpus_frac_bins_above_floor40**: 0.0271002
+  - **corpus_checkpoint**: outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0030000.pt
+  - **corpus_n_configs**: 120
+- **panels**
+  - [0]
+    - **panel**: a
+    - **name**: baseline
+    - **edited_segments**: []
+    - **alpha_edited**: [0.15]
+    - **held_out_position**: False
+    - **gt_file**: {"path": "data/track_p3_3fast_A/L5.25_W3.60_sega44942f6953c.h5", "provenance": "corpus"}
+    - **d_energy_gt_db**: 0
+    - **d_energy_pred_db**: 0
+    - **energy_recovered_frac**: nan
+    - **lsd_raw_db**: 6.67817
+    - **lsd_modal_peaks_db**: 7.27778
+    - **lsd_floor40_db**: 1.61341
+    - **frac_bins_above_floor40**: 0.0210327
+    - **map_gt_vs_pred_spatial_pearson_r**: 0.243566
+    - **mode**
+      - **bin**: 65
+      - **f_hz**: 32.5
+      - **gt_delta_at_mode_db**: 0
+      - **pred_delta_at_mode_db**: 0
+      - **nearest_analytic_mode**: {"n_x": 1, "n_y": 0, "f_theory_hz": 32.666666666666664, "family": "x_axial", "offset_hz": -0.1666666666666643}
+    - **mode_selection**: baseline panel: GT delta vs baseline is identically zero, so no mode is 'most affected'; the map is shown at panel (d)'s mode so the open/closed pair is at one frequency
+    - **mode_candidates_top3_by_abs_gt_delta**: []
+    - **mode_unrestricted_argmax**: None
+  - [1]
+    - **panel**: b
+    - **name**: curtain on west_2
+    - **edited_segments**: ["west_2"]
+    - **alpha_edited**: [0.5]
+    - **held_out_position**: False
+    - **gt_file**: {"path": "data/track_p3_3fast_A_demo/L5.25_W3.60_seg2b01265a5603.h5", "provenance": "demo-cache"}
+    - **d_energy_gt_db**: -1.29416
+    - **d_energy_pred_db**: -1.53599
+    - **energy_recovered_frac**: 1.18685
+    - **lsd_raw_db**: 6.51175
+    - **lsd_modal_peaks_db**: 7.15248
+    - **lsd_floor40_db**: 1.48367
+    - **frac_bins_above_floor40**: 0.0222546
+    - **map_gt_vs_pred_spatial_pearson_r**: 0.444023
+    - **mode**
+      - **bin**: 65
+      - **f_hz**: 32.5
+      - **gt_delta_at_mode_db**: -1.80794
+      - **pred_delta_at_mode_db**: -1.16514
+      - **nearest_analytic_mode**: {"n_x": 1, "n_y": 0, "f_theory_hz": 32.666666666666664, "family": "x_axial", "offset_hz": -0.1666666666666643}
+    - **mode_selection**: argmax |GT delta vs baseline| over baseline modal peaks
+    - **mode_candidates_top3_by_abs_gt_delta**
+      - {"f_hz": 32.5, "gt_delta_db": -1.8079357147216797, "baseline_level_db": 17.22845458984375}
+      - {"f_hz": 65.5, "gt_delta_db": -1.7042999267578125, "baseline_level_db": 10.279187202453613}
+      - {"f_hz": 157.0, "gt_delta_db": -1.4330921173095703, "baseline_level_db": -7.851120948791504}
+    - **mode_unrestricted_argmax**: {"f_hz": 294.0, "gt_delta_db": -1.816962480545044, "baseline_level_db": -0.2763309180736542, "same_as_plotted": false}
+  - [2]
+    - **panel**: c
+    - **name**: curtain on east_3
+    - **edited_segments**: ["east_3"]
+    - **alpha_edited**: [0.5]
+    - **held_out_position**: True
+    - **gt_file**: {"path": "data/track_p3_3fast_A_demo/L5.25_W3.60_seged74ae5b8058.h5", "provenance": "demo-cache"}
+    - **d_energy_gt_db**: -1.32076
+    - **d_energy_pred_db**: -1.18192
+    - **energy_recovered_frac**: 0.894876
+    - **lsd_raw_db**: 6.57726
+    - **lsd_modal_peaks_db**: 7.1762
+    - **lsd_floor40_db**: 1.7138
+    - **frac_bins_above_floor40**: 0.0222546
+    - **map_gt_vs_pred_spatial_pearson_r**: 0.426279
+    - **mode**
+      - **bin**: 65
+      - **f_hz**: 32.5
+      - **gt_delta_at_mode_db**: -1.79014
+      - **pred_delta_at_mode_db**: -0.849384
+      - **nearest_analytic_mode**: {"n_x": 1, "n_y": 0, "f_theory_hz": 32.666666666666664, "family": "x_axial", "offset_hz": -0.1666666666666643}
+    - **mode_selection**: argmax |GT delta vs baseline| over baseline modal peaks
+    - **mode_candidates_top3_by_abs_gt_delta**
+      - {"f_hz": 32.5, "gt_delta_db": -1.7901411056518555, "baseline_level_db": 17.22845458984375}
+      - {"f_hz": 65.5, "gt_delta_db": -1.67633056640625, "baseline_level_db": 10.279187202453613}
+      - {"f_hz": 115.5, "gt_delta_db": -0.9625774621963501, "baseline_level_db": 1.6091995239257812}
+    - **mode_unrestricted_argmax**: {"f_hz": 32.5, "gt_delta_db": -1.7901411056518555, "baseline_level_db": 17.22845458984375, "same_as_plotted": true}
+  - [3]
+    - **panel**: d
+    - **name**: window open at east_3
+    - **edited_segments**: ["east_3"]
+    - **alpha_edited**: [0.95]
+    - **held_out_position**: True
+    - **gt_file**: {"path": "data/track_p3_3fast_A/L5.25_W3.60_segeb2c4b75d5d4.h5", "provenance": "corpus"}
+    - **d_energy_gt_db**: -4.83457
+    - **d_energy_pred_db**: -4.88044
+    - **energy_recovered_frac**: 1.00949
+    - **lsd_raw_db**: 6.32045
+    - **lsd_modal_peaks_db**: 7.0042
+    - **lsd_floor40_db**: 1.61347
+    - **frac_bins_above_floor40**: 0.0260763
+    - **map_gt_vs_pred_spatial_pearson_r**: 0.604096
+    - **mode**
+      - **bin**: 65
+      - **f_hz**: 32.5
+      - **gt_delta_at_mode_db**: -5.98471
+      - **pred_delta_at_mode_db**: -2.86313
+      - **nearest_analytic_mode**: {"n_x": 1, "n_y": 0, "f_theory_hz": 32.666666666666664, "family": "x_axial", "offset_hz": -0.1666666666666643}
+    - **mode_selection**: argmax |GT delta vs baseline| over baseline modal peaks
+    - **mode_candidates_top3_by_abs_gt_delta**
+      - {"f_hz": 32.5, "gt_delta_db": -5.984710693359375, "baseline_level_db": 17.22845458984375}
+      - {"f_hz": 65.5, "gt_delta_db": -4.9949164390563965, "baseline_level_db": 10.279187202453613}
+      - {"f_hz": 115.5, "gt_delta_db": -2.8732621669769287, "baseline_level_db": 1.6091995239257812}
+    - **mode_unrestricted_argmax**: {"f_hz": 32.5, "gt_delta_db": -5.984710693359375, "baseline_level_db": 17.22845458984375, "same_as_plotted": true}
+  - [4]
+    - **panel**: e
+    - **name**: window closed
+    - **edited_segments**: []
+    - **alpha_edited**: [0.15]
+    - **held_out_position**: False
+    - **gt_file**: {"path": "data/track_p3_3fast_A/L5.25_W3.60_sega44942f6953c.h5", "provenance": "corpus"}
+    - **d_energy_gt_db**: 0
+    - **d_energy_pred_db**: 0
+    - **energy_recovered_frac**: nan
+    - **lsd_raw_db**: 6.67817
+    - **lsd_modal_peaks_db**: 7.27778
+    - **lsd_floor40_db**: 1.61341
+    - **frac_bins_above_floor40**: 0.0210327
+    - **map_gt_vs_pred_spatial_pearson_r**: 0.243566
+    - **mode**
+      - **bin**: 65
+      - **f_hz**: 32.5
+      - **gt_delta_at_mode_db**: 0
+      - **pred_delta_at_mode_db**: 0
+      - **nearest_analytic_mode**: {"n_x": 1, "n_y": 0, "f_theory_hz": 32.666666666666664, "family": "x_axial", "offset_hz": -0.1666666666666643}
+    - **mode_selection**: baseline panel: GT delta vs baseline is identically zero, so no mode is 'most affected'; the map is shown at panel (d)'s mode so the open/closed pair is at one frequency
+    - **mode_candidates_top3_by_abs_gt_delta**: []
+    - **mode_unrestricted_argmax**: None
+
+**Computed here** (not read from any JSON):
+- every per-panel number: the five predictions are rendered here, one render_config_arm forward pass each, and every plotted quantity is derived from those renders and the FDTD ground truth -- nothing is read from a summary
+- in-band energy delta vs baseline = 10*log10(sum|H_panel|^2 / sum|H_baseline|^2) over the shared usable cells, via scripts.p3_3fast_trackA_diag.band_energy_db (the SAME estimator behind the quoted A2 aggregate)
+- recovery fraction = d_energy_pred_db / d_energy_gt_db (dB ratio, so 1.0 means the model moved the in-band energy by exactly the GT amount)
+- LSD raw and floored via scripts.p3_3fast_floored_lsd.lsd_floored; the floor is -40 dB relative to each config's OWN GT peak. A THIRD LSD is defined here: the same mean |dB(pred) - dB(gt)| restricted to the baseline modal-peak bins over all 64 receivers, because the -40 dB floor turns out to select only bins 0-12
+- receiver-RMS spectrum = 10*log10(mean over the 64 receivers of |H|^2)
+- mode selection = argmax of |GT receiver-RMS delta vs baseline| over the baseline spectrum's local maxima, keeping peaks within 40 dB of the STRONGEST LOCAL MAXIMUM (not of s.max(), which is the bin-0 compliance term) and spatially resolvable by the 8 x 8 grid (n_x <= floor(L/2dx_rx), n_y <= floor(W/2dy_rx)). The unrestricted argmax is recorded per panel for comparison
+- nearest analytic mode label from aaf.eval.modal_projection.enumerate_modes
+- map row reference level = max of that row's panel-(a) map, subtracted from every panel in the row; each row is then colour-scaled to its own min/max across the five panels, so cross-PANEL comparison inside a row is exact while GT-vs-pred is a comparison of SHAPE, quantified separately by the spatial Pearson r
+- map GT-vs-pred spatial Pearson r = corrcoef of the two 64-point dB maps at the plotted mode
+
+**Honest limitations**:
+- The open window is a MATCHED-IMPEDANCE boundary (alpha -> 0.95): energy loss and Q reduction yes, radiation reactance and edge diffraction NO.
+- Ground truth for panels (b) and (c) (alpha = 0.50) is not in the Track A corpus and was simulated by this script into a SEPARATE directory; the training corpus and its gate hashes are untouched. Same solver, dx, fs and receiver snapping as the corpus, via the corpus builder itself.
+- The spatial maps are an 8 x 8 receiver grid inset from the walls (0.3 m margin), not a dense field: mode shapes are coarsely sampled and nothing is shown at the boundary where the edit actually sits.
+- NEGATIVE RESULT on the bottom row: the predicted field at the plotted mode does not match the ground-truth mode shape (spatial Pearson r reported per panel). The prediction stays source-centred while the GT is a standing wave, so the figure's zero-shot claim holds for the ENERGY response to the edit and NOT for the spatial structure at a single mode. This is shown rather than cropped out.
+- Panels (b) and (c) are at different frequencies from each other and from (a)/(d)/(e) whenever their most-affected modes differ; only (a), (d), (e) are guaranteed to share a frequency.
+- The absolute fit is poor -- in-distribution val LSD plateaued near 4.6 dB. This figure is a RELATIVE claim (does the edit move the field the right way, at a position never trained) and the raw LSD is printed on every panel so the absolute level is never hidden.
 

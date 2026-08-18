@@ -11,6 +11,101 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
 
+## Phase 3 — FIG 5, the headline demo figure (2026-08-18): "edit the room, zero-shot"
+
+**DONE.** `outputs/p3_3fast/meeting_assets/fig5_topological_edits.png` (3200 x 1856 px) +
+`fig5_topological_edits.json` sidecar + a FIG 5 section in `FIGURE_MANIFEST.md`. Re-run with
+`sbatch scripts/slurm/p3_3fast_demo_figure.sh`. Read `DECISIONS.md` **D61** and
+`OPEN_QUESTIONS.md` **Q18**.
+
+Five panels, ONE held-out test geometry (geom_id 9, `L = 5.25`, `W = 3.60`; test geometries
+share no `(L, W)` with the 20 training geometries), each a SINGLE zero-shot forward pass of
+`outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0030000.pt` (`m_token` / 448). No optimisation, no
+per-room fitting, no measurement of the edited room.
+
+**The result is GOOD on energy.** In-band (0-300 Hz) energy change vs the baseline room, and
+the fraction the model recovers:
+
+| panel | edit | GT dE | pred dE | recovered |
+|---|---|---:|---:|---:|
+| (b) | `west_2` alpha 0.50 — TRAINED position | -1.294 dB | -1.536 dB | **+1.187** |
+| (c) | `east_3` alpha 0.50 — HELD-OUT position | -1.321 dB | -1.182 dB | **+0.895** |
+| (d) | `east_3` alpha 0.95 (window) — HELD-OUT | -4.835 dB | -4.880 dB | **+1.009** |
+
+(a) and (e) are the baseline; (e) is a SEPARATE forward pass and is **bitwise identical** to
+(a) — the standing `renderer.eval()` check (D49 C3) passes. The panel-(d) recovery reproduces
+the A2 aggregate (**+1.010** held-out, **+1.106** seen) on a single geometry.
+
+**Two honest negatives, both printed on the figure.**
+
+1. **The predicted MODE SHAPE is wrong.** At the plotted (1,0) mode (32.5 Hz) the GT map is a
+   clean standing wave and the prediction stays source-centred: GT-vs-prediction spatial
+   Pearson **r = +0.24 to +0.60** across the five panels. The zero-shot claim this figure
+   supports is about the ENERGY response to an edit, **not** about spatial structure at a
+   single mode. Consistent with it, an LSD taken over the 27 baseline modal-peak bins
+   (**7.00-7.28 dB**) is *worse* than raw LSD (**6.32-6.68 dB**) on this geometry.
+2. **The circulated "floored LSD" does not measure what it claims** — see **Q18**. In this
+   FDTD corpus each config's peak cell is the bin-0 (0,0) compliance term, ~**46 dB** above the
+   strongest room mode, so a -40 dB peak-relative floor keeps only **bins 0-12 (0-6 Hz)**. The
+   0.6-0.7 dB "floored LSD" is the fit to the near-DC term, not to the modal content.
+
+**Corrected corpus-wide LSD at the demo checkpoint** (`outputs/p3_3fast/floored_lsd_30k.json`,
+all **120** test configs, iter 30000): **5.460 dB raw / 0.703 dB floored**. The previously
+circulated 4.956 / 0.613 came from `--limit 24`, i.e. test geometries 0-1 only, at iter 28000.
+The FIG-5 geometry (6.32-6.68 dB raw) is HARDER than the corpus mean — it was picked by a
+median rule on window recovery, not a best-of.
+
+**New on disk**: `data/track_p3_3fast_A_demo/` — 2 FDTD configs (`west_2` and `east_3` at
+alpha = 0.50) that the Track A test split does not enumerate, built by the corpus builder
+itself into a SEPARATE directory. The training corpus and its `rows_sha256` are untouched.
+
+
+## Phase 3 — P3-3-FAST Track B2 (2026-08-18): the TOKEN encoder on the aperture axis
+
+**Status: TRAINING RUNNING, job `7268013`** (RTX A5000, scavenger, 30K iters, ~24 h wall).
+Output `outputs/p3_3fast/p3_3fast_trackB2/`. Read `DECISIONS.md` **D60**.
+
+**Why.** Track B (`aperture`, 55-d) **failed to represent the law, not to transfer it**:
+predicted inter-room level difference vs `sqrt(a)` fits r^2 **0.172** / slope **2.46** against
+GT's **0.948** / **7.61**, and it is *equally* wrong seen (**2.463 dB** residual) and held out
+(**2.298 dB**, ratio **0.933**, mean held-out residual **0.019 dB**). A transfer failure would
+be asymmetric; this is not. A global vector with a SCALAR aperture cannot induce a SPATIAL
+barrier at `x0` with a gap of width `a` — the same pathology Track A2/A3 fixed on the
+absorption axis by tokenizing the boundary (held-out window recovery **-0.069 -> +1.010**).
+
+**What changed — the conditioning arm ONLY.** Same 472-config FDTD dataset, byte-for-byte
+(`data/track_p3_3fast_B/`, schema `p3_3fast.trackB/1`, **no new simulation**); same band
+(0-300 Hz), optimizer (Adam 2e-4), schedule (30K, ckpt every 2K), `n_pts_per_ray=64`. The yaml
+differs from `P3_3FAST_trackB.yaml` in exactly `run_id`, `cond_source`, `cond_dim`.
+
+- **New arm `aperture_token`, cond_dim 464** = `[48 geometry (L, W, x0) | 16 divider tokens
+  x 26]`, reduced by the shared encoder to **112** = 48 + 64. Token featurization is
+  **byte-identical to A2's** (`D_TOK = 26`: position Fourier k=0..3 (16), normal raw (2),
+  extent raw (1), m_hat identity + k=0..2 (7)), so `INR2D_AutoDecoder.segment_encoder` is
+  reused, not duplicated. The geometry prefix widens 32 -> 48 to carry `x0`; those 48 dims are
+  asserted **byte-identical to Track B's** first 48, so the arms differ only in the doorway.
+- **Aperture width is CONTINUOUS via fractional `m_hat`, not via `extent`.** Segment `i` gets
+  `f_i` = fraction of its y-extent covered by the centred doorway, and
+  `m_hat_i = m_hat(baseline) + f_i * (1 - m_hat(baseline))`, open = `m_hat 1.0` (alpha 0.9502,
+  Track A's open-window value). An integer open-COUNT would step by `W/16 ~ 0.25 m`, **coarser
+  than the 0.2 m hold-out band**, quantizing the axis the track exists to test. `extent` was
+  rejected because segments must PARTITION the divider. `sum_i f_i * (W/16) == a` exactly.
+- **FT-B's `sqrt(a)` coordinate is no longer supplied.** It must be recovered by the encoder
+  from token geometry — that is the claim under test.
+- **DELTA pooling** (A3's `sum_i [phi(t_i) - phi(t_i^baseline)]`, not A2's mean). The divider's
+  alpha IS `ALPHA_BASELINE`, so a **sealed divider aggregates to exactly zero** — correct, and
+  matching the topological reality that a sealed divider is the un-edited room. Sealed configs
+  stay excluded from training (`config_kinds: ["open", "aperture"]`, D57b) and reported alone.
+- **Registered in BOTH whitelists** (`cond_dim_for` *and* `INR2D_AutoDecoder`'s independent
+  tuple); the model's cond_dim check now dispatches per-arm (464 B2 / 448 A2-A3).
+- Files: `aaf/models/conditioning_2d.py` (emitter), `aaf/models/inr_2d.py` (encoder branch),
+  `configs/sweep_2d_mat/P3_3FAST_trackB2.yaml`, `tests/test_aperture_tokens.py` (13 tests,
+  all pass). Eval reuses `scripts/p3_3fast_trackB_eval.py` unchanged (D59).
+- **Honest caveat**: `inr_2d` builds `_tok_baseline_m` in float64 `math` while
+  `conditioning_2d` builds the same features in float32 `torch`, so the *shipped* sealed
+  aggregate is ~**1e-7**, not bitwise zero (six orders below any open-aperture aggregate).
+  Left unfixed because Track A3 (job 7267594) was mid-flight and shares that code.
+
 ## Phase 3 — P3-3-FAST Track 2b (2026-08-17): doorway-aperture dataset + conditioning arm
 
 **Read `tasks/CHUNK_P3_3FAST_TRACKB_DATA_RESULTS.md` + `outputs/p3_3fast/trackB/DATASET_GATE.json`.**

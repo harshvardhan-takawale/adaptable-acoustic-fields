@@ -115,3 +115,23 @@ The dataset therefore builds and keeps the 26 sealed rooms (20 train domains + 6
 * **(c) predict the discontinuity from the physics instead**, i.e. keep the model continuous and special-case `a = 0` downstream in the renderer/eval.
 
 **What resolving it requires**: only (b) changes the arm, and it must be decided *before* the Track 2b model is trained, since the cond_dim is baked into the checkpoint. Nothing in the dataset needs to change either way — the sealed rooms are on disk under all three options.
+
+---
+
+### Q18 — The reported "floored LSD" measures the near-DC term, not the modal content. What should the headline accuracy number be? (P3-3-FAST Track A2)
+
+**Asker**: FIG-5 demo-figure agent (2026-08-18). **Owner**: manager.
+
+`scripts/p3_3fast_floored_lsd.py` was introduced to answer a fair objection — 97.3% of in-band bins sit more than 40 dB below their config's own peak, so plain LSD averages over deep nulls nobody hears — and it reports **0.703 dB** at a -40 dB floor against **5.460 dB** raw (iter 30000, all 120 Track A test configs).
+
+**The floor does not select what the docstring says it selects.** In this FDTD corpus each config's peak cell is the **bin-0 (0,0) compliance term**, which measures ~**+63 dB** receiver-RMS against ~**+17 dB** for the strongest actual room mode — a **46 dB** gap. A floor set 40 dB below the per-config peak therefore keeps only **bins 0-12 (0-6 Hz)** and reports the model's fit to the near-DC term. It is not "error on the content that carries the physics"; it is "error below the first mode".
+
+Measured on the FIG-5 geometry, an LSD taken over the **27 baseline modal-peak bins** across all 64 receivers is **7.00-7.28 dB** — i.e. *worse* than raw, not better. That is consistent with the other FIG-5 finding: the model reproduces the receiver-averaged spectrum and the in-band energy response to an edit (recovery 0.895-1.187) while getting the **spatial mode shape wrong** (GT-vs-prediction spatial correlation at the plotted (1,0) mode is reported per panel on the figure).
+
+**The question**: which number goes on the slide, and what does the corpus need?
+* **(a) keep raw LSD as the headline** and drop the floored value entirely — defensible, but it does average over nulls and it is not comparable to P3-2b's ~1.0 dB for the reason already recorded (dynamic-range mismatch, D59e).
+* **(b) replace the peak-relative floor with a MODE-relative one** — floor referenced to the strongest local maximum rather than to the global peak, which is what the floor was meant to do. Cheap: one line in `p3_3fast_floored_lsd.py`, then re-run.
+* **(c) exclude the sub-first-mode band from the metric entirely** (e.g. report 0-300 Hz above `c/2L`), making every LSD a modal-band number by construction.
+* **(d) investigate the (0,0) term itself** — 46 dB above the modal content is large enough that it may be a property of the excitation/deconvolution choice in `aaf/sim/fdtd_2d.py` rather than of the room, in which case the corpus, not the metric, is what should change.
+
+**What resolving it requires**: (b) and (c) are metric-only and need no new simulation. (d) needs one diagnostic run on a single config comparing `H_complex` against `H_deconv`. Nothing downstream is blocked — the figure quotes all three LSDs side by side with the caveat printed — but every accuracy claim in the meeting pack depends on which one is called "the" LSD.

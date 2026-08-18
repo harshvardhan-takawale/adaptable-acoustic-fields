@@ -1,0 +1,397 @@
+{
+ "checkpoint": {
+  "path": "outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0030000.pt",
+  "iter": 30000,
+  "cond_source": "m_token",
+  "cond_dim": 448,
+  "conditioning_type": "film",
+  "n_train_configs": 400
+ },
+ "geometry": {
+  "geom_id": 9,
+  "L_m": 5.25,
+  "W_m": 3.6,
+  "selection_rule": "median of the 10 test geometries by t_window_holdout energy_recovered_frac in /fs/nexus-projects/multimodal_recon/adaptable-acoustic-fields/outputs/p3_3fast/trackA2/DIAGNOSTIC_30K.json/DIAGNOSTIC.json (lower median, deterministic; NOT the best geometry)",
+  "selection_ranking_window_holdout_recovery": [
+   {
+    "geom_id": 1,
+    "energy_recovered_frac": 0.8486300649104926
+   },
+   {
+    "geom_id": 5,
+    "energy_recovered_frac": 0.8692453150082657
+   },
+   {
+    "geom_id": 3,
+    "energy_recovered_frac": 0.9434920763873076
+   },
+   {
+    "geom_id": 8,
+    "energy_recovered_frac": 0.9497035401358247
+   },
+   {
+    "geom_id": 9,
+    "energy_recovered_frac": 1.0094877768470367
+   },
+   {
+    "geom_id": 4,
+    "energy_recovered_frac": 1.0178540275404908
+   },
+   {
+    "geom_id": 0,
+    "energy_recovered_frac": 1.0194778186845728
+   },
+   {
+    "geom_id": 7,
+    "energy_recovered_frac": 1.0549134506048545
+   },
+   {
+    "geom_id": 2,
+    "energy_recovered_frac": 1.171896985193954
+   },
+   {
+    "geom_id": 6,
+    "energy_recovered_frac": 1.2182713565067353
+   }
+  ],
+  "source_pos_m": [
+   0.5,
+   0.5
+  ],
+  "n_receivers": 64,
+  "receiver_grid": "8 x 8"
+ },
+ "band": {
+  "hi_hz": 300.0,
+  "df_hz": 0.5,
+  "n_bins": 601,
+  "usable_cell_fraction": 1.0,
+  "eps_usable": 1e-08
+ },
+ "mode_candidates": {
+  "n_baseline_modal_peaks": 27,
+  "peak_bins_hz": [
+   32.5,
+   47.5,
+   57.5,
+   65.5,
+   81.0,
+   95.5,
+   98.0,
+   109.0,
+   115.5,
+   130.5,
+   137.0,
+   146.0,
+   157.0,
+   161.5,
+   173.0,
+   196.0,
+   201.5,
+   218.0,
+   229.0,
+   234.0,
+   238.5,
+   247.0,
+   257.5,
+   271.5,
+   287.0,
+   294.0,
+   297.5
+  ],
+  "spatially_resolvable_bins_hz": [
+   32.5,
+   47.5,
+   57.5,
+   65.5,
+   81.0,
+   95.5,
+   98.0,
+   109.0,
+   115.5,
+   137.0,
+   146.0,
+   157.0,
+   173.0,
+   201.5
+  ],
+  "n_x_max": 3,
+  "n_y_max": 4,
+  "rx_spacing_m": [
+   0.661259,
+   0.42
+  ],
+  "strongest_baseline_modal_peak_db": 17.22845458984375,
+  "bin0_level_db": 63.33598327636719,
+  "bin0_above_strongest_mode_db": 46.10752868652344
+ },
+ "determinism": {
+  "panel_e_bitwise_identical_to_panel_a": true
+ },
+ "level_offset_pred_minus_gt_db": 1.6671028137207031,
+ "aggregate_reference": {
+  "trackA2_window_holdout_recovery_mean": 1.0102972411819535,
+  "trackA2_window_seen_recovery_mean": 1.10622219433746,
+  "corpus_lsd_raw_mean_db": 5.4604739367961885,
+  "corpus_lsd_floor40_mean_db": 0.7026925928269824,
+  "corpus_frac_bins_above_floor40": 0.027100232251802556,
+  "corpus_checkpoint": "outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0030000.pt",
+  "corpus_n_configs": 120
+ },
+ "panels": [
+  {
+   "panel": "a",
+   "name": "baseline",
+   "edited_segments": [],
+   "alpha_edited": [
+    0.15
+   ],
+   "held_out_position": false,
+   "gt_file": {
+    "path": "data/track_p3_3fast_A/L5.25_W3.60_sega44942f6953c.h5",
+    "provenance": "corpus"
+   },
+   "d_energy_gt_db": 0.0,
+   "d_energy_pred_db": 0.0,
+   "energy_recovered_frac": NaN,
+   "lsd_raw_db": 6.678171634674072,
+   "lsd_modal_peaks_db": 7.27778434753418,
+   "lsd_floor40_db": 1.6134142875671387,
+   "frac_bins_above_floor40": 0.02103265391014975,
+   "map_gt_vs_pred_spatial_pearson_r": 0.2435664246396095,
+   "mode": {
+    "bin": 65,
+    "f_hz": 32.5,
+    "gt_delta_at_mode_db": 0.0,
+    "pred_delta_at_mode_db": 0.0,
+    "nearest_analytic_mode": {
+     "n_x": 1,
+     "n_y": 0,
+     "f_theory_hz": 32.666666666666664,
+     "family": "x_axial",
+     "offset_hz": -0.1666666666666643
+    }
+   },
+   "mode_selection": "baseline panel: GT delta vs baseline is identically zero, so no mode is 'most affected'; the map is shown at panel (d)'s mode so the open/closed pair is at one frequency",
+   "mode_candidates_top3_by_abs_gt_delta": [],
+   "mode_unrestricted_argmax": null
+  },
+  {
+   "panel": "b",
+   "name": "curtain on west_2",
+   "edited_segments": [
+    "west_2"
+   ],
+   "alpha_edited": [
+    0.5
+   ],
+   "held_out_position": false,
+   "gt_file": {
+    "path": "data/track_p3_3fast_A_demo/L5.25_W3.60_seg2b01265a5603.h5",
+    "provenance": "demo-cache"
+   },
+   "d_energy_gt_db": -1.294164819746007,
+   "d_energy_pred_db": -1.5359858463835208,
+   "energy_recovered_frac": 1.186854891237867,
+   "lsd_raw_db": 6.511753082275391,
+   "lsd_modal_peaks_db": 7.152484893798828,
+   "lsd_floor40_db": 1.4836746454238892,
+   "frac_bins_above_floor40": 0.022254575707154743,
+   "map_gt_vs_pred_spatial_pearson_r": 0.4440232792534092,
+   "mode": {
+    "bin": 65,
+    "f_hz": 32.5,
+    "gt_delta_at_mode_db": -1.8079357147216797,
+    "pred_delta_at_mode_db": -1.1651363372802734,
+    "nearest_analytic_mode": {
+     "n_x": 1,
+     "n_y": 0,
+     "f_theory_hz": 32.666666666666664,
+     "family": "x_axial",
+     "offset_hz": -0.1666666666666643
+    }
+   },
+   "mode_selection": "argmax |GT delta vs baseline| over baseline modal peaks",
+   "mode_candidates_top3_by_abs_gt_delta": [
+    {
+     "f_hz": 32.5,
+     "gt_delta_db": -1.8079357147216797,
+     "baseline_level_db": 17.22845458984375
+    },
+    {
+     "f_hz": 65.5,
+     "gt_delta_db": -1.7042999267578125,
+     "baseline_level_db": 10.279187202453613
+    },
+    {
+     "f_hz": 157.0,
+     "gt_delta_db": -1.4330921173095703,
+     "baseline_level_db": -7.851120948791504
+    }
+   ],
+   "mode_unrestricted_argmax": {
+    "f_hz": 294.0,
+    "gt_delta_db": -1.816962480545044,
+    "baseline_level_db": -0.2763309180736542,
+    "same_as_plotted": false
+   }
+  },
+  {
+   "panel": "c",
+   "name": "curtain on east_3",
+   "edited_segments": [
+    "east_3"
+   ],
+   "alpha_edited": [
+    0.5
+   ],
+   "held_out_position": true,
+   "gt_file": {
+    "path": "data/track_p3_3fast_A_demo/L5.25_W3.60_seged74ae5b8058.h5",
+    "provenance": "demo-cache"
+   },
+   "d_energy_gt_db": -1.3207630938247208,
+   "d_energy_pred_db": -1.1819185878776042,
+   "energy_recovered_frac": 0.8948755408170553,
+   "lsd_raw_db": 6.577258110046387,
+   "lsd_modal_peaks_db": 7.176204204559326,
+   "lsd_floor40_db": 1.7138047218322754,
+   "frac_bins_above_floor40": 0.022254575707154743,
+   "map_gt_vs_pred_spatial_pearson_r": 0.42627915692234297,
+   "mode": {
+    "bin": 65,
+    "f_hz": 32.5,
+    "gt_delta_at_mode_db": -1.7901411056518555,
+    "pred_delta_at_mode_db": -0.8493843078613281,
+    "nearest_analytic_mode": {
+     "n_x": 1,
+     "n_y": 0,
+     "f_theory_hz": 32.666666666666664,
+     "family": "x_axial",
+     "offset_hz": -0.1666666666666643
+    }
+   },
+   "mode_selection": "argmax |GT delta vs baseline| over baseline modal peaks",
+   "mode_candidates_top3_by_abs_gt_delta": [
+    {
+     "f_hz": 32.5,
+     "gt_delta_db": -1.7901411056518555,
+     "baseline_level_db": 17.22845458984375
+    },
+    {
+     "f_hz": 65.5,
+     "gt_delta_db": -1.67633056640625,
+     "baseline_level_db": 10.279187202453613
+    },
+    {
+     "f_hz": 115.5,
+     "gt_delta_db": -0.9625774621963501,
+     "baseline_level_db": 1.6091995239257812
+    }
+   ],
+   "mode_unrestricted_argmax": {
+    "f_hz": 32.5,
+    "gt_delta_db": -1.7901411056518555,
+    "baseline_level_db": 17.22845458984375,
+    "same_as_plotted": true
+   }
+  },
+  {
+   "panel": "d",
+   "name": "window open at east_3",
+   "edited_segments": [
+    "east_3"
+   ],
+   "alpha_edited": [
+    0.95
+   ],
+   "held_out_position": true,
+   "gt_file": {
+    "path": "data/track_p3_3fast_A/L5.25_W3.60_segeb2c4b75d5d4.h5",
+    "provenance": "corpus"
+   },
+   "d_energy_gt_db": -4.8345697020826215,
+   "d_energy_pred_db": -4.880439020567426,
+   "energy_recovered_frac": 1.0094877768470367,
+   "lsd_raw_db": 6.320445537567139,
+   "lsd_modal_peaks_db": 7.004201412200928,
+   "lsd_floor40_db": 1.6134730577468872,
+   "frac_bins_above_floor40": 0.026076331114808653,
+   "map_gt_vs_pred_spatial_pearson_r": 0.6040961109795141,
+   "mode": {
+    "bin": 65,
+    "f_hz": 32.5,
+    "gt_delta_at_mode_db": -5.984710693359375,
+    "pred_delta_at_mode_db": -2.863129138946533,
+    "nearest_analytic_mode": {
+     "n_x": 1,
+     "n_y": 0,
+     "f_theory_hz": 32.666666666666664,
+     "family": "x_axial",
+     "offset_hz": -0.1666666666666643
+    }
+   },
+   "mode_selection": "argmax |GT delta vs baseline| over baseline modal peaks",
+   "mode_candidates_top3_by_abs_gt_delta": [
+    {
+     "f_hz": 32.5,
+     "gt_delta_db": -5.984710693359375,
+     "baseline_level_db": 17.22845458984375
+    },
+    {
+     "f_hz": 65.5,
+     "gt_delta_db": -4.9949164390563965,
+     "baseline_level_db": 10.279187202453613
+    },
+    {
+     "f_hz": 115.5,
+     "gt_delta_db": -2.8732621669769287,
+     "baseline_level_db": 1.6091995239257812
+    }
+   ],
+   "mode_unrestricted_argmax": {
+    "f_hz": 32.5,
+    "gt_delta_db": -5.984710693359375,
+    "baseline_level_db": 17.22845458984375,
+    "same_as_plotted": true
+   }
+  },
+  {
+   "panel": "e",
+   "name": "window closed",
+   "edited_segments": [],
+   "alpha_edited": [
+    0.15
+   ],
+   "held_out_position": false,
+   "gt_file": {
+    "path": "data/track_p3_3fast_A/L5.25_W3.60_sega44942f6953c.h5",
+    "provenance": "corpus"
+   },
+   "d_energy_gt_db": 0.0,
+   "d_energy_pred_db": 0.0,
+   "energy_recovered_frac": NaN,
+   "lsd_raw_db": 6.678171634674072,
+   "lsd_modal_peaks_db": 7.27778434753418,
+   "lsd_floor40_db": 1.6134142875671387,
+   "frac_bins_above_floor40": 0.02103265391014975,
+   "map_gt_vs_pred_spatial_pearson_r": 0.2435664246396095,
+   "mode": {
+    "bin": 65,
+    "f_hz": 32.5,
+    "gt_delta_at_mode_db": 0.0,
+    "pred_delta_at_mode_db": 0.0,
+    "nearest_analytic_mode": {
+     "n_x": 1,
+     "n_y": 0,
+     "f_theory_hz": 32.666666666666664,
+     "family": "x_axial",
+     "offset_hz": -0.1666666666666643
+    }
+   },
+   "mode_selection": "baseline panel: GT delta vs baseline is identically zero, so no mode is 'most affected'; the map is shown at panel (d)'s mode so the open/closed pair is at one frequency",
+   "mode_candidates_top3_by_abs_gt_delta": [],
+   "mode_unrestricted_argmax": null
+  }
+ ]
+}

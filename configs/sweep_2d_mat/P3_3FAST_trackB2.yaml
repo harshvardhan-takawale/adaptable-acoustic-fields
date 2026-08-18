@@ -1,0 +1,62 @@
+# Track B2: Track B's dataset, Track A3's TOKEN encoder.
+#
+# Track B (cond_source: aperture, 55-d) FAILED: its predicted inter-room level difference fit
+# sqrt(a) with r^2 = 0.172 / slope 2.46 against GT's 0.948 / 7.61, and it was EQUALLY wrong
+# seen (2.463 dB residual) and held-out (2.298 dB, ratio 0.933, mean held-out residual
+# 0.019 dB). It never learned the law -- a representation failure, not a transfer failure.
+# Diagnosis: a GLOBAL 55-d vector with a SCALAR aperture cannot induce a SPATIAL barrier at
+# x0 with a gap of width a. Track A2/A3 fixed the analogous pathology on the absorption axis
+# (held-out window recovery -0.069 -> +1.010 at convergence) by tokenizing the boundary.
+#
+# Identical dataset, band, optimizer and schedule as P3_3FAST_trackB.yaml -- the ONLY change
+# is the conditioning arm, so the comparison is clean.
+run_id: p3_3fast_trackB2
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml   # geometry comes from configs_manifest
+data_dir: data/track_p3_3fast_B
+
+# --- P3-2 protocol: band-limited to the modal regime (bins 0..600) ---
+band_max_hz: 300
+
+# --- conditioning arm: (L, W, x0) Fourier + 16 DIVIDER TOKENS -> shared encoder -> FiLM ---
+# Stored width 464 = [48 geometry | 16 tokens x 26]. aaf.models.inr_2d applies ONE shared MLP
+# to every token and DELTA-pools (sum of phi(t) - phi(t_baseline)), reducing to 48 + 64 = 112
+# before the FiLM generator. Aperture width enters through token GEOMETRY (how many tokens are
+# open and where), never as a scalar; continuity in `a` comes from fractional m_hat on the two
+# partially-covered segments, so the axis is not quantized to the 16-segment grid.
+cond_source: aperture_token
+cond_dim: 464
+conditioning_type: film
+latent_dim: 16               # unused by this arm; kept >0 to satisfy the model's check
+
+# --- SEALED rooms are in the dataset but NOT in training (unchanged from Track B) ---
+# a = 0 is a topological discontinuity, not the small-aperture limit: the divider disconnects
+# room B exactly, so H_B == 0 (a -inf level difference). Under this arm a sealed divider also
+# delta-pools to EXACTLY ZERO -- every token sits at the baseline m_hat -- which is the correct
+# encoding of "un-edited room" but is likewise indistinguishable from a vanishing doorway.
+# The 20 sealed rooms stay on disk for the end-point demonstration and are reported separately.
+config_kinds: ["open", "aperture"]
+
+# --- 2D backbone recipe (Phase-1 lineage, NOT the 3D P3-1 hashgrid) ---
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+
+# --- optimization ---
+n_iters: 30000
+batch_size: 8
+rx_per_config: 4
+grad_accum_steps: 2
+lr_network: 2.0e-4
+
+# --- validation on HELD-OUT receivers of training configs ---
+val_every: 2000
+val_max_configs: 40
+ckpt_every: 2000
+ckpt_keep_last: 10
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+configs_manifest: configs/sweeps_2d_mat/p3_3fast_trackB_manifest.json
+max_rows_per_render: 8

@@ -42,7 +42,7 @@ from typing import Optional, Sequence
 
 import torch
 
-from aaf.walls import ALPHA_NORM, M_NORM, WALLS_2D
+from aaf.walls import ALPHA_BASELINE, ALPHA_NORM, M_NORM, WALLS_2D
 
 # k = 0..7 for geometry, k = 0..3 for the four absorptions.
 N_K_GEOM = 8
@@ -186,6 +186,8 @@ def cond_dim_for(cond_source: str) -> int:
         return TOKEN_DIM_2D
     if cond_source == COND_SOURCE_APER:
         return APERTURE_DIM_2D
+    if cond_source == COND_SOURCE_BTOK:
+        return APER_TOKEN_DIM_2D
     raise ValueError(f"no fixed cond_dim for cond_source {cond_source!r}")
 
 
@@ -233,6 +235,11 @@ def build_cond_vector_2d(
                 f"{COND_SOURCE_APER} requires x0 (divider position) and a (aperture width); "
                 "the four wall alphas carry no divider information")
         return aperture_features_2d(L, W, x0, a, device=device, dtype=dtype)
+    if cond_source == COND_SOURCE_BTOK:
+        if x0 is None or a is None:
+            raise ValueError(
+                f"{COND_SOURCE_BTOK} requires x0 (divider position) and a (aperture width)")
+        return aperture_token_features_2d(L, W, x0, a, device=device, dtype=dtype)
     if cond_source == "latent":
         if model is None or room_ids is None:
             raise ValueError("latent arm requires model + room_ids")
@@ -405,6 +412,127 @@ def segment_token_features_2d(L, W, alphas, device=None, dtype=torch.float32) ->
         cx, cy, nx, ny, ext = segment_geometry(L, W, i)
         pos = torch.tensor([cx, cy], device=device, dtype=dtype)
         mh = torch.tensor([m_hat_seg(a[i])], device=device, dtype=dtype)
+        toks.append(torch.cat([
+            _fourier_block(pos, N_K_TOK_POS),                              # 16
+            torch.tensor([nx, ny, ext], device=device, dtype=dtype),       # 3
+            mh,                                                            # 1
+            _fourier_block(mh, N_K_TOK_M),                                 # 6
+        ]))
+    return torch.cat([geom, torch.cat(toks)])
+
+
+# ----------------------------------------------------------------------
+# Track B2: divider-TOKEN aperture conditioning (the A3 encoder on the aperture axis)
+# ----------------------------------------------------------------------
+COND_SOURCE_BTOK = "aperture_token"
+N_TOK_DIV = N_SEG_COND              # 16, so segment_encoder's SHAPE is shared with A2/A3
+APER_TOKEN_GEOM_DIM = N_GEOM_APER * 2 * N_K_GEOM             # 48
+APER_TOKEN_DIM_2D = APER_TOKEN_GEOM_DIM + N_TOK_DIV * D_TOK  # 48 + 416 = 464
+APER_TOKEN_COND_DIM = APER_TOKEN_GEOM_DIM + TOKEN_AGG_DIM    # 48 + 64 = 112 after the encoder
+M_HAT_OPEN = 1.0
+"""m_hat of a fully OPEN divider cell. 1.0 * M_NORM_SEG_COND = 3.0, i.e. alpha = 1-e^-3 =
+0.9502 -- exactly Track A's open-window value, so 'open' means the same thing on both axes."""
+
+APER_TOKEN_ALPHA_BASELINE = ALPHA_BASELINE
+"""The divider's own absorption (aaf.data.aperture_configs.DIVIDER_ALPHA is this value).
+Re-derived from aaf.walls rather than imported from aaf.data so conditioning_2d keeps its
+numpy-free / data-free import surface. It MUST equal the baseline that
+``inr_2d``'s delta-pool subtracts, or a sealed divider would not aggregate to zero."""
+
+__doc_btok__ = """Track B's failure and what this replaces it with.
+
+Track B (``aperture``, 55-d) asked a GLOBAL vector with a SCALAR aperture to induce a spatial
+barrier at x0 with a gap of width a. It never learned the law: predicted inter-room level
+difference vs sqrt(a) gave r^2 = 0.172 / slope 2.46 against GT's 0.948 / 7.61, and it was
+EQUALLY wrong on seen and held-out apertures (residual ratio 0.933), i.e. a representation
+failure rather than a transfer failure.
+
+Here the divider is TOKENIZED along its length into 16 segments, each described by WHAT IT IS:
+
+    [cx, cy]   segment centre, cx = x0/L, cy = (i+0.5)/16      -> Fourier k=0..3   16
+    [nx, ny]   divider face normal, (+1, 0)                    -> raw               2
+    extent     segment length / divider length = 1/16          -> raw               1
+    m_hat      solid -> baseline, open -> 1.0, blended by cover -> identity + k=0..2  7
+                                                                             D_TOK = 26
+
+Same D_TOK = 26 and same featurization as ``segment_token_features_2d``, so ``inr_2d``'s
+shared ``segment_encoder`` is reused verbatim -- only the geometry block widens from 32 (L, W)
+to 48 (L, W, x0), because a model without x0 cannot tell which sub-room a receiver is in.
+
+CONTINUITY IN ``a`` -- the load-bearing choice. ``a`` is drawn continuously on [0.1, 2.5], so
+a pure integer open-COUNT would quantize the very axis the track tests (16 segments over
+W ~ 4 m is a 0.25 m step, coarser than the 0.2 m hold-out band). We therefore express partial
+coverage through **fractional m_hat**, NOT through ``extent``:
+
+    f_i    = |[y_i, y_i+1] cap [W/2 - a/2, W/2 + a/2]| / (W/16)   in [0, 1]
+    m_hat_i = m_hat(baseline) + f_i * (1 - m_hat(baseline))
+
+``extent`` stays fixed at 1/16 for every token: the segments must PARTITION the divider
+(the P3-3 Part-A lesson), and shrinking a solid segment's extent to make room for the doorway
+would break that partition. f_i is piecewise linear and continuous in ``a``, and
+sum_i f_i = 16a/W is STRICTLY increasing, so every distinct ``a`` gets a distinct token set.
+
+Chose fractional m_hat over fractional extent because it also preserves the delta-pool's
+zero: with the doorway closed every token carries exactly the baseline m_hat, so
+sum_i [phi(t_i) - phi(t_i^baseline)] is IDENTICALLY ZERO. That is correct and matches the
+topological reality -- a sealed divider is the un-edited room, and the a = 0 configs are
+excluded from training anyway (H_B == 0 is a discontinuity no continuous coordinate holds).
+"""
+
+
+def divider_open_fraction(W: float, a: float, index: int, n_seg: int = N_TOK_DIV) -> float:
+    """Fraction of divider segment ``index`` covered by the centred doorway of width ``a``.
+
+    Segments PARTITION the divider: segment i spans y in [i*W/n, (i+1)*W/n]. The doorway is
+    centred at y = W/2 (``ApertureConfig.extra_walls``), so it spans [W/2 - a/2, W/2 + a/2],
+    clipped to the divider. Continuous and piecewise linear in ``a``; ``a >= W`` gives 1.0
+    for every segment (no divider at all, matching the ``open`` kind's empty ``extra_walls``).
+    """
+    if int(index) < 0 or int(index) >= int(n_seg):
+        raise ValueError("segment index {} out of range for n_seg={}".format(index, n_seg))
+    if float(a) < 0.0:
+        raise ValueError("aperture a must be >= 0, got {!r}".format(a))
+    Wf = float(W)
+    seg = Wf / float(n_seg)
+    lo, hi = index * seg, (index + 1) * seg
+    half = 0.5 * min(float(a), Wf)
+    ov = min(hi, 0.5 * Wf + half) - max(lo, 0.5 * Wf - half)
+    return max(0.0, min(ov, seg)) / seg
+
+
+def divider_token_geometry(L: float, W: float, x0: float, index: int,
+                           n_seg: int = N_TOK_DIV):
+    """(cx, cy, nx, ny, extent) for divider segment ``index``, in normalized DOMAIN coords.
+
+    The divider runs along y at x = x0, so cx = x0/L is the same for all tokens and cy sweeps
+    the room's width; the face normal is (+1, 0) (pointing into room B, i.e. +x). Mirrors
+    ``segment_geometry``'s contract exactly so the shared encoder reads the same channels.
+    """
+    return (float(x0) / float(L), (int(index) + 0.5) / float(n_seg),
+            1.0, 0.0, 1.0 / float(n_seg))
+
+
+def divider_m_hat(W: float, a: float, index: int, n_seg: int = N_TOK_DIV) -> float:
+    """Coverage-blended m_hat: baseline when solid, 1.0 when fully open. See __doc_btok__."""
+    mb = m_hat_seg(APER_TOKEN_ALPHA_BASELINE)
+    return mb + divider_open_fraction(W, a, index, n_seg) * (M_HAT_OPEN - mb)
+
+
+def aperture_token_features_2d(L, W, x0, a, device=None,
+                               dtype: torch.dtype = torch.float32) -> torch.Tensor:
+    """464-d: ``[48 geometry (L, W, x0) | 16 divider tokens x 26]``.
+
+    The geometry block is BYTE-IDENTICAL to :func:`aperture_features_2d`'s first 48 dims
+    (same ``normalize_params_aper_2d`` box), so Track B and Track B2 differ ONLY in how the
+    doorway is expressed. The tokens are reshaped and pooled by ``aaf.models.inr_2d``.
+    """
+    u = normalize_params_aper_2d(L, W, x0, a, device=device, dtype=dtype)[:3]
+    geom = _fourier_block(u, N_K_GEOM)                                     # [48]
+    toks = []
+    for i in range(N_TOK_DIV):
+        cx, cy, nx, ny, ext = divider_token_geometry(L, W, x0, i)
+        pos = torch.tensor([cx, cy], device=device, dtype=dtype)
+        mh = torch.tensor([divider_m_hat(W, a, i)], device=device, dtype=dtype)
         toks.append(torch.cat([
             _fourier_block(pos, N_K_TOK_POS),                              # 16
             torch.tensor([nx, ny, ext], device=device, dtype=dtype),       # 3
