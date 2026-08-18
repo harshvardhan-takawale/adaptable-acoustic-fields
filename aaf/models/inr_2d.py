@@ -28,6 +28,8 @@ from __future__ import annotations
 import math
 from typing import Optional, Union
 
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -251,11 +253,11 @@ class INR2D_AutoDecoder(nn.Module):
         # a new arm must be registered in BOTH or the model rejects a config the feature
         # builder is perfectly happy with.
         if cond_source not in ("latent", "geom_alpha_fourier", "m_linear", "m_segment",
-                               "m_token",
+                               "m_token", "m_token_delta",
                                "aperture"):
             raise ValueError(
                 f"cond_source must be 'latent', 'geom_alpha_fourier', 'm_linear', "
-                f"'m_segment', 'm_token' or 'aperture', got {cond_source!r}"
+                f"'m_segment', 'm_token', 'm_token_delta' or 'aperture', got {cond_source!r}"
             )
         if conditioning_type not in ("concat", "film", "film_lora"):
             raise ValueError(
@@ -288,7 +290,8 @@ class INR2D_AutoDecoder(nn.Module):
         # It lives in the model rather than in conditioning_2d because it is LEARNED and must
         # receive gradient; conditioning_2d is a fixed, tcnn-free, CPU-testable featurizer.
         self.segment_encoder = None
-        if self.cond_source == "m_token":
+        self.token_pool = None
+        if self.cond_source in ("m_token", "m_token_delta"):
             from aaf.models.conditioning_2d import (D_TOK, N_SEG_COND, TOKEN_AGG_DIM,
                                                     TOKEN_COND_DIM, TOKEN_DIM_2D)
             if self.cond_dim != TOKEN_DIM_2D:
@@ -300,6 +303,32 @@ class INR2D_AutoDecoder(nn.Module):
                 nn.Linear(D_TOK, TOKEN_AGG_DIM), nn.ReLU(),
                 nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM),
             )
+            self.token_pool = "delta" if self.cond_source == "m_token_delta" else "mean"
+            if self.token_pool == "delta":
+                # DELTA-POOLING (A3). A2's mean-pool fixed transfer but diluted magnitude:
+                # 15 of 16 tokens sit at baseline, so one edit moves the mean by ~1/16 and the
+                # measured discrimination ratio fell to 0.222 (GT 1.199, Track A 1.543).
+                # Aggregating sum_i [phi(t_i) - phi(t_i^baseline)] instead means an UNEDITED
+                # config contributes exactly zero and a single edited segment contributes its
+                # full phi response with no 1/16 dilution -- while phi stays shared, so A2's
+                # transfer property is preserved by construction rather than re-argued.
+                # The baseline token is the same token with m_hat at the baseline value, so it
+                # is derivable here and conditioning_2d needs no change.
+                from aaf.data.seg_configs import m_of_alpha as _m_of_alpha
+                from aaf.models.conditioning_2d import (M_NORM_SEG_COND, N_K_TOK_M,
+                                                        N_K_TOK_POS)
+                from aaf.walls import ALPHA_BASELINE
+                self._tok_m_slice = slice(2 * 2 * N_K_TOK_POS + 3, D_TOK)   # [m_hat | fourier]
+                mb = _m_of_alpha(ALPHA_BASELINE) / M_NORM_SEG_COND
+                base = [mb] + [f(k) for k in
+                               (2.0 ** torch.arange(N_K_TOK_M) * math.pi).tolist()
+                               for f in (lambda a, m=mb: math.sin(a * m),
+                                         lambda a, m=mb: math.cos(a * m))]
+                # _fourier_block emits all sines then all cosines, so rebuild in that order.
+                ang = [(2.0 ** k) * math.pi * mb for k in range(N_K_TOK_M)]
+                base = [mb] + [math.sin(x) for x in ang] + [math.cos(x) for x in ang]
+                self.register_buffer("_tok_baseline_m",
+                                     torch.tensor(base, dtype=torch.float32))
             # Everything downstream (FiLM, concat) sees the REDUCED width.
             self.cond_dim = TOKEN_COND_DIM                               # 96
         self.l_head_out_dim = int(l_head_out_dim)
@@ -531,7 +560,13 @@ class INR2D_AutoDecoder(nn.Module):
             # [B*N, 32 + 16*26] -> shared MLP per token -> mean-pool -> [B*N, 32 + 64]
             g = z_s_flat[:, :self._tok_geom]
             t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
-            z_s_flat = torch.cat([g, self.segment_encoder(t).mean(dim=1)], dim=-1)
+            if self.token_pool == "delta":
+                tb = t.clone()
+                tb[..., self._tok_m_slice] = self._tok_baseline_m.to(tb.dtype)
+                agg = (self.segment_encoder(t) - self.segment_encoder(tb)).sum(dim=1)
+            else:
+                agg = self.segment_encoder(t).mean(dim=1)
+            z_s_flat = torch.cat([g, agg], dim=-1)
 
         # Sigma branch.
         pos_emb = self._pos_encoding(pts_flat)

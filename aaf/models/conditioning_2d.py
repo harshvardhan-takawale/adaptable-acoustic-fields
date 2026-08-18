@@ -182,7 +182,7 @@ def cond_dim_for(cond_source: str) -> int:
         return MLINEAR_DIM_2D
     if cond_source == COND_SOURCE_SEG:
         return SEGMENT_DIM_2D
-    if cond_source == COND_SOURCE_TOK:
+    if cond_source in (COND_SOURCE_TOK, COND_SOURCE_TOK_DELTA):
         return TOKEN_DIM_2D
     if cond_source == COND_SOURCE_APER:
         return APERTURE_DIM_2D
@@ -223,9 +223,9 @@ def build_cond_vector_2d(
         if alphas is None:
             raise ValueError(f"{COND_SOURCE_SEG} requires 16 segment alphas")
         return segment_features_2d(L, W, alphas, device=device, dtype=dtype)
-    if cond_source == COND_SOURCE_TOK:
+    if cond_source in (COND_SOURCE_TOK, COND_SOURCE_TOK_DELTA):
         if alphas is None:
-            raise ValueError(f"{COND_SOURCE_TOK} requires 16 segment alphas")
+            raise ValueError(f"{cond_source} requires 16 segment alphas")
         return segment_token_features_2d(L, W, alphas, device=device, dtype=dtype)
     if cond_source == COND_SOURCE_APER:
         if x0 is None or a is None:
@@ -345,6 +345,7 @@ def aperture_features_2d(L, W, x0, a, device=None, dtype=torch.float32) -> torch
 # Track A2: shared-encoder TOKEN conditioning (D58)
 # ----------------------------------------------------------------------
 COND_SOURCE_TOK = "m_token"
+COND_SOURCE_TOK_DELTA = "m_token_delta"
 N_K_TOK_POS = 4          # Fourier k = 0..3 on the segment centre
 N_K_TOK_M = 3            # Fourier k = 0..2 on m_hat
 D_TOK = 2 * 2 * N_K_TOK_POS + 2 + 1 + (1 + 2 * N_K_TOK_M)      # 16 + 2 + 1 + 7 = 26
