@@ -1,0 +1,1886 @@
+{
+ "primary": "median",
+ "abort_rule": "report if NO mode above 60 Hz reaches 0.85",
+ "proceed": true,
+ "good_threshold": 0.85,
+ "geometries": {
+  "median": {
+   "geometry": "median",
+   "L": 5.93,
+   "W": 3.18,
+   "n_rx": 4096,
+   "grid": [
+    64,
+    64
+   ],
+   "resolvability": {
+    "n_x_max": 33,
+    "n_y_max": 34,
+    "rx_spacing_m": [
+     0.089365,
+     0.045714000000000005
+    ]
+   },
+   "f_max_hz": 200.0,
+   "df_hz": 0.5,
+   "n_modes": 24,
+   "screen_scenario": "a_baseline",
+   "baseline_db_min": 0.6550103484876318,
+   "baseline_db_mean": 0.8220364685834914,
+   "baseline_db_max": 0.9906808812947527,
+   "n_ge_070": 23,
+   "n_ge_085": 9,
+   "f_highest_ge_085": 198.89531635695687,
+   "n_above_60hz": 21,
+   "n_above_60hz_ge_085": 6,
+   "all_isolated": false,
+   "all_resolvable": true,
+   "modes": [
+    {
+     "n_x": 1,
+     "n_y": 0,
+     "f_hz": 28.920741989881957,
+     "bin": 58,
+     "family": "x_axial",
+     "linewidth_hz": 2.6683671448168567,
+     "nn_spacing_hz": 25.01007562018093,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.9906808812947527,
+      "b_east_curtain": 0.984363726689828,
+      "c_north_absorber": 0.9906408011695611,
+      "d_two_wall": 0.9837151473892671
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8849876930054477,
+      "b_east_curtain": 0.8043240261805831,
+      "c_north_absorber": 0.8582699448732103,
+      "d_two_wall": 0.7696766048222189
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 1,
+     "f_hz": 53.93081761006289,
+     "bin": 108,
+     "family": "y_axial",
+     "linewidth_hz": 3.265438719124942,
+     "nn_spacing_hz": 3.910666369701026,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.9596658050784728,
+      "b_east_curtain": 0.9513678061337619,
+      "c_north_absorber": 0.9483023237903644,
+      "d_two_wall": 0.9202967798785366
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8179662457105659,
+      "b_east_curtain": 0.8270724479019497,
+      "c_north_absorber": 0.7954094381178712,
+      "d_two_wall": 0.7775702697950096
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 0,
+     "f_hz": 57.841483979763915,
+     "bin": 116,
+     "family": "x_axial",
+     "linewidth_hz": 2.6683671448168567,
+     "nn_spacing_hz": 3.3544505693153255,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.9205072703789413,
+      "b_east_curtain": 0.9461351302471145,
+      "c_north_absorber": 0.9809881391711298,
+      "d_two_wall": 0.9761061856783257
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8384392399807328,
+      "b_east_curtain": 0.8213107785555334,
+      "c_north_absorber": 0.8446453151970729,
+      "d_two_wall": 0.8061321879768657
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 1,
+     "f_hz": 61.19593454907924,
+     "bin": 122,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 3.3544505693153255,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8854519524926733,
+      "b_east_curtain": 0.9117324911625315,
+      "c_north_absorber": 0.9726669951648989,
+      "d_two_wall": 0.9531259690014665
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8341520884966831,
+      "b_east_curtain": 0.8360771387608289,
+      "c_north_absorber": 0.8215593078835903,
+      "d_two_wall": 0.7984979406637177
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 1,
+     "f_hz": 79.08331275984305,
+     "bin": 158,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 7.678913209802815,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7965210200138222,
+      "b_east_curtain": 0.8130225571557966,
+      "c_north_absorber": 0.9328454360675024,
+      "d_two_wall": 0.8597714055194112
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7647062097140815,
+      "b_east_curtain": 0.7529859254905266,
+      "c_north_absorber": 0.7488711504994505,
+      "d_two_wall": 0.7337697786404694
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 0,
+     "f_hz": 86.76222596964587,
+     "bin": 174,
+     "family": "x_axial",
+     "linewidth_hz": 2.6683671448168567,
+     "nn_spacing_hz": 7.678913209802815,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.8806339861618319,
+      "b_east_curtain": 0.8946621291948819,
+      "c_north_absorber": 0.9248711316017126,
+      "d_two_wall": 0.8838134272620226
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7378460238408743,
+      "b_east_curtain": 0.7232453070723542,
+      "c_north_absorber": 0.7480403875631475,
+      "d_two_wall": 0.7170348295755604
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 1,
+     "f_hz": 102.15780412331581,
+     "bin": 204,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 5.703831096809964,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7709926705054064,
+      "b_east_curtain": 0.7922765819045275,
+      "c_north_absorber": 0.8908901139595188,
+      "d_two_wall": 0.8000856662372547
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7118050267617914,
+      "b_east_curtain": 0.7069335840432891,
+      "c_north_absorber": 0.7149550736519604,
+      "d_two_wall": 0.686268371757755
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 2,
+     "f_hz": 107.86163522012578,
+     "bin": 216,
+     "family": "y_axial",
+     "linewidth_hz": 3.265438719124942,
+     "nn_spacing_hz": 3.8099442869484506,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.8563641863712786,
+      "b_east_curtain": 0.8570533025646561,
+      "c_north_absorber": 0.8642661799019596,
+      "d_two_wall": 0.7934541457605747
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7242661128645866,
+      "b_east_curtain": 0.7280048400060389,
+      "c_north_absorber": 0.7149356586365089,
+      "d_two_wall": 0.6941782950080198
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 2,
+     "f_hz": 111.67157950707423,
+     "bin": 223,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 3.8099442869484506,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8700229328589362,
+      "b_east_curtain": 0.8744912401363178,
+      "c_north_absorber": 0.8845426968858048,
+      "d_two_wall": 0.7795656758338952
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7319321156421037,
+      "b_east_curtain": 0.7316896529544747,
+      "c_north_absorber": 0.7108497756436721,
+      "d_two_wall": 0.6958610185707714
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 0,
+     "f_hz": 115.68296795952783,
+     "bin": 231,
+     "family": "x_axial",
+     "linewidth_hz": 2.6683671448168567,
+     "nn_spacing_hz": 4.011388452453602,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.756304292520759,
+      "b_east_curtain": 0.7869596314832799,
+      "c_north_absorber": 0.8722742353539051,
+      "d_two_wall": 0.814122166648862
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6804781973424758,
+      "b_east_curtain": 0.6933107019706686,
+      "c_north_absorber": 0.7032769888127438,
+      "d_two_wall": 0.6922775644358685
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 2,
+     "f_hz": 122.39186909815848,
+     "bin": 245,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 5.244654530523192,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.736466377487618,
+      "b_east_curtain": 0.7212864135066914,
+      "c_north_absorber": 0.8464088861077008,
+      "d_two_wall": 0.7894399542065041
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6754679446735661,
+      "b_east_curtain": 0.6799295881343367,
+      "c_north_absorber": 0.6919060931579288,
+      "d_two_wall": 0.6842661719215865
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 1,
+     "f_hz": 127.63652362868167,
+     "bin": 255,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 5.244654530523192,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7116280825835346,
+      "b_east_curtain": 0.734557557390851,
+      "c_north_absorber": 0.8529456362002233,
+      "d_two_wall": 0.7660765605842361
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6774131674359433,
+      "b_east_curtain": 0.6772940021858421,
+      "c_north_absorber": 0.6886468409969775,
+      "d_two_wall": 0.6818914751253229
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 2,
+     "f_hz": 138.42621214050237,
+     "bin": 277,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 6.177497808907418,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6550103484876318,
+      "b_east_curtain": 0.6932293850953891,
+      "c_north_absorber": 0.8645883450407005,
+      "d_two_wall": 0.751540388364468
+     },
+     "pearson_lin": {
+      "a_baseline": 0.654478303487013,
+      "b_east_curtain": 0.6559511921354557,
+      "c_north_absorber": 0.6653280365205465,
+      "d_two_wall": 0.6707683377223534
+     }
+    },
+    {
+     "n_x": 5,
+     "n_y": 0,
+     "f_hz": 144.6037099494098,
+     "bin": 289,
+     "family": "x_axial",
+     "linewidth_hz": 2.6683671448168567,
+     "nn_spacing_hz": 6.177497808907418,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.8001075867890289,
+      "b_east_curtain": 0.8378166987110016,
+      "c_north_absorber": 0.8916486385668523,
+      "d_two_wall": 0.8204895185295235
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6342757399103839,
+      "b_east_curtain": 0.6420759927199198,
+      "c_north_absorber": 0.6448543898942496,
+      "d_two_wall": 0.6614484334221283
+     }
+    },
+    {
+     "n_x": 5,
+     "n_y": 1,
+     "f_hz": 154.33329523865845,
+     "bin": 309,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 3.8333302810276564,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7915571402443932,
+      "b_east_curtain": 0.801360388776179,
+      "c_north_absorber": 0.8876189222487126,
+      "d_two_wall": 0.7981717226061605
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6189055518974824,
+      "b_east_curtain": 0.621911477118318,
+      "c_north_absorber": 0.6281365177836989,
+      "d_two_wall": 0.645400204379964
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 2,
+     "f_hz": 158.1666255196861,
+     "bin": 316,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 3.625827310502558,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7295419947609149,
+      "b_east_curtain": 0.7880378028551644,
+      "c_north_absorber": 0.8928643222653793,
+      "d_two_wall": 0.8007020984226348
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6211519324586732,
+      "b_east_curtain": 0.6243784211415159,
+      "c_north_absorber": 0.628917259066197,
+      "d_two_wall": 0.6459258618481502
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 3,
+     "f_hz": 161.79245283018867,
+     "bin": 324,
+     "family": "y_axial",
+     "linewidth_hz": 3.265438719124942,
+     "nn_spacing_hz": 2.5644974641452336,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.8523533574623355,
+      "b_east_curtain": 0.856255564038238,
+      "c_north_absorber": 0.9077160705146392,
+      "d_two_wall": 0.8571501756980943
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6192222323383563,
+      "b_east_curtain": 0.618664233379688,
+      "c_north_absorber": 0.6212358613988912,
+      "d_two_wall": 0.6413514330261618
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 3,
+     "f_hz": 164.3569502943339,
+     "bin": 329,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 2.5644974641452336,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8173209474800052,
+      "b_east_curtain": 0.8222527991644208,
+      "c_north_absorber": 0.9062251852439033,
+      "d_two_wall": 0.8616039342609031
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6111617300188157,
+      "b_east_curtain": 0.6099609306557651,
+      "c_north_absorber": 0.6141371246936136,
+      "d_two_wall": 0.6350638915128636
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 3,
+     "f_hz": 171.8209389503797,
+     "bin": 344,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 1.7035129889120242,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7966057720730971,
+      "b_east_curtain": 0.7994187154945732,
+      "c_north_absorber": 0.8988805422624291,
+      "d_two_wall": 0.7959930636656906
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5908420010928808,
+      "b_east_curtain": 0.5919391082248256,
+      "c_north_absorber": 0.5969704232689188,
+      "d_two_wall": 0.6191517027470993
+     }
+    },
+    {
+     "n_x": 6,
+     "n_y": 0,
+     "f_hz": 173.52445193929174,
+     "bin": 347,
+     "family": "x_axial",
+     "linewidth_hz": 2.6683671448168567,
+     "nn_spacing_hz": 1.7035129889120242,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.7899179320349854,
+      "b_east_curtain": 0.8052183021132944,
+      "c_north_absorber": 0.895009431163266,
+      "d_two_wall": 0.7836055085489866
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5872642029478371,
+      "b_east_curtain": 0.5894672035202185,
+      "c_north_absorber": 0.5943619133945401,
+      "d_two_wall": 0.6170527926256651
+     }
+    },
+    {
+     "n_x": 5,
+     "n_y": 2,
+     "f_hz": 180.40056896665408,
+     "bin": 361,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 1.311479365099217,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8230734894915938,
+      "b_east_curtain": 0.8375723408550786,
+      "c_north_absorber": 0.8606347464354991,
+      "d_two_wall": 0.8076226862789403
+     },
+     "pearson_lin": {
+      "a_baseline": 0.582052121891455,
+      "b_east_curtain": 0.5835482588221687,
+      "c_north_absorber": 0.588188023382824,
+      "d_two_wall": 0.6139541921382484
+     }
+    },
+    {
+     "n_x": 6,
+     "n_y": 1,
+     "f_hz": 181.7120483317533,
+     "bin": 363,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 1.311479365099217,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.834727199795782,
+      "b_east_curtain": 0.8440978875419008,
+      "c_north_absorber": 0.8711961206303181,
+      "d_two_wall": 0.8036027371870097
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5784280902585984,
+      "b_east_curtain": 0.5808169040142288,
+      "c_north_absorber": 0.5848617858867096,
+      "d_two_wall": 0.6119111814493169
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 3,
+     "f_hz": 183.5878036472377,
+     "bin": 367,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 1.8757553154844118,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8119268705537345,
+      "b_east_curtain": 0.8301962432065996,
+      "c_north_absorber": 0.8575080508254339,
+      "d_two_wall": 0.7914805020571607
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5796489879493815,
+      "b_east_curtain": 0.581645869220885,
+      "c_north_absorber": 0.5845220674221149,
+      "d_two_wall": 0.6130550295530045
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 3,
+     "f_hz": 198.89531635695687,
+     "bin": 398,
+     "family": "tangential",
+     "linewidth_hz": 3.9558705759611987,
+     "nn_spacing_hz": 15.307512709719163,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8914931490822652,
+      "b_east_curtain": 0.9021629817048337,
+      "c_north_absorber": 0.9186922489858033,
+      "d_two_wall": 0.8715238323962682
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5903215989533618,
+      "b_east_curtain": 0.5910692486583925,
+      "c_north_absorber": 0.5911034135408175,
+      "d_two_wall": 0.6226542651643314
+     }
+    }
+   ]
+  },
+  "small": {
+   "geometry": "small",
+   "L": 3.44,
+   "W": 3.14,
+   "n_rx": 4096,
+   "grid": [
+    64,
+    64
+   ],
+   "resolvability": {
+    "n_x_max": 34,
+    "n_y_max": 34,
+    "rx_spacing_m": [
+     0.049840999999999996,
+     0.04507900000000001
+    ]
+   },
+   "f_max_hz": 200.0,
+   "df_hz": 0.5,
+   "n_modes": 15,
+   "screen_scenario": "a_baseline",
+   "baseline_db_min": 0.6780699872505025,
+   "baseline_db_mean": 0.8214181540424339,
+   "baseline_db_max": 0.9736566965522176,
+   "n_ge_070": 13,
+   "n_ge_085": 6,
+   "f_highest_ge_085": 199.4186046511628,
+   "n_above_60hz": 13,
+   "n_above_60hz_ge_085": 4,
+   "all_isolated": false,
+   "all_resolvable": true,
+   "modes": [
+    {
+     "n_x": 1,
+     "n_y": 0,
+     "f_hz": 49.8546511627907,
+     "bin": 100,
+     "family": "x_axial",
+     "linewidth_hz": 3.684288999342612,
+     "nn_spacing_hz": 4.763183232113754,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.9736566965522176,
+      "b_east_curtain": 0.9841574240895183,
+      "c_north_absorber": 0.9866605734131637,
+      "d_two_wall": 0.9842573270356587
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8075501295510136,
+      "b_east_curtain": 0.7542036818772743,
+      "c_north_absorber": 0.7955608245986179,
+      "d_two_wall": 0.7225012467069506
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 1,
+     "f_hz": 54.617834394904456,
+     "bin": 109,
+     "family": "y_axial",
+     "linewidth_hz": 3.798001622779112,
+     "nn_spacing_hz": 4.763183232113754,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.9206375272199541,
+      "b_east_curtain": 0.9039666388378736,
+      "c_north_absorber": 0.9838658128033292,
+      "d_two_wall": 0.9555509639773838
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7834756648827403,
+      "b_east_curtain": 0.787655396872756,
+      "c_north_absorber": 0.7574995275410887,
+      "d_two_wall": 0.7230741538171336
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 1,
+     "f_hz": 73.94994304631177,
+     "bin": 148,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 19.332108651407317,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8753215238228501,
+      "b_east_curtain": 0.9147749907492584,
+      "c_north_absorber": 0.9571979566667028,
+      "d_two_wall": 0.9252281501185952
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7346310470614629,
+      "b_east_curtain": 0.7142169010992677,
+      "c_north_absorber": 0.695480119398744,
+      "d_two_wall": 0.6762087120722995
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 0,
+     "f_hz": 99.7093023255814,
+     "bin": 199,
+     "family": "x_axial",
+     "linewidth_hz": 3.684288999342612,
+     "nn_spacing_hz": 9.526366464227507,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.835379011097486,
+      "b_east_curtain": 0.8962513241449174,
+      "c_north_absorber": 0.8850622355337819,
+      "d_two_wall": 0.8997208928888714
+     },
+     "pearson_lin": {
+      "a_baseline": 0.613562095339478,
+      "b_east_curtain": 0.5984099044189968,
+      "c_north_absorber": 0.6283885647044941,
+      "d_two_wall": 0.5879176229397421
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 2,
+     "f_hz": 109.23566878980891,
+     "bin": 218,
+     "family": "y_axial",
+     "linewidth_hz": 3.798001622779112,
+     "nn_spacing_hz": 4.452733451771564,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.6780699872505025,
+      "b_east_curtain": 0.707722926381662,
+      "c_north_absorber": 0.8897665944964341,
+      "d_two_wall": 0.8722815180169171
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5943015628869034,
+      "b_east_curtain": 0.6140694161157796,
+      "c_north_absorber": 0.6162406608918974,
+      "d_two_wall": 0.5885090058575951
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 1,
+     "f_hz": 113.68840224158048,
+     "bin": 227,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 4.452733451771564,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7479965732720978,
+      "b_east_curtain": 0.8379538263029168,
+      "c_north_absorber": 0.8584205441403316,
+      "d_two_wall": 0.8450496034928384
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6133382922795293,
+      "b_east_curtain": 0.6095516460865784,
+      "c_north_absorber": 0.6294464475842838,
+      "d_two_wall": 0.6007121552231041
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 2,
+     "f_hz": 120.07463336825302,
+     "bin": 240,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 6.386231126672541,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6917555891006698,
+      "b_east_curtain": 0.7703121385277192,
+      "c_north_absorber": 0.8661397833100204,
+      "d_two_wall": 0.8272239245819272
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6128585875267538,
+      "b_east_curtain": 0.6180022737620587,
+      "c_north_absorber": 0.6204703670459806,
+      "d_two_wall": 0.609439937947068
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 2,
+     "f_hz": 147.89988609262355,
+     "bin": 296,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 1.664067395748532,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7676129006601002,
+      "b_east_curtain": 0.8115248352241805,
+      "c_north_absorber": 0.8871765472202441,
+      "d_two_wall": 0.859368987434497
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5491988912739815,
+      "b_east_curtain": 0.5528666928300114,
+      "c_north_absorber": 0.5525673328700436,
+      "d_two_wall": 0.5694365274726697
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 0,
+     "f_hz": 149.56395348837208,
+     "bin": 299,
+     "family": "x_axial",
+     "linewidth_hz": 3.684288999342612,
+     "nn_spacing_hz": 1.664067395748532,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.7613327457230734,
+      "b_east_curtain": 0.8369864261841148,
+      "c_north_absorber": 0.8638302276649754,
+      "d_two_wall": 0.8719307389610007
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5547950251865529,
+      "b_east_curtain": 0.5542310170962186,
+      "c_north_absorber": 0.5508215779161868,
+      "d_two_wall": 0.5691717782548362
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 1,
+     "f_hz": 159.2246338261173,
+     "bin": 318,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 4.628869358596091,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8368075664071402,
+      "b_east_curtain": 0.8815396378925853,
+      "c_north_absorber": 0.8978208788728468,
+      "d_two_wall": 0.8859501496316712
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5379446918017563,
+      "b_east_curtain": 0.5436938713526187,
+      "c_north_absorber": 0.5421735642698007,
+      "d_two_wall": 0.5659499864512499
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 3,
+     "f_hz": 163.8535031847134,
+     "bin": 328,
+     "family": "y_axial",
+     "linewidth_hz": 3.798001622779112,
+     "nn_spacing_hz": 4.628869358596091,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.8751453939870266,
+      "b_east_curtain": 0.9047868470531548,
+      "c_north_absorber": 0.9100554224155942,
+      "d_two_wall": 0.9108745838755878
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5348660273487983,
+      "b_east_curtain": 0.5344267285996732,
+      "c_north_absorber": 0.5365160424792986,
+      "d_two_wall": 0.55489300025427
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 3,
+     "f_hz": 171.27012800972162,
+     "bin": 343,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 7.416624825008228,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8040192140307652,
+      "b_east_curtain": 0.8373420708974624,
+      "c_north_absorber": 0.9037689125323721,
+      "d_two_wall": 0.8754334263043624
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5135287838235312,
+      "b_east_curtain": 0.5163251251859892,
+      "c_north_absorber": 0.5217179888311981,
+      "d_two_wall": 0.5374674098496279
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 2,
+     "f_hz": 185.20747155292835,
+     "bin": 370,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 6.599502971349722,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8015359917595989,
+      "b_east_curtain": 0.8539099286053611,
+      "c_north_absorber": 0.9108102343423166,
+      "d_two_wall": 0.8902948533758992
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5074467581593919,
+      "b_east_curtain": 0.5125333452492662,
+      "c_north_absorber": 0.5165557530192637,
+      "d_two_wall": 0.5346258592866311
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 3,
+     "f_hz": 191.80697452427808,
+     "bin": 384,
+     "family": "tangential",
+     "linewidth_hz": 4.988193748081149,
+     "nn_spacing_hz": 6.599502971349722,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.8655716547276232,
+      "b_east_curtain": 0.8969787418969353,
+      "c_north_absorber": 0.9171146792677285,
+      "d_two_wall": 0.8860975878796377
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5099510863320338,
+      "b_east_curtain": 0.510229748260485,
+      "c_north_absorber": 0.5150941384683297,
+      "d_two_wall": 0.535742589253106
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 0,
+     "f_hz": 199.4186046511628,
+     "bin": 399,
+     "family": "x_axial",
+     "linewidth_hz": 3.684288999342612,
+     "nn_spacing_hz": 7.611630126884734,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.8864299350254038,
+      "b_east_curtain": 0.9010530307056276,
+      "c_north_absorber": 0.9212070668465991,
+      "d_two_wall": 0.8688170382187134
+     },
+     "pearson_lin": {
+      "a_baseline": 0.5088930682437767,
+      "b_east_curtain": 0.5115491880706924,
+      "c_north_absorber": 0.5156436007018919,
+      "d_two_wall": 0.5442680723102998
+     }
+    }
+   ]
+  },
+  "large": {
+   "geometry": "large",
+   "L": 5.56,
+   "W": 4.9,
+   "n_rx": 4096,
+   "grid": [
+    64,
+    64
+   ],
+   "resolvability": {
+    "n_x_max": 33,
+    "n_y_max": 33,
+    "rx_spacing_m": [
+     0.08349200000000001,
+     0.073016
+    ]
+   },
+   "f_max_hz": 200.0,
+   "df_hz": 0.5,
+   "n_modes": 35,
+   "screen_scenario": "a_baseline",
+   "baseline_db_min": 0.6098300848634989,
+   "baseline_db_mean": 0.7347914785544526,
+   "baseline_db_max": 0.9644216740458811,
+   "n_ge_070": 20,
+   "n_ge_085": 4,
+   "f_highest_ge_085": 61.6906474820144,
+   "n_above_60hz": 32,
+   "n_above_60hz_ge_085": 1,
+   "all_isolated": false,
+   "all_resolvable": true,
+   "modes": [
+    {
+     "n_x": 1,
+     "n_y": 0,
+     "f_hz": 30.8453237410072,
+     "bin": 62,
+     "family": "x_axial",
+     "linewidth_hz": 2.308319174627777,
+     "nn_spacing_hz": 4.154676258992794,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.9644216740458811,
+      "b_east_curtain": 0.980271498294132,
+      "c_north_absorber": 0.9830292601096015,
+      "d_two_wall": 0.9798553794134208
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8993035926523059,
+      "b_east_curtain": 0.8642206137342971,
+      "c_north_absorber": 0.8957635658448718,
+      "d_two_wall": 0.8408388723983554
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 1,
+     "f_hz": 34.99999999999999,
+     "bin": 70,
+     "family": "y_axial",
+     "linewidth_hz": 2.407504764162564,
+     "nn_spacing_hz": 4.154676258992794,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.891071121696508,
+      "b_east_curtain": 0.8747013112229521,
+      "c_north_absorber": 0.9828447041993916,
+      "d_two_wall": 0.9256365317726287
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8720428819722867,
+      "b_east_curtain": 0.8786656109413554,
+      "c_north_absorber": 0.8629266565100785,
+      "d_two_wall": 0.8369116506375891
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 1,
+     "f_hz": 46.65226679045234,
+     "bin": 93,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 11.652266790452344,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.9032415390839048,
+      "b_east_curtain": 0.9372343521766524,
+      "c_north_absorber": 0.9571452342814685,
+      "d_two_wall": 0.9432866956799176
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8502404107732507,
+      "b_east_curtain": 0.8535431266309977,
+      "c_north_absorber": 0.8478909285322833,
+      "d_two_wall": 0.8238837322905805
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 0,
+     "f_hz": 61.6906474820144,
+     "bin": 123,
+     "family": "x_axial",
+     "linewidth_hz": 2.308319174627777,
+     "nn_spacing_hz": 8.309352517985587,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.9229782388210938,
+      "b_east_curtain": 0.9279572663438784,
+      "c_north_absorber": 0.9049101958416028,
+      "d_two_wall": 0.9207844784691935
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8146167353936585,
+      "b_east_curtain": 0.8072039579275938,
+      "c_north_absorber": 0.8253078213466943,
+      "d_two_wall": 0.7856991922387658
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 2,
+     "f_hz": 69.99999999999999,
+     "bin": 140,
+     "family": "y_axial",
+     "linewidth_hz": 2.407504764162564,
+     "nn_spacing_hz": 0.927681385691514,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.7623943872119401,
+      "b_east_curtain": 0.8490214896593854,
+      "c_north_absorber": 0.8904395107830215,
+      "d_two_wall": 0.8757079219475249
+     },
+     "pearson_lin": {
+      "a_baseline": 0.823577934732577,
+      "b_east_curtain": 0.8345770140387097,
+      "c_north_absorber": 0.8245776325474543,
+      "d_two_wall": 0.7959053870678441
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 1,
+     "f_hz": 70.9276813856915,
+     "bin": 142,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.927681385691514,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7789182375167393,
+      "b_east_curtain": 0.7970313891665709,
+      "c_north_absorber": 0.8768779665561458,
+      "d_two_wall": 0.849162246345134
+     },
+     "pearson_lin": {
+      "a_baseline": 0.8153884143457156,
+      "b_east_curtain": 0.8236558166646475,
+      "c_north_absorber": 0.8281494222890391,
+      "d_two_wall": 0.7984776365512257
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 2,
+     "f_hz": 76.49466645909074,
+     "bin": 153,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 5.566985073399238,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6454250652733491,
+      "b_east_curtain": 0.7271673246629394,
+      "c_north_absorber": 0.8832797779456568,
+      "d_two_wall": 0.8189259268773945
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7891277597254969,
+      "b_east_curtain": 0.8031666272201994,
+      "c_north_absorber": 0.8101147556778473,
+      "d_two_wall": 0.7894539495429005
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 0,
+     "f_hz": 92.5359712230216,
+     "bin": 185,
+     "family": "x_axial",
+     "linewidth_hz": 2.308319174627777,
+     "nn_spacing_hz": 0.76856235788307,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.807155448188955,
+      "b_east_curtain": 0.8410692234814642,
+      "c_north_absorber": 0.8395478999019987,
+      "d_two_wall": 0.841956630576279
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7672354714241877,
+      "b_east_curtain": 0.773693351753246,
+      "c_north_absorber": 0.7827302186043039,
+      "d_two_wall": 0.7592975996704086
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 2,
+     "f_hz": 93.30453358090467,
+     "bin": 187,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.76856235788307,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7702366902401699,
+      "b_east_curtain": 0.8208264344520018,
+      "c_north_absorber": 0.855963225993681,
+      "d_two_wall": 0.8376613853890732
+     },
+     "pearson_lin": {
+      "a_baseline": 0.756619184825749,
+      "b_east_curtain": 0.7727548893932963,
+      "c_north_absorber": 0.7805312325456412,
+      "d_two_wall": 0.7595589866939164
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 1,
+     "f_hz": 98.93384643380585,
+     "bin": 198,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 5.6293128529011796,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7220151542208733,
+      "b_east_curtain": 0.8135218015937707,
+      "c_north_absorber": 0.8224654079319678,
+      "d_two_wall": 0.8511982510227971
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7568680273749413,
+      "b_east_curtain": 0.7683455619942872,
+      "c_north_absorber": 0.7748448264470259,
+      "d_two_wall": 0.7576974980347148
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 3,
+     "f_hz": 104.99999999999999,
+     "bin": 210,
+     "family": "y_axial",
+     "linewidth_hz": 2.407504764162564,
+     "nn_spacing_hz": 4.436895043159652,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.7637566853730773,
+      "b_east_curtain": 0.8022549776789188,
+      "c_north_absorber": 0.876594708593383,
+      "d_two_wall": 0.830157469098976
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7559346668977465,
+      "b_east_curtain": 0.7644604450614818,
+      "c_north_absorber": 0.7631702775190153,
+      "d_two_wall": 0.7424017823213562
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 3,
+     "f_hz": 109.43689504315964,
+     "bin": 219,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 4.436895043159652,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6098300848634989,
+      "b_east_curtain": 0.6906784687892823,
+      "c_north_absorber": 0.8798097157195558,
+      "d_two_wall": 0.8137482632352306
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7296915862586688,
+      "b_east_curtain": 0.7421144167910512,
+      "c_north_absorber": 0.7527055815807111,
+      "d_two_wall": 0.7374620784231717
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 2,
+     "f_hz": 116.02976329454387,
+     "bin": 232,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 5.751745920731366,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7056533913674572,
+      "b_east_curtain": 0.7786482849696913,
+      "c_north_absorber": 0.8379032538583132,
+      "d_two_wall": 0.8131553219623637
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7287729443243794,
+      "b_east_curtain": 0.7402466102545944,
+      "c_north_absorber": 0.747168695901074,
+      "d_two_wall": 0.7356134505179456
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 3,
+     "f_hz": 121.78150921527524,
+     "bin": 244,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 1.5997857487535612,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6628741361059762,
+      "b_east_curtain": 0.7369718123351607,
+      "c_north_absorber": 0.8325325557996567,
+      "d_two_wall": 0.7956209279959606
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7279489508747571,
+      "b_east_curtain": 0.7422386739470861,
+      "c_north_absorber": 0.74655550486772,
+      "d_two_wall": 0.7395752665614597
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 0,
+     "f_hz": 123.3812949640288,
+     "bin": 247,
+     "family": "x_axial",
+     "linewidth_hz": 2.308319174627777,
+     "nn_spacing_hz": 1.5997857487535612,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.7006269226890814,
+      "b_east_curtain": 0.7930077827485453,
+      "c_north_absorber": 0.8294171025433394,
+      "d_two_wall": 0.8142394278530186
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7445952130404222,
+      "b_east_curtain": 0.7467454082112752,
+      "c_north_absorber": 0.7528421159940741,
+      "d_two_wall": 0.7419889768733513
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 1,
+     "f_hz": 128.249537804238,
+     "bin": 256,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 4.868242840209206,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6598701977663631,
+      "b_east_curtain": 0.8194412977650396,
+      "c_north_absorber": 0.8095557647854814,
+      "d_two_wall": 0.835538873058155
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7175112859318153,
+      "b_east_curtain": 0.7342670402559535,
+      "c_north_absorber": 0.7380503916376533,
+      "d_two_wall": 0.7355367554025629
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 3,
+     "f_hz": 139.95680037135702,
+     "bin": 280,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.04319962864295235,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6842216059146475,
+      "b_east_curtain": 0.7460177424695115,
+      "c_north_absorber": 0.8130185184273612,
+      "d_two_wall": 0.7632131028613164
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7021968346507709,
+      "b_east_curtain": 0.7131365621294357,
+      "c_north_absorber": 0.7146958422097676,
+      "d_two_wall": 0.7114351236194791
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 4,
+     "f_hz": 139.99999999999997,
+     "bin": 280,
+     "family": "y_axial",
+     "linewidth_hz": 2.407504764162564,
+     "nn_spacing_hz": 0.04319962864295235,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.6842216059146475,
+      "b_east_curtain": 0.7460177424695115,
+      "c_north_absorber": 0.8130185184273612,
+      "d_two_wall": 0.7632131028613164
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7021968346507709,
+      "b_east_curtain": 0.7131365621294357,
+      "c_north_absorber": 0.7146958422097676,
+      "d_two_wall": 0.7114351236194791
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 2,
+     "f_hz": 141.855362771383,
+     "bin": 284,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 1.5023506474893509,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6679473862011988,
+      "b_east_curtain": 0.7344534698377668,
+      "c_north_absorber": 0.7910669632051046,
+      "d_two_wall": 0.7545524804417819
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7064554092401446,
+      "b_east_curtain": 0.7122958204380717,
+      "c_north_absorber": 0.7157350961496184,
+      "d_two_wall": 0.7139147291116407
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 4,
+     "f_hz": 143.35771341887235,
+     "bin": 287,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 1.5023506474893509,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6720792517957599,
+      "b_east_curtain": 0.7082538467007428,
+      "c_north_absorber": 0.7973649761724998,
+      "d_two_wall": 0.7677846533946937
+     },
+     "pearson_lin": {
+      "a_baseline": 0.7103043025667232,
+      "b_east_curtain": 0.7126083016144727,
+      "c_north_absorber": 0.7145263147086028,
+      "d_two_wall": 0.7154151999558302
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 4,
+     "f_hz": 152.98933291818147,
+     "bin": 306,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 1.2372857868544997,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6407239662670593,
+      "b_east_curtain": 0.7051935305382715,
+      "c_north_absorber": 0.813466898999581,
+      "d_two_wall": 0.758132886818565
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6787848329284869,
+      "b_east_curtain": 0.6851495006071286,
+      "c_north_absorber": 0.6865264398869538,
+      "d_two_wall": 0.7008026587379771
+     }
+    },
+    {
+     "n_x": 5,
+     "n_y": 0,
+     "f_hz": 154.22661870503597,
+     "bin": 308,
+     "family": "x_axial",
+     "linewidth_hz": 2.308319174627777,
+     "nn_spacing_hz": 1.2372857868544997,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.6713737760338933,
+      "b_east_curtain": 0.7325623352355951,
+      "c_north_absorber": 0.8075765800833397,
+      "d_two_wall": 0.7654245937612305
+     },
+     "pearson_lin": {
+      "a_baseline": 0.68099486242994,
+      "b_east_curtain": 0.6856387676217984,
+      "c_north_absorber": 0.6862360529922437,
+      "d_two_wall": 0.7002522657476109
+     }
+    },
+    {
+     "n_x": 5,
+     "n_y": 1,
+     "f_hz": 158.1481897373111,
+     "bin": 316,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 3.8639824813239727,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7161183429517681,
+      "b_east_curtain": 0.7819647090458886,
+      "c_north_absorber": 0.8127008653093625,
+      "d_two_wall": 0.7755372034243382
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6680044342153222,
+      "b_east_curtain": 0.6749712915601569,
+      "c_north_absorber": 0.6773427489915076,
+      "d_two_wall": 0.6965771913502742
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 3,
+     "f_hz": 162.01217221863507,
+     "bin": 324,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 3.8639824813239727,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7048633417819088,
+      "b_east_curtain": 0.7525651154666029,
+      "c_north_absorber": 0.798617505659186,
+      "d_two_wall": 0.7767630327699322
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6622251884442395,
+      "b_east_curtain": 0.6655127298482996,
+      "c_north_absorber": 0.669684185390084,
+      "d_two_wall": 0.6895189202214116
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 4,
+     "f_hz": 167.8180740271675,
+     "bin": 336,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 1.5509016359938812,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6977601447941971,
+      "b_east_curtain": 0.7479046978563044,
+      "c_north_absorber": 0.8162855191526613,
+      "d_two_wall": 0.7817064321672712
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6441262713072906,
+      "b_east_curtain": 0.6485816720281687,
+      "c_north_absorber": 0.6509383050056595,
+      "d_two_wall": 0.6779927448471436
+     }
+    },
+    {
+     "n_x": 5,
+     "n_y": 2,
+     "f_hz": 169.3689756631614,
+     "bin": 339,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 1.5509016359938812,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7225892911552585,
+      "b_east_curtain": 0.7784559705105153,
+      "c_north_absorber": 0.8177338617939723,
+      "d_two_wall": 0.7913402076564671
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6475203403602195,
+      "b_east_curtain": 0.650228549095713,
+      "c_north_absorber": 0.651693588146618,
+      "d_two_wall": 0.6792485502471111
+     }
+    },
+    {
+     "n_x": 0,
+     "n_y": 5,
+     "f_hz": 175.0,
+     "bin": 350,
+     "family": "y_axial",
+     "linewidth_hz": 2.407504764162564,
+     "nn_spacing_hz": 2.697591420614202,
+     "isolated": true,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.828563444841196,
+      "b_east_curtain": 0.8434495836016517,
+      "c_north_absorber": 0.8660639592644626,
+      "d_two_wall": 0.819217444691545
+     },
+     "pearson_lin": {
+      "a_baseline": 0.645031516070328,
+      "b_east_curtain": 0.6444915822053019,
+      "c_north_absorber": 0.6460264226168533,
+      "d_two_wall": 0.6756107663305457
+     }
+    },
+    {
+     "n_x": 1,
+     "n_y": 5,
+     "f_hz": 177.6975914206142,
+     "bin": 355,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 2.697591420614202,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7747206662896338,
+      "b_east_curtain": 0.8110337012758562,
+      "c_north_absorber": 0.8693305060986789,
+      "d_two_wall": 0.7945626199735584
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6412436973511861,
+      "b_east_curtain": 0.640308248759751,
+      "c_north_absorber": 0.6425172521253414,
+      "d_two_wall": 0.6703910086094578
+     }
+    },
+    {
+     "n_x": 6,
+     "n_y": 0,
+     "f_hz": 185.0719424460432,
+     "bin": 370,
+     "family": "x_axial",
+     "linewidth_hz": 2.308319174627777,
+     "nn_spacing_hz": 0.4832676310391548,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": false,
+     "pearson_db": {
+      "a_baseline": 0.6904363543551981,
+      "b_east_curtain": 0.7461862778633129,
+      "c_north_absorber": 0.7664666096024304,
+      "d_two_wall": 0.724617464467938
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6243925528458284,
+      "b_east_curtain": 0.6292157755348753,
+      "c_north_absorber": 0.6304653312168964,
+      "d_two_wall": 0.6570184627185931
+     }
+    },
+    {
+     "n_x": 2,
+     "n_y": 5,
+     "f_hz": 185.55521007708236,
+     "bin": 371,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.4832676310391548,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6972020268144833,
+      "b_east_curtain": 0.7468972312216781,
+      "c_north_absorber": 0.7867559226328869,
+      "d_two_wall": 0.727787602460152
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6228756781795891,
+      "b_east_curtain": 0.6283433564935145,
+      "c_north_absorber": 0.629609807469755,
+      "d_two_wall": 0.6564299897836623
+     }
+    },
+    {
+     "n_x": 5,
+     "n_y": 3,
+     "f_hz": 186.57665962597935,
+     "bin": 373,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.03240753583000355,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6755956801700402,
+      "b_east_curtain": 0.7403143886198547,
+      "c_north_absorber": 0.8008109736459539,
+      "d_two_wall": 0.7457101318513377
+     },
+     "pearson_lin": {
+      "a_baseline": 0.624886721002725,
+      "b_east_curtain": 0.6295814145163509,
+      "c_north_absorber": 0.6305767238588484,
+      "d_two_wall": 0.6566831158586569
+     }
+    },
+    {
+     "n_x": 4,
+     "n_y": 4,
+     "f_hz": 186.60906716180935,
+     "bin": 373,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.03240753583000355,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.6755956801700402,
+      "b_east_curtain": 0.7403143886198547,
+      "c_north_absorber": 0.8008109736459539,
+      "d_two_wall": 0.7457101318513377
+     },
+     "pearson_lin": {
+      "a_baseline": 0.624886721002725,
+      "b_east_curtain": 0.6295814145163509,
+      "c_north_absorber": 0.6305767238588484,
+      "d_two_wall": 0.6566831158586569
+     }
+    },
+    {
+     "n_x": 6,
+     "n_y": 1,
+     "f_hz": 188.3523928192884,
+     "bin": 377,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 1.7433256574790619,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7346711209493363,
+      "b_east_curtain": 0.762884727444181,
+      "c_north_absorber": 0.82458340725002,
+      "d_two_wall": 0.7723306051888373
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6279881084304002,
+      "b_east_curtain": 0.6303479931376866,
+      "c_north_absorber": 0.6323121434127265,
+      "d_two_wall": 0.6579093927184917
+     }
+    },
+    {
+     "n_x": 6,
+     "n_y": 2,
+     "f_hz": 197.8676928676117,
+     "bin": 396,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.09166147107038114,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7542745442703517,
+      "b_east_curtain": 0.8101012301337545,
+      "c_north_absorber": 0.8326878850461249,
+      "d_two_wall": 0.7761956528995562
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6323623392176285,
+      "b_east_curtain": 0.6361035380961138,
+      "c_north_absorber": 0.6365255524675776,
+      "d_two_wall": 0.6647828931288412
+     }
+    },
+    {
+     "n_x": 3,
+     "n_y": 5,
+     "f_hz": 197.9593543386821,
+     "bin": 396,
+     "family": "tangential",
+     "linewidth_hz": 3.1438826258602273,
+     "nn_spacing_hz": 0.09166147107038114,
+     "isolated": false,
+     "resolvable": true,
+     "both_indices_nonzero": true,
+     "pearson_db": {
+      "a_baseline": 0.7542745442703517,
+      "b_east_curtain": 0.8101012301337545,
+      "c_north_absorber": 0.8326878850461249,
+      "d_two_wall": 0.7761956528995562
+     },
+     "pearson_lin": {
+      "a_baseline": 0.6323623392176285,
+      "b_east_curtain": 0.6361035380961138,
+      "c_north_absorber": 0.6365255524675776,
+      "d_two_wall": 0.6647828931288412
+     }
+    }
+   ]
+  }
+ }
+}
