@@ -30,4 +30,4 @@ mkdir -p outputs/p3_3fast/trackA logs/slurm
 echo "host=$(hostname); job=${SLURM_JOB_ID:-none}"
 nvidia-smi -L || true
 
-python scripts/p3_3fast_trackA_diag.py --out outputs/p3_3fast/trackA "$@"
+python scripts/p3_3fast_trackA_diag.py "$@"
