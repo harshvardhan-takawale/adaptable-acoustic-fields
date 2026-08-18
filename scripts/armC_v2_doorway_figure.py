@@ -62,6 +62,7 @@ def main() -> int:
     meta = json.load(open(d / "doorway_meta.json"))
     aps = [float(x) for x in meta["apertures"]]
     runs = {float(r["a"]): r for r in meta["runs"]}
+    repro = {float(r["a"]): r for r in meta.get("ftb_reproduction", [])}
 
     dat = {}
     for a in aps:
@@ -77,7 +78,7 @@ def main() -> int:
              "field at {:.0f} Hz\nsub-room mode (1,1)".format(dat[aps[0]]["f"])),
             ("band", ref_b, DYN_BAND, "band-integrated level\n20–300 Hz")]
 
-    fig, axes = plt.subplots(2, 3, figsize=(20.4, 8.6), dpi=DPI)
+    fig, axes = plt.subplots(2, 3, figsize=(20.4, 9.4), dpi=DPI)
     info = {"rows": {}, "note": meta["source"]}
     for ri, (key, ref, dyn, ylab) in enumerate(rows):
         info["rows"][key] = {"ref_abs": ref, "dynamic_range_db": dyn, "panels": {}}
@@ -99,18 +100,29 @@ def main() -> int:
                              fontweight="bold", pad=10)
             if ci == 0:
                 ax.set_ylabel(ylab, fontsize=12, fontweight="bold")
+            # The level difference is a 20-300 Hz BAND quantity, so it belongs on the
+            # band row only -- repeating it under the modal row would imply it were
+            # measured at 60 Hz.
             r = runs[a]
             if a == 0.0:
                 lab = "room B is EXACTLY zero\n(exact disconnection, not a floor)"
-            else:
-                lab = "inter-room level difference\n{:+.2f} dB".format(
+            elif ri == 1:
+                rp = repro.get(a)
+                lab = "inter-room level difference {:+.2f} dB\n(this dense grid, T = 0.5 s)".format(
                     r["ld_db_amplitude_ftb_def"])
-            ax.text(0.5, -0.055, lab, transform=ax.transAxes, ha="center", va="top",
-                    fontsize=11, fontweight="bold", color="#0072B2")
+                if rp is not None:
+                    lab += "\nFT-B protocol: {:+.2f} dB — reproduces published {:+.2f}".format(
+                        rp["ld_db_amplitude_ftb_def"], rp["ld_db_published_ftb"])
+            else:
+                lab = ""
+            if lab:
+                ax.text(0.5, -0.055, lab, transform=ax.transAxes, ha="center", va="top",
+                        fontsize=10.5, fontweight="bold", color="#0072B2")
             info["rows"][key]["panels"][str(a)] = {
                 "ld_db_amplitude_ftb_def": r["ld_db_amplitude_ftb_def"],
                 "ld_db_power": r["ld_db_power"],
-                "room_b_exactly_zero": r["room_b_exactly_zero"]}
+                "room_b_exactly_zero": r["room_b_exactly_zero"],
+                "ftb_protocol_repro": repro.get(a)}
         cb = fig.colorbar(im, ax=list(axes[ri]), fraction=0.016, pad=0.012)
         cb.set_label("dB re loudest panel in this row", fontsize=10)
 
@@ -119,12 +131,15 @@ def main() -> int:
                  fontsize=16.5, fontweight="bold", y=0.985)
     fig.text(0.5, 0.012,
              "Every panel is a 2-D FDTD simulation on an 8192-point dense grid — there is NO "
-             "neural network anywhere in this figure. It motivates the next phase (doorway "
+             "neural network anywhere in this figure.\nIt motivates the next phase (doorway "
              "aperture as a trainable edit axis); it is not a result.\n"
              "Source (cyan star) is always in room A. The divider is drawn in cyan; its gap is "
-             "the doorway. Sealed → room B is identically zero. Domain, absorption, source and "
-             "$dx$ are FT-B's frozen setup, so these panels sit on an already-validated "
-             "configuration.",
+             "the doorway. Sealed → room B is identically zero.\n"
+             "Domain, absorption, source and $dx$ are FT-B's frozen setup, and a companion pass "
+             "on FT-B's exact protocol reproduces its published\nlevel differences to within "
+             "0.004 dB — so the solver and aperture construction are validated. The dense-grid "
+             "numbers above differ from that\npublished table only through the estimator, "
+             "receiver set and record length; both are reported.",
              ha="center", fontsize=11)
     fig.savefig(a_.out, bbox_inches="tight", facecolor="white")
     plt.close(fig)

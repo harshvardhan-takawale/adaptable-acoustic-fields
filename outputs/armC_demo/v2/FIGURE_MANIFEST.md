@@ -214,8 +214,34 @@ is the constraint — `simulate` allocates `ir_t`, `ir`, `H_complex` and `H_deco
 a full-span slab disconnects the domain, so `H_B ≡ 0` and the level difference is −inf, matching
 the published `DATASET_GATE.json`. Displayed clipped to the floor and labelled as exact.
 
-*(Level-difference reproduction against FT-B's published values — see the section appended
-below.)*
+### Level-difference reproduction — FT-B's published values reproduced to 0.004 dB
+
+The dense pass's level differences did **not** initially match FT-B's published table, and the
+first explanation was wrong. Cause: FT-B's `band_level_ratio` (`scripts/p3_3fast_ftb.py:232`) is
+`20·log10(mean|H|)` — a mean of **amplitude** — whereas the dense pass used `10·log10(mean|H|²)`,
+a mean of **power**.
+
+Rather than assume the residual was benign, the job runs a **second pass replaying FT-B's exact
+protocol**: its 16×8 grid at 0.30 m margin with `n = 122880` (T = 2.0 s). It reproduces exactly:
+
+| aperture | FT-B protocol (n=122880, 16×8) | FT-B published | delta | dense grid, amplitude | dense grid, power |
+|---|---|---|---|---|---|
+| a = 0.0 (sealed) | **−inf** | −inf | exact | −inf | −inf |
+| a = 1.0 | **−7.15 dB** | −7.15 dB | **+0.002 dB** | −5.47 dB | −5.27 dB |
+| a = 4.0 (open) | **−1.45 dB** | −1.45 dB | **−0.004 dB** | −1.14 dB | −0.29 dB |
+
+**The solver, the geometry and the aperture construction are validated.** The dense-grid offset
+is entirely attributable to three things, none of them a modelling error: the estimator
+(amplitude vs power mean), the receiver set (8192 at 0.20 m margin vs 16×8 at 0.30 m) and the
+record length (T = 0.5 s vs 2.0 s). Between them they move this observable by ~1.9 dB.
+
+`figF` prints the dense-grid value (which is what its panels show) **and** the FT-B-protocol
+reproduction beside it, so nobody compares the dense number against the published table by
+mistake. Both estimators are stored per run, and `m_band` (mean |H| per receiver) is cached so
+either can be re-derived without re-simulating.
+
+**Standing lesson**: an inter-room level difference is not comparable across chunks unless the
+estimator, receiver set and record length all match.
 
 ---
 

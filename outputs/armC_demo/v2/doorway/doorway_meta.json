@@ -1,0 +1,116 @@
+{
+ "L": 8.0,
+ "W": 4.0,
+ "div_x": 4.0,
+ "alpha": 0.15,
+ "src": [
+  0.5,
+  0.5
+ ],
+ "dx": 0.01,
+ "fs": 61440.0,
+ "n": 30720,
+ "df_hz": 2.0,
+ "mode_f_hz": 60.7104370010395,
+ "mode": [
+  1,
+  1
+ ],
+ "mode_basis": "sub-room, L_sub=3.99",
+ "band_hz": [
+  20.0,
+  300.0
+ ],
+ "n_rx": 8192,
+ "rx_grid": [
+  128,
+  64
+ ],
+ "apertures": [
+  0.0,
+  1.0,
+  4.0
+ ],
+ "published_ld_db": {
+  "0.0": -Infinity,
+  "1.0": -7.15,
+  "4.0": -1.45
+ },
+ "source": "FDTD simulation (aaf.sim.fdtd_2d.simulate) -- NOT model output",
+ "runs": [
+  {
+   "a": 0.0,
+   "bin": 30,
+   "f_bin_hz": 60.0,
+   "n": 30720,
+   "n_rx": 8192,
+   "margin": 0.2,
+   "ld_db_amplitude_ftb_def": -Infinity,
+   "ld_db_power": -Infinity,
+   "ld_db_published_ftb": -Infinity,
+   "room_b_exactly_zero": true,
+   "max_abs_room_b": 0.0,
+   "loop_s": 123.1
+  },
+  {
+   "a": 1.0,
+   "bin": 30,
+   "f_bin_hz": 60.0,
+   "n": 30720,
+   "n_rx": 8192,
+   "margin": 0.2,
+   "ld_db_amplitude_ftb_def": -5.467876112315487,
+   "ld_db_power": -5.269987572909445,
+   "ld_db_published_ftb": -7.15,
+   "room_b_exactly_zero": false,
+   "max_abs_room_b": 5.003738635462005,
+   "loop_s": 123.0
+  },
+  {
+   "a": 4.0,
+   "bin": 30,
+   "f_bin_hz": 60.0,
+   "n": 30720,
+   "n_rx": 8192,
+   "margin": 0.2,
+   "ld_db_amplitude_ftb_def": -1.1425274927422282,
+   "ld_db_power": -0.2887165650290984,
+   "ld_db_published_ftb": -1.45,
+   "room_b_exactly_zero": false,
+   "max_abs_room_b": 12.263233651800237,
+   "loop_s": 125.1
+  }
+ ],
+ "ftb_reproduction": [
+  {
+   "a": 0.0,
+   "n": 122880,
+   "n_rx": 128,
+   "margin": 0.3,
+   "ld_db_amplitude_ftb_def": -Infinity,
+   "ld_db_published_ftb": -Infinity,
+   "delta_vs_published_db": NaN,
+   "loop_s": 424.5
+  },
+  {
+   "a": 1.0,
+   "n": 122880,
+   "n_rx": 128,
+   "margin": 0.3,
+   "ld_db_amplitude_ftb_def": -7.147947443559783,
+   "ld_db_published_ftb": -7.15,
+   "delta_vs_published_db": 0.0020525564402174012,
+   "loop_s": 431.7
+  },
+  {
+   "a": 4.0,
+   "n": 122880,
+   "n_rx": 128,
+   "margin": 0.3,
+   "ld_db_amplitude_ftb_def": -1.4544221739723584,
+   "ld_db_published_ftb": -1.45,
+   "delta_vs_published_db": -0.004422173972358445,
+   "loop_s": 413.6
+  }
+ ]
+}

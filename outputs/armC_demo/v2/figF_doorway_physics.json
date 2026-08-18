@@ -1,0 +1,107 @@
+{
+ "rows": {
+  "mode": {
+   "ref_abs": 7.829878330230713,
+   "dynamic_range_db": 45.0,
+   "panels": {
+    "0.0": {
+     "ld_db_amplitude_ftb_def": -Infinity,
+     "ld_db_power": -Infinity,
+     "room_b_exactly_zero": true,
+     "ftb_protocol_repro": {
+      "a": 0.0,
+      "n": 122880,
+      "n_rx": 128,
+      "margin": 0.3,
+      "ld_db_amplitude_ftb_def": -Infinity,
+      "ld_db_published_ftb": -Infinity,
+      "delta_vs_published_db": NaN,
+      "loop_s": 424.5
+     }
+    },
+    "1.0": {
+     "ld_db_amplitude_ftb_def": -5.467876112315487,
+     "ld_db_power": -5.269987572909445,
+     "room_b_exactly_zero": false,
+     "ftb_protocol_repro": {
+      "a": 1.0,
+      "n": 122880,
+      "n_rx": 128,
+      "margin": 0.3,
+      "ld_db_amplitude_ftb_def": -7.147947443559783,
+      "ld_db_published_ftb": -7.15,
+      "delta_vs_published_db": 0.0020525564402174012,
+      "loop_s": 431.7
+     }
+    },
+    "4.0": {
+     "ld_db_amplitude_ftb_def": -1.1425274927422282,
+     "ld_db_power": -0.2887165650290984,
+     "room_b_exactly_zero": false,
+     "ftb_protocol_repro": {
+      "a": 4.0,
+      "n": 122880,
+      "n_rx": 128,
+      "margin": 0.3,
+      "ld_db_amplitude_ftb_def": -1.4544221739723584,
+      "ld_db_published_ftb": -1.45,
+      "delta_vs_published_db": -0.004422173972358445,
+      "loop_s": 413.6
+     }
+    }
+   }
+  },
+  "band": {
+   "ref_abs": 36.7270508889656,
+   "dynamic_range_db": 35.0,
+   "panels": {
+    "0.0": {
+     "ld_db_amplitude_ftb_def": -Infinity,
+     "ld_db_power": -Infinity,
+     "room_b_exactly_zero": true,
+     "ftb_protocol_repro": {
+      "a": 0.0,
+      "n": 122880,
+      "n_rx": 128,
+      "margin": 0.3,
+      "ld_db_amplitude_ftb_def": -Infinity,
+      "ld_db_published_ftb": -Infinity,
+      "delta_vs_published_db": NaN,
+      "loop_s": 424.5
+     }
+    },
+    "1.0": {
+     "ld_db_amplitude_ftb_def": -5.467876112315487,
+     "ld_db_power": -5.269987572909445,
+     "room_b_exactly_zero": false,
+     "ftb_protocol_repro": {
+      "a": 1.0,
+      "n": 122880,
+      "n_rx": 128,
+      "margin": 0.3,
+      "ld_db_amplitude_ftb_def": -7.147947443559783,
+      "ld_db_published_ftb": -7.15,
+      "delta_vs_published_db": 0.0020525564402174012,
+      "loop_s": 431.7
+     }
+    },
+    "4.0": {
+     "ld_db_amplitude_ftb_def": -1.1425274927422282,
+     "ld_db_power": -0.2887165650290984,
+     "room_b_exactly_zero": false,
+     "ftb_protocol_repro": {
+      "a": 4.0,
+      "n": 122880,
+      "n_rx": 128,
+      "margin": 0.3,
+      "ld_db_amplitude_ftb_def": -1.4544221739723584,
+      "ld_db_published_ftb": -1.45,
+      "delta_vs_published_db": -0.004422173972358445,
+      "loop_s": 413.6
+     }
+    }
+   }
+  }
+ },
+ "note": "FDTD simulation (aaf.sim.fdtd_2d.simulate) -- NOT model output"
+}

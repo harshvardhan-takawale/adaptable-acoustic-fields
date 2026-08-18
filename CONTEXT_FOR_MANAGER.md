@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **Arm C demo pack v2 (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A and the Delta difference maps are done; the doorway figure is outstanding. See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -13,7 +13,7 @@ Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
 
 ## Phase 3 — Arm C demo pack **v2** (2026-08-18): the modal hierarchy and the Delta test
 
-**Items 1-3 DONE; the doorway figure is the one piece outstanding.** `outputs/armC_demo/v2/` —
+**ALL FOUR ITEMS DONE.** `outputs/armC_demo/v2/` —
 three figures, `FIGURE_MANIFEST.md`, `mode_screen.json`, `figures_v2.json`. Full writeup:
 `tasks/CHUNK_ARMC_V2_RESULTS.md`. Read `DECISIONS.md` **D62b / D62c**.
 
@@ -58,12 +58,15 @@ linewidth), including Fig A2's mid row; those labels are nominal. (iii) Two of m
 caught in-flight and are recorded rather than silently fixed: the linewidth/isolation estimate,
 and a figE title claiming universal Delta decay.
 
-**4. Doorway (ground truth only, no model).** Dense FDTD pass done on FT-B's frozen 8.0 × 4.0
-domain (8192 receivers, 15.9 GB peak); sealed room B is **exactly zero**, matching
-`DATASET_GATE.json`. My level differences disagreed with FT-B's published table because FT-B uses
-`20log10(mean|H|)` (amplitude mean) where I used a power mean — switching estimators closes most
-of the gap. A reproduction pass on FT-B's exact protocol is running to attribute the remainder
-rather than leave it unexplained. `figF` awaits it.
+**4. Doorway (ground truth only, no model) — DONE and the solver is validated.** Dense FDTD pass
+on FT-B's frozen 8.0 × 4.0 domain (8192 receivers, 15.9 GB peak); sealed room B is **exactly
+zero**, matching `DATASET_GATE.json`. My dense-grid level differences disagreed with FT-B's
+published table, so rather than assume that benign, a second pass replayed FT-B's exact protocol
+and **reproduces its published values to within 0.004 dB** (−inf / −7.15 / −1.45 dB). The offset
+is entirely attributable to the estimator (`20log10(mean|H|)` amplitude mean vs a power mean),
+the receiver set and the record length — ~1.9 dB between them, none of it a modelling error.
+**Standing lesson: an inter-room level difference is not comparable across chunks unless all
+three match.** The aperture axis is ready to train on.
 
 ## Phase 3 — Arm C demo pack (2026-08-18): dense zero-shot fields on the CLEAN corpus
 

@@ -1,8 +1,8 @@
 # Chunk results — Arm C demo pack v2: richer spatial patterns, difference maps, doorway motivator
 
 **Date**: 2026-08-18 · **Branch**: `main` · **Commits**: `b2487d9` (figures), `46313ca` (v1)
-**Status**: Items 1–3 **COMPLETE**. Item 4 (doorway) simulation finished its dense pass; the
-FT-B reproduction pass was still running when this document was first written — see §5.
+**Status**: **ALL FOUR ITEMS COMPLETE.** The doorway reproduction pass finished and reproduces
+FT-B's published level differences to within 0.004 dB — see §5.
 
 No training, no new conditioning code, no new library code. Same checkpoint as v1:
 `outputs/p3_2/p3_2b_C_cont_mlinear/ckpt_iter0060000.pt` (iter 60000, `m_linear`, 60-d).
@@ -225,9 +225,25 @@ protocol** — its 16×8 grid at 0.3 m margin with `n = 122880` — which should
 `m_band` (mean |H| per receiver) is cached so this can be re-derived without re-simulating.
 The sealed case already reproduces exactly (−inf).
 
-**Status when written**: pass 2 completed `a = 0.0` (−inf, matching) and was still running
-`a = 1.0` and `a = 4.0` (~425 s each). `figF_doorway_physics.png` is generated from the
-completed metadata and is therefore the one deliverable still outstanding.
+### Result: reproduced exactly
+
+Pass 2 completed (job 7270525, 27:27 elapsed, 15.9 GB peak). FT-B's published values are
+reproduced on FT-B's exact protocol:
+
+| aperture | FT-B protocol (n=122880, 16×8, 0.3 m) | FT-B published | delta |
+|---|---|---|---|
+| a = 0.0 (sealed) | **−inf** | −inf | exact |
+| a = 1.0 | **−7.15 dB** | −7.15 dB | **+0.002 dB** |
+| a = 4.0 (open) | **−1.45 dB** | −1.45 dB | **−0.004 dB** |
+
+**The solver, geometry and aperture construction are validated.** The dense-grid offset is
+entirely attributable to the estimator, the receiver set and the record length — none of them a
+modelling error, and between them worth ~1.9 dB on this observable. `figF` prints both the
+dense-grid value (what its panels show) and the reproduction beside it, so nobody compares the
+dense number against the published table by mistake.
+
+**Standing lesson**: an inter-room level difference is not comparable across chunks unless the
+estimator, receiver set and record length all match.
 
 ---
 
@@ -242,7 +258,7 @@ All raw GitHub URLs verified HTTP 200.
 | Fig D — modal hierarchy | 3247 × 1569 | https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/armC_demo/v2/figD_mode_screen.png |
 | Fig A2 — 3 modes × 4 scenarios | 3089 × 2696 | https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/armC_demo/v2/figA2_multimode_fields.png |
 | Fig E — difference maps | 3077 × 3217 | https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/armC_demo/v2/figE_difference_maps.png |
-| Fig F — doorway | pending | https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/armC_demo/v2/figF_doorway_physics.png |
+| Fig F — doorway (GT only) | 3383 × 1875 | https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/armC_demo/v2/figF_doorway_physics.png |
 
 ### Data and manifest
 
@@ -278,6 +294,8 @@ All raw GitHub URLs verified HTTP 200.
    needed for a slide, it should not come from the median geometry alone.
 4. **Two of my own errors were caught and corrected in-flight** and are recorded here rather
    than silently fixed: the linewidth/isolation estimate (§1b) and the Δ-decay claim (§3).
-5. **Open**: the doorway LD reproduction (§5) and the four items carried from before —
-   Arm T token encoder on the ISM corpus, the DC-masked A2 retrain, Track B2 eval, the A3
-   D1/D3 verdict, and the P3-2d ρ-definition question that gates publishing Δ*.
+5. **The doorway solver is validated** (§5) — FT-B's published numbers reproduced to 0.004 dB,
+   and the sealed room is exactly zero. The aperture axis is ready to train on.
+6. **Open, carried from before**: Arm T token encoder on the ISM corpus, the DC-masked A2
+   retrain, Track B2 eval, the A3 D1/D3 verdict, and the P3-2d ρ-definition question that gates
+   publishing Δ*.
