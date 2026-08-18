@@ -180,3 +180,6 @@ slurm-*.out
 # P3-3-FAST meeting figures (small, and the pack is the deliverable); the blanket
 # /outputs/**/*.png rule above would otherwise drop them.
 !/outputs/p3_3fast/meeting_assets/**/*.png
+
+# Arm C demo pack: 440 MB of cached dense field dumps stay local; figures+JSON are pushed.
+outputs/armC_demo/fields/

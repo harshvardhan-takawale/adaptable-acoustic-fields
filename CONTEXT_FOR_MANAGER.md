@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: Chunks **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **Arm C demo pack COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -10,6 +10,51 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Also fixed this chunk: a regression I introduced.** The P3-2c audit A1 commit (`ee6ead0`) made the entire per-cell slope regression dead code, so **every rho computed between `ee6ead0` and `ad91b3a` was NaN**. Caught because P3-2c re-evaluates P3-2b arm C as its first curve point and reproduced every number except rho. The A1 guard tests could not have caught it — they asserted over stored `summary.json` files produced by the pre-A1 code, validating documents rather than the code that writes them. `tests/test_p3_2b_slopefit_regression.py` now fits synthetic data end-to-end. No published number changed.
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+
+## Phase 3 — Arm C demo pack (2026-08-18): dense zero-shot fields on the CLEAN corpus
+
+**DONE, and it passed its own kill switch.** `outputs/armC_demo/` — three figures, a
+`FIGURE_MANIFEST.md` with every number traced to a file, `metrics.json`, `figures.json`.
+Read `DECISIONS.md` **D62**.
+
+Every demo before this ran on the **FDTD** corpus, whose bin-0 compliance term holds 87.3% of
+in-band power and whose model reproduces the *energy* response to an edit but gets **spatial
+mode shape wrong** (0.24-0.60 Pearson). This one runs P3-2b **Arm C** — the clean ISM corpus,
+960 continuous configs, ~1.01 dB in-distribution — from
+`outputs/p3_2/p3_2b_C_cont_mlinear/ckpt_iter0060000.pt` (`m_linear`, 60-d).
+
+**3 frozen test geometries x 4 scenarios = 12 renders, one forward pass each, one checkpoint.**
+Queried on a **64x64** grid at 0.15 m margin; the model trained on **8x8** at 0.30 m.
+
+**The abort rule was pre-registered and honoured structurally.** Spec: if spatial Pearson came
+in below ~0.70, report rather than illustrate. Stage 1 computes the whole table and exits
+non-zero on failure; stage 2 refuses to draw unless it passed. Not a formality — the FDTD model
+scores 0.24-0.60 on this exact metric.
+
+| metric | min | mean | max |
+|---|---:|---:|---:|
+| **spatial Pearson** (modal bins, 4096 rx) | **0.920** | **0.951** | **0.976** |
+| magnitude corr (ALL 601 bins, null-dominated) | 0.607 | 0.694 | 0.761 |
+| phase circular corr | 0.758 | 0.832 | 0.926 |
+| RIR Pearson (centre rx) | 0.898 | 0.952 | 0.986 |
+| band LSD, centre rx | 1.23 dB | 2.27 dB | 2.81 dB |
+
+**Scenario (c) is doubly zero-shot** — `north@0.70` (m = 1.204) sits inside Arm C's held-out
+slab `north (1.13, 1.28)` and appears in **0** training configs, so it is unseen geometry AND
+unseen material placement. It scored **highest in all three geometries** (0.976 / 0.973 /
+0.974). The spec did not flag this.
+
+**Three things deliberately not blurred** (D62b-c): magnitude correlation is **0.607-0.761**,
+not 0.95, and is plotted beside the spatial number rather than omitted; P3-2b's
+`mode_shape_invariance` **0.9921** is agreement with the analytic cosine shape on the 8x8 grid
+and is a **different quantity**, never merged in; accuracy is close to ~170 Hz and **degrades
+above it**, visible in figB and folded into the quoted LSDs.
+
+Figures: `figA_spatial_fields.png` (4132x1908, headline — median geometry 5.93x3.18, mode (1,0)
+at 28.92 Hz, 4 scenarios x pred/GT, shared 40 dB colour scale), `figB_signals.png` (3820x1683,
+spectra + 50 ms RIR zoom), `figC_spatial_pearson.png` (3820x1688, all 12 scenarios vs the 0.70
+abort line and the FDTD model's 0.24-0.60 band). The 12 cached field dumps (440 MB) are
+gitignored; the frozen corpus and its manifests are untouched.
 
 ## Phase 3 — FIG 5, the headline demo figure (2026-08-18): "edit the room, zero-shot"
 

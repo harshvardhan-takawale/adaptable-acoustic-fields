@@ -1,0 +1,64 @@
+{
+ "figA": {
+  "geometry": "median",
+  "L": 5.93,
+  "W": 3.18,
+  "mode": [
+   1,
+   0
+  ],
+  "f_hz": 28.920741989881957,
+  "vmin_db": -22.35540494918823,
+  "vmax_db": 17.64459505081177,
+  "spatial_pearson": {
+   "a_baseline": 0.9906808812947527,
+   "b_east_curtain": 0.984363726689828,
+   "c_north_absorber": 0.9906408011695611,
+   "d_two_wall": 0.9837151473892671
+  }
+ },
+ "figB": {
+  "a_baseline": {
+   "band_lsd_db": 2.7114481925964355,
+   "rir_pearson": 0.9210052093361585,
+   "phase_circ_corr": 0.777954585364645,
+   "magnitude_corr": 0.714427298501345
+  },
+  "b_east_curtain": {
+   "band_lsd_db": 2.6676974296569824,
+   "rir_pearson": 0.9429306061804839,
+   "phase_circ_corr": 0.8082690939445016,
+   "magnitude_corr": 0.7088802189572502
+  },
+  "c_north_absorber": {
+   "band_lsd_db": 2.088566541671753,
+   "rir_pearson": 0.9615975729786421,
+   "phase_circ_corr": 0.8470423106369911,
+   "magnitude_corr": 0.7110125200622379
+  },
+  "d_two_wall": {
+   "band_lsd_db": 2.5551774501800537,
+   "rir_pearson": 0.9584451990817205,
+   "phase_circ_corr": 0.7816271137751571,
+   "magnitude_corr": 0.6937433428099249
+  }
+ },
+ "figC": {
+  "worst": 0.9195781116087648,
+  "mean": 0.9511329134489729,
+  "per_scenario": {
+   "a_baseline@small": 0.9232052491983406,
+   "b_east_curtain@small": 0.9342996845588836,
+   "c_north_absorber@small": 0.9759081142943987,
+   "d_two_wall@small": 0.9550121470438793,
+   "a_baseline@median": 0.9569513189173889,
+   "b_east_curtain@median": 0.9606222210235681,
+   "c_north_absorber@median": 0.9733104213770184,
+   "d_two_wall@median": 0.9600393709820431,
+   "a_baseline@large": 0.9195781116087648,
+   "b_east_curtain@large": 0.9307357205645789,
+   "c_north_absorber@large": 0.9743397328634872,
+   "d_two_wall@large": 0.9495928689553224
+  }
+ }
+}
