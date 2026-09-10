@@ -1,0 +1,207 @@
+{
+ "d_bw_own": 0.3365886844042443,
+ "d_bw_other": -1.3447245861068922,
+ "d_bw_tangential": -0.3899253324711296,
+ "d_level_own": -2.084390480451422,
+ "d_level_other": -1.3562327723773668,
+ "d_level_tangential": -2.0082129237886126,
+ "family_own": "x_axial",
+ "family_other": "y_axial",
+ "per_family": {
+  "x_axial": {
+   "bw_base": 14.724810350019942,
+   "bw_edit": 15.061399034424186,
+   "d_bw": 0.3365886844042443,
+   "level_base": 1.8784641016948322,
+   "level_edit": -0.20592637875658978,
+   "d_level": -2.084390480451422,
+   "n": 3,
+   "modes": [
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     3,
+     0
+    ]
+   ]
+  },
+  "y_axial": {
+   "bw_base": 10.517501713713358,
+   "bw_edit": 9.172777127606466,
+   "d_bw": -1.3447245861068922,
+   "level_base": 6.768686408655444,
+   "level_edit": 5.4124536362780775,
+   "d_level": -1.3562327723773668,
+   "n": 1,
+   "modes": [
+    [
+     0,
+     1
+    ]
+   ]
+  },
+  "tangential": {
+   "bw_base": 24.029405043668383,
+   "bw_edit": 23.639479711197254,
+   "d_bw": -0.3899253324711296,
+   "level_base": 3.6971163489039163,
+   "level_edit": 1.6889034251153037,
+   "d_level": -2.0082129237886126,
+   "n": 2,
+   "modes": [
+    [
+     1,
+     1
+    ],
+    [
+     3,
+     1
+    ]
+   ]
+  }
+ },
+ "selectivity": 0.25030306419748083,
+ "d_bw_own_pred_ism_ray": 3.211427208598428,
+ "d_bw_other_pred_ism_ray": 0.0,
+ "selectivity_pred_ism_ray": 21.40951472398952,
+ "d_bw_own_pred_kuttruff": 2.1182428955855923,
+ "d_bw_other_pred_kuttruff": 1.0591214477927964,
+ "selectivity_pred_kuttruff": 1.9999999999999996,
+ "cond_phi": 1.5373402678031967,
+ "residual_frac": 0.2924705915398692,
+ "L": 4.51,
+ "W": 4.0,
+ "wall": "west",
+ "material": "M2",
+ "alphas_baseline": [
+  0.15,
+  0.15,
+  0.15,
+  0.15
+ ],
+ "alphas_edited": [
+  0.5,
+  0.15,
+  0.15,
+  0.15
+ ],
+ "held_out_combo": true,
+ "geometry_novelty": {
+  "exact_match": false,
+  "nearest": [
+   4.37,
+   3.86
+  ],
+  "distance_m": 0.19798989873223316,
+  "n_train_geometries": 40
+ },
+ "receiver_index": 63,
+ "receiver_choice": "far corner, least direct-sound contamination",
+ "most_affected_mode": [
+  2,
+  0
+ ],
+ "mode_freq_hz": 78.0,
+ "mode_selection": "largest measured change in -3 dB bandwidth",
+ "checkpoint": "outputs/p3_2/p3_2_main/ckpt_iter0008000.pt",
+ "checkpoint_iter": 8000,
+ "ground_truth": "data/track_c_2d/L4.51_W4.00_aW0.50_aE0.15_aS0.15_aN0.15.h5",
+ "ground_truth_summary": {
+  "d_bw_own": 5.349863013590474,
+  "d_bw_other": 0.10867476860312797,
+  "d_bw_tangential": 3.298547990104523,
+  "d_level_own": -4.089404019092849,
+  "d_level_other": -0.7426700377640167,
+  "d_level_tangential": -2.4424065351975734,
+  "family_own": "x_axial",
+  "family_other": "y_axial",
+  "per_family": {
+   "x_axial": {
+    "bw_base": 3.5499753958750566,
+    "bw_edit": 8.89983840946553,
+    "d_bw": 5.349863013590474,
+    "level_base": 6.753081182631143,
+    "level_edit": 2.663677163538294,
+    "d_level": -4.089404019092849,
+    "n": 3,
+    "modes": [
+     [
+      1,
+      0
+     ],
+     [
+      2,
+      0
+     ],
+     [
+      3,
+      0
+     ]
+    ]
+   },
+   "y_axial": {
+    "bw_base": 3.9614708572624786,
+    "bw_edit": 4.070145625865607,
+    "d_bw": 0.10867476860312797,
+    "level_base": 4.716961351899527,
+    "level_edit": 3.97429131413551,
+    "d_level": -0.7426700377640167,
+    "n": 3,
+    "modes": [
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      0,
+      3
+     ]
+    ]
+   },
+   "tangential": {
+    "bw_base": 4.9261542217686936,
+    "bw_edit": 8.224702211873216,
+    "d_bw": 3.298547990104523,
+    "level_base": 11.371269212782144,
+    "level_edit": 8.92886267758457,
+    "d_level": -2.4424065351975734,
+    "n": 3,
+    "modes": [
+     [
+      1,
+      1
+     ],
+     [
+      2,
+      1
+     ],
+     [
+      1,
+      2
+     ]
+    ]
+   }
+  },
+  "selectivity": 35.66575342393649,
+  "d_bw_own_pred_ism_ray": 3.211427208598428,
+  "d_bw_other_pred_ism_ray": 0.0,
+  "selectivity_pred_ism_ray": 21.40951472398952,
+  "d_bw_own_pred_kuttruff": 2.1182428955855923,
+  "d_bw_other_pred_kuttruff": 1.0591214477927964,
+  "selectivity_pred_kuttruff": 1.9999999999999996,
+  "cond_phi": 1.5373402678031967,
+  "residual_frac": 0.257428653291834
+ },
+ "figure": "outputs/p3_2/demo/demo_L4.51_W4.00_west_M2.png",
+ "seconds": 3.86
+}
