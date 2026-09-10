@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -10,6 +10,29 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Also fixed this chunk: a regression I introduced.** The P3-2c audit A1 commit (`ee6ead0`) made the entire per-cell slope regression dead code, so **every rho computed between `ee6ead0` and `ad91b3a` was NaN**. Caught because P3-2c re-evaluates P3-2b arm C as its first curve point and reproduced every number except rho. The A1 guard tests could not have caught it — they asserted over stored `summary.json` files produced by the pre-A1 code, validating documents rather than the code that writes them. `tests/test_p3_2b_slopefit_regression.py` now fits synthetic data end-to-end. No published number changed.
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+
+## Repo maintenance (2026-09-10): the backlog is committed — more is readable now
+
+**Read `DECISIONS.md` D63.** Nothing scientific changed. Three things that affect what you can
+fetch:
+
+1. **Run telemetry is now tracked for every arm.** `scalars.json` + `train_meta.json` for 13
+   runs across P3-2 / P3-2b / P3-2c / P3-2d / P3-3-FAST. Previously `p3_3fast/trackA` was tracked
+   while `trackA2 / A3 / B / B2` were not, so convergence was visible for one arm and invisible
+   for four. All five are readable now.
+2. **`outputs/p3_2d/eval_seed2/{G020,G030}/summary.json` is now fetchable.** It was already cited
+   by `outputs/p3_3fast/meeting_assets/FIGURE_MANIFEST.md:285-286` — a published figure rested on
+   a file you could not retrieve. Fixed.
+3. **`scripts/slurm/armC_demo_metrics.sh` is now in the repo.** The Arm C demo pack's metrics
+   stage was not reproducible from a clean clone; the wrapper existed only locally, and its
+   header described a different script entirely.
+
+**One deliberate exclusion**: the seed-2 `per_config.json` dumps (8.4 MB) are gitignored per D44
+— `summary.json` and `verdict.json` are the tracked headline and are what the manifest cites. The
+10 `per_config.json` already tracked under `p3_2c/eval` and `p3_2d/eval` are unchanged.
+
+`scripts/repo_hygiene.sh` now checks this at chunk end, since the cause was structural: chunk
+commits covered reports and missed run output, 37 files' worth over five chunks.
 
 ## Phase 3 — Arm C demo pack **v2** (2026-08-18): the modal hierarchy and the Delta test
 
