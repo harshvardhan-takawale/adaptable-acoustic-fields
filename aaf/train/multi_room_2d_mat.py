@@ -390,8 +390,23 @@ class P32Trainer:
                 tgts.append(self.H[ci[sl], self.val_rx_idx[sl]])
         P, T = torch.cat(preds), torch.cat(tgts)
         terms = _losses(P, T, self.loss_lo_bin)
-        rec = {"phase": "val", "iter": it, "lsd_db": _lsd_db(P, T),
+        # `lsd_db` is the MODEL-SELECTION metric: early stopping reads it and checkpoints are
+        # judged by it, so it must be measured on the band the model is actually trained on.
+        # With a low cut active, the full-band value is dominated by bins the run deliberately
+        # never fits -- and in this corpus those bins sit ~37 dB above the strongest room mode,
+        # so the full-band number moves by >1.5 dB for reasons that have nothing to do with
+        # learning. Measured on the FDTD corpus: masking made full-band lsd_db 1.65 dB WORSE
+        # while L_amp and L_phase both improved. Selecting on that would have early-stopped a
+        # run that was still improving everywhere it was being asked to.
+        #
+        # The full-band value is still recorded, just not used to steer anything.
+        lo = self.loss_lo_bin
+        rec = {"phase": "val", "iter": it,
+               "lsd_db": _lsd_db(P[..., lo:], T[..., lo:]) if lo else _lsd_db(P, T),
                **{k: float(v) for k, v in terms.items()}}
+        if lo:
+            rec["lsd_db_full_band"] = _lsd_db(P, T)
+            rec["loss_lo_bin"] = int(lo)
         self.scalars.append(rec)
         return rec
 
