@@ -1,0 +1,53 @@
+{
+ "schema": "p4_1.poly/1",
+ "seed": 20260910,
+ "n_train": 1,
+ "n_test": 0,
+ "note": "P4-1 Stage 1: ONE L-shaped room, per-scene fit. Not a family -- Stage 1 asks only whether the architecture can represent a non-convex room at all.",
+ "configs": [
+  {
+   "i": 0,
+   "split": "train",
+   "kind": "poly",
+   "shape": "L",
+   "geom_id": 0,
+   "verts": [
+    [
+     0.0,
+     0.0
+    ],
+    [
+     6.0,
+     0.0
+    ],
+    [
+     6.0,
+     5.0
+    ],
+    [
+     3.0,
+     5.0
+    ],
+    [
+     3.0,
+     2.5
+    ],
+    [
+     0.0,
+     2.5
+    ]
+   ],
+   "edge_alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "filename": "lroom.h5",
+   "strata": "L"
+  }
+ ],
+ "rows_sha256": "1a3423a9a1e9b3e1829d6fcaf4073c19340b32a8491bcbf7f8dc1fe2c3cf12b7"
+}

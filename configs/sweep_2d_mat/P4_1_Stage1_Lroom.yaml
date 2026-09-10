@@ -1,0 +1,45 @@
+# P4-1 Stage 1 -- per-scene fit of ONE L-shaped room.
+#
+# This asks nothing about generalization. It asks whether the architecture can represent a
+# non-convex room AT ALL given dense data, which is the cheapest way to find an architectural
+# blocker before the shape family is built. Gate 1 is NLOS spatial Pearson >= 0.70 with a
+# LOS-NLOS gap <= 0.15.
+#
+# Same geom_token module as Stage 0 -- 6 of 12 token slots valid instead of 4.
+run_id: p4_1_stage1_lroom
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml   # unused: the manifest supplies the config
+data_dir: data/track_p4_1_lroom
+configs_manifest: configs/sweeps_2d_mat/p4_1_lroom_manifest.json
+
+band_max_hz: 300
+
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+
+# ONE config, so batch_size is 1 and the receiver dimension carries the batch. 1903 receivers
+# with a 1-in-8 held-out stride (238 val) -- the old hard-coded 64-receiver val set would have
+# held out 8 receivers all inside the first two grid columns.
+n_iters: 30000
+batch_size: 1
+rx_per_config: 32
+grad_accum_steps: 1
+lr_network: 2.0e-4
+
+val_every: 2000
+val_max_configs: 1
+ckpt_every: 2000
+ckpt_keep_last: 10
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8

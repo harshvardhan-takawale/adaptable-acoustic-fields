@@ -55,6 +55,23 @@ from aaf.renderers.freq_2d import FreqRenderer2D
 
 # Receivers held out of training for the in-distribution val metric (8 of 64).
 VAL_RX = tuple(range(3, 64, 8))
+"""Held-out receivers for the frozen 64-receiver corpora. Kept as a literal so every existing
+run's ``train_meta.json`` and any resumed run stay byte-comparable."""
+
+
+def val_rx_indices(n_rx: int):
+    """Held-out receiver indices for a grid of ``n_rx`` receivers.
+
+    The 64-receiver corpora keep the historical set EXACTLY. A per-scene grid of another size
+    (P4-1 Stage 1 fits one L-room with ~1900 receivers) gets the same 1-in-8 stride, which
+    matters because the hard-coded ``range(3, 64, 8)`` would otherwise hold out 8 receivers out
+    of 1903 -- all of them inside the first two columns of the grid -- and the val metric that
+    drives early stopping would be measuring one corner of the room."""
+    if n_rx == 64:
+        return VAL_RX
+    if n_rx < 16:
+        raise ValueError("need >= 16 receivers to hold any out, got {}".format(n_rx))
+    return tuple(range(3, n_rx, 8))
 
 
 @dataclass
@@ -161,6 +178,12 @@ class P32Trainer:
             # this point is schema-agnostic -- it only touches .alphas, .filename and .strata.
             if str(man.get("schema", "")).startswith("p3_3fast.trackA"):
                 from aaf.data.seg_configs import configs_from_rows
+            elif str(man.get("schema", "")).startswith("p4_1.poly"):
+                # P4-1: polygonal rooms. Rows carry a VERTEX LIST and one absorption per edge
+                # rather than (L, W) + 4 wall alphas -- an L-room has six edges and (L, W)
+                # describes only its bounding box. The config exposes .verts, which
+                # build_cond_vector_2d forwards to the geom_token featurizer.
+                from aaf.data.poly_configs import configs_from_rows
             elif str(man.get("schema", "")).startswith("p3_3fast.trackB"):
                 # Track 2b rows carry a divider (x0) and a doorway width (a); their four wall
                 # alphas are all baseline, so the aperture lives on the config object, not in
@@ -214,8 +237,6 @@ class P32Trainer:
                 raise ValueError(
                     f"manifest/data drift for {c.filename}: manifest {c.alphas} vs "
                     f"file {a_disk}")
-            if False:
-                pass
             key = (c.L, c.W)
             if key not in geom_index:
                 geom_index[key] = len(self.geom_dims)
@@ -225,10 +246,17 @@ class P32Trainer:
             geom_id.append(geom_index[key])
             cfg_id.append(ci)
             # x0 / a exist only on Track 2b's ApertureConfig; every other arm ignores them.
+            # A polygonal room carries ONE absorption PER EDGE, and there are more edges than
+            # the shoebox 4 -- so the per-edge vector is passed when it exists. c.alphas is a
+            # lossy bounding-box view that would be the wrong length for a 6-edge L-room.
+            _verts = getattr(c, "verts", None)
+            _al = getattr(c, "edge_alphas", None) if _verts is not None else None
             conds.append(
-                build_cond_vector_2d(cfg.cond_source, c.L, c.W, c.alphas,
+                build_cond_vector_2d(cfg.cond_source, c.L, c.W,
+                                     c.alphas if _al is None else _al,
                                      x0=getattr(c, "x0", None),
-                                     a=getattr(c, "a", None)).numpy())
+                                     a=getattr(c, "a", None),
+                                     verts=_verts).numpy())
         self.src = torch.tensor(src, device=self.device)
         self.H = torch.tensor(np.stack(H_list), device=self.device)          # [C,64,B]
         self.rx = torch.tensor(np.stack(rx_list), device=self.device)        # [C,64,2]
@@ -237,8 +265,10 @@ class P32Trainer:
         print(f"[data] preloaded {self.H.numel()*8/1e6:.0f} MB in {time.time()-t0:.1f}s "
               f"| {len(self.geom_dims)} geometries")
 
-        val_mask = torch.zeros(64, dtype=torch.bool)
-        val_mask[list(VAL_RX)] = True
+        n_rx = int(self.rx.shape[1])
+        self.val_rx = val_rx_indices(n_rx)
+        val_mask = torch.zeros(n_rx, dtype=torch.bool)
+        val_mask[list(self.val_rx)] = True
         self.train_rx_idx = torch.nonzero(~val_mask).squeeze(1).to(self.device)
         self.val_rx_idx = torch.nonzero(val_mask).squeeze(1).to(self.device)
 
@@ -432,7 +462,7 @@ class P32Trainer:
             "manifest_sha": self.manifest_sha,
             "val_config_labels": [self.configs[int(i)].label for i in self.val_cfg_ids],
             "geometries": self.geom_dims, "band": list(self.band),
-            "val_rx": list(VAL_RX),
+            "val_rx": list(self.val_rx),
             "config_labels": [c.label for c in self.configs],
         }, indent=1, default=str))
         t0 = time.time()
