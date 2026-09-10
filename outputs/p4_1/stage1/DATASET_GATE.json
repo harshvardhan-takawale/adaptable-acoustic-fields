@@ -1,0 +1,116 @@
+{
+ "gate": "p4_1.stage1.lroom/1",
+ "passed": true,
+ "items": [
+  {
+   "item": "files_present",
+   "pass": true,
+   "detail": "both built: lroom.h5, lroom_rigidnotch.h5"
+  },
+  {
+   "item": "shape",
+   "pass": true,
+   "detail": "H (1903, 601) complex64 | 1903 receivers"
+  },
+  {
+   "item": "n_receivers",
+   "pass": true,
+   "detail": "1903 >= 1000"
+  },
+  {
+   "item": "receivers_inside_polygon",
+   "pass": true,
+   "detail": "0 of 1903 outside the L"
+  },
+  {
+   "item": "nlos_fraction",
+   "pass": true,
+   "detail": "25.1% NLOS (477 of 1903) >= 15%"
+  },
+  {
+   "item": "los_split_reproduces",
+   "pass": true,
+   "detail": "stored split matches a fresh recomputation"
+  },
+  {
+   "item": "air_mask_matches_polygon",
+   "pass": true,
+   "detail": "0 nodes disagree (notch solid 18750 of 75551)"
+  },
+  {
+   "item": "notch_node_count",
+   "pass": true,
+   "detail": "recorded 18750 == rebuilt 18750"
+  },
+  {
+   "item": "exact_fit_grid",
+   "pass": true,
+   "detail": "dx=(0.020000, 0.020000) both exactly 0.02"
+  },
+  {
+   "item": "six_edges",
+   "pass": true,
+   "detail": "6 polygon vertices"
+  },
+  {
+   "item": "notch_is_physically_present",
+   "pass": true,
+   "detail": "rigid vs absorbing notch differ by 1.513 dB (>= 0.05); byte-identical: False"
+  }
+ ],
+ "geometry": {
+  "L": 6.0,
+  "W": 5.0,
+  "notch": [
+   3.0,
+   2.5
+  ],
+  "verts": [
+   [
+    0.0,
+    0.0
+   ],
+   [
+    6.0,
+    0.0
+   ],
+   [
+    6.0,
+    5.0
+   ],
+   [
+    3.0,
+    5.0
+   ],
+   [
+    3.0,
+    2.5
+   ],
+   [
+    0.0,
+    2.5
+   ]
+  ],
+  "src": [
+   0.8,
+   1.5
+  ],
+  "alpha": 0.15,
+  "area_m2": 22.5
+ },
+ "receivers": {
+  "n": 1903,
+  "n_los": 1426,
+  "n_nlos": 477,
+  "nlos_fraction": 0.25065685759327383
+ },
+ "solver": {
+  "dx_x": 0.02,
+  "dx_y": 0.02,
+  "fs": 30720.0,
+  "n_time_samples": 61440,
+  "air_nodes": 56801,
+  "notch_solid_nodes": 18750
+ },
+ "notch_effect_db": 1.5128423771832749
+}

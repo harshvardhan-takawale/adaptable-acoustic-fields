@@ -88,6 +88,15 @@ class P32TrainCfg:
     log2_hashmap_size: int = 18
     n_levels: int = 20
     per_level_scale: float = 1.5
+    base_resolution: int = 16
+    #: P4-1 (D64). None = legacy (x+1)/2 position map; a float switches to absolute
+    #: metres / world_scale. Changing it WITHOUT raising base_resolution costs real spatial
+    #: resolution -- at world_scale 10 a 6 m room spans 0.6 hash units instead of 3.0, i.e.
+    #: 5x fewer cells across the room -- so the two keys are meant to move together.
+    world_scale: Optional[float] = None
+    #: P4-1. Low edge of the LOSS band in Hz (the eval band is unchanged). Set to 20.0 to mask
+    #: the FDTD corpus's DC/compliance term out of the gradient; 0.0 keeps every bin.
+    loss_band_lo_hz: float = 0.0
     val_every: int = 2_000
     val_max_configs: int = 88
     ckpt_every: int = 2_000
@@ -99,8 +108,23 @@ class P32TrainCfg:
     seed: int = 0
 
 
-def _losses(H_pred, H_target):
-    """The P3-1 4-term frequency loss. Both tensors are ALREADY band-limited."""
+def _losses(H_pred, H_target, lo_bin: int = 0):
+    """The P3-1 4-term frequency loss. Both tensors are ALREADY band-limited.
+
+    ``lo_bin`` drops bins ``[0, lo_bin)`` from every term by SLICING, so the excluded bins leave
+    the autograd graph entirely and their gradient is exactly zero -- not merely down-weighted.
+    Same mechanism as ``multi_room_3d._losses(..., band=)``.
+
+    This exists for the FDTD corpus, whose bin-0 compliance term carries 87.3% of in-band power
+    and sits 37.1 dB above the strongest room mode. Note the four terms are NOT equally exposed
+    to it: ``L_spec_real``/``L_spec_imag`` are linear-domain L1 and so are dominated by it,
+    while ``L_amp`` is log10 and ``L_phase`` is a cosine and neither is. The ISM corpus does not
+    have the problem at all (bin 0 is 18.3 dB BELOW the strongest mode), so ``lo_bin`` stays 0
+    there.
+    """
+    if lo_bin:
+        H_pred = H_pred[..., lo_bin:]
+        H_target = H_target[..., lo_bin:]
     eps = 1e-6
     return {
         "L_spec_real": F.l1_loss(H_pred.real, H_target.real),
@@ -158,6 +182,17 @@ class P32Trainer:
                 f"(expected {expect})")
         self.n_freq_bins = cfg.n_time_samples // 2 + 1
         self.band = band_indices(cfg.fs, self.n_freq_bins, 0.0, cfg.band_max_hz)
+        # Loss-only low cut, expressed RELATIVE to the already-sliced band (which starts at
+        # bin 0 = DC). Eval and the reported LSD keep the full band -- this masks the gradient,
+        # not the metric.
+        _df = float(cfg.fs) / float(cfg.n_time_samples)
+        self.loss_lo_bin = int(round(float(cfg.loss_band_lo_hz) / _df))
+        if self.loss_lo_bin >= (self.band[1] - self.band[0]):
+            raise ValueError(
+                "loss_band_lo_hz={} removes the whole band".format(cfg.loss_band_lo_hz))
+        if self.loss_lo_bin:
+            print("[loss] masking bins 0..{} (<{} Hz) out of the gradient".format(
+                self.loss_lo_bin - 1, cfg.loss_band_lo_hz), flush=True)
         lo, hi = self.band
         self.n_band = hi - lo
         print(f"[data] {len(self.configs)} configs | band bins {lo}:{hi} ({self.n_band})")
@@ -230,14 +265,15 @@ class P32Trainer:
 
         # ---- model / renderer ------------------------------------------------------
         hg = dict(otype="HashGrid", n_levels=cfg.n_levels, n_features_per_level=2,
-                  log2_hashmap_size=cfg.log2_hashmap_size, base_resolution=16,
+                  log2_hashmap_size=cfg.log2_hashmap_size,
+                  base_resolution=cfg.base_resolution,
                   per_level_scale=cfg.per_level_scale)
         self.model = INR2D_AutoDecoder(
             n_rooms=len(self.configs), latent_dim=cfg.latent_dim,
             n_freq_bins=self.n_freq_bins, hash_grid_config=hg,
             conditioning_type=cfg.conditioning_type,
             cond_source=cfg.cond_source, cond_dim=cfg.cond_dim,
-            l_head_enabled=False,
+            l_head_enabled=False, world_scale=cfg.world_scale,
         ).to(self.device)
         self.renderer = FreqRenderer2D(
             n_azi=cfg.n_azi, n_pts_per_ray=cfg.n_pts_per_ray, near=cfg.near,
@@ -294,7 +330,7 @@ class P32Trainer:
                 torch.randint(0, self.train_rx_idx.numel(), (ci.numel(),), device=self.device)]
             H_pred = self._render(ci, ri)
             H_tgt = self.H[ci, ri]
-            terms = _losses(H_pred, H_tgt)
+            terms = _losses(H_pred, H_tgt, self.loss_lo_bin)
             w_r, w_i, w_a, w_p = cfg.weights
             loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
                     + w_a * terms["L_amp"] + w_p * terms["L_phase"])
@@ -323,7 +359,7 @@ class P32Trainer:
                 preds.append(self._render(ci[sl], self.val_rx_idx[sl]))
                 tgts.append(self.H[ci[sl], self.val_rx_idx[sl]])
         P, T = torch.cat(preds), torch.cat(tgts)
-        terms = _losses(P, T)
+        terms = _losses(P, T, self.loss_lo_bin)
         rec = {"phase": "val", "iter": it, "lsd_db": _lsd_db(P, T),
                **{k: float(v) for k, v in terms.items()}}
         self.scalars.append(rec)

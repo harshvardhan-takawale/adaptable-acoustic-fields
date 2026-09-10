@@ -42,7 +42,7 @@ from typing import Optional, Sequence
 
 import torch
 
-from aaf.walls import ALPHA_BASELINE, ALPHA_NORM, M_NORM, WALLS_2D
+from aaf.walls import ALPHA_BASELINE, ALPHA_NORM, M_NORM, WORLD_SCALE, WALLS_2D
 
 # k = 0..7 for geometry, k = 0..3 for the four absorptions.
 N_K_GEOM = 8
@@ -188,6 +188,8 @@ def cond_dim_for(cond_source: str) -> int:
         return APERTURE_DIM_2D
     if cond_source == COND_SOURCE_BTOK:
         return APER_TOKEN_DIM_2D
+    if cond_source == COND_SOURCE_GEOM_TOK:
+        return GEOM_TOKEN_DIM_2D
     raise ValueError(f"no fixed cond_dim for cond_source {cond_source!r}")
 
 
@@ -202,6 +204,7 @@ def build_cond_vector_2d(
     room_ids: Optional[torch.Tensor] = None,
     x0: Optional[float] = None,
     a: Optional[float] = None,
+    verts: Optional[Sequence[Sequence[float]]] = None,
     dtype: torch.dtype = torch.float32,
 ) -> torch.Tensor:
     """Per-config conditioning vector fed to the FiLM generator.
@@ -240,13 +243,26 @@ def build_cond_vector_2d(
             raise ValueError(
                 f"{COND_SOURCE_BTOK} requires x0 (divider position) and a (aperture width)")
         return aperture_token_features_2d(L, W, x0, a, device=device, dtype=dtype)
+    if cond_source == COND_SOURCE_GEOM_TOK:
+        if verts is not None:
+            if alphas is None:
+                raise ValueError(f"{COND_SOURCE_GEOM_TOK} with verts requires per-edge alphas")
+            toks = polygon_edge_tokens(verts, alphas)
+        else:
+            if alphas is None:
+                raise ValueError(f"{COND_SOURCE_GEOM_TOK} requires alphas")
+            toks = rect_edge_tokens(L, W, alphas)
+        return geom_token_features_2d(toks, device=device, dtype=dtype)
     if cond_source == "latent":
         if model is None or room_ids is None:
             raise ValueError("latent arm requires model + room_ids")
         return model.get_latent(room_ids)
     raise ValueError(
-        f"unknown cond_source {cond_source!r}; expected {COND_SOURCE!r}, "
-        f"{COND_SOURCE_M!r} or 'latent'"
+        "unknown cond_source {!r}; known arms: {}".format(
+            cond_source,
+            ", ".join([COND_SOURCE, COND_SOURCE_M, COND_SOURCE_SEG, COND_SOURCE_TOK,
+                       COND_SOURCE_TOK_DELTA, COND_SOURCE_APER, COND_SOURCE_BTOK,
+                       COND_SOURCE_GEOM_TOK, "latent"]))
     )
 
 
@@ -540,3 +556,128 @@ def aperture_token_features_2d(L, W, x0, a, device=None,
             _fourier_block(mh, N_K_TOK_M),                                 # 6
         ]))
     return torch.cat([geom, torch.cat(toks)])
+
+
+# ----------------------------------------------------------------------
+# P4-1 Stage 0/1: token-ONLY geometry, absolute world coordinates (D64)
+# ----------------------------------------------------------------------
+COND_SOURCE_GEOM_TOK = "geom_token"
+
+MAX_SEG_POLY = 12
+"""Token slots. Rectangle 4, L-room 6, Z-corridor 8 -- one module covers the whole shape family.
+
+A fixed token COUNT would have to be rewritten between Stage 0 (4 walls) and Stage 1 (6 edges)
+inside a single chunk, so the arm pads to a constant width and carries an explicit validity mask
+instead. Unused slots are zero and are excluded from the pool by the mask, NOT merely multiplied
+by zero -- a zero token is a perfectly valid point in token space (it reads as an edge at the
+origin with zero extent and baseline absorption) and mean-pooling it would drag the aggregate
+toward that fictitious edge by n_pad/MAX_SEG_POLY.
+"""
+
+GEOM_TOKEN_DIM_2D = MAX_SEG_POLY * D_TOK + MAX_SEG_POLY      # 312 + 12 = 324
+"""[12 x 26 tokens | 12 validity flags]. NO global (L, W) prefix -- that is the whole point of
+the arm: a Z-corridor has no meaningful (L, W), so every geometric fact must ride on the tokens."""
+
+GEOM_TOKEN_COND_DIM = TOKEN_AGG_DIM                          # 64
+"""Post-encoder width. No geometry prefix to concatenate, so it is the aggregate alone."""
+
+
+def polygon_edge_tokens(
+    verts: Sequence[Sequence[float]],
+    alphas: Sequence[float],
+    world_scale: float = WORLD_SCALE,
+):
+    """``[(cx, cy, nx, ny, extent, m_hat), ...]`` for a simple polygon, in WORLD units.
+
+    ``verts`` are the polygon corners in metres, counter-clockwise, without repeating the first;
+    edge ``i`` runs ``verts[i] -> verts[i+1]`` and carries ``alphas[i]``. Lengths are divided by
+    ``world_scale`` so a physical corner encodes IDENTICALLY in every room -- the property that
+    bounding-box normalization destroys and that the whole shape phase depends on (D64).
+
+    The normal is the INWARD one, matching the existing wall convention (west -> +x). For a
+    counter-clockwise polygon the inward normal of edge ``(dx, dy)`` is ``(-dy, dx)`` normalized;
+    orientation is checked rather than assumed, because a clockwise vertex list would silently
+    flip every normal and the model would learn a room turned inside out.
+    """
+    v = [(float(p[0]), float(p[1])) for p in verts]
+    n = len(v)
+    if n < 3:
+        raise ValueError("a polygon needs >= 3 vertices, got {}".format(n))
+    if len(alphas) != n:
+        raise ValueError("expected {} alphas for {} edges, got {}".format(n, n, len(alphas)))
+    if n > MAX_SEG_POLY:
+        raise ValueError("polygon has {} edges, MAX_SEG_POLY is {}".format(n, MAX_SEG_POLY))
+    # Shoelace: positive => counter-clockwise. Assert rather than silently re-orient, so a
+    # caller that built the polygon backwards learns about it here and not from a bad field map.
+    area2 = sum(v[i][0] * v[(i + 1) % n][1] - v[(i + 1) % n][0] * v[i][1] for i in range(n))
+    if area2 <= 0.0:
+        raise ValueError(
+            "vertices must be counter-clockwise (shoelace 2A = {:.6g} <= 0); a clockwise list "
+            "would invert every inward normal".format(area2))
+    out = []
+    for i in range(n):
+        x0, y0 = v[i]
+        x1, y1 = v[(i + 1) % n]
+        ex, ey = x1 - x0, y1 - y0
+        ln = math.hypot(ex, ey)
+        if ln <= 0.0:
+            raise ValueError("edge {} has zero length".format(i))
+        out.append((
+            0.5 * (x0 + x1) / world_scale,        # cx, absolute metres / world scale
+            0.5 * (y0 + y1) / world_scale,        # cy
+            -ey / ln,                             # inward normal x (CCW)
+            ex / ln,                              # inward normal y
+            ln / world_scale,                     # extent, absolute
+            m_hat_seg(float(alphas[i])),          # m_hat, same M_NORM_SEG_COND as A2/A3
+        ))
+    return out
+
+
+def rect_edge_tokens(L: float, W: float, alphas: Sequence[float],
+                     world_scale: float = WORLD_SCALE):
+    """The 4 wall tokens of a shoebox, in the canonical ``WALLS_2D`` order.
+
+    ``alphas`` is ``(west, east, south, north)``; the polygon is re-ordered internally because
+    a counter-clockwise traversal visits south, east, north, west. Keeping the caller-facing
+    order equal to ``WALLS_2D`` is what makes this arm swappable with every other 2D arm.
+    """
+    if len(alphas) != len(WALLS_2D):
+        raise ValueError("expected {} alphas, got {}".format(len(WALLS_2D), len(alphas)))
+    a_w, a_e, a_s, a_n = (float(x) for x in alphas)
+    verts = [(0.0, 0.0), (L, 0.0), (L, W), (0.0, W)]          # CCW
+    return polygon_edge_tokens(verts, [a_s, a_e, a_n, a_w], world_scale=world_scale)
+
+
+def geom_token_features_2d(
+    tokens,
+    device=None,
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """``[12 x 26 | 12]`` = 324. Tokens are already in WORLD units (see ``polygon_edge_tokens``).
+
+    Per-token layout is byte-compatible with ``segment_token_features_2d``'s D_TOK block, so the
+    shared ``segment_encoder`` is reused verbatim rather than re-derived:
+        ``[0:16]`` position Fourier, ``[16]`` nx, ``[17]`` ny, ``[18]`` extent,
+        ``[19]`` m_hat identity, ``[20:26]`` m_hat Fourier.
+    """
+    toks = list(tokens)
+    if not toks:
+        raise ValueError("need >= 1 token")
+    if len(toks) > MAX_SEG_POLY:
+        raise ValueError("{} tokens exceeds MAX_SEG_POLY {}".format(len(toks), MAX_SEG_POLY))
+    rows, mask = [], []
+    for (cx, cy, nx, ny, ext, mh_val) in toks:
+        pos = torch.tensor([cx, cy], device=device, dtype=dtype)
+        mh = torch.tensor([mh_val], device=device, dtype=dtype)
+        rows.append(torch.cat([
+            _fourier_block(pos, N_K_TOK_POS),                                  # 16
+            torch.tensor([nx, ny, ext], device=device, dtype=dtype),           # 3
+            mh,                                                                # 1
+            _fourier_block(mh, N_K_TOK_M),                                     # 6
+        ]))
+        mask.append(1.0)
+    while len(rows) < MAX_SEG_POLY:
+        rows.append(torch.zeros(D_TOK, device=device, dtype=dtype))
+        mask.append(0.0)
+    return torch.cat([torch.cat(rows),
+                      torch.tensor(mask, device=device, dtype=dtype)])

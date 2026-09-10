@@ -76,6 +76,47 @@ ALPHA_NORM = 0.7
 # invert. M_NORM = -ln(1-0.8) = ln 5 maps the sampled range m in [0.02, 1.61] onto ~[0.012, 1.0].
 M_NORM = 1.6094379124341003
 
+# P4-1 (D64): the fixed world scale for ALL absolute positions -- boundary tokens, source,
+# receivers and ray sample points alike. Every length in metres is divided by this before it
+# reaches the network, so a physical point means the same thing in every room regardless of
+# shape or size.
+#
+# It must NOT be replaced by each room's own bounding box. Under bbox normalization the same
+# physical corner encodes differently in a 3x3 room and a 6x5 room, which is precisely what
+# breaks shape transfer -- and it is the reason the pre-P4-1 boundary tokens (unit-square
+# coordinates, ignoring L and W entirely) could not carry geometry at all.
+#
+# 10 m comfortably contains the P3-2 family (L in [3,6], W in [3,5]), the Track B box (L up to
+# 9 m) and the planned Z-corridor, so every normalized coordinate lands in [0, 1] -- which is
+# also tinycudann's documented HashGrid input domain. Changing it invalidates every checkpoint
+# trained under it, so it is frozen here rather than passed around as a tunable.
+WORLD_SCALE = 10.0
+
+
+def normalize_position(x, world_scale=None):
+    """Map a POSITION (metres) into the network's encoding domain. Works on torch or numpy.
+
+    Two regimes, and the default is the legacy one so every pre-P4-1 checkpoint keeps rendering
+    bit-identically:
+
+    * ``world_scale is None`` -- ``(x + 1) / 2``. Inherited from the vendored reference, where
+      positions had already been AABB-normalized to [-1, 1] first; FreqRenderer2D dropped that
+      step, so in practice this receives raw metres and emits ~[0.5, 3.5]. Outside tinycudann's
+      documented [0, 1] domain, but room-INDEPENDENT, which is why it works at all.
+    * ``world_scale = s`` (D64) -- ``x / s``. Absolute metres over a fixed scale, so a physical
+      point encodes identically in every room and every shape.
+
+    DIRECTIONS must not come through here: they are unit vectors carrying no length, and
+    dividing one by a world scale is a category error. They always take the legacy affine.
+
+    It lives in `walls` rather than in the model because `aaf.models.inr_2d` imports tinycudann,
+    which needs a GPU -- and the property that source and receiver share one scaling has to be
+    testable in the ordinary CPU test pass, not only where a GPU happens to be attached.
+    """
+    if world_scale is None:
+        return (x + 1.0) * 0.5
+    return x / world_scale
+
 
 def resolve_material(name: str) -> str:
     """Map a user-supplied material name/alias to its canonical id ('M0'..'M3')."""

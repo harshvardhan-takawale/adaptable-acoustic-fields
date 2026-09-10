@@ -243,6 +243,7 @@ class INR2D_AutoDecoder(nn.Module):
         cond_source: str = "latent",
         cond_dim: Optional[int] = None,
         l_head_out_dim: int = 1,
+        world_scale: Optional[float] = None,
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -254,7 +255,7 @@ class INR2D_AutoDecoder(nn.Module):
         # builder is perfectly happy with.
         if cond_source not in ("latent", "geom_alpha_fourier", "m_linear", "m_segment",
                                "m_token", "m_token_delta",
-                               "aperture", "aperture_token"):
+                               "aperture", "aperture_token", "geom_token"):
             raise ValueError(
                 f"cond_source must be 'latent', 'geom_alpha_fourier', 'm_linear', "
                 f"'m_segment', 'm_token', 'm_token_delta', 'aperture' or "
@@ -277,6 +278,11 @@ class INR2D_AutoDecoder(nn.Module):
         # cond_dim defaults to latent_dim so every pre-P3-2 config builds byte-identical
         # layers (same in_features -> same RNG draws -> same init).
         self.cond_source = str(cond_source)
+        # None = legacy (x+1)/2 position map, so every pre-P4-1 checkpoint renders
+        # bit-identically; a float switches to absolute-metres / world_scale (D64).
+        self.world_scale = float(world_scale) if world_scale is not None else None
+        if self.world_scale is not None and self.world_scale <= 0.0:
+            raise ValueError(f"world_scale must be > 0, got {self.world_scale}")
         self.cond_dim = int(cond_dim) if cond_dim is not None else self.latent_dim
 
         # --- Track A2 shared segment encoder (D58) -----------------------------------------
@@ -292,9 +298,11 @@ class INR2D_AutoDecoder(nn.Module):
         # receive gradient; conditioning_2d is a fixed, tcnn-free, CPU-testable featurizer.
         self.segment_encoder = None
         self.token_pool = None
-        if self.cond_source in ("m_token", "m_token_delta", "aperture_token"):
+        if self.cond_source in ("m_token", "m_token_delta", "aperture_token", "geom_token"):
             from aaf.models.conditioning_2d import (APER_TOKEN_COND_DIM, APER_TOKEN_DIM_2D,
-                                                    D_TOK, N_SEG_COND, TOKEN_AGG_DIM,
+                                                    D_TOK, GEOM_TOKEN_COND_DIM,
+                                                    GEOM_TOKEN_DIM_2D, MAX_SEG_POLY,
+                                                    N_SEG_COND, TOKEN_AGG_DIM,
                                                     TOKEN_COND_DIM, TOKEN_DIM_2D)
             # Track B2 reuses this encoder VERBATIM -- same 16 tokens, same D_TOK = 26
             # featurization -- and differs only in the width of the geometry block that rides
@@ -303,18 +311,34 @@ class INR2D_AutoDecoder(nn.Module):
             # sub-room a receiver is in.
             if self.cond_source == "aperture_token":
                 _expect, _reduced = APER_TOKEN_DIM_2D, APER_TOKEN_COND_DIM
+            elif self.cond_source == "geom_token":
+                _expect, _reduced = GEOM_TOKEN_DIM_2D, GEOM_TOKEN_COND_DIM
             else:
                 _expect, _reduced = TOKEN_DIM_2D, TOKEN_COND_DIM
             if self.cond_dim != _expect:
                 raise ValueError(
                     f"{self.cond_source} expects cond_dim={_expect}, got {self.cond_dim}")
-            self._tok_n, self._tok_d = N_SEG_COND, D_TOK
-            self._tok_geom = _expect - N_SEG_COND * D_TOK               # 32 (A2/A3) or 48 (B2)
+            if self.cond_source == "geom_token":
+                # P4-1 (D64). Token-ONLY geometry: no (L, W) prefix at all, because the target
+                # shape family (L-rooms, Z-corridors) has no meaningful (L, W). The trailing
+                # MAX_SEG_POLY floats are a validity MASK, not features -- a rectangle fills 4
+                # slots, an L-room 6, and the pool must ignore the rest. Zero-padding without a
+                # mask would not be harmless: a zero token reads as a real edge at the origin
+                # with zero extent and baseline absorption, and mean-pooling it drags the
+                # aggregate toward that fiction by n_pad / MAX_SEG_POLY.
+                self._tok_n, self._tok_d = MAX_SEG_POLY, D_TOK
+                self._tok_geom = 0
+            else:
+                self._tok_n, self._tok_d = N_SEG_COND, D_TOK
+                self._tok_geom = _expect - N_SEG_COND * D_TOK           # 32 (A2/A3) or 48 (B2)
             self.segment_encoder = nn.Sequential(
                 nn.Linear(D_TOK, TOKEN_AGG_DIM), nn.ReLU(),
                 nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM),
             )
-            self.token_pool = "mean" if self.cond_source == "m_token" else "delta"
+            if self.cond_source == "geom_token":
+                self.token_pool = "masked_mean"
+            else:
+                self.token_pool = "mean" if self.cond_source == "m_token" else "delta"
             if self.token_pool == "delta":
                 # DELTA-POOLING (A3). A2's mean-pool fixed transfer but diluted magnitude:
                 # 15 of 16 tokens sit at baseline, so one edit moves the mean by ~1/16 and the
@@ -486,9 +510,24 @@ class INR2D_AutoDecoder(nn.Module):
         else:
             self.l_head = None
 
-    @staticmethod
-    def _normalize_unit(x: torch.Tensor) -> torch.Tensor:
-        return (x + 1.0) * 0.5
+    def _normalize_unit(self, x: torch.Tensor) -> torch.Tensor:
+        """Map network position inputs into tinycudann's [0, 1] HashGrid domain.
+
+        Two regimes, and the default is the legacy one so every pre-P4-1 checkpoint keeps
+        rendering bit-identically:
+
+        * ``world_scale is None`` (legacy): ``(x + 1) / 2``. Inherited from the vendored
+          reference, where positions had already been AABB-normalized to [-1, 1] before this
+          call. ``FreqRenderer2D`` dropped that step, so in practice this receives raw metres
+          and emits roughly [0.5, 3.5] -- outside the documented domain, but room-independent,
+          which is why it works at all.
+        * ``world_scale = s`` (P4-1, D64): ``x / s``. Absolute metres over a FIXED world scale,
+          so a physical point encodes identically in every room and every shape. Direction
+          inputs are unit vectors in [-1, 1] and are mapped by the legacy affine either way --
+          they carry no length, so a world scale is meaningless for them.
+        """
+        from aaf.walls import normalize_position
+        return normalize_position(x, self.world_scale)
 
     def predict_L(self, z_s: torch.Tensor) -> Optional[torch.Tensor]:
         """Predict L (m) from a [B, latent_dim] latent.
@@ -569,21 +608,32 @@ class INR2D_AutoDecoder(nn.Module):
         B = pts.size(0)
         N = pts.size(1)
 
+        # Positions take the world-scale map; DIRECTIONS are unit vectors in [-1, 1] and always
+        # take the legacy affine -- dividing a direction by a length would be a category error.
         pts_flat = self._normalize_unit(pts.reshape(-1, 2))
-        view_flat = self._normalize_unit(view.reshape(-1, 2))
         tx_flat = self._normalize_unit(tx.reshape(-1, 2))
-        tx_view_flat = self._normalize_unit(tx_view.reshape(-1, 2))
+        view_flat = (view.reshape(-1, 2) + 1.0) * 0.5
+        tx_view_flat = (tx_view.reshape(-1, 2) + 1.0) * 0.5
         z_s_flat = self._expand_z_s(z_s, B, N).to(pts_flat.dtype)  # [B*N, latent_dim]
         if self.segment_encoder is not None:
             # [B*N, G + 16*26] -> shared MLP per token -> pool -> [B*N, G + 64]
             # G = 32 for the m_token arms (L, W), 48 for aperture_token (L, W, x0).
             g = z_s_flat[:, :self._tok_geom]
-            t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
-            if self.token_pool == "delta":
+            if self.token_pool == "masked_mean":
+                # geom_token: [B*N, 12*26 + 12]; the tail is the validity mask.
+                n_tok = self._tok_n * self._tok_d
+                t = z_s_flat[:, :n_tok].reshape(-1, self._tok_n, self._tok_d)
+                m = z_s_flat[:, n_tok:].reshape(-1, self._tok_n, 1)
+                # Mean over VALID slots only. clamp(min=1) guards a degenerate all-pad row so
+                # the division cannot produce NaN and poison the whole batch's gradient.
+                agg = (self.segment_encoder(t) * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)
+            elif self.token_pool == "delta":
+                t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
                 tb = t.clone()
                 tb[..., self._tok_m_slice] = self._tok_baseline_m.to(tb.dtype)
                 agg = (self.segment_encoder(t) - self.segment_encoder(tb)).sum(dim=1)
             else:
+                t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
                 agg = self.segment_encoder(t).mean(dim=1)
             z_s_flat = torch.cat([g, agg], dim=-1)
 
