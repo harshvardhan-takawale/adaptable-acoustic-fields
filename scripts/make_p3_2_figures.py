@@ -1199,7 +1199,7 @@ def write_manifest(path: Path, ev: Eval, results: List[dict], geom: Tuple[float,
     A("")
     A("Splits (ii) and (iii) are the **{}** — the (wall, material) pairs `{}` were excluded "
       "from training entirely. Split (iii) is the headline test: unseen geometry *and* unseen "
-      "combination. Split (iv) uses alpha={} , which appears on no training wall.".format(
+      "combination. Split (iv) uses alpha={}, which appears on no training wall.".format(
           NEVER_SEEN + "S", "`, `".join("{}+{}".format(*c) for c in s.get("heldout_combos", [])),
           s.get("unseen_alpha")))
     A("")
