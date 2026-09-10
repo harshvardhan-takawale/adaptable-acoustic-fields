@@ -26,13 +26,18 @@ n_pts_per_ray: 64
 world_scale: 10.0
 base_resolution: 80
 
-# ONE config, so batch_size is 1 and the receiver dimension carries the batch. 1903 receivers
-# with a 1-in-8 held-out stride (238 val) -- the old hard-coded 64-receiver val set would have
-# held out 8 receivers all inside the first two grid columns.
+# ONE config, so the receiver dimension carries the batch. 1903 receivers with a 1-in-8
+# held-out stride (238 val) -- the hard-coded 64-receiver val set would have held out 8
+# receivers all inside the first two grid columns, and early stopping reads that metric.
+#
+# Rows per backward = max(1, batch_size // rx_per_config) * rx_per_config, and a row's renderer
+# tensor is ~134 MB at n_pts_per_ray=64. 8 rows is P3-2's proven footprint on a 24 GB card;
+# a first attempt at (batch_size 1, rx_per_config 32) asked for 32 rows and OOMed outright.
+# These values reproduce Arm C's exact shape: 8 rows per backward, 16 per optimizer step.
 n_iters: 30000
-batch_size: 1
-rx_per_config: 32
-grad_accum_steps: 1
+batch_size: 8
+rx_per_config: 8
+grad_accum_steps: 2
 lr_network: 2.0e-4
 
 val_every: 2000

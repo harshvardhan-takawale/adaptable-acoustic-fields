@@ -1,0 +1,57 @@
+{
+ "checkpoint": "outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0030000.pt",
+ "iter": 30000,
+ "cond_source": "m_token",
+ "n_configs": 24,
+ "cut_hz": 20.0,
+ "cut_bin": 40,
+ "df_hz": 0.5,
+ "weights": [
+  1.0,
+  1.0,
+  1.0,
+  0.1
+ ],
+ "terms": {
+  "L_spec_real": {
+   "sum_lo": 154558.7162475586,
+   "sum_hi": 241622.78515625,
+   "n_lo": 61440,
+   "n_hi": 861696,
+   "dc_share": 0.39012098167103565,
+   "per_bin_enrichment": 8.971364161580349,
+   "weight": 1.0
+  },
+  "L_spec_imag": {
+   "sum_lo": 75984.32727050781,
+   "sum_hi": 240214.49462890625,
+   "n_lo": 61440,
+   "n_hi": 861696,
+   "dc_share": 0.24030553565654703,
+   "per_bin_enrichment": 4.43636921916465,
+   "weight": 1.0
+  },
+  "L_amp": {
+   "sum_lo": 2492.9216747283936,
+   "sum_hi": 225880.732421875,
+   "n_lo": 61440,
+   "n_hi": 861696,
+   "dc_share": 0.010915977521968769,
+   "per_bin_enrichment": 0.1547862277282034,
+   "weight": 1.0
+  },
+  "L_phase": {
+   "sum_lo": 327.8641563653946,
+   "sum_hi": 441816.43359375,
+   "n_lo": 61440,
+   "n_hi": 861696,
+   "dc_share": 0.0007415320248022107,
+   "per_bin_enrichment": 0.010407704293889595,
+   "weight": 0.1
+  }
+ },
+ "weighted_dc_share": 0.2366256114517796,
+ "verdict": "PARTIAL",
+ "prediction_held": true,
+ "note": "Share of the TRAINING objective commanded by bins below 20 Hz. The first room mode is 28.6-57 Hz across this family, so the cut removes no modal content. L_spec_real/imag are linear-domain and exposed to the DC term; L_amp is log10 and L_phase is a cosine, and neither is."
+}

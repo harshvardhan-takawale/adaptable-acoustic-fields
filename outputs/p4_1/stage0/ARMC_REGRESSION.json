@@ -1,0 +1,83 @@
+{
+ "checkpoint": "outputs/p3_2/p3_2b_C_cont_mlinear/ckpt_iter0060000.pt",
+ "iter": 60000,
+ "world_scale": null,
+ "n_compared": 12,
+ "all_bit_identical": true,
+ "worst_max_abs_delta": 0.0,
+ "per_scenario": [
+  {
+   "geometry": "small",
+   "scenario": "a_baseline",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "small",
+   "scenario": "b_east_curtain",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "small",
+   "scenario": "c_north_absorber",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "small",
+   "scenario": "d_two_wall",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "median",
+   "scenario": "a_baseline",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "median",
+   "scenario": "b_east_curtain",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "median",
+   "scenario": "c_north_absorber",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "median",
+   "scenario": "d_two_wall",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "large",
+   "scenario": "a_baseline",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "large",
+   "scenario": "b_east_curtain",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "large",
+   "scenario": "c_north_absorber",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  },
+  {
+   "geometry": "large",
+   "scenario": "d_two_wall",
+   "bit_identical": true,
+   "max_abs_delta": 0.0
+  }
+ ],
+ "note": "Re-render of Arm C after the D64 world_scale change, compared against the v1 demo pack's cached predictions produced by the pre-change code. world_scale=None must reproduce the legacy (x+1)/2 map exactly."
+}
