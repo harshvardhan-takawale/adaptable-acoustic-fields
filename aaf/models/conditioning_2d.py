@@ -190,6 +190,8 @@ def cond_dim_for(cond_source: str) -> int:
         return APER_TOKEN_DIM_2D
     if cond_source == COND_SOURCE_GEOM_TOK:
         return GEOM_TOKEN_DIM_2D
+    if cond_source == COND_SOURCE_GEOM_TOK_M:
+        return GEOM_TOKEN_M_DIM_2D
     raise ValueError(f"no fixed cond_dim for cond_source {cond_source!r}")
 
 
@@ -243,6 +245,12 @@ def build_cond_vector_2d(
             raise ValueError(
                 f"{COND_SOURCE_BTOK} requires x0 (divider position) and a (aperture width)")
         return aperture_token_features_2d(L, W, x0, a, device=device, dtype=dtype)
+    if cond_source == COND_SOURCE_GEOM_TOK_M:
+        if alphas is None:
+            raise ValueError(f"{COND_SOURCE_GEOM_TOK_M} requires the 4 wall alphas")
+        toks = (polygon_edge_tokens(verts, [ALPHA_BASELINE] * len(verts)) if verts is not None
+                else rect_edge_tokens(L, W, alphas))
+        return geom_token_m_features_2d(toks, alphas, device=device, dtype=dtype)
     if cond_source == COND_SOURCE_GEOM_TOK:
         if verts is not None:
             if alphas is None:
@@ -262,7 +270,7 @@ def build_cond_vector_2d(
             cond_source,
             ", ".join([COND_SOURCE, COND_SOURCE_M, COND_SOURCE_SEG, COND_SOURCE_TOK,
                        COND_SOURCE_TOK_DELTA, COND_SOURCE_APER, COND_SOURCE_BTOK,
-                       COND_SOURCE_GEOM_TOK, "latent"]))
+                       COND_SOURCE_GEOM_TOK, COND_SOURCE_GEOM_TOK_M, "latent"]))
     )
 
 
@@ -372,6 +380,12 @@ COND_SOURCE_TOK_DELTA = "m_token_delta"
 N_K_TOK_POS = 4          # Fourier k = 0..3 on the segment centre
 N_K_TOK_M = 3            # Fourier k = 0..2 on m_hat
 D_TOK = 2 * 2 * N_K_TOK_POS + 2 + 1 + (1 + 2 * N_K_TOK_M)      # 16 + 2 + 1 + 7 = 26
+TOK_EXTENT_IDX = 2 * 2 * N_K_TOK_POS + 2                        # 18
+"""Index of the `extent` channel inside a D_TOK token.
+
+Named because P4-2's extent-weighted pooling reads it from `inr_2d`, and until now the layout
+lived ONLY in a docstring -- two files indexing the same column by hand is exactly how a silent
+off-by-one enters. `tests/test_geom_token.py` pins it against the featurizer."""
 TOKEN_DIM_2D = 2 * 2 * N_K_GEOM + N_SEG_COND * D_TOK            # 32 + 416 = 448
 TOKEN_AGG_DIM = 64
 TOKEN_COND_DIM = 2 * 2 * N_K_GEOM + TOKEN_AGG_DIM               # 32 + 64 = 96 after the encoder
@@ -579,6 +593,71 @@ GEOM_TOKEN_DIM_2D = MAX_SEG_POLY * D_TOK + MAX_SEG_POLY      # 312 + 12 = 324
 the arm: a Z-corridor has no meaningful (L, W), so every geometric fact must ride on the tokens."""
 
 GEOM_TOKEN_COND_DIM = TOKEN_AGG_DIM                          # 64
+
+
+# ----------------------------------------------------------------------
+# P4-2 Task A: geometry-only tokens + material on its own proven channel (D68)
+# ----------------------------------------------------------------------
+COND_SOURCE_GEOM_TOK_M = "geom_token_m"
+
+D_TOK_GEO = 2 * 2 * N_K_TOK_POS + 2 + 1                         # 16 + 2 + 1 = 19
+"""A token WITHOUT the m_hat block: position Fourier, inward normal, extent. Layout is the first
+19 columns of D_TOK, so TOK_EXTENT_IDX (18) addresses `extent` in BOTH token widths."""
+
+GEOM_TOKEN_M_MAT_DIM = len(WALLS_2D) * (1 + 2 * N_K_M)          # 4 * 7 = 28
+GEOM_TOKEN_M_DIM_2D = MAX_SEG_POLY * D_TOK_GEO + MAX_SEG_POLY + GEOM_TOKEN_M_MAT_DIM
+"""228 tokens + 12 validity mask + 28 material = 268.
+
+P4-1 measured that `geom_token` reconstructs better than Arm C everywhere but responds to an
+EDIT less linearly (edit_bw_slope below Arm C in all five splits, worst S4 0.464 vs 0.789; Q20).
+The hypothesis this arm tests: entangling m_hat in the SHARED token MLP is what cost the
+linear-in-m calibration, because the encoder must spend capacity separating material from
+position and extent in one 26-d vector.
+
+So material leaves the tokens entirely and returns on the channel where it was already proven --
+the per-wall `[m_hat, sin/cos(pi,2pi,4pi m_hat)]` block of `m_linear`, byte-identical to
+`m_linear_features_2d`'s `[32:60]`. Geometry stays where P4-1 showed it works. If the slope
+recovers while spatial Pearson holds, the entanglement hypothesis is right; if it does not, the
+hypothesis is wrong and Q20 stays open -- both are reportable."""
+
+GEOM_TOKEN_M_COND_DIM = TOKEN_AGG_DIM + GEOM_TOKEN_M_MAT_DIM    # 64 + 28 = 92
+
+
+def geom_token_m_features_2d(tokens, alphas, device=None, dtype=torch.float32):
+    """``[12 x 19 tokens | 12 mask | 28 material]`` = 268.
+
+    ``tokens`` are ``(cx, cy, nx, ny, extent, m_hat)`` 6-tuples as produced by
+    `polygon_edge_tokens` / `rect_edge_tokens`; the m_hat element is DISCARDED here by design --
+    it reaches the model through the material block instead. Taking the same token type as
+    `geom_token` keeps one token producer for both arms, so the two cannot disagree about
+    geometry.
+    """
+    toks = list(tokens)
+    if not toks:
+        raise ValueError("need >= 1 token")
+    if len(toks) > MAX_SEG_POLY:
+        raise ValueError("{} tokens exceeds MAX_SEG_POLY {}".format(len(toks), MAX_SEG_POLY))
+    if len(alphas) != len(WALLS_2D):
+        raise ValueError("geom_token_m needs {} wall alphas, got {}".format(
+            len(WALLS_2D), len(alphas)))
+    rows, mask = [], []
+    for (cx, cy, nx, ny, ext, _m_unused) in toks:
+        pos = torch.tensor([cx, cy], device=device, dtype=dtype)
+        rows.append(torch.cat([
+            _fourier_block(pos, N_K_TOK_POS),                                  # 16
+            torch.tensor([nx, ny, ext], device=device, dtype=dtype),           # 3  -> extent @18
+        ]))
+        mask.append(1.0)
+    while len(rows) < MAX_SEG_POLY:
+        rows.append(torch.zeros(D_TOK_GEO, device=device, dtype=dtype))
+        mask.append(0.0)
+    # material block, byte-identical to m_linear_features_2d[32:60]
+    mh = torch.tensor([m_of_alpha(float(a)) / M_NORM for a in alphas], device=device, dtype=dtype)
+    fb = _fourier_block(mh, N_K_M).reshape(len(WALLS_2D), 2 * N_K_M)
+    mat = torch.cat([mh[:, None], fb], dim=1).reshape(-1)                      # [28]
+    return torch.cat([torch.cat(rows),
+                      torch.tensor(mask, device=device, dtype=dtype),
+                      mat])
 """Post-encoder width. No geometry prefix to concatenate, so it is the aggregate alone."""
 
 

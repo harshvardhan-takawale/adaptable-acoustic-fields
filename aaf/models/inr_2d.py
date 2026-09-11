@@ -244,6 +244,7 @@ class INR2D_AutoDecoder(nn.Module):
         cond_dim: Optional[int] = None,
         l_head_out_dim: int = 1,
         world_scale: Optional[float] = None,
+        token_pool: Optional[str] = None,
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -255,7 +256,7 @@ class INR2D_AutoDecoder(nn.Module):
         # builder is perfectly happy with.
         if cond_source not in ("latent", "geom_alpha_fourier", "m_linear", "m_segment",
                                "m_token", "m_token_delta",
-                               "aperture", "aperture_token", "geom_token"):
+                               "aperture", "aperture_token", "geom_token", "geom_token_m"):
             raise ValueError(
                 f"cond_source must be 'latent', 'geom_alpha_fourier', 'm_linear', "
                 f"'m_segment', 'm_token', 'm_token_delta', 'aperture' or "
@@ -298,12 +299,15 @@ class INR2D_AutoDecoder(nn.Module):
         # receive gradient; conditioning_2d is a fixed, tcnn-free, CPU-testable featurizer.
         self.segment_encoder = None
         self.token_pool = None
-        if self.cond_source in ("m_token", "m_token_delta", "aperture_token", "geom_token"):
+        if self.cond_source in ("m_token", "m_token_delta", "aperture_token", "geom_token",
+                                "geom_token_m"):
             from aaf.models.conditioning_2d import (APER_TOKEN_COND_DIM, APER_TOKEN_DIM_2D,
-                                                    D_TOK, GEOM_TOKEN_COND_DIM,
-                                                    GEOM_TOKEN_DIM_2D, MAX_SEG_POLY,
-                                                    N_SEG_COND, TOKEN_AGG_DIM,
-                                                    TOKEN_COND_DIM, TOKEN_DIM_2D)
+                                                    D_TOK, D_TOK_GEO, GEOM_TOKEN_COND_DIM,
+                                                    GEOM_TOKEN_DIM_2D, GEOM_TOKEN_M_COND_DIM,
+                                                    GEOM_TOKEN_M_DIM_2D, GEOM_TOKEN_M_MAT_DIM,
+                                                    MAX_SEG_POLY, N_SEG_COND, TOKEN_AGG_DIM,
+                                                    TOKEN_COND_DIM, TOKEN_DIM_2D,
+                                                    TOK_EXTENT_IDX)
             # Track B2 reuses this encoder VERBATIM -- same 16 tokens, same D_TOK = 26
             # featurization -- and differs only in the width of the geometry block that rides
             # in front of them: 32 for (L, W) on the absorption axis, 48 for (L, W, x0) on the
@@ -313,6 +317,8 @@ class INR2D_AutoDecoder(nn.Module):
                 _expect, _reduced = APER_TOKEN_DIM_2D, APER_TOKEN_COND_DIM
             elif self.cond_source == "geom_token":
                 _expect, _reduced = GEOM_TOKEN_DIM_2D, GEOM_TOKEN_COND_DIM
+            elif self.cond_source == "geom_token_m":
+                _expect, _reduced = GEOM_TOKEN_M_DIM_2D, GEOM_TOKEN_M_COND_DIM
             else:
                 _expect, _reduced = TOKEN_DIM_2D, TOKEN_COND_DIM
             if self.cond_dim != _expect:
@@ -328,15 +334,41 @@ class INR2D_AutoDecoder(nn.Module):
                 # aggregate toward that fiction by n_pad / MAX_SEG_POLY.
                 self._tok_n, self._tok_d = MAX_SEG_POLY, D_TOK
                 self._tok_geom = 0
+                self._tok_tail = 0
+            elif self.cond_source == "geom_token_m":
+                # P4-2 Task A (D68). Tokens carry GEOMETRY ONLY (19-d, no m_hat block) and the
+                # material rides in a 28-d TAIL after the validity mask -- the per-wall m_linear
+                # block, byte-identical to m_linear_features_2d[32:60]. The tail is concatenated
+                # AFTER pooling, so it never passes through the shared token MLP, which is the
+                # whole point: Q20's hypothesis is that entangling m_hat in that MLP is what
+                # cost geom_token its edit linearity.
+                self._tok_n, self._tok_d = MAX_SEG_POLY, D_TOK_GEO
+                self._tok_geom = 0
+                self._tok_tail = GEOM_TOKEN_M_MAT_DIM
             else:
                 self._tok_n, self._tok_d = N_SEG_COND, D_TOK
                 self._tok_geom = _expect - N_SEG_COND * D_TOK           # 32 (A2/A3) or 48 (B2)
+                self._tok_tail = 0
+            self._tok_extent_idx = TOK_EXTENT_IDX
             self.segment_encoder = nn.Sequential(
-                nn.Linear(D_TOK, TOKEN_AGG_DIM), nn.ReLU(),
+                nn.Linear(self._tok_d, TOKEN_AGG_DIM), nn.ReLU(),
                 nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM),
             )
-            if self.cond_source == "geom_token":
-                self.token_pool = "masked_mean"
+            if self.cond_source in ("geom_token", "geom_token_m"):
+                # P4-2: pooling is now an explicit ARM, not a consequence of cond_source. Token
+                # counts vary across shapes (4 for a rectangle, 6 for an L), so a mean divides
+                # by a different number per shape and discards total boundary extent entirely;
+                # the extent-weighted sum integrates over boundary length, which is what a
+                # boundary effect physically does. Both are run and the winner adopted.
+                self.token_pool = token_pool or "masked_mean"
+                if self.token_pool not in ("masked_mean", "extent_sum"):
+                    raise ValueError(
+                        f"token_pool must be masked_mean or extent_sum for "
+                        f"{self.cond_source}, got {self.token_pool!r}")
+            elif token_pool:
+                raise ValueError(
+                    f"token_pool is only meaningful for the polygon token arms, not "
+                    f"{self.cond_source!r}")
             else:
                 self.token_pool = "mean" if self.cond_source == "m_token" else "delta"
             if self.token_pool == "delta":
@@ -619,14 +651,27 @@ class INR2D_AutoDecoder(nn.Module):
             # [B*N, G + 16*26] -> shared MLP per token -> pool -> [B*N, G + 64]
             # G = 32 for the m_token arms (L, W), 48 for aperture_token (L, W, x0).
             g = z_s_flat[:, :self._tok_geom]
-            if self.token_pool == "masked_mean":
-                # geom_token: [B*N, 12*26 + 12]; the tail is the validity mask.
+            if self.token_pool in ("masked_mean", "extent_sum"):
+                # geom_token:   [B*N, 12*26 + 12]
+                # geom_token_m: [B*N, 12*19 + 12 + 28]  (trailing 28 = material, pooled AROUND)
                 n_tok = self._tok_n * self._tok_d
                 t = z_s_flat[:, :n_tok].reshape(-1, self._tok_n, self._tok_d)
-                m = z_s_flat[:, n_tok:].reshape(-1, self._tok_n, 1)
-                # Mean over VALID slots only. clamp(min=1) guards a degenerate all-pad row so
-                # the division cannot produce NaN and poison the whole batch's gradient.
-                agg = (self.segment_encoder(t) * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)
+                m = z_s_flat[:, n_tok:n_tok + self._tok_n].reshape(-1, self._tok_n, 1)
+                if self.token_pool == "masked_mean":
+                    # Mean over VALID slots only. clamp(min=1) guards a degenerate all-pad row
+                    # so the division cannot produce NaN and poison the batch's gradient.
+                    agg = (self.segment_encoder(t) * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)
+                else:
+                    # EXTENT-WEIGHTED SUM: sum_i extent_i * phi(token_i). Deliberately NOT
+                    # normalized -- a boundary effect integrates over length, so a longer wall
+                    # should contribute more and a bigger room more in total. Normalizing would
+                    # reduce it to masked_mean and discard exactly the information the variant
+                    # exists to carry. Padded slots already have extent 0, but the mask is still
+                    # applied so it stays the single source of truth for validity.
+                    w = t[..., self._tok_extent_idx:self._tok_extent_idx + 1] * m
+                    agg = (self.segment_encoder(t) * w).sum(dim=1)
+                if self._tok_tail:
+                    agg = torch.cat([agg, z_s_flat[:, -self._tok_tail:]], dim=-1)
             elif self.token_pool == "delta":
                 t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
                 tb = t.clone()

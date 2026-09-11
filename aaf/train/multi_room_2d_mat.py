@@ -111,6 +111,10 @@ class P32TrainCfg:
     #: resolution -- at world_scale 10 a 6 m room spans 0.6 hash units instead of 3.0, i.e.
     #: 5x fewer cells across the room -- so the two keys are meant to move together.
     world_scale: Optional[float] = None
+    #: P4-2. Pooling ARM for the polygon token families: "masked_mean" (P4-1 default) or
+    #: "extent_sum" (sum_i extent_i * phi(token_i)). Empty string = the arm's own default.
+    #: Token counts vary across shapes, so this is a real experimental axis, not a detail.
+    token_pool: str = ""
     #: P4-1. Low edge of the LOSS band in Hz (the eval band is unchanged). Set to 20.0 to mask
     #: the FDTD corpus's DC/compliance term out of the gradient; 0.0 keeps every bin.
     loss_band_lo_hz: float = 0.0
@@ -304,6 +308,7 @@ class P32Trainer:
             conditioning_type=cfg.conditioning_type,
             cond_source=cfg.cond_source, cond_dim=cfg.cond_dim,
             l_head_enabled=False, world_scale=cfg.world_scale,
+            token_pool=(cfg.token_pool or None),
         ).to(self.device)
         self.renderer = FreqRenderer2D(
             n_azi=cfg.n_azi, n_pts_per_ray=cfg.n_pts_per_ray, near=cfg.near,
@@ -434,7 +439,12 @@ class P32Trainer:
             except Exception:
                 continue
             prev = st.get("cfg", {})
-            for k in ("cond_source", "cond_dim", "n_pts_per_ray", "n_azi", "n_iters"):
+            # world_scale and token_pool change what the SAME-SHAPED weights MEAN, so a
+            # cross-load between two arms would load silently and train on the wrong
+            # semantics. base_resolution at least fails loudly with a tensor-size mismatch;
+            # these two do not.
+            for k in ("cond_source", "cond_dim", "n_pts_per_ray", "n_azi", "n_iters",
+                      "world_scale", "token_pool", "base_resolution"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
