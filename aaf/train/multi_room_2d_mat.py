@@ -188,6 +188,14 @@ class P32Trainer:
                 # describes only its bounding box. The config exposes .verts, which
                 # build_cond_vector_2d forwards to the geom_token featurizer.
                 from aaf.data.poly_configs import configs_from_rows
+            elif str(man.get("schema", "")).startswith("p4_2.shape"):
+                # P4-2: the notch family. Rows carry (L, W, d, w) + a vertex list, and the
+                # config exposes .verts / .edge_alphas which build_cond_vector_2d forwards to
+                # the polygon token featurizer. WITHOUT this branch the schema falls through to
+                # the mat_configs_cont default, which parses the rows happily -- they do have
+                # L, W, alphas and filename -- and produces configs with NO verts, so every
+                # L-room would be conditioned as a RECTANGLE with no error anywhere.
+                from aaf.data.shape_configs import configs_from_rows
             elif str(man.get("schema", "")).startswith("p3_3fast.trackB"):
                 # Track 2b rows carry a divider (x0) and a doorway width (a); their four wall
                 # alphas are all baseline, so the aperture lives on the config object, not in
