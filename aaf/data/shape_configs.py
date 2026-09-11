@@ -77,6 +77,19 @@ MIN_RECTANGLES = 8          # anchor the degenerate end of the family
 SEED = 20260911
 TEST_SEED = 20260912
 GEOM_QUANT_DP = 2           # dims quantized to the dp the filename encodes, at generation time
+
+#: EVERY parameter is snapped to a multiple of this. It is the FDTD cell size, and the reason is
+#: not cosmetic: `_fit_axis` picks dx per axis so that L and W divide exactly, which for a 2-dp
+#: L like 5.05 gives dx = 0.020040, NOT 0.02. An independently-chosen 2-dp notch width then does
+#: not land on a node -- measured displacement 0.0084 m for w = 0.81 -- so the wall the solver
+#: simulates is millimetres away from the wall the polygon (and therefore the token `extent`)
+#: describes. The conditioning and the ground truth would be describing different rooms,
+#: silently. Snapping all four parameters to multiples of dx makes L/dx and W/dx integers, so
+#: dx is exactly 0.02 and both notch faces land on nodes (verified: residual 0 and 4.4e-16).
+#:
+#: Caught by the builder's analytic node-for-node cross-check against `geom.air`, which failed
+#: all 75 rooms on the first build. That assert is the only reason this surfaced.
+GRID_DX = 0.02
 MAX_GAP_FRAC = 0.125        # see SAMPLING INTERVAL above
 
 #: Fixed source, per spec. Must satisfy sy < min(W - d) = 0.55 * W_min = 2.20 over the whole
@@ -239,7 +252,13 @@ def configs_from_rows(rows: Sequence[dict], split: Optional[str] = None,
 
 # ----------------------------------------------------------------------------- the sampler
 def _q(x: float) -> float:
-    return round(float(x), GEOM_QUANT_DP)
+    """Snap to a multiple of GRID_DX, then round to the dp the filename encodes.
+
+    Both steps matter: the snap puts every wall on an FDTD node (see GRID_DX), and the rounding
+    keeps the value exactly representable in the 2-dp filename, so the manifest, the filename
+    and the simulated geometry cannot drift apart.
+    """
+    return round(round(float(x) / GRID_DX) * GRID_DX, GEOM_QUANT_DP)
 
 
 def _draw(rng, want_rect: bool, force_dhat: Optional[Tuple[float, float]] = None):
