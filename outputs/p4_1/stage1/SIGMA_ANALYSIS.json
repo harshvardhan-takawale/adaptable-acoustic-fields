@@ -1,0 +1,17 @@
+{
+ "n_samples": 400,
+ "n_in_solid": 226,
+ "sigma_solid_mean": 0.7292405962944031,
+ "sigma_solid_sd": 0.09477469325065613,
+ "sigma_air_mean": 0.6782693266868591,
+ "sigma_air_sd": 0.024559523910284042,
+ "ratio": 1.0751490592956543,
+ "mannwhitney_p_solid_gt_air": 2.5432261850447476e-05,
+ "cohens_d": 0.736266519155018,
+ "sigma_min": 0.6580079793930054,
+ "sigma_max": 1.0081251859664917,
+ "notch_crossing_m": 3.681137844611529,
+ "transmittance_across_notch": 0.06825973915563689,
+ "transmittance_same_path_in_air": 0.08234785357953103,
+ "verdict": "sigma is STATISTICALLY elevated inside the notch (p=2.5e-05, d=0.74) but the elevation is PHYSICALLY negligible: the field is near-uniform (1.5x total spread) and transmittance across the 3.68 m notch crossing is 0.068 versus 0.082 for the same path length in air -- a 17% relative difference. The model did NOT learn a hard occluder. sigma is doing generic distance attenuation; the room's shape is carried by the signal field instead. Gate 1 therefore shows the architecture CAN FIT a non-convex room, not that it found a geometric occlusion MECHANISM -- which is the property Stage 2 needs."
+}

@@ -1,0 +1,150 @@
+{
+ "gate": "p4_1.stage1/1",
+ "checkpoint": "outputs/p4_1/stage1/p4_1_stage1_lroom/ckpt_iter0030000.pt",
+ "iter": 30000,
+ "cond_source": "geom_token",
+ "world_scale": 10.0,
+ "n_rx": 1903,
+ "n_los": 1426,
+ "n_nlos": 477,
+ "nlos_fraction": 0.25065685759327383,
+ "per_mode": [
+  {
+   "mode": [
+    1,
+    0
+   ],
+   "f_hz": 28.583333333333332,
+   "bin": 57,
+   "pearson_all": 0.9999159287002067,
+   "pearson_los": 0.9999181413315466,
+   "pearson_nlos": 0.9999017248020577,
+   "pearson_los_heldout": 0.9998291725350742,
+   "pearson_nlos_heldout": 0.9999250160302593,
+   "mean_abs_db_err": 0.05772451311349869,
+   "level_offset_db": -0.037341680377721786
+  },
+  {
+   "mode": [
+    0,
+    1
+   ],
+   "f_hz": 34.300000000000004,
+   "bin": 69,
+   "pearson_all": 0.9996509147579392,
+   "pearson_los": 0.9996216039658582,
+   "pearson_nlos": 0.9998236384473944,
+   "pearson_los_heldout": 0.9996370207517022,
+   "pearson_nlos_heldout": 0.9999260837049514,
+   "mean_abs_db_err": 0.07267975807189941,
+   "level_offset_db": -0.03534344211220741
+  },
+  {
+   "mode": [
+    1,
+    1
+   ],
+   "f_hz": 44.64859398059971,
+   "bin": 89,
+   "pearson_all": 0.9606683059236198,
+   "pearson_los": 0.965158686114875,
+   "pearson_nlos": 0.8468800567899354,
+   "pearson_los_heldout": 0.787216713806302,
+   "pearson_nlos_heldout": 0.3440668966343522,
+   "mean_abs_db_err": 1.015260934829712,
+   "level_offset_db": 0.2201128900051117
+  },
+  {
+   "mode": [
+    2,
+    0
+   ],
+   "f_hz": 57.166666666666664,
+   "bin": 114,
+   "pearson_all": 0.9992956602605207,
+   "pearson_los": 0.999310505318678,
+   "pearson_nlos": 0.9992470427582505,
+   "pearson_los_heldout": 0.9995243115446065,
+   "pearson_nlos_heldout": 0.9993644585494175,
+   "mean_abs_db_err": 0.12743696570396423,
+   "level_offset_db": 0.019480261951684952
+  },
+  {
+   "mode": [
+    2,
+    1
+   ],
+   "f_hz": 66.66721666439793,
+   "bin": 133,
+   "pearson_all": 0.9993866724744036,
+   "pearson_los": 0.9993250341686734,
+   "pearson_nlos": 0.9995545085715699,
+   "pearson_los_heldout": 0.9992700976878273,
+   "pearson_nlos_heldout": 0.9996792493663362,
+   "mean_abs_db_err": 0.12077398598194122,
+   "level_offset_db": -0.06770096719264984
+  },
+  {
+   "mode": [
+    0,
+    2
+   ],
+   "f_hz": 68.60000000000001,
+   "bin": 137,
+   "pearson_all": 0.9994154311953436,
+   "pearson_los": 0.9993091558935798,
+   "pearson_nlos": 0.9996034113292316,
+   "pearson_los_heldout": 0.9986117365707377,
+   "pearson_nlos_heldout": 0.9996190775156328,
+   "mean_abs_db_err": 0.11380787193775177,
+   "level_offset_db": -0.06533540785312653
+  }
+ ],
+ "mean_pearson_los": 0.9937738544655351,
+ "mean_pearson_nlos": 0.9741683971164066,
+ "los_nlos_gap": 0.019605457349128552,
+ "band_lsd_los_db": 1.2402029037475586,
+ "band_lsd_nlos_db": 1.4146498441696167,
+ "heldout": {
+  "n_trained": 1665,
+  "n_heldout": 238,
+  "mean_pearson_los": 0.9640148421493748,
+  "mean_pearson_nlos": 0.8904301303001584,
+  "los_nlos_gap": 0.07358471184921644,
+  "band_lsd_los_db": 3.2743844985961914,
+  "band_lsd_nlos_db": 3.179255247116089,
+  "band_lsd_trained_db": 1.0026650428771973,
+  "band_lsd_heldout_db": 3.251601219177246,
+  "note": "Stage 1 is a per-scene FIT and 87.5% of receivers were supervised. The gate is on the all-receiver metric, which is what the spec asks for, but that is a FIT number -- these held-out values are the generalization one."
+ },
+ "sigma_probe": {
+  "rx": [
+   3.12,
+   4.82
+  ],
+  "mean_sigma_solid": 0.7292405962944031,
+  "mean_sigma_air": 0.6782693266868591,
+  "solid_over_air": 1.0751490117598612,
+  "n_samples_in_solid": 226
+ },
+ "criteria": {
+  "nlos_pearson": {
+   "value": 0.9741683971164066,
+   "op": ">=",
+   "threshold": 0.7,
+   "pass": true
+  },
+  "los_nlos_gap": {
+   "value": 0.019605457349128552,
+   "op": "<=",
+   "threshold": 0.15,
+   "pass": true
+  }
+ },
+ "passed": true,
+ "thresholds": {
+  "nlos_pearson_min": 0.7,
+  "max_gap": 0.15
+ },
+ "renderer_note": "FreqRenderer2D fans rays outward FROM THE RECEIVER; there is no source->receiver ray. sigma can occlude the receiver->point leg only, so the sigma probe is run along that direction."
+}

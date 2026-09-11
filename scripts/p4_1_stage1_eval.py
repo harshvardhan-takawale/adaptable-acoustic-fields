@@ -126,6 +126,18 @@ def main() -> int:
             H = renderer(model, r, S.expand(r.shape[0], -1), room_min, room_max, z_s=z)
         P[sl] = H[:, :T.shape[1]].cpu().numpy()
 
+    # --- TRAINED vs HELD-OUT receivers ----------------------------------------------------
+    # Stage 1 is a per-scene FIT, so the trainer supervised 1-in-8-complement of these
+    # receivers. Scoring all of them answers the question the spec actually asks ("can the
+    # representation fit one such room at all") -- but 87.5% of them were trained on, so the
+    # headline number is a FIT metric and would be badly misread as generalization. Both are
+    # reported; the gate is on the fit metric, per the spec.
+    from aaf.train.multi_room_2d_mat import val_rx_indices
+    held = np.zeros(len(rx), dtype=bool)
+    held[list(val_rx_indices(len(rx)))] = True
+    print("[split] trained on {} receivers | held out {}".format(
+        int((~held).sum()), int(held.sum())), flush=True)
+
     # --- per-mode spatial Pearson, split by line of sight ---------------------------------
     modes = [m for m in enumerate_modes(L, W, f_max=200.0)][:N_MODES]
     rows = []
@@ -137,11 +149,23 @@ def main() -> int:
         rows.append({"mode": [m.n_x, m.n_y], "f_hz": float(m.f), "bin": b,
                      "pearson_all": _pearson(pm, tm),
                      "pearson_los": _pearson(pm[los], tm[los]),
-                     "pearson_nlos": _pearson(pm[~los], tm[~los])})
+                     "pearson_nlos": _pearson(pm[~los], tm[~los]),
+                     "pearson_los_heldout": _pearson(pm[los & held], tm[los & held]),
+                     "pearson_nlos_heldout": _pearson(pm[~los & held], tm[~los & held]),
+                     # Pearson is affine-invariant, so a correct SHAPE with a wrong LEVEL still
+                     # scores 1.0. The residual level error is recorded so a high R cannot be
+                     # read as a perfect fit without checking it.
+                     "mean_abs_db_err": float(np.mean(np.abs(pm - tm))),
+                     "level_offset_db": float(np.mean(pm - tm))})
     r_los = float(np.nanmean([r["pearson_los"] for r in rows]))
     r_nlos = float(np.nanmean([r["pearson_nlos"] for r in rows]))
+    r_los_h = float(np.nanmean([r["pearson_los_heldout"] for r in rows]))
+    r_nlos_h = float(np.nanmean([r["pearson_nlos_heldout"] for r in rows]))
     lsd_los, lsd_nlos = _lsd(P[los], T[los]), _lsd(P[~los], T[~los])
+    lsd_los_h, lsd_nlos_h = _lsd(P[los & held], T[los & held]), _lsd(P[~los & held], T[~los & held])
+    lsd_trained, lsd_held = _lsd(P[~held], T[~held]), _lsd(P[held], T[held])
     gap = r_los - r_nlos
+    gap_h = r_los_h - r_nlos_h
 
     print("\n  mode      f_Hz |  R_all   R_LOS  R_NLOS")
     for r in rows:
@@ -151,6 +175,13 @@ def main() -> int:
     print("\n  mean spatial Pearson   LOS {:+.3f}   NLOS {:+.3f}   gap {:+.3f}".format(
         r_los, r_nlos, gap))
     print("  band LSD               LOS {:5.2f} dB  NLOS {:5.2f} dB".format(lsd_los, lsd_nlos))
+    print("\n  --- the same metrics on HELD-OUT receivers only ({} of {}) ---".format(
+        int(held.sum()), len(rx)))
+    print("  mean spatial Pearson   LOS {:+.3f}   NLOS {:+.3f}   gap {:+.3f}".format(
+        r_los_h, r_nlos_h, gap_h))
+    print("  band LSD               LOS {:5.2f} dB  NLOS {:5.2f} dB".format(lsd_los_h, lsd_nlos_h))
+    print("  band LSD  trained {:.2f} dB  vs  held-out {:.2f} dB  ({:.1f}x)".format(
+        lsd_trained, lsd_held, lsd_held / max(lsd_trained, 1e-9)))
 
     passed = bool(r_nlos >= GATE_NLOS_PEARSON and gap <= GATE_MAX_GAP)
     crit = {"nlos_pearson": {"value": r_nlos, "op": ">=", "threshold": GATE_NLOS_PEARSON,
@@ -189,6 +220,15 @@ def main() -> int:
         "per_mode": rows,
         "mean_pearson_los": r_los, "mean_pearson_nlos": r_nlos, "los_nlos_gap": gap,
         "band_lsd_los_db": lsd_los, "band_lsd_nlos_db": lsd_nlos,
+        "heldout": {"n_trained": int((~held).sum()), "n_heldout": int(held.sum()),
+                    "mean_pearson_los": r_los_h, "mean_pearson_nlos": r_nlos_h,
+                    "los_nlos_gap": gap_h,
+                    "band_lsd_los_db": lsd_los_h, "band_lsd_nlos_db": lsd_nlos_h,
+                    "band_lsd_trained_db": lsd_trained, "band_lsd_heldout_db": lsd_held,
+                    "note": ("Stage 1 is a per-scene FIT and 87.5% of receivers were "
+                             "supervised. The gate is on the all-receiver metric, which is what "
+                             "the spec asks for, but that is a FIT number -- these held-out "
+                             "values are the generalization one.")},
         "sigma_probe": {"rx": rx0.tolist(), "mean_sigma_solid": sig_solid,
                         "mean_sigma_air": sig_air, "solid_over_air": ratio,
                         "n_samples_in_solid": int(in_solid.sum())},

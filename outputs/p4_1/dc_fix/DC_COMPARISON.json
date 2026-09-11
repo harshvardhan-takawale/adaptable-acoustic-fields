@@ -1,0 +1,34 @@
+{
+ "comparison": "p4_1.dc_mask/1",
+ "matched_iter": 12000,
+ "cut_bin": 40,
+ "cut_hz": 20.0,
+ "baseline_unmasked": {
+  "checkpoint": "outputs/p3_3fast/p3_3fast_trackA2/ckpt_iter0012000.pt",
+  "iter": 12000,
+  "cond_source": "m_token",
+  "n_configs": 24,
+  "lsd_full": 4.9545300006866455,
+  "lsd_modal": 5.2351881464322405,
+  "lsd_peak": 5.733879278103511,
+  "sp": 0.593209965535404
+ },
+ "dc_masked": {
+  "checkpoint": "outputs/p4_1/dc_fix/p4_1_A2_dcmask/ckpt_iter0012000.pt",
+  "iter": 12000,
+  "cond_source": "m_token",
+  "n_configs": 24,
+  "lsd_full": 7.268612523873647,
+  "lsd_modal": 5.212544679641724,
+  "lsd_peak": 6.206999838352203,
+  "sp": 0.7256086335245375
+ },
+ "delta_masked_minus_baseline": {
+  "lsd_full": 2.3140825231870013,
+  "lsd_modal": -0.022643466790516875,
+  "lsd_peak": 0.47312056024869253,
+  "sp": 0.13239866798913358
+ },
+ "masking_helped_modal": false,
+ "note": "Both checkpoints scored by ONE code path on IDENTICAL bins. The training-time val curves cannot be compared directly: after the model-selection fix the masked run reports lsd_db over bins 40-600 and the baseline over 0-600, which are different quantities. full-band LSD favours the baseline by construction."
+}
