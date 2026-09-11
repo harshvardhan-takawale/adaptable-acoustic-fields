@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -10,6 +10,59 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Also fixed this chunk: a regression I introduced.** The P3-2c audit A1 commit (`ee6ead0`) made the entire per-cell slope regression dead code, so **every rho computed between `ee6ead0` and `ad91b3a` was NaN**. Caught because P3-2c re-evaluates P3-2b arm C as its first curve point and reproduced every number except rho. The A1 guard tests could not have caught it — they asserted over stored `summary.json` files produced by the pre-A1 code, validating documents rather than the code that writes them. `tests/test_p3_2b_slopefit_regression.py` now fits synthetic data end-to-end. No published number changed.
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+
+## Phase 4 — P4-1 COMPLETE (2026-09-11): shape editing, Stages 0 and 1
+
+**BOTH GATES PASS.** Full writeup `tasks/CHUNK_P4_1_RESULTS.md`; phase status
+`PHASE4_SUMMARY.md`; decisions **D64-D65**; open questions **Q19-Q20**. Tests 471 passed.
+
+**Gate 0 — token-only geometry, and it BEATS the baseline.** Arm T-geo drops global (L, W)
+entirely and expresses the room as boundary tokens in absolute world coordinates. Identical
+corpus, manifest sha, recipe, optimizer and 60K budget as Arm C:
+
+| metric | Arm T-geo | Arm C |
+|---|---:|---:|
+| spatial Pearson (mean / worst) | **0.982 / 0.969** | 0.951 / 0.920 |
+| band LSD (mean) | **1.722 dB** | 2.268 dB |
+| in-distribution val LSD | **0.9914** | 1.0132 |
+
+Wins all 12 demo scenarios on both gated metrics. S2 passes the frozen splits gate unchanged
+(`thr a8479c5e1dcc`). **The last shoebox-specific component is gone at a net gain.**
+
+**Gate 1 — the architecture CAN fit a non-convex room.** One L-room (6.0x5.0 with a 3.0x2.5
+notch, 1903 receivers, 25.1% NLOS), per-scene fit: NLOS spatial Pearson **+0.974**, LOS-NLOS gap
+**+0.020**; on held-out receivers **+0.890 / +0.074**. I had predicted this would likely FAIL on
+the Track B precedent -- that was wrong.
+
+**THE TWO THINGS NOT TO MISREAD.**
+
+1. **Gate 1's headline is a FIT metric.** 87.5% of its receivers were supervised; band LSD is
+   1.00 dB on trained receivers vs **3.25 dB held out**. The spec scopes Stage 1 to exactly this
+   question so the gate is correct, but +0.974 is not a generalization number.
+2. **sigma did NOT discover the occluder.** Statistically elevated inside the notch
+   (p = 2.5e-05, d = 0.736) but physically negligible: transmittance across the 3.68 m crossing
+   is 0.068 against 0.082 for the same path in air. sigma does generic distance attenuation; the
+   shape lives in the `signal` field. **Gate 1 shows capacity, not mechanism** -- and mechanism
+   is what Stage 2 needs (Q19).
+
+**One counter-result.** Tokens reconstruct better but edit LESS linearly: `edit_bw_slope` is
+below Arm C in every split, worst on S4 (**0.464 vs 0.789**). Q20.
+
+**DC-masked retrain: PARTIAL, and a trade-off.** Bins 0-39 command **23.7%** of the objective,
+not the majority the spec assumed -- `L_amp` (log10) and `L_phase` (cosine) are structurally
+immune. Masking gives spatial Pearson +0.593 -> +0.726 but modal-peak LSD 5.73 -> 6.21 dB. Every
+stage in this chunk used the UNMASKED loss.
+
+**Three spec corrections** (all verified by executing the code): there is no source->receiver ray
+in the renderer; `wall_segments` cannot describe an L-room and fails SILENTLY (reports
+`tiles_exactly: True` for a wall that exists for half its claimed length); and positions were
+never bbox-normalized -- the TOKENS were.
+
+**Two bugs worth your attention**, both of which would have produced a confidently wrong
+published number rather than an error: a band-masked run was scored on the full band (it looked
+1.65 dB worse while every term it was trained on was better, and would have been early-stopped),
+and `load_model` ignored `base_resolution`/`world_scale` (crashed Gate 1; would have taken Gate 0
+down identically).
 
 ## Repo maintenance (2026-09-10): the backlog is committed — more is readable now
 

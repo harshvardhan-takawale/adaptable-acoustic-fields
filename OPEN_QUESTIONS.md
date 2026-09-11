@@ -135,3 +135,63 @@ Measured on the FIG-5 geometry, an LSD taken over the **27 baseline modal-peak b
 * **(d) investigate the (0,0) term itself** — 46 dB above the modal content is large enough that it may be a property of the excitation/deconvolution choice in `aaf/sim/fdtd_2d.py` rather than of the room, in which case the corpus, not the metric, is what should change.
 
 **What resolving it requires**: (b) and (c) are metric-only and need no new simulation. (d) needs one diagnostic run on a single config comparing `H_complex` against `H_deconv`. Nothing downstream is blocked — the figure quotes all three LSDs side by side with the caveat printed — but every accuracy claim in the meeting pack depends on which one is called "the" LSD.
+
+### Q19 — Gate 1 passed on capacity, but no occlusion MECHANISM was demonstrated. Does that block Stage 2? (P4-1)
+
+The L-room per-scene fit reaches NLOS spatial Pearson +0.974 with a LOS-NLOS gap of +0.020, so
+the architecture can represent non-convex acoustics. But the learned sigma field does not encode
+the wall in any physically meaningful way: it is statistically elevated inside the notch
+(p = 2.5e-05, Cohen's d = 0.736) and physically negligible -- near-uniform (1.5x total spread),
+with transmittance across the 3.68 m notch crossing at 0.068 against 0.082 for the same path
+length in air, a 17% relative difference. sigma is doing generic distance attenuation; the room's
+shape is carried by the `signal` field.
+
+This matters because of where it puts Stage 2. `FreqRenderer2D` accumulates transmittance only
+along the receiver->point leg, so a wall between the SOURCE and a sample point has no structural
+representation at all -- it can only be memorized in `signal(pts, tx, .)`. A per-scene fit can
+afford that memorization. A model asked to generalize across shapes cannot, and Track B (D60a)
+failed at exactly this point: a solid interior structure the renderer could not see produced a
+representation failure that was equally wrong on seen and held-out apertures.
+
+**The question**: does Stage 2 run as specified, or does the renderer need a geometry-aware term
+first?
+* **(a) Run Stage 2 as specified** and let it answer empirically -- cheapest, and a failure is
+  itself informative. Carry the sigma probe forward as a standing diagnostic: sigma ratio ~ 1 on
+  a multi-shape model is an early warning that the Z-corridor will not transfer.
+* **(b) Add source-side occlusion to the renderer first** (e.g. a second transmittance leg from
+  tx, or geometry-conditioned ray termination). Principled, but it changes the renderer for every
+  arm and invalidates cross-phase comparisons.
+* **(c) Test the mechanism directly before Stage 2** -- fit two L-rooms with mirrored notches and
+  check whether a single conditioned model puts sigma in the right place in each. Cheap, and it
+  isolates mechanism from capacity without touching the renderer.
+
+**What resolving it requires**: (a) and (c) need no new code beyond what P4-1 already has; (b) is
+a renderer change with wide blast radius. Nothing is blocked today -- Stage 2 can start under (a)
+-- but the answer determines whether a Stage 2 failure would indict the data or the renderer.
+
+### Q20 — Boundary tokens reconstruct better but edit less linearly. Which does the phase need? (P4-1)
+
+Arm T-geo beats Arm C on every reconstruction metric (spatial Pearson 0.982 vs 0.951, band LSD
+1.722 vs 2.268 dB, and lower LSD in every unseen-geometry split) while its `edit_bw_slope` is
+LOWER than Arm C's in every split -- S1 0.784/0.997, S2 0.871/0.959, S4 0.464/0.789,
+S5 0.913/1.010 -- and its `edit_gain` is higher everywhere, i.e. it overshoots edit magnitude.
+S2 still passes the frozen gate (thresholds unchanged, `thr a8479c5e1dcc`), so nothing is
+blocked, but S4 (unseen alpha = 0.30, the material-continuity split) sits at 0.464, well below
+the 0.80 used elsewhere.
+
+The likely locus is the token `m_hat` channel: it is the only part of the token whose
+representation changed between arms without its Fourier treatment changing. Both arms use
+`M_NORM_SEG_COND = 3.0`, but in T-geo `m_hat` now shares a token with absolute positions and
+extents that span a much wider numeric range than the old unit-square values, so the encoder may
+be allocating capacity to geometry at the expense of material sensitivity.
+
+**The question**: is this worth fixing before the shape family is built, or is reconstruction the
+only thing Stage 2 needs?
+* **(a) Ignore it for Stage 2** -- the phase goal is shape transfer, and editing is a P3 result
+  that already passed its own gate.
+* **(b) Re-scale or re-weight the m_hat channel** and re-run Stage 0 -- ~13 GPU-hours, and the
+  comparison is already built.
+* **(c) Ablate** -- train a token arm with geometry tokens but Arm C's scalar m conditioning, to
+  attribute the slope loss to the token m_hat specifically rather than to tokenization.
+
+**What resolving it requires**: (b) or (c) is one 60K-iteration run each. Nothing is blocked.
