@@ -176,6 +176,10 @@ slurm-*.out
 # headline. The 10 already-tracked per_config.json under p3_2c/eval and p3_2d/eval are left
 # alone deliberately -- that 36 MB is permanently in history, so untracking reclaims nothing.
 /outputs/p3_2d/eval_seed2/**/per_config.json
+# P4-1 splits eval: same D63 policy. This arm's eval was written by the p3_2b wrapper, which
+# hardcodes outputs/p3_2b/eval/<arm>/ -- it was moved here because a P4-1 arm sitting in the
+# P3-2b tree tripped that phase's publication guard (which demands a results-doc row per arm).
+/outputs/p4_1/**/per_config.json
 
 # Layout-check output of the --synthetic modes: EVERY number in these is FABRICATED. The
 # whitelist above would otherwise make the figures committable, and a watermark is not a

@@ -83,7 +83,11 @@ def test_p3_2b_results_doc_quotes_slab_local():
     text = open(doc).read()
     expected = {}
     for f in SUMMARIES:
-        if "p3_2b" not in f:
+        # Match the P3-2b ARM DIRECTORY, not merely the substring: the eval wrapper writes
+        # every arm it is pointed at into outputs/p3_2b/eval/, so a later phase's arm living
+        # under that path would otherwise be demanded as a row in the P3-2b results doc. P4-1's
+        # p4_1_Tgeo did exactly that, and its arm letter parsed as "Tgeo".
+        if os.sep + "p3_2b_" not in f:
             continue
         d = json.load(open(f))
         rho = _slab_local_rho(d)

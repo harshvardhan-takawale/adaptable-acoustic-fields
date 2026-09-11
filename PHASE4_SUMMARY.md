@@ -91,7 +91,7 @@ Conflating row 2 with row 3 is the single easiest mistake to make with this chun
 `outputs/p4_1/stage1/GATE1.json` · `outputs/p4_1/stage1/SIGMA_ANALYSIS.json` ·
 `outputs/p4_1/stage1/DATASET_GATE.json` · `outputs/p4_1/dc_fix/DC_COMPARISON.json` ·
 `outputs/p4_1/dc_fix/loss_contribution.json` · `outputs/p4_1/stage0/ARMC_REGRESSION.json` ·
-`outputs/p3_2b/eval/p4_1_Tgeo/{summary,verdict}.json` ·
+`outputs/p4_1/stage0/splits_eval/{summary,verdict}.json` ·
 `outputs/p4_1/stage1/fig{G_lroom_fields,H_sigma_profile}.png` · `DECISIONS.md` (D64–D65)
 
 ---
