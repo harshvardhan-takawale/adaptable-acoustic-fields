@@ -163,12 +163,14 @@ def build_model(ckpt_path: Path, device: torch.device):
     n_rooms = int(meta.get("n_configs", 440))
 
     hg = dict(otype="HashGrid", n_levels=cfg["n_levels"], n_features_per_level=2,
-              log2_hashmap_size=cfg["log2_hashmap_size"], base_resolution=16,
+              log2_hashmap_size=cfg["log2_hashmap_size"],
+              base_resolution=int(cfg.get("base_resolution", 16)),
               per_level_scale=cfg["per_level_scale"])
     model = INR2D_AutoDecoder(
         n_rooms=n_rooms, latent_dim=cfg["latent_dim"], n_freq_bins=n_freq_bins,
         hash_grid_config=hg, conditioning_type=cfg["conditioning_type"],
         cond_source=cfg["cond_source"], cond_dim=cfg["cond_dim"], l_head_enabled=False,
+        world_scale=cfg.get("world_scale"),
     ).to(device)
     model.load_state_dict(st["model"])          # strict: a shape drift must fail loudly
     renderer = FreqRenderer2D(

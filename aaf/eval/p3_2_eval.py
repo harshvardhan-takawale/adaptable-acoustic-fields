@@ -172,7 +172,11 @@ def load_model(ckpt_path: Path, device: torch.device):
         n_levels=int(cfg["n_levels"]),
         n_features_per_level=2,
         log2_hashmap_size=int(cfg["log2_hashmap_size"]),
-        base_resolution=16,
+        # Read from the checkpoint, defaulting to the historical values. A checkpoint trained
+        # with a non-default base_resolution builds a DIFFERENT-SIZED hash table, and loading it
+        # into a 16-resolution model fails with a bare tensor size mismatch that names no config
+        # key -- which is exactly how this was found (P4-1 Stage 1, 8444592 vs 6375184).
+        base_resolution=int(cfg.get("base_resolution", 16)),
         per_level_scale=float(cfg["per_level_scale"]),
     )
     model = INR2D_AutoDecoder(
@@ -183,6 +187,8 @@ def load_model(ckpt_path: Path, device: torch.device):
         conditioning_type=str(cfg.get("conditioning_type", "film")),
         cond_source=str(cfg["cond_source"]),
         cond_dim=int(cfg["cond_dim"]),
+        # None for every pre-P4-1 checkpoint => the legacy (x+1)/2 position map (D64).
+        world_scale=cfg.get("world_scale"),
         l_head_enabled=False,
     ).to(device)
     model.load_state_dict(st["model"])
