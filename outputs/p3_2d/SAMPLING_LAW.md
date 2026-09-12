@@ -10,6 +10,28 @@ definitional choice is unresolved and is escalated rather than made (see below).
 
 Δ\* is **not** reported as a final number: a second seed is running at the bracketing pair.
 
+> **CORRECTION, 2026-09-12 (P4-2).** The sentence above is stale, and the paragraph below
+> titled "Second seed" is stale with it. **The second seed has landed, and it did not
+> replicate.** G030 — the arm that provided the sole evidence for the Δ\* ≈ 0.275
+> bracket — reads `rho_slab_local` **1.3083 FAIL at seed 1 and 1.1753 PASS at seed 2**;
+> the crossing of the ±0.25 band vanishes. G020 passes at both seeds (1.1480, 1.0767).
+> Read the verdict JSONs directly: `outputs/p3_2d/eval/G030/` and
+> `outputs/p3_2d/eval_seed2/G030/`. Consistent with this, `sampling_law.json` still
+> records `delta_star.point_estimate = null`, there is no `DECISIONS.md` entry ratifying
+> Δ\*, and the ρ definition it depends on was **explicitly escalated rather than
+> decided** (`rho_definition_question.json`: "I am NOT choosing.").
+>
+> **Do not cite Δ\* ≈ 0.275, or "interval ≤ 0.2 of the normalized range", as settled.**
+> The absorption axis spans 1.59 in `m`, so 0.2 × 1.59 = 0.318 lands exactly on the
+> G030 arm whose verdict flips between seeds. The defensible figure is **G020 = 0.125 of
+> the normalized range**, which passes under both ρ definitions at both seeds; P4-2 uses
+> that and records the correction in **D67(d)**. Note also that this law was measured on
+> ONE axis (absorption) in its own linearizing coordinate — nothing here establishes
+> transfer to geometry parameters, which have no established linearizing coordinate.
+> The monotone slope curve (Spearman +1.000) is unaffected by this correction; only the
+> Δ\* bracket is retracted.
+
+
 ## The curve
 
 | run | realized Δ (m) | slope | Pearson | edit_gain | ρ_slab_local | ρ_all | frac dropped | in-dist LSD |
@@ -69,6 +91,12 @@ single-seed realization noise looks like, and P3-2c's collapse was caused by exa
 of unmodelled run-to-run variation. A second seed is therefore running at the bracketing pair
 (G020_s2, G030_s2 — same manifests, same data, seed 20260816). Δ\* stays bracketed until it
 lands.
+
+> **CORRECTION, 2026-09-12 (P4-2).** It landed and the inversion was not noise — it was
+> the result. **G030 flips verdict between seeds** (ρ_slab_local 1.3083 FAIL → 1.1753
+> PASS), so the bracket G020↔G030 does not survive replication and Δ\* is **retracted**,
+> not merely unreported. G020 passes at both seeds. See the correction at the top of this
+> file and D67(d).
 
 Note that the slope curve is monotone with Spearman **+1.000** while both ρ curves are not,
 which suggests the slope is the lower-variance observable here even though it is the one whose

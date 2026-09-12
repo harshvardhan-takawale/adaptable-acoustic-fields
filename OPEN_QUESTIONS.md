@@ -136,62 +136,69 @@ Measured on the FIG-5 geometry, an LSD taken over the **27 baseline modal-peak b
 
 **What resolving it requires**: (b) and (c) are metric-only and need no new simulation. (d) needs one diagnostic run on a single config comparing `H_complex` against `H_deconv`. Nothing downstream is blocked — the figure quotes all three LSDs side by side with the caveat printed — but every accuracy claim in the meeting pack depends on which one is called "the" LSD.
 
-### Q19 — Gate 1 passed on capacity, but no occlusion MECHANISM was demonstrated. Does that block Stage 2? (P4-1)
+### Q21 — Gate 2 FAILED and sigma sits at ~1.0 on every arm. Does the renderer need a geometry-aware occlusion term before shape transfer is attempted again? (P4-2)
 
-The L-room per-scene fit reaches NLOS spatial Pearson +0.974 with a LOS-NLOS gap of +0.020, so
-the architecture can represent non-convex acoustics. But the learned sigma field does not encode
-the wall in any physically meaningful way: it is statistically elevated inside the notch
-(p = 2.5e-05, Cohen's d = 0.736) and physically negligible -- near-uniform (1.5x total spread),
-with transmittance across the 3.68 m notch crossing at 0.068 against 0.082 for the same path
-length in air, a 17% relative difference. sigma is doing generic distance attenuation; the room's
-shape is carried by the `signal` field.
+**Asker**: P4-2 agent. **Owner**: manager / research call.
 
-This matters because of where it puts Stage 2. `FreqRenderer2D` accumulates transmittance only
-along the receiver->point leg, so a wall between the SOURCE and a sample point has no structural
-representation at all -- it can only be memorized in `signal(pts, tx, .)`. A per-scene fit can
-afford that memorization. A model asked to generalize across shapes cannot, and Track B (D60a)
-failed at exactly this point: a solid interior structure the renderer could not see produced a
-representation failure that was equally wrong on seen and held-out apertures.
+Q19 chose option (a) — run Stage 2 as specified and let it answer empirically. It answered, and
+the answer is consistent across four independent arms.
 
-**The question**: does Stage 2 run as specified, or does the renderer need a geometry-aware term
-first?
-* **(a) Run Stage 2 as specified** and let it answer empirically -- cheapest, and a failure is
-  itself informative. Carry the sigma probe forward as a standing diagnostic: sigma ratio ~ 1 on
-  a multi-shape model is an early warning that the Z-corridor will not transfer.
-* **(b) Add source-side occlusion to the renderer first** (e.g. a second transmittance leg from
-  tx, or geometry-conditioned ray termination). Principled, but it changes the renderer for every
-  arm and invalidates cross-phase comparisons.
-* **(c) Test the mechanism directly before Stage 2** -- fit two L-rooms with mirrored notches and
-  check whether a single conditioned model puts sigma in the right place in each. Cheap, and it
-  isolates mechanism from capacity without touching the renderer.
+Gate 2 failed on all four: best in-slab spatial Pearson **0.7978** against a 0.80 threshold
+(mean pooling, DC-masked), then 0.748, 0.576, 0.568. The NLOS-deficit criterion passed
+everywhere — all four deficits are NEGATIVE, i.e. NLOS receivers are slightly BETTER predicted
+than LOS ones — which is itself the tell: if the model were representing shadow geometry,
+NLOS would be the hard case, not the easy one.
 
-**What resolving it requires**: (a) and (c) need no new code beyond what P4-1 already has; (b) is
-a renderer change with wide blast radius. Nothing is blocked today -- Stage 2 can start under (a)
--- but the answer determines whether a Stage 2 failure would indict the data or the renderer.
+The sigma probe, run on all 10 probeable test shapes per arm, reads solid/air ratio
+**0.9987, 0.9896, 1.0361, 0.9820** — indistinguishable from 1.0, and **two of the four are
+BELOW 1.0**, i.e. slightly LESS attenuation inside the wall than in air. Mean transmittance
+ratios 1.003, 1.027, 1.087, 0.917. P4-1's per-scene fit at least reached 1.075 with a real
+effect size; the multi-shape model has no occlusion mechanism at all. Combined with D66 (sigma
+can only express a wall on the receiver->point leg; a source-side wall must be memorized in
+`signal`), this is the predicted failure mode from Q19, observed.
 
-### Q20 — Boundary tokens reconstruct better but edit less linearly. Which does the phase need? (P4-1)
+**The question**: what changes before shape transfer is attempted again?
+* **(a) Renderer change — add source-side occlusion** (a second transmittance leg from `tx`, or
+  geometry-conditioned ray termination). Addresses the diagnosed cause directly. Wide blast
+  radius: it changes the renderer for every arm and invalidates cross-phase comparisons, so it
+  needs its own gate and a re-run of at least one reference arm.
+* **(b) Data/capacity change — more shapes, longer training.** The best arm missed by 0.002 and
+  the corpus is 60 shapes; it is not established that the ceiling is architectural. Cheapest to
+  test, and it would settle whether (a) is necessary or merely sufficient. But sigma ~ 1.0
+  predicts this plateaus, because nothing in the loss rewards putting attenuation in the wall.
+* **(c) Supervise the mechanism directly** — an auxiliary loss on sigma inside known-solid
+  regions. Cheap, and it tests whether the architecture CAN represent occlusion when told to,
+  separating "cannot" from "has no reason to".
 
-Arm T-geo beats Arm C on every reconstruction metric (spatial Pearson 0.982 vs 0.951, band LSD
-1.722 vs 2.268 dB, and lower LSD in every unseen-geometry split) while its `edit_bw_slope` is
-LOWER than Arm C's in every split -- S1 0.784/0.997, S2 0.871/0.959, S4 0.464/0.789,
-S5 0.913/1.010 -- and its `edit_gain` is higher everywhere, i.e. it overshoots edit magnitude.
-S2 still passes the frozen gate (thresholds unchanged, `thr a8479c5e1dcc`), so nothing is
-blocked, but S4 (unseen alpha = 0.30, the material-continuity split) sits at 0.464, well below
-the 0.80 used elsewhere.
+**What resolving it requires**: (b) is one training run on an enlarged corpus and needs no new
+code. (c) is a loss term plus the solid mask, which the dataset already stores. (a) is a
+renderer change and should not be started until (b) or (c) has established that it is needed.
+**Nothing is blocked today** — but D66 plus a sigma ratio of 1.0 is the strongest evidence the
+project has that in-distribution accuracy will keep failing to transfer, and (b) is the honest
+next step before spending a renderer rewrite on it.
 
-The likely locus is the token `m_hat` channel: it is the only part of the token whose
-representation changed between arms without its Fourier treatment changing. Both arms use
-`M_NORM_SEG_COND = 3.0`, but in T-geo `m_hat` now shares a token with absolute positions and
-extents that span a much wider numeric range than the old unit-square values, so the encoder may
-be allocating capacity to geometry at the expense of material sensitivity.
+### Q22 — The held-out slab is EASIER than the rest of the test set. Is the hold-out measuring what it was designed to measure? (P4-2)
 
-**The question**: is this worth fixing before the shape family is built, or is reconstruction the
-only thing Stage 2 needs?
-* **(a) Ignore it for Stage 2** -- the phase goal is shape transfer, and editing is a P3 result
-  that already passed its own gate.
-* **(b) Re-scale or re-weight the m_hat channel** and re-run Stage 0 -- ~13 GPU-hours, and the
-  comparison is already built.
-* **(c) Ablate** -- train a token arm with geometry tokens but Arm C's scalar m conditioning, to
-  attribute the slope loss to the token m_hat specifically rather than to tokenization.
+**Asker**: P4-2 agent. **Owner**: manager.
 
-**What resolving it requires**: (b) or (c) is one 60K-iteration run each. Nothing is blocked.
+Gate 2's headline criterion reads on in-slab test shapes, on the premise that interpolating into
+a deliberately emptied band of `d_hat` is the hard case. The data says the opposite, on every
+arm: in-slab spatial Pearson **exceeds** out-of-slab by +0.096 (mean/masked, 0.798 vs 0.702),
++0.011 (mean/unmasked), +0.179 (extent/masked), +0.040 (extent/unmasked).
+
+So the binding difficulty is not the 0.15-wide gap in one parameter — it is shape generalization
+in general, and the slab hold-out is not isolating it. Two readings, and they have different
+consequences:
+* the slab is too NARROW to bite (0.15 of a normalized range, against a sampling target of
+  0.125 — barely more than one sample spacing), so in-slab shapes are effectively interpolated
+  from immediate neighbours; or
+* in-slab shapes are systematically easier for an unrelated reason — they cluster at moderate
+  `d_hat` where the notch is large enough to be well-conditioned but not large enough to make
+  the room strongly non-convex, while out-of-slab includes both near-rectangles and the deepest
+  notches.
+
+**What resolving it requires**: the second reading is checkable today from `per_shape` in the
+GATE2 JSONs at zero compute cost, and should be checked before any future chunk reuses this
+hold-out design. If the slab is simply too narrow, the gate criterion is measuring general
+shape generalization under a misleading name, and the honest fix is to report both numbers (as
+this chunk does) rather than to widen the slab and re-run.
