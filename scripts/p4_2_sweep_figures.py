@@ -76,9 +76,24 @@ def render_room(model, renderer, cond_source, cfg, rx, n_bins, dev, chunk=8):
     return P
 
 
-def collect(run_dir, data_dir, dev, checkpoint=None):
+def collect(run_dir, data_dir, dev, checkpoint=None, cache=None):
+    """Render all 20 rooms, CACHING the predictions to disk.
+
+    The render is ~2 min/room on one GPU; a typo anywhere downstream of it would otherwise cost
+    the whole 40 minutes again. It did exactly that once. The cache is keyed on the checkpoint
+    path so a different arm cannot silently reuse another's predictions.
+    """
     import h5py
     ck = Path(checkpoint) if checkpoint else sorted(Path(run_dir).glob("ckpt_iter*.pt"))[-1]
+    if cache is not None and Path(cache).exists():
+        z = np.load(cache, allow_pickle=False)
+        if str(z["ckpt"]) == str(ck):
+            rooms = [{"cfg": c, "T": z["T{}".format(i)], "P": z["P{}".format(i)],
+                      "rx": z["rx{}".format(i)], "los": z["los{}".format(i)]}
+                     for i, c in enumerate(sweep_configs())]
+            print("[cache] reusing {} rendered rooms from {}".format(len(rooms), cache), flush=True)
+            return rooms, int(z["iter"]), ck
+        print("[cache] {} is for a different checkpoint -- re-rendering".format(cache), flush=True)
     model, renderer, cfg_d, meta, it = load_model(ck, dev)
     model.eval(); renderer.eval()                                  # D49 C3
     print("[arm] {} iter {} | pool {} | loss_lo {} Hz".format(
@@ -98,6 +113,14 @@ def collect(run_dir, data_dir, dev, checkpoint=None):
         rooms.append({"cfg": c, "T": T, "P": P, "rx": rx, "los": los})
         print("  d_hat {:.3f}  n_rx {:5d}  probe1 {}".format(
             c.d_hat, len(rx), "LOS" if los[1] else "NLOS"), flush=True)
+    if cache is not None:
+        Path(cache).parent.mkdir(parents=True, exist_ok=True)
+        blob = {"ckpt": str(ck), "iter": int(it)}
+        for i, r in enumerate(rooms):
+            blob["T{}".format(i)], blob["P{}".format(i)] = r["T"], r["P"]
+            blob["rx{}".format(i)], blob["los{}".format(i)] = r["rx"], r["los"]
+        np.savez_compressed(cache, **blob)
+        print("[cache] wrote {}".format(cache), flush=True)
     return rooms, it, ck
 
 
@@ -122,7 +145,7 @@ def measure(rooms):
     dh = np.array([p["d_hat"] for p in per])
     sl = (dh >= D_HAT_HOLDOUT[0]) & (dh <= D_HAT_HOLDOUT[1])
     R = np.array([p["spatial_pearson"] for p in per])
-    return {"per_depth": per, "modes": [[int(m.nx), int(m.ny), float(m.f)] for m in modes],
+    return {"per_depth": per, "modes": [[int(m.n_x), int(m.n_y), float(m.f)] for m in modes],
             "mode_bins": bins,
             "in_slab_mean_pearson": float(np.nanmean(R[sl])),
             "out_slab_mean_pearson": float(np.nanmean(R[~sl])),
@@ -251,11 +274,14 @@ def main() -> int:
     ap.add_argument("--data-dir", default="data/track_p4_2_sweep")
     ap.add_argument("--out", default="outputs/p4_2/stage2/sweep")
     ap.add_argument("--checkpoint", default=None)
+    ap.add_argument("--cache", default=None,
+                    help="npz of rendered predictions; reused when the checkpoint matches")
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    rooms, it, ck = collect(a.run_dir, a.data_dir, dev, a.checkpoint)
+    rooms, it, ck = collect(a.run_dir, a.data_dir, dev, a.checkpoint,
+                            cache=(a.cache or str(out / "sweep_render.npz")))
     M = measure(rooms)
     M["arm"] = Path(a.run_dir).name
     M["checkpoint"] = str(ck)
