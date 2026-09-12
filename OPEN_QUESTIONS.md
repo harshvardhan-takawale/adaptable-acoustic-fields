@@ -197,6 +197,16 @@ consequences:
   the room strongly non-convex, while out-of-slab includes both near-rectangles and the deepest
   notches.
 
+**UPDATE (same chunk, independent evidence).** The shape-edit sweep tests this on a cleaner
+axis: 20 unseen depths at a FIXED bounding box, so `L`, `W` and `w` cannot confound it. In-slab
+**+0.783** vs out-of-slab **+0.817** — a deficit of just **+0.034**. Meanwhile the same sweep
+shows a large, real accuracy structure along `d̂` that has nothing to do with the slab: a U-shape
+with minimum **+0.741** at `d̂ ≈ 0.21` and maximum **+0.906** at `d̂ ≈ 0.90`, reproduced
+independently by band LSD. So the answer is leaning strongly to the first reading — the slab is
+simply not where the difficulty lives, and the difficulty that does exist is a *shallow-notch*
+problem the hold-out design never looked at. See also D72: the corpus is 7.5x denser in some
+`d̂` deciles than others while formally satisfying its max-gap invariant.
+
 **What resolving it requires**: the second reading is checkable today from `per_shape` in the
 GATE2 JSONs at zero compute cost, and should be checked before any future chunk reuses this
 hold-out design. If the slab is simply too narrow, the gate criterion is measuring general

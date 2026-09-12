@@ -59,6 +59,16 @@ looks like when the corpus stops fitting in the weights.
 **The 0.0022 miss is a fail, not an "almost".** The threshold was frozen before the run. And a
 checkpoint with σ ≈ 1.0 is not 0.3% away from a mechanism it does not have.
 
+### And the sweep says the difficulty is not where the hold-out looked
+
+20 unseen notch depths at a fixed bounding box. The curve is neither flat nor slab-dipping: it is
+a **U**, worst at **shallow** notches (+0.741 at d-hat 0.21), best at **deep** ones (+0.906 at
+0.90), with the held-out band costing just **+0.034**. Deep notches are the strongly non-convex,
+high-NLOS rooms and they are the EASY case — the opposite of an occlusion story, and consistent
+with sigma ~ 1.0. Band LSD reproduces the U independently. Training density correlates only
+r = +0.45 and the zero-density slab decile beats three populated ones, so density is a confound
+but not the explanation (D72).
+
 ---
 
 ## What P4-2 built (all reusable)
@@ -73,7 +83,8 @@ checkpoint with σ ≈ 1.0 is not 0.3% away from a mechanism it does not have.
   reproducing P4-1's ad-hoc numbers exactly (same probe receiver, means to ten decimals).
 * **`token_pool`** as a plumbed, resume-guarded config key.
 * **The sweep axis** — 20 unseen notch depths at fixed `L, W, w` with probe receivers pinned
-  across rooms, so a shape edit cannot be confounded with a change of listening position.
+  across rooms, so a shape edit cannot be confounded with a change of listening position. The
+  render caches to disk, so re-drawing a figure is 17 s rather than 37 min.
 
 ---
 
@@ -105,7 +116,7 @@ checkpoint with σ ≈ 1.0 is not 0.3% away from a mechanism it does not have.
 `outputs/p4_2/stage2/sweep/sweep_metrics.json` ·
 `outputs/p4_2/stage2/sweep/fig{I_sweep_accuracy,J_sweep_waterfall,K_sweep_field_strip}.png` ·
 `outputs/p4_2/taskA/metrics.json` · `outputs/p4_2/taskA/splits_eval/{summary,verdict}.json` ·
-`configs/sweeps_2d_mat/p4_2_shapes_manifest.json` · `DECISIONS.md` (D66–D71) ·
+`configs/sweeps_2d_mat/p4_2_shapes_manifest.json` · `DECISIONS.md` (D66–D72) ·
 `OPEN_QUESTIONS.md` (Q21–Q22)
 
 ---

@@ -192,5 +192,12 @@ slurm-*.out
 # /outputs/**/*.png rule above would otherwise drop them.
 !/outputs/p3_3fast/meeting_assets/**/*.png
 
+# P4-2: the shape-edit sweep figures (figI/figJ/figK) are the chunk's visual deliverable --
+# the 'money figure' the spec asked for by name, and the evidence for the U-shaped accuracy
+# curve that the results doc turns on. P4-1's figG/figH are tracked for the same reason
+# (force-added at the time); this states the policy instead of relying on `git add -f`.
+!/outputs/p4_1/**/*.png
+!/outputs/p4_2/**/*.png
+
 # Arm C demo pack: 440 MB of cached dense field dumps stay local; figures+JSON are pushed.
 outputs/armC_demo/fields/

@@ -19,7 +19,7 @@ than the rest of the test set on every arm, so it is not isolating the difficult
 to isolate.
 
 **Date**: 2026-09-12 · **Branch**: `main` · Tests: **506 passed, 0 failed** (471 before)
-**Decisions**: D66–D71 · **Open questions**: Q19 and Q20 resolved and removed; Q21–Q22 added.
+**Decisions**: D66–D72 · **Open questions**: Q19 and Q20 resolved and removed; Q21–Q22 added.
 
 ---
 
@@ -112,6 +112,56 @@ and a sample point has **no structural representation at all** and can only be m
 `signal` — this is the predicted failure mode from Q19, observed. The architecture can **fit** one
 non-convex room (P4-1 Gate 1, +0.974) and cannot **generalize** across a shape family (+0.798).
 The gap between those two numbers is exactly the memorization D66 makes structurally available.
+
+### The shape-edit sweep — the money figure, and it does not show what was predicted
+
+`L, W, w` pinned; `d` swept across **20 unseen depths** (three inside the held-out slab), same
+model, same source, same fixed probe receivers. Both pre-registered outcomes were wrong: the
+curve is neither **flat** (shape interpolated) nor **dipping over the slab** (shape memorized).
+
+| d̂ | 0.00 | 0.21 | 0.27 | 0.47\* | 0.52\* | 0.58\* | 0.68 | 0.90 | 1.00 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| spatial R | +0.866 | **+0.741** | +0.743 | +0.767 | +0.784 | +0.797 | +0.848 | **+0.906** | +0.867 |
+| band LSD | 4.67 | 6.12 | 6.15 | 6.10 | 6.19 | 5.75 | 5.46 | 4.86 | 4.92 |
+| NLOS % | 0.0 | 0.0 | 0.1 | 0.9 | 1.2 | 1.6 | 2.9 | 7.7 | 11.8 |
+
+\* = inside the held-out slab.
+
+**Accuracy is worst at SHALLOW notches and best at DEEP ones** — a U-shape, minimum +0.741 at
+d̂ ≈ 0.21, maximum +0.906 at d̂ ≈ 0.90. **Band LSD shows the same U independently** (6.15 worst,
+4.17 best), which matters because LSD is not variance-normalized and spatial Pearson is: the two
+metrics are confounded in different directions, so their agreement is not a Pearson artifact.
+
+**This is the opposite of an occlusion story.** If the model had to represent shadow, the deep
+notches — 11.8% NLOS, a strongly non-convex room — would be the hard case. They are the *easy*
+case. What is hard is the **small perturbation of a rectangle**, where the tokens change slightly
+and the field changes slightly. That is consistent with σ ≈ 1.0: the model is not doing geometry,
+it is doing something closer to "large, low-frequency shape change → large, easily-fit field
+change", and it loses exactly the fine discrimination that a near-rectangle demands.
+
+**The density control** (`train_density` in `sweep_metrics.json`, grey bars on figI). The training
+corpus is strongly **bimodal** in d̂ — 15 shapes in [0, 0.1) (8 of them the mandated pure
+rectangles), a trough of 2–5 per bin through [0.1, 0.5), then 12/4/6/10 across the upper half.
+Accuracy correlates only **r = +0.45** with local training density, and the decisive detail is
+that the **zero-density slab bin scores +0.791, beating three bins that DO contain training
+shapes**. So sampling density explains part of the curve and cannot explain it on its own.
+
+**A methodological finding worth carrying forward** (D72): the sampler satisfied its
+`max_normalized_gap ≤ 0.125` invariant (realized 0.070) while producing a **7.5× density spread**
+across d̂ deciles. A maximum-gap constraint bounds the largest *hole*; it says nothing about
+*uniformity*. Any future chunk that wants even coverage must constrain density directly.
+
+**And it confirms Q22 on an independent axis.** In-slab +0.783 vs out-of-slab +0.817 — a deficit
+of just **+0.034** across 20 unseen depths at a *fixed* bounding box, where the Gate 2 test set
+varies `L, W, w` as well. The hold-out band is simply not where the difficulty lives.
+
+**One thing the sweep shows working**: the predicted waterfall **does migrate with** the FDTD
+waterfall (figJ) — the model's shape dependence is continuous and qualitatively correct; it is
+the amplitude that is wrong. And figJ makes D70 visible: below ~20 Hz the predicted traces
+oscillate violently while FDTD is smooth, because this arm's loss excluded those bins and the
+model is simply unconstrained there. That is the RIR collapse, drawn.
+
+---
 
 ---
 
@@ -221,6 +271,10 @@ that G030 arm; this chunk used **0.125** (G020, passing under both ρ definition
    training to test whether 0.002 is a capacity ceiling at all, and a direct auxiliary loss on σ
    inside known-solid regions to separate "the architecture cannot represent occlusion" from "it
    has no reason to". The dataset already stores the solid masks.
-5. **Two of the chunk's arms were the spec's own hypotheses, and both came back negative**
+5. **The hardest case is the SHALLOW notch, not the deep one.** The sweep's U-shape is the most
+   actionable single fact in this chunk: a model that handles a strongly non-convex room better
+   than a near-rectangle is not doing geometry. If the next chunk adds shapes, weight them toward
+   `d̂ ∈ [0.1, 0.5]`, where the corpus is thin (D72) and the model is worst.
+6. **Two of the chunk's arms were the spec's own hypotheses, and both came back negative**
    (extent pooling, DC-masking). Both are recorded with their controls so they do not have to be
    re-run.

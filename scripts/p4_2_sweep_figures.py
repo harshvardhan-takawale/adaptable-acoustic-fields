@@ -124,6 +124,20 @@ def collect(run_dir, data_dir, dev, checkpoint=None, cache=None):
     return rooms, it, ck
 
 
+def training_density(manifest="configs/sweeps_2d_mat/p4_2_shapes_manifest.json", nbin=10):
+    """How many TRAINING shapes sit in each d-hat decile.
+
+    The control for the sweep's headline curve. If accuracy just tracks how many training
+    shapes sit nearby, the curve says something about the corpus rather than about the model,
+    and the two readings have different consequences. Cheap, so it is computed rather than
+    argued about.
+    """
+    rows = json.load(open(manifest))["configs"]
+    dh = np.array([r["d_hat"] for r in rows if r["split"] == "train"])
+    counts, edges = np.histogram(dh, bins=np.linspace(0.0, 1.0, nbin + 1))
+    return counts.tolist(), edges.tolist(), int((dh == 0).sum())
+
+
 def measure(rooms):
     """Every number the figures show, computed first (D62a)."""
     c0 = rooms[0]["cfg"]
@@ -145,6 +159,12 @@ def measure(rooms):
     dh = np.array([p["d_hat"] for p in per])
     sl = (dh >= D_HAT_HOLDOUT[0]) & (dh <= D_HAT_HOLDOUT[1])
     R = np.array([p["spatial_pearson"] for p in per])
+    dens, edges, n_rect = training_density()
+    nb = len(dens)
+    per_bin = np.array([dens[min(int(x * nb), nb - 1)] for x in dh], dtype=float)
+    dens_r = float(np.corrcoef(per_bin, R)[0, 1]) if R.std() > 0 else float("nan")
+    for p, c in zip(per, per_bin):
+        p["n_train_in_bin"] = int(c)
     return {"per_depth": per, "modes": [[int(m.n_x), int(m.n_y), float(m.f)] for m in modes],
             "mode_bins": bins,
             "in_slab_mean_pearson": float(np.nanmean(R[sl])),
@@ -153,20 +173,34 @@ def measure(rooms):
             "n_in_slab": int(sl.sum()),
             "pearson_min": float(np.nanmin(R)), "pearson_max": float(np.nanmax(R)),
             "probe_edge_nlos_from_d_hat": next(
-                (p["d_hat"] for p in per if not p["probe_edge_los"]), None)}
+                (p["d_hat"] for p in per if not p["probe_edge_los"]), None),
+            "train_density": dens, "train_density_edges": edges,
+            "n_pure_rectangles": n_rect,
+            "density_vs_accuracy_pearson": dens_r,
+            "argmin_d_hat": float(dh[int(np.nanargmin(R))]),
+            "argmax_d_hat": float(dh[int(np.nanargmax(R))])}
 
 
 # ------------------------------------------------------------------------------------ figures
 def fig_accuracy(M, out):
     per = M["per_depth"]
     dh = [p["d_hat"] for p in per]
-    fig, axes = plt.subplots(1, 2, figsize=(15.5, 5.4), dpi=DPI)
+    fig, axes = plt.subplots(1, 2, figsize=(15.5, 7.2), dpi=DPI)
     for ax, key, lab, col in ((axes[0], "spatial_pearson", "spatial Pearson (mean over 6 modes)",
                                C_PRED),
                               (axes[1], "band_lsd_db", "band LSD (dB, 0-300 Hz)", C_GT)):
         ax.plot(dh, [p[key] for p in per], "o-", color=col, lw=2.0, ms=6)
         ax.axvspan(*D_HAT_HOLDOUT, color=C_SLAB, alpha=0.22, zorder=0,
                    label="held-out slab (no training shape)")
+        # training-density control, on a twin axis so it cannot be read as accuracy
+        axd = ax.twinx()
+        e = M["train_density_edges"]
+        axd.bar([(e[i] + e[i + 1]) / 2 for i in range(len(M["train_density"]))],
+                M["train_density"], width=(e[1] - e[0]) * 0.92, color="#999999", alpha=0.22,
+                zorder=0)
+        axd.set_ylabel("training shapes in this d-hat bin", fontsize=10, color="#666666")
+        axd.tick_params(axis="y", labelsize=9, colors="#666666")
+        axd.set_ylim(0, max(M["train_density"]) * 3.2)
         t = M["probe_edge_nlos_from_d_hat"]
         if t is not None:
             ax.axvline(t, color="#444444", ls="--", lw=1.6,
@@ -175,19 +209,26 @@ def fig_accuracy(M, out):
         ax.set_ylabel(lab, fontsize=12)
         ax.grid(alpha=0.25)
         ax.legend(fontsize=9.5, loc="best")
-    axes[0].set_title("does accuracy hold through the unseen slab?", fontsize=13,
-                      fontweight="bold")
+    axes[0].set_title("accuracy is worst at SHALLOW notches, not in the held-out band",
+                      fontsize=13, fontweight="bold")
     axes[1].set_title("reconstruction error vs depth", fontsize=13, fontweight="bold")
     fig.suptitle("Shape-edit sweep: L = 6.00 m, W = 5.00 m, w = 2.00 m fixed; 20 unseen depths  "
                  "|  in-slab R {:+.3f} vs out-of-slab {:+.3f} (deficit {:+.3f})".format(
                      M["in_slab_mean_pearson"], M["out_slab_mean_pearson"], M["slab_deficit"]),
                  fontsize=14, fontweight="bold")
-    fig.text(0.5, 0.005,
-             "Every point is a room the model never saw. A model that INTERPOLATES shape gives a "
-             "flat curve; one that memorizes dips over the shaded band, where the corpus is "
-             "empty by construction.",
-             ha="center", fontsize=10.5)
-    fig.tight_layout(rect=[0, 0.045, 1, 0.92])
+    fig.text(0.5, 0.015,
+             "Every point is a room the model never saw. The pre-registered expectation was a "
+             "FLAT curve (shape\ninterpolated) or a DIP over the shaded band (shape memorized). "
+             "Neither happened: accuracy is worst at\nSHALLOW notches (min {:+.3f} at d-hat "
+             "{:.2f}), best at DEEP ones (max {:+.3f} at {:.2f}), and the held-out\nband is "
+             "unremarkable ({:+.3f} deficit).\n\nGrey bars = the TRAINING density control. The "
+             "corpus is bimodal in d-hat, and accuracy correlates only\nr = {:+.2f} with it -- "
+             "the zero-density slab bin outscores three bins that DO contain training\nshapes, "
+             "so density does not explain the curve on its own.".format(
+                 M["pearson_min"], M["argmin_d_hat"], M["pearson_max"], M["argmax_d_hat"],
+                 M["slab_deficit"], M["density_vs_accuracy_pearson"]),
+             ha="center", fontsize=10.0)
+    fig.tight_layout(rect=[0, 0.245, 1, 0.93])
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
@@ -196,7 +237,7 @@ def fig_waterfall(rooms, M, out, probe=1):
     """The fixed probe receiver's spectrum, stacked against depth. FDTD | prediction."""
     f = np.arange(rooms[0]["T"].shape[1]) * DF_HZ
     off = 12.0
-    fig, axes = plt.subplots(1, 2, figsize=(16.5, 8.4), dpi=DPI, sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(16.5, 9.6), dpi=DPI, sharey=True)
     for ax, key, title, col in ((axes[0], "T", "FDTD ground truth", C_GT),
                                 (axes[1], "P", "predicted (unseen shapes)", C_PRED)):
         for i, r in enumerate(rooms):
@@ -216,12 +257,15 @@ def fig_waterfall(rooms, M, out, probe=1):
     fig.suptitle("Shape-edit waterfall at a FIXED receiver {}  |  bold = the receiver is in "
                  "shadow (NLOS); pink band = the held-out slab".format(list(PROBE_EDGE)),
                  fontsize=14, fontweight="bold")
-    fig.text(0.5, 0.005,
-             "The receiver does not move between traces, so every change is the shape edit. "
-             "Modes migrate with depth in the FDTD stack; the question is whether the predicted "
-             "stack migrates with them.",
-             ha="center", fontsize=10.5)
-    fig.tight_layout(rect=[0, 0.035, 1, 0.945])
+    fig.text(0.5, 0.015,
+             "The receiver does not move between traces, so every change is the shape edit. The "
+             "predicted stack DOES migrate with the\nFDTD stack -- the shape dependence is "
+             "continuous and qualitatively right; it is the amplitude that is off.\n\nNote the "
+             "violent oscillation below ~20 Hz on the right and not on the left: this arm's loss "
+             "excluded those bins, so the\nmodel is UNCONSTRAINED there. That is D70's RIR "
+             "collapse (0.9989 -> 0.0630) made visible.",
+             ha="center", fontsize=10.0)
+    fig.tight_layout(rect=[0, 0.135, 1, 0.95])
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 

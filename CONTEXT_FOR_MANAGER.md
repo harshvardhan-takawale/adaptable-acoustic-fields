@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-2 COMPLETE (2026-09-12)** — the notch family. **GATE 2 FAILS on all four arms** (best in-slab spatial Pearson **0.7978** vs a 0.80 threshold) and the sigma ratio reads **~1.00 on every arm** — no occlusion mechanism, which is the number that predicts shape transfer will not work. **Task A is a clean win**: edit linearity restored, `edit_bw_slope` 0.871 -> **0.957** against Arm C's 0.959, and `geom_token_m` is adopted. See the section directly below. Prior: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **P4-2 COMPLETE (2026-09-12)** — the notch family. **GATE 2 FAILS on all four arms** (best in-slab spatial Pearson **0.7978** vs a 0.80 threshold) and the sigma ratio reads **~1.00 on every arm** — no occlusion mechanism, which is the number that predicts shape transfer will not work. **Task A is a clean win**: edit linearity restored, `edit_bw_slope` 0.871 -> **0.957** against Arm C's 0.959, and `geom_token_m` is adopted. The shape-edit sweep refutes both pre-registered outcomes: accuracy is worst at SHALLOW notches, best at deep ones, and the held-out band is unremarkable. See the section directly below. Prior: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -14,7 +14,7 @@ Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
 ## Phase 4 — P4-2 COMPLETE (2026-09-12): the notch family, GATE 2 FAILS
 
 Full writeup `tasks/CHUNK_P4_2_RESULTS.md`; phase status `PHASE4_SUMMARY.md`; decisions
-**D66-D71**; open questions **Q21-Q22** (Q19 and Q20 both RESOLVED and removed).
+**D66-D72**; open questions **Q21-Q22** (Q19 and Q20 both RESOLVED and removed).
 Tests **506 passed**.
 
 **GATE 2 — FAIL on all four arms.** One model, 60 training shapes, 15 frozen test shapes from a
@@ -42,6 +42,26 @@ with NLOS deficit <= 0.15:
    (rays fan OUTWARD from the receiver, so a source-side wall has no structural representation and
    can only be memorized in `signal`) this is Q19's predicted failure, observed. The architecture
    can FIT one non-convex room (+0.974) and cannot GENERALIZE across a family (+0.798).
+
+**THE SHAPE-EDIT SWEEP REFUTED BOTH PRE-REGISTERED OUTCOMES.** 20 unseen notch depths at a
+FIXED bounding box (`L, W, w` pinned, three depths inside the held-out slab). The curve is
+neither flat (shape interpolated) nor dipping over the slab (shape memorized). It is a **U**:
+
+| d_hat | 0.00 | 0.21 | 0.47* | 0.52* | 0.58* | 0.68 | 0.90 | 1.00 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| spatial R | +0.866 | **+0.741** | +0.767 | +0.784 | +0.797 | +0.848 | **+0.906** | +0.867 |
+| band LSD | 4.67 | 6.12 | 6.10 | 6.19 | 5.75 | 5.46 | 4.86 | 4.92 |
+
+(* = inside the held-out slab.) **Accuracy is WORST at shallow notches and BEST at deep ones** —
+the opposite of an occlusion story, since deep notches are the strongly non-convex, high-NLOS
+rooms. What is hard is the small perturbation of a rectangle. Band LSD reproduces the same U
+independently, and LSD is not variance-normalized while spatial Pearson is, so this is not a
+Pearson artifact. Consistent with sigma ~ 1.0: the model handles big shape changes and loses the
+fine discrimination a near-rectangle needs. **Density control**: accuracy correlates only
+**r = +0.45** with local training density, and the ZERO-density slab decile outscores three
+deciles that do contain training shapes — so density is a live confound but not the explanation.
+The predicted waterfall DOES migrate with the FDTD waterfall, so the shape dependence is
+continuous and qualitatively right; the amplitude is what is wrong.
 
 **TASK A — a clean win, and Q20 is answered: the entanglement hypothesis was RIGHT.** Moving
 `m_hat` out of the shared token and back onto Arm C's dedicated per-wall channel (`geom_token_m`,
