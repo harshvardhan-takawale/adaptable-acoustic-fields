@@ -35,6 +35,26 @@ import torch.nn as nn
 import torch.nn.functional as F
 import tinycudann as tcnn
 
+# Pooling arms available to the polygon token conditioners. `masked_mean` and `extent_sum` are
+# P4-2's pair (D69 retired extent_sum on the evidence); `attn` and `attn_residual` are P4-3's
+# Arm X, the first pools whose output DEPENDS ON THE QUERY POSITION.
+POLY_TOKEN_POOLS = ("masked_mean", "extent_sum", "attn", "attn_residual")
+ATTN_TOKEN_POOLS = ("attn", "attn_residual")
+
+
+def _fourier_pos_batched(v: torch.Tensor, n_k: int) -> torch.Tensor:
+    """``[M, D] -> [M, D * 2 * n_k]``, the BATCHED twin of ``conditioning_2d._fourier_block``.
+
+    The layout must match that function exactly -- dimension-major, all sines then all cosines
+    per dimension -- because the attention query is compared against keys built from token
+    centres that went through the scalar version. A different ordering here would still train,
+    just against a silently permuted feature space, which is the kind of mismatch that produces
+    a mediocre arm and no error message.
+    """
+    freqs = (2.0 ** torch.arange(n_k, device=v.device, dtype=v.dtype)) * math.pi   # [K]
+    ang = v[..., None] * freqs                                                    # [M, D, K]
+    return torch.cat([torch.sin(ang), torch.cos(ang)], dim=-1).reshape(v.shape[0], -1)
+
 
 def _default_hash_grid_config() -> dict:
     return {
@@ -361,9 +381,9 @@ class INR2D_AutoDecoder(nn.Module):
                 # the extent-weighted sum integrates over boundary length, which is what a
                 # boundary effect physically does. Both are run and the winner adopted.
                 self.token_pool = token_pool or "masked_mean"
-                if self.token_pool not in ("masked_mean", "extent_sum"):
+                if self.token_pool not in POLY_TOKEN_POOLS:
                     raise ValueError(
-                        f"token_pool must be masked_mean or extent_sum for "
+                        f"token_pool must be one of {sorted(POLY_TOKEN_POOLS)} for "
                         f"{self.cond_source}, got {self.token_pool!r}")
             elif token_pool:
                 raise ValueError(
@@ -371,6 +391,36 @@ class INR2D_AutoDecoder(nn.Module):
                     f"{self.cond_source!r}")
             else:
                 self.token_pool = "mean" if self.cond_source == "m_token" else "delta"
+            if self.token_pool in ("attn", "attn_residual"):
+                # P4-3 Arm X. Mean and extent-sum both hand EVERY point in the room the
+                # IDENTICAL shape vector, so occlusion -- a relation between a point, the
+                # source and a particular wall -- is structurally inexpressible no matter how
+                # the tokens are weighted. Position-queried cross-attention makes the pooled
+                # conditioning a function of the query point, which is the minimum change that
+                # lets one boundary token matter more at one location than at another.
+                #
+                # This costs nothing. `z_s` is already expanded to [B*N, cond_dim] before this
+                # branch runs and the token MLP is already evaluated at every one of the
+                # B*N points for a result that is identical across them; attention reuses that
+                # compute and adds only a [B*N, MAX_SEG_POLY] score matrix (1.6 MB against a
+                # 1.07 GB renderer tensor). FiLM, the forward signature and the renderer are
+                # untouched -- FiLM is Linear(cond_dim, 2F) over [B*N, cond_dim] and never
+                # assumed those rows were equal.
+                from aaf.models.conditioning_2d import N_K_TOK_POS
+                self._attn_n_k = N_K_TOK_POS                    # same bands as token centres
+                self._attn_q_dim = 2 * 2 * N_K_TOK_POS          # 16, the token centre layout
+                self._attn_dim = TOKEN_AGG_DIM
+                self.q_proj = nn.Linear(self._attn_q_dim, self._attn_dim)
+                self.k_proj = nn.Linear(TOKEN_AGG_DIM, self._attn_dim)
+                self.v_proj = nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM)
+                self.o_proj = nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM)
+                if self.token_pool == "attn_residual":
+                    # ZERO-INIT so iteration 0 IS the masked_mean baseline, exactly. Any later
+                    # divergence is then attributable to position-dependence alone rather than
+                    # to a fresh pool relearning what mean-pooling already did -- which matters
+                    # over a 60K run whose predecessor (T-geo) trailed until ~22K.
+                    nn.init.zeros_(self.o_proj.weight)
+                    nn.init.zeros_(self.o_proj.bias)
             if self.token_pool == "delta":
                 # DELTA-POOLING (A3). A2's mean-pool fixed transfer but diluted magnitude:
                 # 15 of 16 tokens sit at baseline, so one edit moves the mean by ~1/16 and the
@@ -651,7 +701,7 @@ class INR2D_AutoDecoder(nn.Module):
             # [B*N, G + 16*26] -> shared MLP per token -> pool -> [B*N, G + 64]
             # G = 32 for the m_token arms (L, W), 48 for aperture_token (L, W, x0).
             g = z_s_flat[:, :self._tok_geom]
-            if self.token_pool in ("masked_mean", "extent_sum"):
+            if self.token_pool in POLY_TOKEN_POOLS:
                 # geom_token:   [B*N, 12*26 + 12]
                 # geom_token_m: [B*N, 12*19 + 12 + 28]  (trailing 28 = material, pooled AROUND)
                 n_tok = self._tok_n * self._tok_d
@@ -661,6 +711,35 @@ class INR2D_AutoDecoder(nn.Module):
                     # Mean over VALID slots only. clamp(min=1) guards a degenerate all-pad row
                     # so the division cannot produce NaN and poison the batch's gradient.
                     agg = (self.segment_encoder(t) * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)
+                elif self.token_pool in ATTN_TOKEN_POOLS:
+                    # POSITION-QUERIED CROSS-ATTENTION (P4-3 Arm X).
+                    #
+                    # `pts_flat` is already divided by world_scale, and `polygon_edge_tokens`
+                    # divides its edge centres by the SAME world_scale before Fourier-encoding
+                    # them, so query and key live in one coordinate space by construction.
+                    # Encoding the query with the token centres' own band layout is what makes
+                    # the dot product meaningful rather than merely learnable.
+                    e = self.segment_encoder(t)                          # [B*N, n_tok, 64]
+                    q = self.q_proj(_fourier_pos_batched(pts_flat, self._attn_n_k))
+                    s = torch.einsum("bnd,bd->bn", self.k_proj(e), q)
+                    s = s / math.sqrt(float(self._attn_dim))             # [B*N, n_tok]
+                    # Padded slots must receive EXACTLY zero weight, not merely small weight:
+                    # a zero token is a valid point in token space (an edge at the origin with
+                    # zero extent), so leaking any mass onto it conditions the field on a wall
+                    # that does not exist.
+                    # -1e4 rather than -inf: exp(-1e4 - max) underflows to EXACTLY 0 in fp32
+                    # so padded slots still get exactly zero weight, but an all-padded row
+                    # yields a uniform (finite) distribution instead of NaN. -inf there would
+                    # produce 0/0 and poison the gradient of the whole batch, which is the same
+                    # failure the masked_mean branch guards with clamp(min=1).
+                    s = s.masked_fill(m.squeeze(-1) <= 0.0, -1e4)
+                    a = torch.softmax(s, dim=1)
+                    delta = self.o_proj(torch.einsum("bn,bnd->bd", a, self.v_proj(e)))
+                    if self.token_pool == "attn_residual":
+                        # o_proj is zero-initialised, so this is EXACTLY masked_mean at step 0.
+                        agg = ((e * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)) + delta
+                    else:
+                        agg = delta
                 else:
                     # EXTENT-WEIGHTED SUM: sum_i extent_i * phi(token_i). Deliberately NOT
                     # normalized -- a boundary effect integrates over length, so a longer wall

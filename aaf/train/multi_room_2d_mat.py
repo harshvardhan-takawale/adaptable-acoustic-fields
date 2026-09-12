@@ -118,6 +118,15 @@ class P32TrainCfg:
     #: P4-1. Low edge of the LOSS band in Hz (the eval band is unchanged). Set to 20.0 to mask
     #: the FDTD corpus's DC/compliance term out of the gradient; 0.0 keeps every bin.
     loss_band_lo_hz: float = 0.0
+    #: P4-3 Arm S. Weight on the sigma-occupancy auxiliary loss. 0.0 disables it entirely, so
+    #: every pre-P4-3 arm is bit-identical by default. See `_sigma_aux` for what it penalizes.
+    sigma_aux_weight: float = 0.0
+    #: Points per L-room config in the sigma auxiliary term, split 50/50 solid/air.
+    sigma_aux_n_points: int = 512
+    #: Target sigma ratio (solid / air) the auxiliary hinge pushes toward. The loss is zero once
+    #: the measured ratio exceeds this, so a model that discovers occlusion on its own is not
+    #: dragged further by a term it no longer needs.
+    sigma_aux_ratio_target: float = 3.0
     val_every: int = 2_000
     val_max_configs: int = 88
     ckpt_every: int = 2_000
@@ -127,6 +136,36 @@ class P32TrainCfg:
     early_stop_patience: int = 10_000
     early_stop_min_rel_improvement: float = 0.003
     seed: int = 0
+
+
+def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
+                     device=None, generator=None) -> torch.Tensor:
+    """``[2*half, 2]`` points in a top-left-notched room: first ``half`` INSIDE the removed
+    corner, second ``half`` inside the air region. Module-level so it is directly testable.
+
+    Stratified 50/50 rather than uniform over the bounding box, because at shallow ``d_hat``
+    the notch is a few percent of the box and a uniform draw would put almost no points in
+    solid -- exactly the regime P4-2's U-shaped accuracy curve says is weakest.
+
+    The air half is drawn over the FULL box and any point that lands in the notch is redrawn
+    along x only, to the right of the notch face. That keeps it allocation-free and branchless
+    while guaranteeing the two halves are disjoint by construction rather than by rejection.
+    """
+    if half < 1:
+        raise ValueError("half must be >= 1, got {}".format(half))
+    if not (d > 0.0 and w > 0.0):
+        raise ValueError("sample_solid_air needs a real notch (d>0, w>0), got d={}, w={}"
+                         .format(d, w))
+    kw = {"device": device, "generator": generator}
+    u = torch.rand(half, 2, **kw)
+    solid = torch.stack([u[:, 0] * w, (W - d) + u[:, 1] * d], dim=-1)
+    v = torch.rand(half, 2, **kw)
+    air = torch.stack([v[:, 0] * L, v[:, 1] * W], dim=-1)
+    bad = (air[:, 0] < w) & (air[:, 1] > (W - d))
+    n_bad = int(bad.sum())
+    if n_bad:
+        air[bad, 0] = w + (L - w) * torch.rand(n_bad, **kw)
+    return torch.cat([solid, air], dim=0)
 
 
 def _losses(H_pred, H_target, lo_bin: int = 0):
@@ -360,6 +399,65 @@ class P32Trainer:
         return out
 
     # ---------------------------------------------------------------- train step
+    # ------------------------------------------------------------- sigma supervision (Arm S)
+    def _sigma_aux(self, cfg_ids: torch.Tensor) -> Optional[torch.Tensor]:
+        """Push the learned sigma field HIGH inside the removed corner (P4-3 Arm S).
+
+        WHY THIS CANNOT READ THE RENDERER. `FreqRenderer2D.forward` returns only the integrated
+        `H`; sigma exists inside it and is never exposed. Rather than change the renderer -- a
+        wide-blast-radius edit this chunk is explicitly told not to make -- this calls the model
+        DIRECTLY on its own point batch, exactly as `aaf.eval.sigma_probe.sigma_along_ray` does,
+        and uses the SAME reduction (`attn.real.clamp(min=0).mean over frequency`) so the
+        quantity being trained is the quantity the diagnostic reports. If those two diverged,
+        Arm S could move its own loss without moving the number it is judged by.
+
+        WHY THE MASK IS RECOMPUTED. P4-2's writeup claimed the dataset stores solid masks; it
+        does not -- `build_p4_2_shapes.py` stores `notch_solid_nodes`, a scalar COUNT. What is
+        stored is the geometry, and for this axis-aligned top-left notch solidity is a closed
+        form: `x < w and y > W - d`. That is exact, needs no HDF5 read, and stays on the GPU
+        (`polygon_contains` is numpy-only and would force a round-trip every step).
+
+        WHY THE SAMPLING IS STRATIFIED. At shallow d_hat the notch is a few percent of the
+        bounding box, so uniform sampling would put almost no points in solid -- precisely the
+        regime the U-shaped accuracy curve says is weakest. Half the points are drawn inside the
+        notch and half outside, so the signal does not thin out exactly where it is needed.
+
+        Returns None when the batch contains no L-room (a pure rectangle has no solid region).
+        """
+        cfg_s = self.cfg
+        n_pts = int(cfg_s.sigma_aux_n_points)
+        ids = sorted({int(i) for i in cfg_ids.tolist()})
+        ids = [i for i in ids if getattr(self.configs[i], "d", 0.0) > 0.0
+               and getattr(self.configs[i], "w", 0.0) > 0.0]
+        if not ids or n_pts < 2:
+            return None
+        half = n_pts // 2
+        dev = self.device
+        P, Z = [], []
+        for i in ids:
+            c = self.configs[i]
+            P.append(sample_solid_air(float(c.d), float(c.w), float(c.L), float(c.W),
+                                      half, device=dev))
+            Z.append(self.cond[i])
+        pts = torch.stack(P, dim=0)                                    # [G, n_pts, 2]
+        # ONE vector per config, NOT one per point: `_expand_z_s` broadcasts over N itself and
+        # rejects a pre-expanded [G, n_pts, D] tensor outright. Every point of a config shares
+        # its conditioning here, which is exactly the property Arm X exists to change.
+        z = torch.stack(Z, dim=0)                                      # [G, cond_dim]
+        G, Np = pts.shape[0], pts.shape[1]
+        view = torch.zeros_like(pts)
+        view[..., 0] = 1.0                                             # sigma is view-free here
+        tx = self.src.to(pts.dtype).view(1, 1, 2).expand(G, Np, 2)
+        attn, _ = self.model(pts, view, tx, tx_view=None, z_s=z)
+        sigma = attn.real.clamp(min=0).mean(dim=-1)                    # [G, n_pts]
+        s_solid = sigma[:, :half].clamp(min=1e-8)
+        s_air = sigma[:, half:].clamp(min=1e-8)
+        # A MARGIN ON THE LOG-RATIO, not an absolute target: the probe reports solid/air, the
+        # field's overall scale is free, and an absolute floor would fight the reconstruction
+        # loss for no reason. relu() makes the term vanish once the ratio clears the target.
+        gap = torch.log(s_solid).mean() - torch.log(s_air).mean()
+        return torch.relu(math.log(float(cfg_s.sigma_aux_ratio_target)) - gap)
+
     def _step(self, it: int) -> dict:
         cfg = self.cfg
         self.model.train()
@@ -377,6 +475,17 @@ class P32Trainer:
             w_r, w_i, w_a, w_p = cfg.weights
             loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
                     + w_a * terms["L_amp"] + w_p * terms["L_phase"])
+            if cfg.sigma_aux_weight > 0.0:
+                l_sig = self._sigma_aux(ci)
+                if l_sig is not None:
+                    contrib = cfg.sigma_aux_weight * l_sig
+                    loss = loss + contrib
+                    # The spec asks for the auxiliary term to sit at ~5-10% of the total. That
+                    # is a property of the RUN, not of the weight, so it is measured rather
+                    # than assumed -- the weight that produces 5% at iteration 0 need not
+                    # produce 5% at 40K once the reconstruction loss has fallen.
+                    terms["L_sigma_aux"] = l_sig.detach()
+                    terms["sigma_aux_frac"] = (contrib / loss.clamp(min=1e-12)).detach()
             (loss / cfg.grad_accum_steps).backward()
             for k, v in terms.items():
                 agg[k] = agg.get(k, 0.0) + float(v) / cfg.grad_accum_steps
@@ -451,8 +560,11 @@ class P32Trainer:
             # cross-load between two arms would load silently and train on the wrong
             # semantics. base_resolution at least fails loudly with a tensor-size mismatch;
             # these two do not.
+            # sigma_aux_weight joins the list for the same reason: it changes what the weights
+            # MEAN (a model trained under the auxiliary term has a deliberately reshaped sigma
+            # field), and resuming across it would silently mix two objectives.
             for k in ("cond_source", "cond_dim", "n_pts_per_ray", "n_azi", "n_iters",
-                      "world_scale", "token_pool", "base_resolution"):
+                      "world_scale", "token_pool", "base_resolution", "sigma_aux_weight"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "

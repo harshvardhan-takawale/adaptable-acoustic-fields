@@ -1,0 +1,38 @@
+# SMOKE ONLY -- 70 iterations on the PRODUCTION card (rtxa5000, 24 GB) to prove the sigma
+# auxiliary term runs, logs its realized fraction, backprops, and survives several
+# validation boundaries. A 16 GB rtxa4000 OOMs at iteration 21; the real arms do not use one.
+run_id: smoke_S_sigma
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
+data_dir: data/track_p4_2_shapes
+configs_manifest: configs/sweeps_2d_mat/p4_2_shapes_manifest.json
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: masked_mean
+loss_band_lo_hz: 0.0
+sigma_aux_weight: 0.05
+sigma_aux_n_points: 512
+sigma_aux_ratio_target: 3.0
+n_iters: 70
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 0.0002
+val_every: 20
+val_max_configs: 4
+ckpt_every: 20
+ckpt_keep_last: 10
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8
+log_every: 5

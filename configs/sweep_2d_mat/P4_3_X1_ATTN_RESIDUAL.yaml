@@ -1,0 +1,61 @@
+# P4-3 Arm X1 -- position-queried cross-attention pooling, RESIDUAL form.
+#
+# The hypothesis: mean and extent-sum both hand EVERY point in the room the IDENTICAL shape
+# vector, so occlusion -- a relation between a point, the source and a particular wall -- is
+# structurally inexpressible however the tokens are weighted. Attention makes the pooled
+# conditioning a function of the query point.
+#
+# RESIDUAL, not replacement: z(x) = masked_mean + W_o * attn(...), with W_o zero-initialised,
+# so iteration 0 IS the mean-pool baseline and any later divergence is attributable to
+# position-dependence rather than to a fresh pool relearning what mean-pooling already did.
+# X2 runs the literal replacement in parallel.
+#
+# Corpus, recipe, optimizer and budget are IDENTICAL to p4_2_s2_mean_unmasked, which is the
+# baseline every P4-3 arm is read against. Unmasked loss: D70 retired DC-masking (RIR Pearson
+# 0.9989 -> 0.0630).
+run_id: p4_3_X1_attn_residual
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml   # unused; the manifest supplies the shapes
+data_dir: data/track_p4_2_shapes
+configs_manifest: configs/sweeps_2d_mat/p4_2_shapes_manifest.json
+
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: attn_residual
+loss_band_lo_hz: 0.0
+
+# Rows per BACKWARD = (batch_size // rx_per_config) * rx_per_config, and a renderer row is
+# ~134 MB at n_pts_per_ray=64 -- 8 is P4-1's proven footprint on a 24 GB card. A first attempt
+# at batch_size 16 / rx 4 / accum 1 put 16 rows in ONE backward and OOMed immediately; the
+# accumulation steps do NOT share the memory, each is its own backward.
+#
+# This shape keeps 8 rows/backward and 16 rows/step exactly as P4-1, while raising the number of
+# DISTINCT SHAPES per backward from 2 to 4 -- which matters far more with 60 shapes than with
+# 960 material variants.
+n_iters: 60000
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 2.0e-4
+
+# val_max_configs >= the stratum count: the trainer truncates the val list in MANIFEST-INDEX
+# order AFTER stratifying, so a smaller value would quietly make the val curve one corner of
+# the shape space -- and early stopping reads it.
+val_every: 2000
+val_max_configs: 30
+ckpt_every: 2000
+ckpt_keep_last: 10
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8

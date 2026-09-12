@@ -1,0 +1,73 @@
+# P4-3 Arm S -- sigma supervision. Mean pooling unchanged; an auxiliary term pushes sigma HIGH
+# inside the removed corner.
+#
+# This tests whether an INJECTED mechanism helps, independently of whether one emerges. Note
+# the reading it licenses: if fields improve while sigma rises only because it was forced, the
+# mechanism was injected and not learned, and that must be said explicitly.
+#
+# The dataset does NOT store solid masks (P4-2's writeup said otherwise and was wrong -- only a
+# scalar notch_solid_nodes count is stored). Solidity is recomputed in closed form from the
+# geometry: x < w and y > W - d. See _sigma_aux.
+#
+# sigma_aux_weight 0.30 targets the spec's ~5-10% of total loss. MEASURED, not guessed: a 70-
+# iteration smoke run at 0.05 put the realized fraction at 1.0%, because L_sigma_aux sits at
+# log(R_TARGET) = 1.0986 while the reconstruction loss starts near 5.2. 0.30 gives ~6.3% there.
+#
+# The fraction is LOGGED every step as sigma_aux_frac rather than assumed, because it drifts in
+# both directions: the reconstruction loss falls over training (raising the fraction) while
+# L_sigma_aux falls as the ratio improves (lowering it). The spec asks for a sweep if that is
+# unstable, so the realized trace is what gets reported.
+#
+# A gradient check on the production model confirms the term is live rather than detached:
+# total grad norm 3.3e-04 at init, and training on the aux term alone moves the sigma ratio
+# 1.0000 -> 1.0273 in 40 steps. It starts flat because the model begins at the exactly
+# degenerate point sigma == softplus(0) everywhere, where solid and air means are identical.
+run_id: p4_3_S_sigma
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml   # unused; the manifest supplies the shapes
+data_dir: data/track_p4_2_shapes
+configs_manifest: configs/sweeps_2d_mat/p4_2_shapes_manifest.json
+
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: masked_mean
+loss_band_lo_hz: 0.0
+sigma_aux_weight: 0.30
+sigma_aux_n_points: 512
+sigma_aux_ratio_target: 3.0
+
+# Rows per BACKWARD = (batch_size // rx_per_config) * rx_per_config, and a renderer row is
+# ~134 MB at n_pts_per_ray=64 -- 8 is P4-1's proven footprint on a 24 GB card. A first attempt
+# at batch_size 16 / rx 4 / accum 1 put 16 rows in ONE backward and OOMed immediately; the
+# accumulation steps do NOT share the memory, each is its own backward.
+#
+# This shape keeps 8 rows/backward and 16 rows/step exactly as P4-1, while raising the number of
+# DISTINCT SHAPES per backward from 2 to 4 -- which matters far more with 60 shapes than with
+# 960 material variants.
+n_iters: 60000
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 2.0e-4
+
+# val_max_configs >= the stratum count: the trainer truncates the val list in MANIFEST-INDEX
+# order AFTER stratifying, so a smaller value would quietly make the val curve one corner of
+# the shape space -- and early stopping reads it.
+val_every: 2000
+val_max_configs: 30
+ckpt_every: 2000
+ckpt_keep_last: 10
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8

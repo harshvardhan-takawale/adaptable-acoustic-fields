@@ -76,6 +76,7 @@ N_TEST_IN_SLAB = 6          # placed deliberately: uniform sampling gives only ~
 MIN_RECTANGLES = 8          # anchor the degenerate end of the family
 SEED = 20260911
 TEST_SEED = 20260912
+EXTRA_SEED = 20260913   # P4-3 Arm D: the shallow-band corpus extension
 GEOM_QUANT_DP = 2           # dims quantized to the dp the filename encodes, at generation time
 
 #: EVERY parameter is snapped to a multiple of this. It is the FDTD cell size, and the reason is
@@ -301,6 +302,59 @@ def sample_train_shapes(n: int = N_TRAIN, n_rect: int = MIN_RECTANGLES,
                 break
         else:
             raise RuntimeError("could not find a unique shape for slot {}".format(i))
+    return out
+
+
+def sample_extra_shapes(existing: Sequence[ShapeConfig], n: int,
+                        band: Tuple[float, float] = (0.10, 0.45),
+                        seed: int = EXTRA_SEED) -> List[ShapeConfig]:
+    """Additional TRAINING shapes concentrated in a ``d_hat`` band (P4-3 Arm D).
+
+    P4-2's sweep found accuracy WORST at shallow notches and the corpus thinnest there: 13 of 60
+    training shapes in [0.10, 0.45) against 10-15 per decile at both ends (D72). This draws more
+    of them, so "is the shallow-notch weakness a data problem?" can be asked directly.
+
+    **The band stops at 0.45, not the 0.5 the chunk spec names, and that is deliberate.** The
+    held-out slab is [0.45, 0.60]; sampling into [0.45, 0.50) would put TRAINING shapes inside
+    the band that every arm's in-slab Gate-2 number is measured on, silently invalidating the
+    comparison for the baseline and Arms X and S as well as for D. Quantization is re-checked
+    after snapping for the same reason -- a draw at d_hat 0.4497 can land on 0.4503.
+
+    ``existing`` supplies the filenames already in the corpus so a new draw can never alias onto
+    a built room; ``shape_id`` starts at 2000 to stay clear of train (0..59) and test (1000+).
+    """
+    lo, hi = float(band[0]), float(band[1])
+    if not (0.0 <= lo < hi <= 1.0):
+        raise ValueError("band must satisfy 0 <= lo < hi <= 1, got {}".format(band))
+    if hi > D_HAT_HOLDOUT[0]:
+        raise ValueError(
+            "band {} reaches into the held-out slab {} -- training shapes there would "
+            "invalidate the in-slab metric for EVERY arm".format(band, D_HAT_HOLDOUT))
+    used = {c.filename for c in existing}
+    out: List[ShapeConfig] = []
+    for k in range(n):
+        for attempt in range(4000):
+            rng = np.random.default_rng([seed, k, attempt])
+            L = _q(rng.uniform(*L_RANGE))
+            W = _q(rng.uniform(*W_RANGE))
+            dh = float(rng.uniform(lo, hi))
+            wh = float(rng.uniform(0.15, 1.0))       # a sliver-thin notch is not a shape edit
+            d, w = _q(dh * d_max_for(W)), _q(wh * w_max_for(L))
+            if d <= 0.0 or w <= 0.0:
+                continue
+            dh_q = d_hat(d, W)                       # AFTER quantization, not before
+            if not (lo <= dh_q < hi) or in_holdout(dh_q):
+                continue
+            if not passage_ok(L, W, d, w):
+                continue
+            fn = shape_filename(L, W, d, w)
+            if fn in used:
+                continue
+            used.add(fn)
+            out.append(ShapeConfig(L, W, d, w, split="train", shape_id=2000 + k))
+            break
+        else:
+            raise RuntimeError("could not find a unique in-band shape for slot {}".format(k))
     return out
 
 
