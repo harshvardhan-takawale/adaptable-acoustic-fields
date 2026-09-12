@@ -110,7 +110,7 @@ passing under both rho definitions at both seeds). See D67(d).
 **WHAT TO DO NEXT** (Q21). Two cheap experiments should precede any renderer rewrite: (b) more
 shapes / longer training, to test whether 0.002 is a capacity ceiling at all; and (c) a direct
 auxiliary loss on sigma inside known-solid regions, to separate "the architecture cannot represent
-occlusion" from "it has no reason to" — the dataset already stores the solid masks. Option (a),
+occlusion" from "it has no reason to" — the dataset stores the geometry (`verts`, `d`, `w`) from which the solid mask is RECONSTRUCTIBLE in closed form -- `x < w and y > W - d` for this axis-aligned notch. It does not store a mask array; only a scalar `notch_solid_nodes` count (corrected in P4-3, which implements the term). Option (a),
 adding source-side occlusion to the renderer, has a wide blast radius (it changes every arm and
 invalidates cross-phase comparisons) and should not start until (b) or (c) shows it is needed.
 **Do not build the Z-corridor on this.**

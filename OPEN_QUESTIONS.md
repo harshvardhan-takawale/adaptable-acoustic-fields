@@ -171,7 +171,7 @@ can only express a wall on the receiver->point leg; a source-side wall must be m
   separating "cannot" from "has no reason to".
 
 **What resolving it requires**: (b) is one training run on an enlarged corpus and needs no new
-code. (c) is a loss term plus the solid mask, which the dataset already stores. (a) is a
+code. (c) is a loss term plus the solid mask; the dataset stores the geometry (`verts`, `d`, `w`) from which the solid mask is RECONSTRUCTIBLE in closed form -- `x < w and y > W - d` for this axis-aligned notch. It does not store a mask array; only a scalar `notch_solid_nodes` count (corrected in P4-3, which implements the term). (a) is a
 renderer change and should not be started until (b) or (c) has established that it is needed.
 **Nothing is blocked today** — but D66 plus a sigma ratio of 1.0 is the strongest evidence the
 project has that in-distribution accuracy will keep failing to transfer, and (b) is the honest

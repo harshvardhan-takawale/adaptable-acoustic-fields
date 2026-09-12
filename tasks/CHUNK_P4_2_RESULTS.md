@@ -270,7 +270,7 @@ that G030 arm; this chunk used **0.125** (G020, passing under both ρ definition
 4. **Two cheap experiments should precede any renderer rewrite** (Q21): more shapes / longer
    training to test whether 0.002 is a capacity ceiling at all, and a direct auxiliary loss on σ
    inside known-solid regions to separate "the architecture cannot represent occlusion" from "it
-   has no reason to". The dataset already stores the solid masks.
+   has no reason to". The dataset stores the geometry (`verts`, `d`, `w`) from which the solid mask is RECONSTRUCTIBLE in closed form -- `x < w and y > W - d` for this axis-aligned notch. It does not store a mask array; only a scalar `notch_solid_nodes` count (corrected in P4-3, which implements the term).
 5. **The hardest case is the SHALLOW notch, not the deep one.** The sweep's U-shape is the most
    actionable single fact in this chunk: a model that handles a strongly non-convex room better
    than a near-rectangle is not doing geometry. If the next chunk adds shapes, weight them toward
