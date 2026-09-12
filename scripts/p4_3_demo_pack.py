@@ -32,6 +32,7 @@ import torch
 from matplotlib.patches import Polygon as MplPolygon
 
 from aaf.data.shape_configs import SRC, ShapeConfig
+from aaf.eval.modal_decay import band_limited_rir
 from aaf.eval.modal_projection import enumerate_modes
 from aaf.eval.p3_2_eval import load_model
 from aaf.models.conditioning_2d import build_cond_vector_2d
@@ -60,8 +61,23 @@ def _pearson(a, b):
     return float(np.corrcoef(a[ok], b[ok])[0, 1])
 
 
-def _rir(H):
-    return np.fft.irfft(H, n=2 * (H.shape[-1] - 1), axis=-1)
+# The stored band is 0-300 Hz at df = 0.5 Hz, i.e. a 2 s record: n_time = 1200, fs_eff = 600.
+RIR_FS, RIR_N, MODAL_LO = 600.0, 1200, 20.0
+
+
+def _rir(H, f_lo=0.0):
+    """Band-limited impulse response, identical mask on prediction and target.
+
+    TWO BANDS, AND THE DIFFERENCE MATTERS. `f_lo = 0` reproduces P4-2's Gate-2 `rir_pearson`
+    exactly, so the demo stays comparable with it. But that number is DOMINATED BY THE NEAR-DC
+    TERM: the 0-300 Hz inverse transform is a slow ramp on which prediction and target agree
+    trivially, and it reads r = +1.000 while the two traces sit at visibly different levels.
+    That is Q18's finding in the time domain. `f_lo = 20` removes it and leaves the modal
+    response, which is what a claim about the impulse response should actually rest on. Both are
+    reported; the figure draws the modal one, because a panel whose headline number measures a
+    DC ramp would be misleading with true numbers.
+    """
+    return band_limited_rir(np.asarray(H), RIR_FS, RIR_N, f_lo=f_lo, f_hi=300.0)
 
 
 def render(model, renderer, cfg, rx, n_bins, dev, chunk=8):
@@ -153,6 +169,7 @@ def measure(rooms, modes, bins):
         sp = [_pearson(_db(r["P"][:, b]), _db(r["T"][:, b])) for b in bins
               if b < r["T"].shape[1]]
         rir_p, rir_t = _rir(r["P"]), _rir(r["T"])
+        mod_p, mod_t = _rir(r["P"], MODAL_LO), _rir(r["T"], MODAL_LO)
         out.append({
             "tag": r["tag"], "d_hat": r["cfg"].d_hat, "d": r["cfg"].d,
             "L": r["cfg"].L, "W": r["cfg"].W, "w": r["cfg"].w,
@@ -162,6 +179,8 @@ def measure(rooms, modes, bins):
             "band_lsd_db": float(np.mean(np.abs(_db(r["P"]) - _db(r["T"])))),
             "rir_pearson": float(np.mean([_pearson(rir_p[i], rir_t[i])
                                           for i in range(len(rir_p))])),
+            "rir_pearson_modal": float(np.mean([_pearson(mod_p[i], mod_t[i])
+                                                for i in range(len(mod_p))])),
         })
     return out
 
@@ -239,34 +258,39 @@ def fig_spectrum_rir(rooms, met, out, tag, probe_idx, probe_pos):
     ax = axes[1]
     for k, r in enumerate(rooms):
         i = probe_idx[k]
-        rt, rp = _rir(r["T"][i]), _rir(r["P"][i])
-        t = np.arange(len(rt)) / (2.0 * (r["T"].shape[1] - 1) * DF_HZ)
-        n = len(rt) // 2
+        rt, rp = _rir(r["T"][i], MODAL_LO), _rir(r["P"][i], MODAL_LO)
+        t = np.arange(len(rt)) / RIR_FS
+        n = int(0.5 * RIR_FS)                      # first 0.5 s, where the structure lives
         sc = 1.6 / max(np.abs(rt[:n]).max(), 1e-12)
-        ax.plot(t[:n], rt[:n] * sc + k * 2.2, color=C_GT, lw=1.2)
-        ax.plot(t[:n], rp[:n] * sc + k * 2.2, color=C_PRED, lw=1.0, ls="--")
-        ax.text(t[n - 1] * 1.01, k * 2.2, r"r={:+.3f}".format(met[k]["rir_pearson"]),
+        ax.plot(t[:n], rt[:n] * sc + k * 2.4, color=C_GT, lw=1.2, label="FDTD" if not k else None)
+        ax.plot(t[:n], rp[:n] * sc + k * 2.4, color=C_PRED, lw=1.0, ls="--",
+                label="predicted" if not k else None)
+        ax.text(t[n - 1] * 1.01, k * 2.4, r"r={:+.3f}".format(met[k]["rir_pearson_modal"]),
                 fontsize=9, va="center")
     ax.set_xlabel("time (s)", fontsize=12)
     ax.set_ylabel("band-limited impulse response (offset)", fontsize=12)
-    ax.set_title("band-limited RIR (0-300 Hz) at the same receiver", fontsize=13,
+    ax.set_title("MODAL impulse response (20-300 Hz) at the same receiver", fontsize=13,
                  fontweight="bold")
-    ax.set_yticks([]); ax.grid(alpha=0.2)
+    ax.set_yticks([]); ax.grid(alpha=0.2); ax.legend(fontsize=10, loc="upper right")
     fig.suptitle("Room {}: the edit in the frequency AND time domain  |  mean spatial R "
-                 "{:+.3f}, band LSD {:.2f} dB, RIR r {:+.3f}".format(
+                 "{:+.3f}, band LSD {:.2f} dB, modal RIR r {:+.3f} (full-band {:+.3f})".format(
                      tag, float(np.mean([m["spatial_pearson"] for m in met])),
                      float(np.mean([m["band_lsd_db"] for m in met])),
+                     float(np.mean([m["rir_pearson_modal"] for m in met])),
                      float(np.mean([m["rir_pearson"] for m in met]))),
                  fontsize=15, fontweight="bold")
-    fig.text(0.5, 0.005, SHALLOW_NOTE, ha="center", fontsize=10.5)
-    fig.tight_layout(rect=[0, 0.06, 1, 0.93])
+    fig.text(0.5, 0.005, SHALLOW_NOTE + "\nThe RIR panel is high-passed at 20 Hz. The full-band "
+             "0-300 Hz inverse transform reads r = +1.000, but that number is the shared near-DC "
+             "ramp (Q18 in the time domain), not the impulse structure -- both are reported.",
+             ha="center", fontsize=10.5)
+    fig.tight_layout(rect=[0, 0.10, 1, 0.93])
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
 def fig_morph(rooms, met, b, mode, out):
     n = len(rooms)
-    fig, axes = plt.subplots(2, n, figsize=(2.9 * n, 6.8), dpi=DPI)
+    fig, axes = plt.subplots(2, n, figsize=(2.9 * n, 5.6), dpi=DPI)
     vals = np.concatenate([_db(r["T"][:, b]) for r in rooms])
     vmax = float(np.percentile(vals, 99.5)); vmin = vmax - 40.0
     cfg0 = rooms[0]["cfg"]
@@ -329,11 +353,11 @@ def main() -> int:
         pidx, ppos, pspread = common_probe(rooms)
         print("  probe receiver [{:.2f}, {:.2f}] (max drift across depths {:.3f} m)".format(
             ppos[0], ppos[1], pspread))
-        print("  d_hat   n_rx  NLOS%   spatialR   LSD dB   RIR r")
+        print("  d_hat   n_rx  NLOS%   spatialR   LSD dB   RIR r(0-300)  RIR r(20-300)")
         for m in met:
-            print("  {:.3f}  {:5d}  {:5.1f}   {:+.4f}   {:6.2f}   {:+.4f}".format(
+            print("  {:.3f}  {:5d}  {:5.1f}   {:+.4f}   {:6.2f}     {:+.4f}       {:+.4f}".format(
                 m["d_hat"], m["n_rx"], 100 * m["nlos_frac"], m["spatial_pearson"],
-                m["band_lsd_db"], m["rir_pearson"]))
+                m["band_lsd_db"], m["rir_pearson"], m["rir_pearson_modal"]))
         report["shapes"][tag] = {
             "L": c0.L, "W": c0.W, "w": c0.w, "probe": [float(x) for x in ppos],
             "probe_drift_m": pspread,
@@ -342,6 +366,7 @@ def main() -> int:
             "mean_spatial_pearson": float(np.mean([m["spatial_pearson"] for m in met])),
             "mean_band_lsd_db": float(np.mean([m["band_lsd_db"] for m in met])),
             "mean_rir_pearson": float(np.mean([m["rir_pearson"] for m in met])),
+            "mean_rir_pearson_modal": float(np.mean([m["rir_pearson_modal"] for m in met])),
         }
         fig_fields(rooms, modes, bins, met, out / "figL_{}_fields.png".format(tag), tag)
         fig_spectrum_rir(rooms, met, out / "figM_{}_spectrum_rir.png".format(tag), tag,
@@ -356,10 +381,11 @@ def main() -> int:
     modes = enumerate_modes(c0.L, c0.W, f_max=200.0)[:N_MODES_SHOWN]
     bins = [int(round(m.f / DF_HZ)) for m in modes]
     met = measure(rooms, modes, bins)
-    print("  d_hat   n_rx   spatialR   LSD dB   RIR r")
+    print("  d_hat   n_rx   spatialR   LSD dB   RIR r(0-300)  RIR r(20-300)")
     for m in met:
-        print("  {:.3f}  {:5d}   {:+.4f}   {:6.2f}   {:+.4f}".format(
-            m["d_hat"], m["n_rx"], m["spatial_pearson"], m["band_lsd_db"], m["rir_pearson"]))
+        print("  {:.3f}  {:5d}   {:+.4f}   {:6.2f}     {:+.4f}       {:+.4f}".format(
+            m["d_hat"], m["n_rx"], m["spatial_pearson"], m["band_lsd_db"], m["rir_pearson"],
+            m["rir_pearson_modal"]))
     report["morph"] = {"L": c0.L, "W": c0.W, "w": c0.w, "per_depth": met,
                        "mode": [int(modes[1].n_x), int(modes[1].n_y), float(modes[1].f)]}
     fig_morph(rooms, met, bins[1], modes[1], out / "figN_morph.png")
