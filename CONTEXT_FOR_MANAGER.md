@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **P4-2 COMPLETE (2026-09-12)** — the notch family. **GATE 2 FAILS on all four arms** (best in-slab spatial Pearson **0.7978** vs a 0.80 threshold) and the sigma ratio reads **~1.00 on every arm** — no occlusion mechanism, which is the number that predicts shape transfer will not work. **Task A is a clean win**: edit linearity restored, `edit_bw_slope` 0.871 -> **0.957** against Arm C's 0.959, and `geom_token_m` is adopted. See the section directly below. Prior: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -10,6 +10,90 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Also fixed this chunk: a regression I introduced.** The P3-2c audit A1 commit (`ee6ead0`) made the entire per-cell slope regression dead code, so **every rho computed between `ee6ead0` and `ad91b3a` was NaN**. Caught because P3-2c re-evaluates P3-2b arm C as its first curve point and reproduced every number except rho. The A1 guard tests could not have caught it — they asserted over stored `summary.json` files produced by the pre-A1 code, validating documents rather than the code that writes them. `tests/test_p3_2b_slopefit_regression.py` now fits synthetic data end-to-end. No published number changed.
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+
+## Phase 4 — P4-2 COMPLETE (2026-09-12): the notch family, GATE 2 FAILS
+
+Full writeup `tasks/CHUNK_P4_2_RESULTS.md`; phase status `PHASE4_SUMMARY.md`; decisions
+**D66-D71**; open questions **Q21-Q22** (Q19 and Q20 both RESOLVED and removed).
+Tests **506 passed**.
+
+**GATE 2 — FAIL on all four arms.** One model, 60 training shapes, 15 frozen test shapes from a
+continuous family spanning rectangles to deep L-rooms. Requires in-slab spatial Pearson >= 0.80
+with NLOS deficit <= 0.15:
+
+| arm | pool | loss | **in-slab R** | out-slab R | band LSD | RIR r | NLOS deficit | **sigma solid/air** |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| `mean_masked` | masked-mean | DC-masked | **+0.7978** | +0.7020 | 5.76 | 0.063 | -0.056 | **0.9987** |
+| `mean_unmasked` | masked-mean | unmasked | +0.7483 | +0.7369 | 4.84 | 0.9989 | -0.120 | **1.0361** |
+| `extent_masked` | extent-sum | DC-masked | +0.5763 | +0.3975 | 6.42 | 0.070 | -0.126 | **0.9896** |
+| `extent_unmasked` | extent-sum | unmasked | +0.5681 | +0.5284 | 8.77 | 0.9967 | -0.065 | **0.9820** |
+
+**THE THREE THINGS NOT TO MISREAD.**
+
+1. **0.7978 vs 0.80 is a FAIL, not an "almost".** The threshold was frozen before the run and is
+   not revisited after seeing the result. More to the point, the same checkpoint reads sigma ~ 1.0
+   — it has no occlusion mechanism, so this is not the kind of 0.3% gap that scaling closes.
+2. **The NLOS pass is NOT shadow modelling.** All four deficits are NEGATIVE: NLOS receivers are
+   predicted slightly BETTER than LOS ones, the opposite of what a model representing shadow
+   geometry would do. Reported with its power: 354 pooled in-slab receiver-modes, 1.2% mean NLOS
+   census, and 5 of 15 test shapes with ZERO NLOS receivers.
+3. **sigma solid/air is ~1.00 on every arm, and two of four are BELOW 1.0.** P4-1's per-scene fit
+   at least reached 1.075 with a real effect size; the multi-shape model has nothing. With D66
+   (rays fan OUTWARD from the receiver, so a source-side wall has no structural representation and
+   can only be memorized in `signal`) this is Q19's predicted failure, observed. The architecture
+   can FIT one non-convex room (+0.974) and cannot GENERALIZE across a family (+0.798).
+
+**TASK A — a clean win, and Q20 is answered: the entanglement hypothesis was RIGHT.** Moving
+`m_hat` out of the shared token and back onto Arm C's dedicated per-wall channel (`geom_token_m`,
+stored 268 / reduced 92):
+
+| split | **T-geo+m** | T-geo | Arm C |
+|---|---:|---:|---:|
+| S1 unseen_geom 1wall | +0.850 | +0.784 | +0.997 |
+| **S2 unseen_geom_slab** *(gated)* | **+0.957** | +0.871 | +0.959 |
+| S3 seen_geom_slab | +0.742 | +0.720 | +0.720 |
+| S4 unseen_geom alpha=0.30 | +0.491 | +0.464 | +0.789 |
+| S5 unseen_geom 2wall | +0.997 | +0.913 | +1.010 |
+
+98% of the S2 gap closed, and it costs nothing: in-distribution val LSD **0.9165** (best of the
+three; T-geo 0.9914, Arm C 1.0132), demo spatial Pearson 0.982. **`geom_token_m` is ADOPTED for
+all downstream conditioning** (D68). **Caveat**: S4 does NOT recover (0.491 vs 0.789) — this
+explains the slope loss for moderate absorption edits and not for edits at the range edge.
+
+**TWO OF THE SPEC'S OWN HYPOTHESES CAME BACK NEGATIVE**, both with controls so they need not be
+re-run:
+* **Extent-weighted pooling is WORSE than masked mean** (D69) — by 0.222 and 0.180 in-slab across
+  two independent loss arms. Same ordering both times. A *normalized* extent weighting was not
+  tested and is the obvious rescue.
+* **DC-masking destroys the impulse response** (D70) — RIR Pearson **0.9989 -> 0.0630** for a
+  +0.05 modal gain. The unmasked loss is primary downstream; any future DC-masked LSD must be
+  reported with its RIR correlation.
+
+**And the hold-out did not do its job** (Q22): in-slab is EASIER than out-of-slab on every arm
+(+0.096, +0.011, +0.179, +0.040). The binding difficulty is shape generalization in general, not
+the 0.15-wide gap in one parameter.
+
+**THE BUG WORTH THE MANAGER'S ATTENTION** (D67c): `_fit_axis` picks `dx` per axis so `L` and `W`
+divide exactly, so independently-drawn 2-dp notch dimensions do not land on grid nodes — the notch
+face was displaced **8.4 mm**, meaning **the conditioning and the ground truth would have described
+different rooms, silently**. Caught only by the builder's node-for-node assert. Fixed by snapping
+all four parameters to 0.02; worst displacement now 8.88e-16 m. **9 of 75 rooms had built cleanly
+beforehand purely by coincidence** — a partial pass is the worst possible signal.
+
+**A PUBLIC NUMBER IS RETRACTED.** `outputs/p3_2d/SAMPLING_LAW.md` still said "a second seed is
+running". It landed and **did not replicate**: G030 — the sole evidence for Delta* ~ 0.275 — flips
+rho **1.3083 FAIL -> 1.1753 PASS** between seeds. Corrections are now in the file at both stale
+passages. **Do not cite Delta* ~ 0.275 or "interval <= 0.2 of normalized range".** The spec's 0.2
+lands at 0.2 x 1.59 = 0.318, which is exactly that G030 arm; this chunk used **0.125** (G020,
+passing under both rho definitions at both seeds). See D67(d).
+
+**WHAT TO DO NEXT** (Q21). Two cheap experiments should precede any renderer rewrite: (b) more
+shapes / longer training, to test whether 0.002 is a capacity ceiling at all; and (c) a direct
+auxiliary loss on sigma inside known-solid regions, to separate "the architecture cannot represent
+occlusion" from "it has no reason to" — the dataset already stores the solid masks. Option (a),
+adding source-side occlusion to the renderer, has a wide blast radius (it changes every arm and
+invalidates cross-phase comparisons) and should not start until (b) or (c) shows it is needed.
+**Do not build the Z-corridor on this.**
 
 ## Phase 4 — P4-1 COMPLETE (2026-09-11): shape editing, Stages 0 and 1
 

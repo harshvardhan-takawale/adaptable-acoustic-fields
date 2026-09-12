@@ -1,0 +1,724 @@
+{
+ "checkpoint": "outputs/p4_2/taskA/p4_2_TgeoM/ckpt_iter0060000.pt",
+ "iter": 60000,
+ "cond_source": "geom_token_m",
+ "dense_grid": 64,
+ "training_grid": 8,
+ "n_rx_dense": 4096,
+ "band_hz": [
+  0.0,
+  300.0
+ ],
+ "protocol": {
+  "fs": 4096.0,
+  "n": 8192,
+  "max_order": 60,
+  "src": [
+   0.5,
+   0.5
+  ]
+ },
+ "abort_threshold_spatial_pearson": 0.7,
+ "spatial_pearson_worst": 0.9638111934875848,
+ "spatial_pearson_mean": 0.9820098676375338,
+ "proceed_to_figures": true,
+ "prior_note": "P3-2b recorded mode_shape_invariance 0.9921 (pred) for this arm on the 8x8 grid; that is agreement with the ANALYTIC cosine shape, NOT the pointwise pred-vs-GT Pearson reported here. Distinct quantities.",
+ "scenarios": [
+  {
+   "geometry": "small",
+   "L": 3.44,
+   "W": 3.14,
+   "scenario": "a_baseline",
+   "desc": "baseline, all walls 0.15",
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 49.8546511627907,
+     "bin": 100,
+     "spatial_pearson_db": 0.9712274866762105,
+     "spatial_pearson_lin": 0.8123812047393435
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 54.617834394904456,
+     "bin": 109,
+     "spatial_pearson_db": 0.9539473540686918,
+     "spatial_pearson_lin": 0.789523749863035
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 73.94994304631177,
+     "bin": 148,
+     "spatial_pearson_db": 0.9662587397178523,
+     "spatial_pearson_lin": 0.7837124899929272
+    }
+   ],
+   "spatial_pearson": [
+    0.9712274866762105,
+    0.9539473540686918,
+    0.9662587397178523
+   ],
+   "spatial_pearson_mean": 0.9638111934875848,
+   "magnitude_corr": 0.6496950513108141,
+   "band_lsd_db": 1.6029467582702637,
+   "band_lsd_db_allrx": 1.8596043586730957,
+   "phase_circ_corr": 0.9122590565944717,
+   "rir_pearson": 0.9698719089220756
+  },
+  {
+   "geometry": "small",
+   "L": 3.44,
+   "W": 3.14,
+   "scenario": "b_east_curtain",
+   "desc": "east curtain 0.50 (trained combo)",
+   "alphas": [
+    0.15,
+    0.5,
+    0.15,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 49.8546511627907,
+     "bin": 100,
+     "spatial_pearson_db": 0.9860356180851493,
+     "spatial_pearson_lin": 0.7594120858279246
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 54.617834394904456,
+     "bin": 109,
+     "spatial_pearson_db": 0.9711434702179705,
+     "spatial_pearson_lin": 0.7932884665967486
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 73.94994304631177,
+     "bin": 148,
+     "spatial_pearson_db": 0.9764231510522743,
+     "spatial_pearson_lin": 0.7422256808241967
+    }
+   ],
+   "spatial_pearson": [
+    0.9860356180851493,
+    0.9711434702179705,
+    0.9764231510522743
+   ],
+   "spatial_pearson_mean": 0.9778674131184647,
+   "magnitude_corr": 0.6446232200057375,
+   "band_lsd_db": 1.1034164428710938,
+   "band_lsd_db_allrx": 1.524656057357788,
+   "phase_circ_corr": 0.937283854405278,
+   "rir_pearson": 0.9859905623187932
+  },
+  {
+   "geometry": "small",
+   "L": 3.44,
+   "W": 3.14,
+   "scenario": "c_north_absorber",
+   "desc": "north absorber 0.70 (HELD-OUT combo)",
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.7
+   ],
+   "n_rx": 4096,
+   "held_out_combo": true,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 49.8546511627907,
+     "bin": 100,
+     "spatial_pearson_db": 0.9842231077606659,
+     "spatial_pearson_lin": 0.798345148636767
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 54.617834394904456,
+     "bin": 109,
+     "spatial_pearson_db": 0.9867869557642508,
+     "spatial_pearson_lin": 0.7624534418628115
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 73.94994304631177,
+     "bin": 148,
+     "spatial_pearson_db": 0.9876579132185961,
+     "spatial_pearson_lin": 0.712475327040518
+    }
+   ],
+   "spatial_pearson": [
+    0.9842231077606659,
+    0.9867869557642508,
+    0.9876579132185961
+   ],
+   "spatial_pearson_mean": 0.9862226589145043,
+   "magnitude_corr": 0.6443230804532455,
+   "band_lsd_db": 0.9050468802452087,
+   "band_lsd_db_allrx": 1.254065752029419,
+   "phase_circ_corr": 0.9564447827134578,
+   "rir_pearson": 0.9834846017012434
+  },
+  {
+   "geometry": "small",
+   "L": 3.44,
+   "W": 3.14,
+   "scenario": "d_two_wall",
+   "desc": "east 0.50 + south 0.70",
+   "alphas": [
+    0.15,
+    0.5,
+    0.7,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 49.8546511627907,
+     "bin": 100,
+     "spatial_pearson_db": 0.9871792965582101,
+     "spatial_pearson_lin": 0.7270443215585554
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 54.617834394904456,
+     "bin": 109,
+     "spatial_pearson_db": 0.9733473117343291,
+     "spatial_pearson_lin": 0.7293176448119826
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 73.94994304631177,
+     "bin": 148,
+     "spatial_pearson_db": 0.9813516091067516,
+     "spatial_pearson_lin": 0.6920961095444574
+    }
+   ],
+   "spatial_pearson": [
+    0.9871792965582101,
+    0.9733473117343291,
+    0.9813516091067516
+   ],
+   "spatial_pearson_mean": 0.9806260724664302,
+   "magnitude_corr": 0.6284518120513952,
+   "band_lsd_db": 0.9483795166015625,
+   "band_lsd_db_allrx": 1.2513352632522583,
+   "phase_circ_corr": 0.9526126559964648,
+   "rir_pearson": 0.9938070812899059
+  },
+  {
+   "geometry": "median",
+   "L": 5.93,
+   "W": 3.18,
+   "scenario": "a_baseline",
+   "desc": "baseline, all walls 0.15",
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 28.920741989881957,
+     "bin": 58,
+     "spatial_pearson_db": 0.9934818548219299,
+     "spatial_pearson_lin": 0.8879193932959804
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 53.93081761006289,
+     "bin": 108,
+     "spatial_pearson_db": 0.9750130528414738,
+     "spatial_pearson_lin": 0.8268267638960468
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 57.841483979763915,
+     "bin": 116,
+     "spatial_pearson_db": 0.962734314620731,
+     "spatial_pearson_lin": 0.8515067263480682
+    }
+   ],
+   "spatial_pearson": [
+    0.9934818548219299,
+    0.9750130528414738,
+    0.962734314620731
+   ],
+   "spatial_pearson_mean": 0.9770764074280449,
+   "magnitude_corr": 0.7379943865100509,
+   "band_lsd_db": 2.080982208251953,
+   "band_lsd_db_allrx": 1.8575555086135864,
+   "phase_circ_corr": 0.9034667431589825,
+   "rir_pearson": 0.9554457936115824
+  },
+  {
+   "geometry": "median",
+   "L": 5.93,
+   "W": 3.18,
+   "scenario": "b_east_curtain",
+   "desc": "east curtain 0.50 (trained combo)",
+   "alphas": [
+    0.15,
+    0.5,
+    0.15,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 28.920741989881957,
+     "bin": 58,
+     "spatial_pearson_db": 0.9880746981009082,
+     "spatial_pearson_lin": 0.8094632213475205
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 53.93081761006289,
+     "bin": 108,
+     "spatial_pearson_db": 0.97881899548348,
+     "spatial_pearson_lin": 0.834552861849938
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 57.841483979763915,
+     "bin": 116,
+     "spatial_pearson_db": 0.9796044627390552,
+     "spatial_pearson_lin": 0.8333690499624091
+    }
+   ],
+   "spatial_pearson": [
+    0.9880746981009082,
+    0.97881899548348,
+    0.9796044627390552
+   ],
+   "spatial_pearson_mean": 0.9821660521078144,
+   "magnitude_corr": 0.7319379185483128,
+   "band_lsd_db": 1.6625314950942993,
+   "band_lsd_db_allrx": 1.6143792867660522,
+   "phase_circ_corr": 0.9231363021754744,
+   "rir_pearson": 0.9684780111027981
+  },
+  {
+   "geometry": "median",
+   "L": 5.93,
+   "W": 3.18,
+   "scenario": "c_north_absorber",
+   "desc": "north absorber 0.70 (HELD-OUT combo)",
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.7
+   ],
+   "n_rx": 4096,
+   "held_out_combo": true,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 28.920741989881957,
+     "bin": 58,
+     "spatial_pearson_db": 0.9928797785013249,
+     "spatial_pearson_lin": 0.8601272666513116
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 53.93081761006289,
+     "bin": 108,
+     "spatial_pearson_db": 0.9839410133233062,
+     "spatial_pearson_lin": 0.8043531166817831
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 57.841483979763915,
+     "bin": 116,
+     "spatial_pearson_db": 0.9854055735808496,
+     "spatial_pearson_lin": 0.8486822685505722
+    }
+   ],
+   "spatial_pearson": [
+    0.9928797785013249,
+    0.9839410133233062,
+    0.9854055735808496
+   ],
+   "spatial_pearson_mean": 0.9874087884684936,
+   "magnitude_corr": 0.7311399715745066,
+   "band_lsd_db": 1.4405062198638916,
+   "band_lsd_db_allrx": 1.2261784076690674,
+   "phase_circ_corr": 0.9512028022767155,
+   "rir_pearson": 0.9857803895942782
+  },
+  {
+   "geometry": "median",
+   "L": 5.93,
+   "W": 3.18,
+   "scenario": "d_two_wall",
+   "desc": "east 0.50 + south 0.70",
+   "alphas": [
+    0.15,
+    0.5,
+    0.7,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 28.920741989881957,
+     "bin": 58,
+     "spatial_pearson_db": 0.9879788850595536,
+     "spatial_pearson_lin": 0.7756893932962431
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 53.93081761006289,
+     "bin": 108,
+     "spatial_pearson_db": 0.9903887176428742,
+     "spatial_pearson_lin": 0.7866904474004128
+    },
+    {
+     "mode": [
+      2,
+      0
+     ],
+     "f_hz": 57.841483979763915,
+     "bin": 116,
+     "spatial_pearson_db": 0.988794689531353,
+     "spatial_pearson_lin": 0.8129448756824165
+    }
+   ],
+   "spatial_pearson": [
+    0.9879788850595536,
+    0.9903887176428742,
+    0.988794689531353
+   ],
+   "spatial_pearson_mean": 0.9890540974112603,
+   "magnitude_corr": 0.7161580242836708,
+   "band_lsd_db": 1.331849217414856,
+   "band_lsd_db_allrx": 1.2351645231246948,
+   "phase_circ_corr": 0.9439746214968732,
+   "rir_pearson": 0.9856064438735997
+  },
+  {
+   "geometry": "large",
+   "L": 5.56,
+   "W": 4.9,
+   "scenario": "a_baseline",
+   "desc": "baseline, all walls 0.15",
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 30.8453237410072,
+     "bin": 62,
+     "spatial_pearson_db": 0.981219345452426,
+     "spatial_pearson_lin": 0.9013713458928261
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 34.99999999999999,
+     "bin": 70,
+     "spatial_pearson_db": 0.9848814369207225,
+     "spatial_pearson_lin": 0.8974885821770114
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 46.65226679045234,
+     "bin": 93,
+     "spatial_pearson_db": 0.9780897751299632,
+     "spatial_pearson_lin": 0.9025855770051427
+    }
+   ],
+   "spatial_pearson": [
+    0.981219345452426,
+    0.9848814369207225,
+    0.9780897751299632
+   ],
+   "spatial_pearson_mean": 0.9813968525010371,
+   "magnitude_corr": 0.7854735016839703,
+   "band_lsd_db": 2.9906392097473145,
+   "band_lsd_db_allrx": 2.278846263885498,
+   "phase_circ_corr": 0.8588099342134539,
+   "rir_pearson": 0.9338397198006757
+  },
+  {
+   "geometry": "large",
+   "L": 5.56,
+   "W": 4.9,
+   "scenario": "b_east_curtain",
+   "desc": "east curtain 0.50 (trained combo)",
+   "alphas": [
+    0.15,
+    0.5,
+    0.15,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 30.8453237410072,
+     "bin": 62,
+     "spatial_pearson_db": 0.9911302468754478,
+     "spatial_pearson_lin": 0.8710180831121709
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 34.99999999999999,
+     "bin": 70,
+     "spatial_pearson_db": 0.98141819075144,
+     "spatial_pearson_lin": 0.8987628106406708
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 46.65226679045234,
+     "bin": 93,
+     "spatial_pearson_db": 0.9894658664287413,
+     "spatial_pearson_lin": 0.8800907224104159
+    }
+   ],
+   "spatial_pearson": [
+    0.9911302468754478,
+    0.98141819075144,
+    0.9894658664287413
+   ],
+   "spatial_pearson_mean": 0.9873381013518764,
+   "magnitude_corr": 0.7839384213871534,
+   "band_lsd_db": 2.2544548511505127,
+   "band_lsd_db_allrx": 1.8483716249465942,
+   "phase_circ_corr": 0.8992723010928496,
+   "rir_pearson": 0.9537870961912249
+  },
+  {
+   "geometry": "large",
+   "L": 5.56,
+   "W": 4.9,
+   "scenario": "c_north_absorber",
+   "desc": "north absorber 0.70 (HELD-OUT combo)",
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.7
+   ],
+   "n_rx": 4096,
+   "held_out_combo": true,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 30.8453237410072,
+     "bin": 62,
+     "spatial_pearson_db": 0.9764979791988723,
+     "spatial_pearson_lin": 0.8969491816531117
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 34.99999999999999,
+     "bin": 70,
+     "spatial_pearson_db": 0.9913633363185262,
+     "spatial_pearson_lin": 0.8726500284177963
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 46.65226679045234,
+     "bin": 93,
+     "spatial_pearson_db": 0.9926742448838487,
+     "spatial_pearson_lin": 0.8612953188044625
+    }
+   ],
+   "spatial_pearson": [
+    0.9764979791988723,
+    0.9913633363185262,
+    0.9926742448838487
+   ],
+   "spatial_pearson_mean": 0.9868451868004158,
+   "magnitude_corr": 0.780459285389169,
+   "band_lsd_db": 2.4257538318634033,
+   "band_lsd_db_allrx": 1.8768261671066284,
+   "phase_circ_corr": 0.906713325577974,
+   "rir_pearson": 0.9656330980823342
+  },
+  {
+   "geometry": "large",
+   "L": 5.56,
+   "W": 4.9,
+   "scenario": "d_two_wall",
+   "desc": "east 0.50 + south 0.70",
+   "alphas": [
+    0.15,
+    0.5,
+    0.7,
+    0.15
+   ],
+   "n_rx": 4096,
+   "held_out_combo": false,
+   "modes": [
+    {
+     "mode": [
+      1,
+      0
+     ],
+     "f_hz": 30.8453237410072,
+     "bin": 62,
+     "spatial_pearson_db": 0.988701730541707,
+     "spatial_pearson_lin": 0.8492978367852062
+    },
+    {
+     "mode": [
+      0,
+      1
+     ],
+     "f_hz": 34.99999999999999,
+     "bin": 70,
+     "spatial_pearson_db": 0.9732470882839581,
+     "spatial_pearson_lin": 0.8489096026122862
+    },
+    {
+     "mode": [
+      1,
+      1
+     ],
+     "f_hz": 46.65226679045234,
+     "bin": 93,
+     "spatial_pearson_db": 0.9909679439577764,
+     "spatial_pearson_lin": 0.8379063939023632
+    }
+   ],
+   "spatial_pearson": [
+    0.988701730541707,
+    0.9732470882839581,
+    0.9909679439577764
+   ],
+   "spatial_pearson_mean": 0.9843055875944805,
+   "magnitude_corr": 0.76587010139183,
+   "band_lsd_db": 1.8288756608963013,
+   "band_lsd_db_allrx": 1.5995573997497559,
+   "phase_circ_corr": 0.9184099435932328,
+   "rir_pearson": 0.9766651546045114
+  }
+ ]
+}

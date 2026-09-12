@@ -4,102 +4,125 @@
 Z-shaped corridor zero-shot. It is deliberately staged, each stage behind a gate, so that when
 something breaks we know *which* thing broke.
 
-**Status as of 2026-09-11**: **P4-1 complete. Both gates pass.** Stages 2+ not started.
+**Status as of 2026-09-12**: **P4-1 complete (both gates pass). P4-2 complete — GATE 2 FAILS.**
+The staging did its job: we know which thing broke.
 
 ---
 
 ## TL;DR
 
-**The conditioning is ready for shapes; the renderer's occlusion mechanism is not demonstrated.**
+**The conditioning is finished and good. The renderer is the blocker, and we now have the
+measurement that says so.**
 
-* **Gate 0 PASS.** Boundary tokens in absolute world coordinates replace global `(L, W)` — and
-  beat it: spatial Pearson **0.982 vs 0.951**, band LSD **1.722 vs 2.268 dB**, in-distribution
-  val LSD **0.9914 vs 1.0132**, on an otherwise identical arm. The last shoebox-specific
-  component is gone at a net gain.
-* **Gate 1 PASS.** A per-scene fit of a non-convex L-room reaches NLOS spatial Pearson
-  **+0.974** with a LOS−NLOS gap of **+0.020** (+0.890 / +0.074 on held-out receivers). The
-  architecture *can* represent non-convex acoustics.
-* **But Gate 1 is about capacity, not mechanism.** The learned σ field is statistically elevated
-  inside the wall (p = 2.5e-05) yet physically negligible — transmittance across the notch is
-  0.068 against 0.082 for the same path in air. σ does generic distance attenuation; the shape
-  lives in the `signal` field. **No geometric occlusion mechanism has been demonstrated**, and
-  that is what Stage 2 would need to transfer.
-* **One counter-result.** Tokens reconstruct better but respond to edits *less linearly*:
-  `edit_bw_slope` is below Arm C in every split, worst on S4 (0.464 vs 0.789).
+* **Gate 0 PASS** (P4-1). Boundary tokens in absolute world coordinates replace global `(L, W)`
+  and beat it: spatial Pearson **0.982 vs 0.951**, band LSD **1.722 vs 2.268 dB**.
+* **Gate 1 PASS** (P4-1). A per-scene fit of one non-convex L-room reaches NLOS spatial Pearson
+  **+0.974**. The architecture *can* represent non-convex acoustics.
+* **GATE 2 FAIL** (P4-2), all four arms. One model across a 60-shape family reaches in-slab
+  spatial Pearson **0.7978** against a 0.80 threshold. It can fit one room and cannot generalize
+  across the family.
+* **σ ratio ≈ 1.00 on every arm** (0.9987 / 0.9896 / 1.0361 / 0.9820), **two of four below 1.0**.
+  There is no occlusion mechanism. This is the number P4-1 recommended carrying forward as an
+  early warning, and it fired.
+* **Edit linearity is RESTORED and the conditioning question is closed.** `geom_token_m` recovers
+  `edit_bw_slope` 0.871 → **0.957** against Arm C's 0.959 on the gated split, at the best
+  reconstruction of any arm (val LSD **0.9165**). **Adopted** (D68).
 
 ---
 
-## The three numbers that matter (keep these regimes distinct)
+## The four numbers that matter (keep these regimes distinct)
 
 | regime | number | what it is |
 |---|---|---|
-| **zero-shot, unseen rectangle** | spatial Pearson **0.982**, LSD **1.722 dB** | Gate 0, demo protocol, 12 scenarios |
-| **per-scene fit, non-convex** | NLOS Pearson **+0.974** (fit) / **+0.890** (held-out) | Gate 1 — *not* a generalization claim |
-| **held-out receivers, same room** | LSD **3.25 dB** vs 1.00 dB trained | the generalization number inside Gate 1 |
+| **zero-shot, unseen rectangle** | spatial Pearson **0.982** | Gate 0, demo protocol |
+| **per-scene fit, non-convex** | NLOS Pearson **+0.974** | Gate 1 — *not* a generalization claim |
+| **zero-shot, unseen SHAPE** | spatial Pearson **+0.798** | **Gate 2 — this is the generalization number** |
+| **mechanism** | σ solid/air **≈ 1.00** | no learned occluder, on any arm |
 
-Conflating row 2 with row 3 is the single easiest mistake to make with this chunk.
+Row 2 is the one most easily mistaken for row 3. Row 3 is the honest state of the phase.
 
 ---
 
-## What P4-1 built (all reusable)
+## Why Gate 2 failed, in one paragraph
 
-* **`geom_token` arm** — polygon-edge tokens `[cx, cy, nx, ny, extent, m̂]` in absolute metres,
-  12 padded slots with an explicit validity mask, masked-mean pooled. One module covers
-  rectangles (4 edges), L-rooms (6) and the planned Z-corridor (8). No global geometry prefix.
-* **`WORLD_SCALE = 10.0`** (D64) with `normalize_position` in `aaf/walls.py`, opt-in per
-  checkpoint so every pre-P4-1 model is bit-identical (verified 12/12, worst |delta| 0.000e+00).
-* **`PolyConfig`** — the first config class describing a non-rectangular room.
-* **The L-room corpus recipe** — `mask`-based non-convex FDTD geometry with an analytic
-  node-for-node self-check, plus first-ever test coverage for the `mask` spec type.
-* **Gate machinery** — `p4_1_gate0.py`, `p4_1_stage1_eval.py`, both computing the verdict before
-  any figure is drawn.
+`FreqRenderer2D` fans rays **outward from the receiver** and feeds the source in as a network
+input; transmittance accumulates only along the receiver→point leg (**D66**, now a standing
+entry because three separate analyses have had to re-derive it). So σ is structurally able to
+represent a wall between the RECEIVER and a sample point, and structurally **unable** to
+represent one between the SOURCE and that point — the latter can only be absorbed into `signal`,
+i.e. memorized per room. A per-scene fit can afford that memorization; a model asked to
+generalize across shapes cannot. P4-1 measured σ at 1.075 on a single fitted room. P4-2 measures
+it at ~1.00 across a family, with the NLOS deficit **negative** on all four arms (NLOS predicted
+*better* than LOS — the opposite of shadow modelling). Gate 2's 0.7978 is what memorization
+looks like when the corpus stops fitting in the weights.
+
+**The 0.0022 miss is a fail, not an "almost".** The threshold was frozen before the run. And a
+checkpoint with σ ≈ 1.0 is not 0.3% away from a mechanism it does not have.
+
+---
+
+## What P4-2 built (all reusable)
+
+* **`geom_token_m` conditioning** (D68) — geometry-only tokens plus Arm C's proven per-wall
+  material channel. The adopted conditioning for everything downstream.
+* **`aaf/data/shape_configs.py`** — the notch family, grid-snapped, with the hold-out enforced in
+  four independent layers.
+* **`aaf/sim/polygon_geom.py`** — general point-in-polygon, line-of-sight, and the **D65 per-wall
+  extent guard** that makes a silent `tiles_exactly: True` impossible.
+* **`aaf/eval/sigma_probe.py`** (Task C) — the mechanism diagnostic as a standing, tested library,
+  reproducing P4-1's ad-hoc numbers exactly (same probe receiver, means to ten decimals).
+* **`token_pool`** as a plumbed, resume-guarded config key.
+* **The sweep axis** — 20 unseen notch depths at fixed `L, W, w` with probe receivers pinned
+  across rooms, so a shape edit cannot be confounded with a change of listening position.
 
 ---
 
 ## Honesty notes (so nothing gets conflated)
 
-1. **Gate 1's headline is a FIT metric.** 87.5% of its receivers were supervised.
-2. **σ ratio 1.075 is not "the model found the wall".** It is a medium-effect statistical bump
-   with negligible physical consequence.
-3. **`mode_shape_invariance` (0.9898) is not the spatial Pearson (0.982).** Different quantities;
-   the first is agreement with the analytic cosine shape.
-4. **The DC hypothesis is a quarter-effect (23.7%), not a majority**, because `L_amp` (log10) and
-   `L_phase` (cosine) are structurally immune to the DC term. Masking is a **trade-off**:
-   spatial Pearson +0.132, modal-peak LSD +0.473 worse.
-5. **Arm T-geo started behind and finished ahead.** Any matched-iteration comparison before
-   ~22000 iterations reverses the conclusion.
-
----
-
-## Risks carried into Stage 2
-
-1. **No demonstrated occlusion mechanism** (above). Track B (D60a) failed at exactly this point
-   when asked to generalize, and nothing in P4-1 shows that has been solved.
-2. **Edit linearity regressed** with tokens (S4 slope 0.464). If the phase needs both editing and
-   shape transfer, this is unresolved.
-3. **`tx` has been `(0.5, 0.5)` m in 100% of the 2D corpus**, so the source-position encoders
-   have seen exactly one point ever. Any Stage-2 claim that moves the source is unconstrained by
-   training.
-4. **`wall_segments`/`patch` silently mis-describe non-rectangular rooms** (D65). Safe only
-   because Stage 1 used uniform α.
+1. **Gate 1's headline is a FIT metric** (87.5% of receivers supervised). Gate 2's is not — every
+   test shape is unseen, so all 800 of its receivers are unseen too.
+2. **The NLOS-deficit criterion PASSED and means nothing good.** All four deficits are negative.
+   Reported with its power: 354 pooled in-slab receiver-modes, 1.2% mean NLOS census, 5 of 15
+   test shapes with ZERO NLOS receivers.
+3. **The held-out slab is EASIER than the rest of the test set** on every arm (Q22). It is not
+   isolating the difficulty it was designed to isolate.
+4. **Two of the spec's own hypotheses came back negative**: extent-weighted pooling is worse than
+   masked mean by 0.22/0.18 (D69), and DC-masking destroys the impulse response, RIR Pearson
+   0.9989 → 0.0630 (D70). Both have controls and need not be re-run.
+5. **Task A's S4 split did NOT recover** (0.491 vs Arm C's 0.789). The entanglement explanation
+   holds for moderate absorption edits, not for edits at the range edge.
+6. **`tx` has been `(0.5, 0.5)` m in 100% of the prior 2D corpus**; P4-2's family uses a single
+   fixed source at `(0.5, 1.6)`. The source-position encoders remain essentially unconstrained.
+7. **Δ\* ≈ 0.275 from P3-2d is RETRACTED** — it does not replicate at a second seed. See D67(d)
+   and the corrections now in `outputs/p3_2d/SAMPLING_LAW.md`.
 
 ---
 
 ## Artifacts (raw GitHub, `…/main/<path>`)
 
-`tasks/CHUNK_P4_1_RESULTS.md` · `outputs/p4_1/stage0/GATE0.json` ·
-`outputs/p4_1/stage1/GATE1.json` · `outputs/p4_1/stage1/SIGMA_ANALYSIS.json` ·
-`outputs/p4_1/stage1/DATASET_GATE.json` · `outputs/p4_1/dc_fix/DC_COMPARISON.json` ·
-`outputs/p4_1/dc_fix/loss_contribution.json` · `outputs/p4_1/stage0/ARMC_REGRESSION.json` ·
-`outputs/p4_1/stage0/splits_eval/{summary,verdict}.json` ·
-`outputs/p4_1/stage1/fig{G_lroom_fields,H_sigma_profile}.png` · `DECISIONS.md` (D64–D65)
+`tasks/CHUNK_P4_2_RESULTS.md` · `outputs/p4_2/stage2/DATASET_GATE.json` ·
+`outputs/p4_2/stage2/p4_2_s2_{mean,extent}_{masked,unmasked}_eval/GATE2.json` ·
+`outputs/p4_2/stage2/sweep/sweep_metrics.json` ·
+`outputs/p4_2/stage2/sweep/fig{I_sweep_accuracy,J_sweep_waterfall,K_sweep_field_strip}.png` ·
+`outputs/p4_2/taskA/metrics.json` · `outputs/p4_2/taskA/splits_eval/{summary,verdict}.json` ·
+`configs/sweeps_2d_mat/p4_2_shapes_manifest.json` · `DECISIONS.md` (D66–D71) ·
+`OPEN_QUESTIONS.md` (Q21–Q22)
 
 ---
 
 ## Recommended next step
 
-**Stage 2 as specified (multi-shape generalization), with one addition**: carry the σ probe from
-Stage 1 forward as a standing diagnostic. If a model trained across shapes still shows σ ratio
-≈ 1, the representation is memorizing each room in `signal` rather than learning geometry, and
-the Z-corridor will not transfer no matter how good the in-distribution numbers look. That
-measurement costs nothing and is the earliest available warning.
+**Do not build the Z-corridor, and do not start the renderer rewrite yet.** Two cheap experiments
+decide between "the architecture cannot represent occlusion" and "it has no reason to" (Q21):
+
+1. **More shapes / longer training.** The best arm missed by 0.002 on a 60-shape corpus. This is
+   the only way to establish whether the ceiling is architectural at all, and it needs no new
+   code. σ ≈ 1.0 predicts it plateaus — but that prediction should be tested, not assumed.
+2. **An auxiliary loss on σ inside known-solid regions.** The dataset already stores the solid
+   masks. If σ *can* be pushed into the wall and Gate 2 improves, the renderer is fine and the
+   loss was the problem. If it cannot, the renderer change is justified and scoped.
+
+Only then, if needed: **source-side occlusion in the renderer** (a second transmittance leg from
+`tx`, or geometry-conditioned ray termination). It changes the renderer for every arm and
+invalidates cross-phase comparisons, so it needs its own gate and a reference-arm re-run — which
+is exactly why it should not be spent before (1) and (2) have run.

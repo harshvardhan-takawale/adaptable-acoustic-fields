@@ -180,6 +180,7 @@ slurm-*.out
 # hardcodes outputs/p3_2b/eval/<arm>/ -- it was moved here because a P4-1 arm sitting in the
 # P3-2b tree tripped that phase's publication guard (which demands a results-doc row per arm).
 /outputs/p4_1/**/per_config.json
+/outputs/p4_2/**/per_config.json
 
 # Layout-check output of the --synthetic modes: EVERY number in these is FABRICATED. The
 # whitelist above would otherwise make the figures committable, and a watermark is not a
