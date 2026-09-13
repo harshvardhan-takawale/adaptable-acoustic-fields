@@ -1,0 +1,79 @@
+{
+ "passed": true,
+ "n_items": 14,
+ "items": [
+  {
+   "name": "all_rooms_built",
+   "pass": true,
+   "detail": "350 of 350 built"
+  },
+  {
+   "name": "uniform_freq_bins",
+   "pass": true,
+   "detail": "bins [601]"
+  },
+  {
+   "name": "uniform_receiver_count",
+   "pass": true,
+   "detail": "receiver counts [800] (np.stack needs exactly one)"
+  },
+  {
+   "name": "unique_filenames",
+   "pass": true,
+   "detail": "350 unique of 350 (a U and a T must not alias)"
+  },
+  {
+   "name": "unique_labels",
+   "pass": true,
+   "detail": "350 unique of 350"
+  },
+  {
+   "name": "holdout_slab_empty_in_train",
+   "pass": true,
+   "detail": "0 training rooms in [0.45, 0.6]"
+  },
+  {
+   "name": "families_balanced",
+   "pass": true,
+   "detail": "train {'DN': 60, 'L': 60, 'T': 60, 'U': 60, 'rect': 60} | test {'DN': 10, 'L': 10, 'T': 10, 'U': 10, 'rect': 10}"
+  },
+  {
+   "name": "token_counts_match_family",
+   "pass": true,
+   "detail": "rect 4 / L 6 / U,T,DN 8; 0 mismatches"
+  },
+  {
+   "name": "all_rooms_legal",
+   "pass": true,
+   "detail": "0 illegal"
+  },
+  {
+   "name": "grid_aligned_D67c",
+   "pass": true,
+   "detail": "0 parameters off the 0.02 m grid"
+  },
+  {
+   "name": "solver_matches_polygon",
+   "pass": true,
+   "detail": "worst disagreement 0 nodes over 21 sampled rooms"
+  },
+  {
+   "name": "source_in_air_everywhere",
+   "pass": true,
+   "detail": "0 rooms with the source inside solid"
+  },
+  {
+   "name": "reflex_corner_counts",
+   "pass": true,
+   "detail": "0 mismatches"
+  },
+  {
+   "name": "second_notch_changes_the_physics",
+   "pass": true,
+   "detail": "L vs U with the same bbox differ by 4.313 dB mean (>= 0.5)"
+  }
+ ],
+ "n_train": 300,
+ "n_test": 50,
+ "manifest_sha": "5efa64a9f6521a19c9d97b2cacaaa1397f3b2960a4e2e7be38e4ce74a4ded8f1"
+}
