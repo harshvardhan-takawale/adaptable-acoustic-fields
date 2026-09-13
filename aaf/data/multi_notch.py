@@ -288,3 +288,225 @@ def _self_intersects(v: Sequence[Tuple[float, float]]) -> bool:
             if ((d1 > EPS) != (d2 > EPS)) and ((d3 > EPS) != (d4 > EPS)):
                 return True
     return False
+
+
+# ============================================================================ corpus plumbing
+N_FAM_TRAIN = 60           # per family: rect, L, U, T, DN  -> 300 training rooms
+N_FAM_TEST = 10            # per family -> 50 held-out rooms
+N_FAM_TEST_IN_SLAB = 3     # per notched family
+D_HAT_HOLDOUT_FAM = (0.45, 0.60)
+
+
+def _primary(notches: Sequence[Notch]) -> Optional[Notch]:
+    """The notch whose depth defines `d_hat` for the family.
+
+    A single scalar depth is what the hold-out slab, the strata and every report key on, and the
+    families do not share a notch set -- so one notch has to be nominated. The NW notch is the
+    one every notched family except T has, and it is the direct continuation of the P4-2/P4-3
+    parameterization, which keeps `d_hat` meaning the same thing across chunks.
+    """
+    by = {n.side: n for n in notches}
+    for side in ("NW", "midN", "NE", "SE"):
+        if side in by:
+            return by[side]
+    return None
+
+
+def family_of(notches: Sequence[Notch]) -> str:
+    sides = tuple(sorted(n.side for n in notches))
+    for name, want in FAMILIES.items():
+        if sides == tuple(sorted(want)):
+            return name
+    raise ValueError("no family matches sides {}".format(sides))
+
+
+@dataclass(frozen=True)
+class FamilyConfig:
+    """One multi-notch room. Mirrors `ShapeConfig`'s interface so the trainer, the builder and
+    the evaluators can consume either without a branch -- `configs_from_rows` has the same
+    signature, and every attribute the trainer touches (`L`, `W`, `verts`, `edge_alphas`,
+    `alphas`, `filename`, `label`, `strata`, `kind`) is present with the same meaning."""
+
+    L: float
+    W: float
+    notches: Tuple[Notch, ...] = ()
+    split: str = "train"
+    shape_id: int = 0
+
+    @property
+    def kind(self) -> str:
+        return family_of(self.notches)
+
+    @property
+    def n_tokens(self) -> int:
+        return len(self.verts)
+
+    @property
+    def is_rect(self) -> bool:
+        return not self.notches
+
+    @property
+    def verts(self) -> List[Tuple[float, float]]:
+        return verts_for_notches(self.L, self.W, self.notches)
+
+    @property
+    def edge_alphas(self) -> Tuple[float, ...]:
+        return tuple([ALPHA] * len(self.verts))
+
+    @property
+    def alphas(self) -> List[float]:
+        """4-vector bbox view for the trainer's manifest/data drift check. Uniform alpha, so it
+        is exact rather than lossy -- but it verifies nothing about the notches, which is why the
+        builder cross-checks the solid mask against the polygon node for node instead."""
+        return [ALPHA] * 4
+
+    @property
+    def d_hat(self) -> float:
+        n = _primary(self.notches)
+        return 0.0 if n is None else n.d / d_max_for(self.W)
+
+    @property
+    def w_hat(self) -> float:
+        n = _primary(self.notches)
+        return 0.0 if n is None else n.w / w_max_for(self.L)
+
+    @property
+    def filename(self) -> str:
+        """DERIVED, and it must encode EVERY notch. A U and a T with the same (L, W, d, w) would
+        otherwise alias onto one .h5 and the trainer would fit one room to another's field with
+        no error -- the same hazard `shape_filename`'s docstring warns about, made live by having
+        more than one notch."""
+        parts = ["{}L{:.2f}_W{:.2f}".format(self.kind, self.L, self.W)]
+        for n in sorted(self.notches, key=lambda n: n.side):
+            parts.append("{}d{:.2f}w{:.2f}x{:.2f}".format(n.side, n.d, n.w, n.x0))
+        return "_".join(parts) + ".h5"
+
+    @property
+    def label(self) -> str:
+        return self.filename[:-3]
+
+    @property
+    def strata(self) -> str:
+        """Family x depth bucket. The trainer stratifies validation on this and then TRUNCATES,
+        so the count matters: 5 families x 4 buckets = 20 strata, which is why the family configs
+        raise `val_max_configs` -- at the old 30 the val set would collapse to roughly one
+        config per stratum and early stopping reads that metric."""
+        if self.is_rect:
+            return "rect"
+        return "{}_d{}".format(self.kind, min(3, int(self.d_hat * 4)))
+
+    def row(self, i: int) -> dict:
+        return {"i": i, "split": self.split, "kind": self.kind, "shape_id": self.shape_id,
+                "L": self.L, "W": self.W, "d_hat": round(self.d_hat, 6),
+                "w_hat": round(self.w_hat, 6), "n_tokens": self.n_tokens,
+                "notches": [{"side": n.side, "d": n.d, "w": n.w, "x0": n.x0}
+                            for n in self.notches],
+                "verts": [list(v) for v in self.verts],
+                "edge_alphas": list(self.edge_alphas), "alphas": list(self.alphas),
+                "filename": self.filename, "label": self.label, "strata": self.strata,
+                "in_holdout": bool(D_HAT_HOLDOUT_FAM[0] <= self.d_hat <= D_HAT_HOLDOUT_FAM[1])}
+
+
+def configs_from_rows(rows: Sequence[dict], split: Optional[str] = None,
+                      kinds: Sequence[str] = ()) -> List[FamilyConfig]:
+    """Signature matches every sibling `configs_from_rows` verbatim so the trainer's schema
+    dispatch can swap it in with no other change."""
+    out = []
+    for r in rows:
+        if split is not None and r.get("split") != split:
+            continue
+        if kinds and r.get("kind") not in kinds:
+            continue
+        out.append(FamilyConfig(
+            L=float(r["L"]), W=float(r["W"]),
+            notches=tuple(Notch(side=str(n["side"]), d=float(n["d"]), w=float(n["w"]),
+                                x0=float(n.get("x0", 0.0))) for n in r.get("notches", ())),
+            split=str(r.get("split", "train")), shape_id=int(r.get("shape_id", 0))))
+    return out
+
+
+def _draw_family(rng, fam: str, force_slab: Optional[bool] = None):
+    """One valid draw for a family, or None. All four parameters land on the FDTD grid (D67c)."""
+    L = _q(rng.uniform(*L_RANGE))
+    W = _q(rng.uniform(*W_RANGE))
+
+    def _one(side, lo=0.0, hi=1.0):
+        dh = float(rng.uniform(lo, hi))
+        wh = float(rng.uniform(0.15, 1.0))
+        return Notch(side, _q(dh * d_max_for(W)), _q(wh * w_max_for(L)))
+
+    sides = FAMILIES[fam]
+    if not sides:
+        return L, W, ()
+    lo, hi = (D_HAT_HOLDOUT_FAM if force_slab else (0.0, 1.0))
+    ns = []
+    for k, side in enumerate(sides):
+        n = _one(side, lo, hi) if k == 0 else _one(side)
+        if side == "midN":
+            span = L - n.w
+            if span <= 2 * MIN_STEM_M:
+                return None
+            n = Notch("midN", n.d, n.w, x0=_q(rng.uniform(MIN_STEM_M, span - MIN_STEM_M)))
+        ns.append(n)
+    ns = tuple(ns)
+    prim = _primary(ns)
+    dh = prim.d / d_max_for(W)
+    in_slab = D_HAT_HOLDOUT_FAM[0] <= dh <= D_HAT_HOLDOUT_FAM[1]
+    if force_slab is True and not in_slab:
+        return None
+    if force_slab is not True and in_slab:
+        return None                       # the hold-out band, enforced by redraw
+    ok, _why = geometry_ok(L, W, ns)
+    return (L, W, ns) if ok else None
+
+
+def sample_family_shapes(n_per: int = N_FAM_TRAIN, split: str = "train",
+                         seed: int = FAMILY_SEED, n_in_slab: int = 0,
+                         exclude: Sequence[str] = ()) -> List[FamilyConfig]:
+    """`n_per` rooms for each of the five families, no filename colliding with `exclude`."""
+    used = set(exclude)
+    out: List[FamilyConfig] = []
+    for fi, fam in enumerate(sorted(FAMILIES)):
+        made = 0
+        for k in range(n_per * 400):
+            if made >= n_per:
+                break
+            rng = np.random.default_rng([seed, fi, k])
+            want_slab = None
+            if fam != "rect" and n_in_slab:
+                want_slab = made < n_in_slab
+            got = _draw_family(rng, fam, force_slab=want_slab)
+            if got is None:
+                continue
+            L, W, ns = got
+            c = FamilyConfig(L, W, ns, split=split, shape_id=5000 + 1000 * fi + made)
+            if c.filename in used:
+                continue
+            used.add(c.filename)
+            out.append(c)
+            made += 1
+        if made < n_per:
+            raise RuntimeError("only {} / {} draws for family {}".format(made, n_per, fam))
+    return out
+
+
+def refine_verts(verts: Sequence[Tuple[float, float]], k: int = 2):
+    """Split every edge into `k` COLLINEAR pieces: the same room, described by k times as many
+    boundary tokens.
+
+    This is the token-count control. Comparing a rectangle (4 tokens) with a U (8) confounds
+    token count with geometry; comparing a room against ITSELF re-tokenized does not. The physics,
+    the .h5 and the receivers are untouched -- only the conditioning vector changes -- so the
+    difference in accuracy is attributable to token count alone and costs no new simulation.
+    """
+    if k < 1:
+        raise ValueError("k must be >= 1")
+    v = [(float(x), float(y)) for x, y in verts]
+    n = len(v)
+    out = []
+    for i in range(n):
+        a, b = v[i], v[(i + 1) % n]
+        for t in range(k):
+            f = t / float(k)
+            out.append((a[0] + f * (b[0] - a[0]), a[1] + f * (b[1] - a[1])))
+    return out

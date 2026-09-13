@@ -15,6 +15,8 @@ room, and every rejection guard is tested by constructing a draw that must trip 
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -171,3 +173,79 @@ def test_self_intersection_check_flags_a_crossed_ring():
     from aaf.data.multi_notch import _self_intersects
     assert not _self_intersects(verts_for_notches(L, W, _fam("U")))
     assert _self_intersects([(0.0, 0.0), (6.0, 5.0), (6.0, 0.0), (0.0, 5.0)])
+
+
+# ------------------------------------------------------- corpus plumbing and the token control
+def test_family_filenames_cannot_alias_across_families():
+    """A U and a T with the same (L, W, d, w) must NOT collide. `shape_filename`'s docstring
+    warns that aliasing means the trainer fits one room to another's field with no error; having
+    more than one notch is what makes that hazard reachable."""
+    from aaf.data.multi_notch import FamilyConfig
+    u = FamilyConfig(L, W, (Notch("NW", 1.2, 2.0), Notch("NE", 1.2, 2.0)))
+    t = FamilyConfig(L, W, (Notch("midN", 1.2, 2.0, x0=2.0),))
+    l = FamilyConfig(L, W, (Notch("NW", 1.2, 2.0),))
+    names = {u.filename, t.filename, l.filename}
+    assert len(names) == 3, names
+    assert u.n_tokens == 8 and t.n_tokens == 8 and l.n_tokens == 6
+
+
+def test_family_config_exposes_the_trainer_interface():
+    """The trainer, the builder and the evaluators consume ShapeConfig and FamilyConfig without
+    a branch, so every attribute they touch must be present with the same meaning."""
+    from aaf.data.multi_notch import FamilyConfig
+    c = FamilyConfig(L, W, (Notch("NW", 1.2, 1.6), Notch("NE", 0.9, 1.4)), shape_id=7)
+    assert len(c.alphas) == 4                      # bbox view for the drift check
+    assert len(c.edge_alphas) == len(c.verts)      # one per EDGE
+    assert c.kind == "U" and c.strata.startswith("U_")
+    assert 0.0 <= c.d_hat <= 1.0 and 0.0 <= c.w_hat <= 1.0
+    assert c.filename.endswith(".h5") and c.label == c.filename[:-3]
+    r = c.row(0)
+    for k in ("L", "W", "verts", "edge_alphas", "alphas", "filename", "label", "strata",
+              "kind", "n_tokens", "notches"):
+        assert k in r, k
+
+
+def test_trainer_schema_branch_exists_for_the_family_manifest():
+    """Without it the rows fall through to the shoebox reader. For this schema that raises a bare
+    KeyError rather than mis-parsing -- but the branch is still mandatory, and P4-2 lost a day to
+    the version of this bug that failed silently."""
+    src = Path(__file__).resolve().parents[1].joinpath(
+        "aaf/train/multi_room_2d_mat.py").read_text()
+    assert 'startswith("p4_4.family")' in src
+    assert "from aaf.data.multi_notch import configs_from_rows" in src
+
+
+@pytest.mark.parametrize("fam,k,want", [("rect", 2, 8), ("rect", 3, 12), ("L", 2, 12)])
+def test_refine_verts_is_the_same_room_with_more_tokens(fam, k, want):
+    """The token-count control. Splitting every edge into k collinear pieces leaves the room
+    identical -- same membership everywhere -- while multiplying the token count, so any accuracy
+    difference is attributable to token count alone and costs no new simulation.
+
+    The (fam, k) pairs are exactly those that fit MAX_SEG_POLY = 12, which is what makes the
+    rectangle the best control in the corpus: the SAME room can be described at 4, 8 and 12
+    tokens, a three-point curve at literally fixed geometry.
+    """
+    from aaf.data.multi_notch import refine_verts
+    v = verts_for_notches(L, W, _fam(fam))
+    r = refine_verts(v, k)
+    assert len(r) == want
+    rng = np.random.default_rng(0)
+    P = np.stack([rng.uniform(0, L, 4000), rng.uniform(0, W, 4000)], axis=-1)
+    assert np.array_equal(polygon_contains(v, P), polygon_contains(r, P)), \
+        "refined ring describes a different room"
+    n = len(r)
+    area2 = sum(r[i][0] * r[(i + 1) % n][1] - r[(i + 1) % n][0] * r[i][1] for i in range(n))
+    assert area2 > 0, "refined ring came out clockwise"
+    polygon_edge_tokens(r, [0.15] * n)             # raises on zero-length edges
+
+
+def test_refined_rings_stay_inside_the_token_budget():
+    """MAX_SEG_POLY = 12 bounds the control, and the bound is worth pinning because it decides
+    which comparisons are even available: rect reaches 4/8/12, L reaches 6/12, and the 8-token
+    families cannot be refined at all (8 x 2 = 16). So the token-count question is answered on
+    rect and L, and the U/T/DN rows contribute the across-GEOMETRY comparison instead."""
+    from aaf.data.multi_notch import refine_verts
+    assert len(refine_verts(verts_for_notches(L, W, _fam("rect")), 3)) == MAX_SEG_POLY
+    assert len(refine_verts(verts_for_notches(L, W, _fam("L")), 2)) == MAX_SEG_POLY
+    with pytest.raises(ValueError, match="MAX_SEG_POLY"):
+        polygon_edge_tokens(refine_verts(verts_for_notches(L, W, _fam("U")), 2), [0.15] * 16)

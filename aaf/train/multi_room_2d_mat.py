@@ -235,6 +235,13 @@ class P32Trainer:
                 # L, W, alphas and filename -- and produces configs with NO verts, so every
                 # L-room would be conditioned as a RECTANGLE with no error anywhere.
                 from aaf.data.shape_configs import configs_from_rows
+            elif str(man.get("schema", "")).startswith("p4_4.family"):
+                # P4-4 Task 3: rect / L / U / T / DN in one corpus. Rows carry a NOTCH LIST
+                # rather than (d, w), and the config derives .verts from it -- so the same
+                # silent-rectangle failure described above applies with more force here. These
+                # rows have no `d`/`w` keys at all, so the notch-family reader would raise a bare
+                # KeyError rather than mis-parse; either way the branch is mandatory.
+                from aaf.data.multi_notch import configs_from_rows
             elif str(man.get("schema", "")).startswith("p3_3fast.trackB"):
                 # Track 2b rows carry a divider (x0) and a doorway width (a); their four wall
                 # alphas are all baseline, so the aperture lives on the config object, not in

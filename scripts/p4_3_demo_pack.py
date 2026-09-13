@@ -369,6 +369,15 @@ def main() -> int:
     model, renderer, cfg_d, it, ck = _load(a.run_dir, a.checkpoint)
 
     report = {"arm": Path(a.run_dir).name, "checkpoint": str(ck), "iter": int(it),
+              # SELF-DESCRIBING ON PURPOSE. This pack averages spatial Pearson over the first
+              # N_MODES_SHOWN = 3 resolvable modes; Gate 2 and the sweep curve use 6. The demo
+              # therefore reads HIGHER than the gate number for the same checkpoint, and that is
+              # a difference of protocol, not a discrepancy. Recorded here so nobody has to
+              # reverse-engineer it from two tables that disagree.
+              "n_modes": N_MODES_SHOWN,
+              "n_modes_note": ("spatial_pearson is averaged over the first 3 resolvable modes; "
+                               "Gate 2 and the sweep curve use 6, so the two are not directly "
+                               "comparable"),
               "scope": SHALLOW_NOTE, "shapes": {}}
     allc = demo_configs()
     for sh in DEMO_SHAPES:
