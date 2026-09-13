@@ -38,8 +38,9 @@ import tinycudann as tcnn
 # Pooling arms available to the polygon token conditioners. `masked_mean` and `extent_sum` are
 # P4-2's pair (D69 retired extent_sum on the evidence); `attn` and `attn_residual` are P4-3's
 # Arm X, the first pools whose output DEPENDS ON THE QUERY POSITION.
-POLY_TOKEN_POOLS = ("masked_mean", "extent_sum", "attn", "attn_residual")
-ATTN_TOKEN_POOLS = ("attn", "attn_residual")
+POLY_TOKEN_POOLS = ("masked_mean", "extent_sum", "attn", "attn_residual",
+                    "attn_residual_extent")
+ATTN_TOKEN_POOLS = ("attn", "attn_residual", "attn_residual_extent")
 
 
 def _fourier_pos_batched(v: torch.Tensor, n_k: int) -> torch.Tensor:
@@ -391,7 +392,11 @@ class INR2D_AutoDecoder(nn.Module):
                     f"{self.cond_source!r}")
             else:
                 self.token_pool = "mean" if self.cond_source == "m_token" else "delta"
-            if self.token_pool in ("attn", "attn_residual"):
+            if self.token_pool in ATTN_TOKEN_POOLS:
+                # P4-3 Arm X (P4-4 adds `attn_residual_extent`). Gate on the CONSTANT,
+                # not a literal tuple: a hard-coded list here silently skipped building
+                # q/k/v/o_proj for the P4-4 arm, which then failed at load time.
+                #
                 # P4-3 Arm X. Mean and extent-sum both hand EVERY point in the room the
                 # IDENTICAL shape vector, so occlusion -- a relation between a point, the
                 # source and a particular wall -- is structurally inexpressible no matter how
@@ -414,11 +419,13 @@ class INR2D_AutoDecoder(nn.Module):
                 self.k_proj = nn.Linear(TOKEN_AGG_DIM, self._attn_dim)
                 self.v_proj = nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM)
                 self.o_proj = nn.Linear(TOKEN_AGG_DIM, TOKEN_AGG_DIM)
-                if self.token_pool == "attn_residual":
-                    # ZERO-INIT so iteration 0 IS the masked_mean baseline, exactly. Any later
-                    # divergence is then attributable to position-dependence alone rather than
-                    # to a fresh pool relearning what mean-pooling already did -- which matters
-                    # over a 60K run whose predecessor (T-geo) trailed until ~22K.
+                if self.token_pool in ("attn_residual", "attn_residual_extent"):
+                    # ZERO-INIT so iteration 0 IS the residual arm's BASE pool exactly -- the
+                    # masked mean for `attn_residual`, the extent-weighted sum for
+                    # `attn_residual_extent`. Any later divergence is then attributable to
+                    # position-dependence alone rather than to a fresh pool relearning what the
+                    # base already did -- which matters over a 60K run whose predecessor (T-geo)
+                    # trailed until ~22K.
                     nn.init.zeros_(self.o_proj.weight)
                     nn.init.zeros_(self.o_proj.bias)
             if self.token_pool == "delta":
@@ -738,6 +745,15 @@ class INR2D_AutoDecoder(nn.Module):
                     if self.token_pool == "attn_residual":
                         # o_proj is zero-initialised, so this is EXACTLY masked_mean at step 0.
                         agg = ((e * m).sum(dim=1) / m.sum(dim=1).clamp(min=1.0)) + delta
+                    elif self.token_pool == "attn_residual_extent":
+                        # P4-4: the two independent P4-3 wins, combined. The residual base is the
+                        # EXTENT-WEIGHTED SUM rather than the mean -- D73 showed extent_sum beats
+                        # masked_mean under the unmasked loss once it is evaluated with the
+                        # pooling it was trained with (-0.043) -- and the attention delta rides on
+                        # top of it. Zero-init o_proj makes step 0 EXACTLY pure extent_sum, the
+                        # same identity-at-init property that made X1 interpretable.
+                        w = t[..., self._tok_extent_idx:self._tok_extent_idx + 1] * m
+                        agg = (e * w).sum(dim=1) + delta
                     else:
                         agg = delta
                 else:

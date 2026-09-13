@@ -69,6 +69,12 @@ See `CLUSTER_INFO.md` for partitions, QoS, sbatch template, log conventions, and
 
 7. **Reference material lives in `project_files/`** (gitignored). It includes the AVR/INFER artifacts and PDFs. Do not copy them into the repo.
 
+8. **Behaviour that differs WITHOUT differing in parameters needs a BEHAVIOURAL test — a checkpoint round-trip cannot catch it.** If two variants produce different outputs from the same weights — a pooling mode, a mask definition, a loss band, a probe region — then their `state_dict`s are key-identical, `load_state_dict` accepts either silently, and nothing downstream complains. This cost two published results (D73, D74): `extent_sum` adds no parameters, so P4-2's two extent arms were reconstructed as `masked_mean` by an evaluator that simply forgot to pass `token_pool`, and their numbers were wrong by 0.21 for a whole chunk. The test must assert the *output differs* (and, where there is an identity-at-init claim, that it is *bit-identical* under the stated condition) — not that the checkpoint loads. Watch for the vacuous version: FiLM is zero-initialised, so at step 0 the network output does not depend on the conditioning at all and a test that skips waking it would pass on a completely broken implementation.
+
+9. **The DC-masked loss is retired (D70).** Train unmasked. It bought +0.05 in-slab spatial Pearson and collapsed RIR Pearson from 0.9989 to 0.0630 — a representation whose impulse response is uncorrelated with the truth has failed at what it is for. Any DC-masked number that is reported anyway must carry its RIR correlation beside it.
+
+10. **The renderer-rewrite / occlusion branch is CLOSED (D77).** Do not add source-side occlusion, geometry-conditioned ray termination, or a second transmittance leg. Arm S showed a learned occluder is neither necessary (Arm D passes Gate 2 with sigma ~ 1.0) nor sufficient (Arm S has a real, generalizing 8x one and is the worst arm measured). Path-targeted sigma supervision survives as a footnote only, and is deprioritized: at wavelength >= feature size there is no geometric shadow to model, so the expected return is low. The lever that works is corpus density along the shape parameters (D75).
+
 ## Code style
 
 - Python 3.8 (matches the cloned env). When 3.10+ syntax is tempting, don't.

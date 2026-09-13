@@ -77,6 +77,7 @@ MIN_RECTANGLES = 8          # anchor the degenerate end of the family
 SEED = 20260911
 TEST_SEED = 20260912
 EXTRA_SEED = 20260913   # P4-3 Arm D: the shallow-band corpus extension
+BALANCE_SEED = 20260914  # P4-4 Task 2: density-equalizing top-up to 250 / 500
 GEOM_QUANT_DP = 2           # dims quantized to the dp the filename encodes, at generation time
 
 #: EVERY parameter is snapped to a multiple of this. It is the FDTD cell size, and the reason is
@@ -355,6 +356,76 @@ def sample_extra_shapes(existing: Sequence[ShapeConfig], n: int,
             break
         else:
             raise RuntimeError("could not find a unique in-band shape for slot {}".format(k))
+    return out
+
+
+def sample_balanced_shapes(existing: Sequence[ShapeConfig], n: int,
+                           seed: int = BALANCE_SEED, n_cand: int = 192,
+                           n_bins: int = 10) -> List[ShapeConfig]:
+    """Top up a corpus with shapes drawn into its EMPTIEST bins (P4-4 Task 2).
+
+    P4-3 added density in one hand-picked band and it worked (D75). Scaling to ~250 needs that
+    idea without the hand-picking, because at 92 shapes the thin spots are spread over all four
+    axes -- d_hat [0.7,0.8) has 4, w_hat [0.1,0.2) has 5, L [5.2,5.4) has 4, W [4.2,4.6) has 5.
+
+    NOT MAXIMIN, and that is the point. Greedy maximin was the obvious reuse (it is what
+    `sample_test_shapes` does) and it is WRONG here: maximizing minimum separation drives points
+    to the corners of the box, because that is where they are furthest from everything. Measured
+    on this corpus it made the d_hat imbalance WORSE -- 48x, against 15x before topping up. What
+    equalizes a marginal is choosing the candidate that lands in the currently-emptiest BINS, so
+    that is what this does: draw `n_cand` valid candidates, score each by the summed occupancy of
+    its bin on every axis, keep the lowest, and update the counts. Ties break on the raw count so
+    the fill stays deterministic under the seed.
+
+    Every constraint the single-band sampler enforced still applies: quantization to the FDTD
+    grid (D67c), the sliver floor on w_hat, `passage_ok`, and an empty hold-out slab -- checked
+    AFTER quantization, because a draw at d_hat 0.4497 can land on 0.4503.
+    """
+    if n <= 0:
+        return []
+
+    def _axes(L, W, d, w):
+        return ((L - L_RANGE[0]) / (L_RANGE[1] - L_RANGE[0]),
+                (W - W_RANGE[0]) / (W_RANGE[1] - W_RANGE[0]),
+                d_hat(d, W), w_hat(w, L))
+
+    def _bins(vals):
+        return tuple(min(n_bins - 1, max(0, int(v * n_bins))) for v in vals)
+
+    counts = np.zeros((4, n_bins), dtype=float)
+    for c in existing:
+        for ax, b in enumerate(_bins(_axes(c.L, c.W, c.d, c.w))):
+            counts[ax, b] += 1.0
+
+    used = {c.filename for c in existing}
+    out: List[ShapeConfig] = []
+    for k in range(n):
+        best, best_score = None, None
+        for attempt in range(n_cand * 8):
+            rng = np.random.default_rng([seed, k, attempt])
+            L = _q(rng.uniform(*L_RANGE))
+            W = _q(rng.uniform(*W_RANGE))
+            dh = float(rng.uniform(0.0, 1.0))
+            wh = float(rng.uniform(0.15, 1.0))
+            d, w = _q(dh * d_max_for(W)), _q(wh * w_max_for(L))
+            if d <= 0.0 or w <= 0.0 or in_holdout(d_hat(d, W)) or not passage_ok(L, W, d, w):
+                continue
+            fn_ = shape_filename(L, W, d, w)
+            if fn_ in used:
+                continue
+            bs = _bins(_axes(L, W, d, w))
+            score = float(sum(counts[ax, b] for ax, b in enumerate(bs)))
+            if best_score is None or score < best_score:
+                best, best_score, best_bins = (L, W, d, w, fn_), score, bs
+            if len([1 for _ in range(0)]) or attempt >= n_cand:
+                break
+        if best is None:
+            raise RuntimeError("no valid candidate for balanced slot {}".format(k))
+        L, W, d, w, fn_ = best
+        used.add(fn_)
+        for ax, b in enumerate(best_bins):
+            counts[ax, b] += 1.0
+        out.append(ShapeConfig(L, W, d, w, split="train", shape_id=3000 + k))
     return out
 
 

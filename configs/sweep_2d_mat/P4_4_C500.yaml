@@ -1,0 +1,62 @@
+# P4-4 Task 2: the combined arm -- attention-residual conditioning on an EXTENT-weighted
+# base -- at three corpus sizes.
+#
+# Two independent P4-3 wins combined. X1 showed the attention residual passes Gate 2 at
+# 0.8438 (best in the phase); D73's correction showed extent_sum BEATS masked_mean by
+# 0.043 under the unmasked loss once it is evaluated with the pooling it was trained
+# with. `attn_residual_extent` puts the attention delta on the extent base, with o_proj
+# zero-initialised so iteration 0 IS pure extent_sum.
+#
+# ckpt_keep_last 3, not 10: there is no separate 'best' checkpoint -- save_ckpt keeps a
+# rolling window and every published P4-2/P4-3 number came from the LAST one. Keeping 10
+# costs 6.8 GB/arm of weights nothing reads, and the project disk is at 92%.
+#
+# ARM: 500 shapes -- the far point of the scaling curve. Run regardless: a data-scaling law for
+# shape is itself the deliverable, and the analogue of P3-2d's material sampling law.
+
+run_id: p4_4_C500
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml   # unused; the manifest supplies the shapes
+data_dir: data/track_p4_2_shapes
+configs_manifest: configs/sweeps_2d_mat/p4_4_shapes_500.json
+
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: attn_residual_extent
+loss_band_lo_hz: 0.0
+
+# Rows per BACKWARD = (batch_size // rx_per_config) * rx_per_config, and a renderer row is
+# ~134 MB at n_pts_per_ray=64 -- 8 is P4-1's proven footprint on a 24 GB card. A first attempt
+# at batch_size 16 / rx 4 / accum 1 put 16 rows in ONE backward and OOMed immediately; the
+# accumulation steps do NOT share the memory, each is its own backward.
+#
+# This shape keeps 8 rows/backward and 16 rows/step exactly as P4-1, while raising the number of
+# DISTINCT SHAPES per backward from 2 to 4 -- which matters far more with 60 shapes than with
+# 960 material variants.
+n_iters: 60000
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 2.0e-4
+
+# val_max_configs >= the stratum count: the trainer truncates the val list in MANIFEST-INDEX
+# order AFTER stratifying, so a smaller value would quietly make the val curve one corner of
+# the shape space -- and early stopping reads it.
+val_every: 2000
+val_max_configs: 40
+ckpt_every: 2000
+ckpt_keep_last: 3
+early_stop_warmup: 10000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8

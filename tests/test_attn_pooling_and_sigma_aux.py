@@ -300,3 +300,78 @@ def test_load_model_passes_token_pool_from_the_checkpoint():
     assert "token_pool" in body, (
         "load_model does not pass token_pool; extent_sum and attention checkpoints would be "
         "rebuilt as masked_mean")
+
+
+# ------------------------------------------------- P4-4: attn_residual_extent (CLAUDE.md rule 8)
+# The attention block adds parameters, but the thing that distinguishes this arm from
+# `attn_residual` is its residual BASE -- extent-weighted sum vs masked mean -- and that base
+# adds no parameters at all. So the two arms have key-identical state_dicts and a checkpoint
+# round-trip cannot tell them apart. These are behavioural tests, per the standing rule.
+
+@GPU
+def test_attn_residual_extent_is_bit_identical_to_extent_sum_at_init():
+    """The identity-at-init property this arm is built on: zero-init o_proj means the delta is
+    exactly zero, so iteration 0 must reproduce pure extent_sum through the WHOLE network."""
+    a = _model("extent_sum", seed=13)
+    b = _model("attn_residual_extent", seed=13)
+    sd = b.state_dict()
+    for k, v in a.state_dict().items():
+        assert k in sd
+        sd[k] = v.clone()
+    b.load_state_dict(sd)
+    assert float(b.o_proj.weight.abs().max()) == 0.0
+    assert float(b.o_proj.bias.abs().max()) == 0.0
+    cond = build_cond_vector_2d("geom_token", 6.0, 5.0, [0.15] * 6, verts=L_VERTS)
+    pts = torch.tensor([[1.0, 1.0], [5.0, 4.0], [2.9, 2.4]])
+    at, st = _run(a, cond, pts)
+    bt, sb = _run(b, cond, pts)
+    assert torch.equal(at, bt), "attn_residual_extent is not identical to extent_sum at init"
+    assert torch.equal(st, sb)
+
+
+@GPU
+def test_attn_residual_extent_differs_from_attn_residual():
+    """The two residual arms share every parameter name and shape. If the base were wired to the
+    mean in both, this arm would silently BE X1 and the P4-4 comparison would be vacuous."""
+    a = _model("attn_residual", seed=17)
+    b = _model("attn_residual_extent", seed=17)
+    sd = b.state_dict()
+    for k, v in a.state_dict().items():
+        sd[k] = v.clone()
+    b.load_state_dict(sd)
+    # wake o_proj on BOTH so the delta is live and only the base differs
+    for m in (a, b):
+        torch.nn.init.normal_(m.o_proj.weight, std=0.1)
+    b.o_proj.load_state_dict(a.o_proj.state_dict())
+    cond = build_cond_vector_2d("geom_token", 6.0, 5.0, [0.15] * 6, verts=L_VERTS)
+    pts = torch.tensor([[1.0, 1.0], [5.0, 4.0]])
+    at, _ = _run(a, cond, pts)
+    bt, _ = _run(b, cond, pts)
+    assert not torch.equal(at, bt), "the extent base is not being used"
+
+
+@GPU
+def test_attn_residual_extent_ignores_padding_and_varies_with_position():
+    """Both properties in one room: a rectangle fills 4 of 12 slots, so corrupting the 8 padded
+    ones must change nothing, and the pooled conditioning must still depend on the query point."""
+    m = _model("attn_residual_extent", seed=19)
+    torch.nn.init.normal_(m.o_proj.weight, std=0.1)
+    cond = build_cond_vector_2d("geom_token", 6.0, 5.0, ALPHAS4)
+    n_tok = MAX_SEG_POLY * D_TOK
+    bad = cond.clone()
+    pad = bad[:n_tok].reshape(MAX_SEG_POLY, D_TOK)
+    pad[4:] = torch.randn_like(pad[4:]) * 5.0
+    bad[:n_tok] = pad.reshape(-1)
+    pts = torch.tensor([[1.0, 1.0], [4.0, 3.0], [0.3, 4.7]])
+    a0, s0 = _run(m, cond, pts)
+    a1, s1 = _run(m, bad, pts)
+    assert torch.equal(a0, a1) and torch.equal(s0, s1), "padded slots leaked into the output"
+
+    seen = {}
+    h = m.film_sigma.register_forward_hook(
+        lambda _m, i, _o: seen.__setitem__("z", i[0].detach()))
+    _run(m, cond, torch.tensor([[0.2, 0.2], [5.8, 4.8], [3.0, 2.5]]))
+    h.remove()
+    z = seen["z"]
+    assert float((z - z.mean(dim=0, keepdim=True)).abs().max()) > 1e-5, \
+        "conditioning does not vary with position"

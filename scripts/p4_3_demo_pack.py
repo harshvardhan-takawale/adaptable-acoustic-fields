@@ -1,22 +1,29 @@
-"""P4-3 Task 1: the scoped shape-edit demo pack.
+"""P4-3/P4-4: the shape-edit demo pack.
 
-One trained model, no optimisation at demo time, two rooms it has never seen, and the only thing
-that changes between panels is the NOTCH DEPTH in the conditioning vector.
+One trained model, no optimisation at demo time, rooms it has never seen, and the only thing that
+changes between panels is the NOTCH DEPTH in the conditioning vector.
 
-SCOPE, STATED EVERYWHERE RATHER THAN BURIED. P4-2's sweep measured accuracy across 20 unseen
-depths and found a U: worst at SHALLOW notches (spatial Pearson +0.741 at d_hat 0.21), best at
-deep ones (+0.906 at 0.90). This demo shows d_hat >= 0.5 -- the half that works -- and every
-caption says so and gives the shallow number. A demo that quietly picked the good half and
-implied the whole range would be the easiest possible way to mislead with true numbers.
+TWO CHECKPOINTS, DELIBERATELY, AND EVERY CAPTION SAYS WHICH.
+P4-3 produced two Gate-2 passes that are good at different things, and pretending one arm was
+best at everything would have meant either a weak morph or a dishonest caption:
 
-Checkpoint: the mean_unmasked arm. Not mean_masked, which scores marginally better on in-slab
-spatial Pearson (0.798 vs 0.748), because DC-masking collapses RIR Pearson from 0.9989 to 0.0630
-(D70) and this pack shows an impulse response.
+  * `--run-dir` (default X1, attention-residual) draws the field maps and the spectrum/RIR
+    panels. It is the best arm on the 15 frozen test shapes: in-slab spatial Pearson 0.8438.
+  * `--morph-run-dir` (P4-4 uses D, the 92-shape corpus arm) draws the morph strip. D is the arm
+    that actually flattened the depth curve -- sweep amplitude 0.0752 against X1's 0.1633, and a
+    shallow half of +0.8893 against +0.7503 -- so only D earns a FULL-range morph. Run X1 over
+    the full range and the shallow frames visibly degrade.
+
+`--morph-full-range` switches the strip from d_hat >= 0.50 to the whole range. It is the right
+setting for D and the wrong one for X1, which is why it is a flag and not a default.
+
+The morph reuses `data/track_p4_2_sweep/` unchanged: FDTD ground truth is model-independent, so
+a different checkpoint costs a re-render and no new simulation.
 
 Three figures, all numbers printed BEFORE any of them is drawn (D62a):
   figL_<tag>  field maps, 4 depths x {predicted, FDTD} at 3 resolvable modes
-  figM_<tag>  centre-receiver spectrum overlay + band-limited RIR overlay
-  figN_morph  the morph strip, fixed bounding box, depth swept across the working range
+  figM_<tag>  centre-receiver spectrum overlay + modal RIR overlay
+  figN_morph  the morph strip, fixed bounding box and notch width, depth swept
 """
 from __future__ import annotations
 
@@ -44,9 +51,18 @@ DF_HZ = 0.5
 N_MODES_SHOWN = 3
 C_PRED, C_GT = "#0072B2", "#D55E00"
 WORKING_MIN = 0.50
-SHALLOW_NOTE = ("Scope: d_hat >= 0.50, the regime P4-2's sweep showed working. Accuracy DEGRADES "
-                "at shallow notches -- spatial Pearson +0.741 at d_hat 0.21 against +0.906 at "
-                "0.90. This pack does not claim the shallow half.")
+# Two different scope statements, because the pack now draws from two checkpoints and they do
+# NOT have the same honest range. X1 wins on the 15 frozen test shapes; D is the arm that
+# flattened the depth curve, so only D can carry a full-range morph without a caveat.
+PANEL_NOTE = ("Zero-shot: an unseen shape, one forward pass per panel, nothing optimised at demo "
+              "time -- only the notch depth in the conditioning vector changes.\n"
+              "Scope: d_hat >= 0.50. Band LSD here is {:.2f} dB -- that is a real error, not a "
+              "rounding one, and the field maps should be read with it in mind.")
+MORPH_NOTE = ("Zero-shot: unseen shapes, one forward pass per frame, fixed bounding box and fixed "
+              "notch width -- only the DEPTH changes.\n"
+              "Full d_hat range, which this checkpoint earns: its shallow half (d_hat <= 0.32) "
+              "averages +0.8893 against the P4-2 baseline's +0.7017. Band LSD {:.2f} dB.")
+SHALLOW_NOTE = PANEL_NOTE
 
 
 def _db(x):
@@ -193,7 +209,7 @@ def _grid_image(r, b):
     return img.reshape(GRID_N, GRID_N).T
 
 
-def fig_fields(rooms, modes, bins, met, out, tag):
+def fig_fields(rooms, modes, bins, met, out, tag, arm="", lsd=float('nan')):
     n_d = len(rooms)
     fig, axes = plt.subplots(2 * N_MODES_SHOWN, n_d,
                             figsize=(3.5 * n_d, 3.3 * 2 * N_MODES_SHOWN), dpi=DPI)
@@ -227,16 +243,16 @@ def fig_fields(rooms, modes, bins, met, out, tag):
         fig.colorbar(im, ax=axes[2 * mi:2 * mi + 2, :], fraction=0.015, pad=0.01).set_label(
             "|H| dB", fontsize=9)
     fig.suptitle("Shape edit, room {}: L = {:.2f} m, W = {:.2f} m, notch width {:.2f} m FIXED; "
-                 "only the DEPTH changes  |  unseen room, one forward pass per panel".format(
-                     tag, cfg0.L, cfg0.W, cfg0.w), fontsize=15, fontweight="bold")
-    fig.text(0.5, 0.005, SHALLOW_NOTE + "\n64x64 lattice masked to the polygon; the removed "
-             "corner is left blank rather than interpolated. Cyan star = source.",
+                 "only the DEPTH changes  |  checkpoint: {}".format(
+                     tag, cfg0.L, cfg0.W, cfg0.w, arm), fontsize=15, fontweight="bold")
+    fig.text(0.5, 0.005, PANEL_NOTE.format(lsd) + "\n64x64 lattice masked to the polygon; the "
+             "removed corner is left blank rather than interpolated. Cyan star = source.",
              ha="center", fontsize=10.5)
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
-def fig_spectrum_rir(rooms, met, out, tag, probe_idx, probe_pos):
+def fig_spectrum_rir(rooms, met, out, tag, probe_idx, probe_pos, arm=""):
     fig, axes = plt.subplots(1, 2, figsize=(17.0, 6.4), dpi=DPI)
     f = np.arange(rooms[0]["T"].shape[1]) * DF_HZ
     off = 18.0
@@ -272,14 +288,17 @@ def fig_spectrum_rir(rooms, met, out, tag, probe_idx, probe_pos):
     ax.set_title("MODAL impulse response (20-300 Hz) at the same receiver", fontsize=13,
                  fontweight="bold")
     ax.set_yticks([]); ax.grid(alpha=0.2); ax.legend(fontsize=10, loc="upper right")
-    fig.suptitle("Room {}: the edit in the frequency AND time domain  |  mean spatial R "
-                 "{:+.3f}, band LSD {:.2f} dB, modal RIR r {:+.3f} (full-band {:+.3f})".format(
-                     tag, float(np.mean([m["spatial_pearson"] for m in met])),
+    fig.suptitle("Room {}: the edit in the frequency AND time domain  |  ckpt {}  |  mean "
+                 "spatial R {:+.3f}, band LSD {:.2f} dB, modal RIR r {:+.3f} "
+                 "(full-band {:+.3f})".format(
+                     tag, arm, float(np.mean([m["spatial_pearson"] for m in met])),
                      float(np.mean([m["band_lsd_db"] for m in met])),
                      float(np.mean([m["rir_pearson_modal"] for m in met])),
                      float(np.mean([m["rir_pearson"] for m in met]))),
                  fontsize=15, fontweight="bold")
-    fig.text(0.5, 0.005, SHALLOW_NOTE + "\nThe RIR panel is high-passed at 20 Hz. The full-band "
+    fig.text(0.5, 0.005, PANEL_NOTE.format(
+                 float(np.mean([m["band_lsd_db"] for m in met]))) +
+             "\nThe RIR panel is high-passed at 20 Hz. The full-band "
              "0-300 Hz inverse transform reads r = +1.000, but that number is the shared near-DC "
              "ramp (Q18 in the time domain), not the impulse structure -- both are reported.",
              ha="center", fontsize=10.5)
@@ -288,7 +307,7 @@ def fig_spectrum_rir(rooms, met, out, tag, probe_idx, probe_pos):
     plt.close(fig)
 
 
-def fig_morph(rooms, met, b, mode, out):
+def fig_morph(rooms, met, b, mode, out, arm=""):
     n = len(rooms)
     fig, axes = plt.subplots(2, n, figsize=(2.9 * n, 5.6), dpi=DPI)
     vals = np.concatenate([_db(r["T"][:, b]) for r in rooms])
@@ -310,17 +329,26 @@ def fig_morph(rooms, met, b, mode, out):
             r["cfg"].d_hat, met[k]["spatial_pearson"]), fontsize=10)
     fig.colorbar(s, ax=axes, fraction=0.014, pad=0.01).set_label("|H| dB", fontsize=10)
     fig.suptitle("The morph: L = {:.2f} m, W = {:.2f} m, notch width {:.2f} m all FIXED; the "
-                 "corner grows and the field reorganises  |  mode ({},{}) {:.0f} Hz".format(
-                     cfg0.L, cfg0.W, cfg0.w, mode.n_x, mode.n_y, mode.f),
+                 "corner grows and the field reorganises  |  mode ({},{}) {:.0f} Hz  |  ckpt "
+                 "{}".format(cfg0.L, cfg0.W, cfg0.w, mode.n_x, mode.n_y, mode.f, arm),
                  fontsize=15, fontweight="bold")
-    fig.text(0.5, 0.008, SHALLOW_NOTE, ha="center", fontsize=10.5)
+    fig.text(0.5, 0.008, MORPH_NOTE.format(
+        float(np.mean([m["band_lsd_db"] for m in met]))), ha="center", fontsize=10.5)
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--run-dir", default="outputs/p4_2/stage2/p4_2_s2_mean_unmasked")
+    ap.add_argument("--run-dir", default="outputs/p4_3/p4_3_X1_attn_residual",
+                    help="checkpoint for the field-map / spectrum / RIR panels")
+    ap.add_argument("--morph-run-dir", default=None,
+                    help="checkpoint for the MORPH strip; defaults to --run-dir. P4-4 draws the "
+                         "panels from X1 (best on the 15 frozen test shapes) and the morph from "
+                         "D (the arm that actually flattened the depth curve), because a "
+                         "full-range morph is only honest for a model whose shallow half holds.")
+    ap.add_argument("--morph-full-range", action="store_true",
+                    help="sweep the FULL d_hat range instead of d_hat >= 0.50")
     ap.add_argument("--demo-dir", default="data/track_p4_3_demo")
     ap.add_argument("--sweep-dir", default="data/track_p4_2_sweep")
     ap.add_argument("--out", default="outputs/p4_3/demo")
@@ -329,12 +357,16 @@ def main() -> int:
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    ck = Path(a.checkpoint) if a.checkpoint else sorted(Path(a.run_dir).glob("ckpt_iter*.pt"))[-1]
-    model, renderer, cfg_d, meta, it = load_model(ck, dev)
-    model.eval(); renderer.eval()                                   # D49 C3
-    print("[arm] {} iter {} | pool {} | loss_lo {} Hz".format(
-        Path(a.run_dir).name, it, cfg_d.get("token_pool") or "masked_mean",
-        cfg_d.get("loss_band_lo_hz", 0.0)), flush=True)
+    def _load(run_dir, ckpt=None):
+        c = Path(ckpt) if ckpt else sorted(Path(run_dir).glob("ckpt_iter*.pt"))[-1]
+        m, r, cd, _meta, i = load_model(c, dev)
+        m.eval(); r.eval()                                          # D49 C3
+        print("[arm] {} iter {} | pool {} | loss_lo {} Hz".format(
+            Path(run_dir).name, i, cd.get("token_pool") or "masked_mean",
+            cd.get("loss_band_lo_hz", 0.0)), flush=True)
+        return m, r, cd, i, c
+
+    model, renderer, cfg_d, it, ck = _load(a.run_dir, a.checkpoint)
 
     report = {"arm": Path(a.run_dir).name, "checkpoint": str(ck), "iter": int(it),
               "scope": SHALLOW_NOTE, "shapes": {}}
@@ -368,15 +400,28 @@ def main() -> int:
             "mean_rir_pearson": float(np.mean([m["rir_pearson"] for m in met])),
             "mean_rir_pearson_modal": float(np.mean([m["rir_pearson_modal"] for m in met])),
         }
-        fig_fields(rooms, modes, bins, met, out / "figL_{}_fields.png".format(tag), tag)
+        _lsd = float(np.mean([m["band_lsd_db"] for m in met]))
+        fig_fields(rooms, modes, bins, met, out / "figL_{}_fields.png".format(tag), tag,
+                   arm=Path(a.run_dir).name, lsd=_lsd)
         fig_spectrum_rir(rooms, met, out / "figM_{}_spectrum_rir.png".format(tag), tag,
-                         pidx, ppos)
+                         pidx, ppos, arm=Path(a.run_dir).name)
 
-    # ---- the morph strip: reuse the already-built sweep corpus, working range only ----
-    print("\n=== morph strip (working range of the sweep corpus) ===", flush=True)
-    sw = [("M", c) for c in sweep_configs() if c.d_hat >= WORKING_MIN][::2]
-    rooms = load_rooms(sw, a.sweep_dir, model, renderer, dev,
-                       cache=str(out / "render_morph.npz"), label="morph", ck=ck)
+    # ---- the morph strip: reuse the already-built sweep corpus. FDTD truth is model-
+    # independent, so a different checkpoint costs only a re-render and no new simulation. ----
+    m_dir = a.morph_run_dir or a.run_dir
+    lo = 0.0 if a.morph_full_range else WORKING_MIN
+    print("\n=== morph strip ({}, d_hat >= {:.2f}) ===".format(Path(m_dir).name, lo), flush=True)
+    if m_dir != a.run_dir:
+        m_model, m_rend, m_cfg, m_it, m_ck = _load(m_dir)
+    else:
+        m_model, m_rend, m_ck = model, renderer, ck
+    # ~8 evenly spaced frames whatever the range: 20 would be 58 inches wide and unreadable,
+    # and the point of the strip is that the reader can see the corner grow frame to frame.
+    _cand = [c for c in sweep_configs() if c.d_hat >= lo]
+    _idx = np.unique(np.linspace(0, len(_cand) - 1, min(8, len(_cand))).round().astype(int))
+    sw = [("M", _cand[i]) for i in _idx]
+    rooms = load_rooms(sw, a.sweep_dir, m_model, m_rend, dev,
+                       cache=str(out / "render_morph.npz"), label="morph", ck=m_ck)
     c0 = rooms[0]["cfg"]
     modes = enumerate_modes(c0.L, c0.W, f_max=200.0)[:N_MODES_SHOWN]
     bins = [int(round(m.f / DF_HZ)) for m in modes]
@@ -386,9 +431,11 @@ def main() -> int:
         print("  {:.3f}  {:5d}   {:+.4f}   {:6.2f}     {:+.4f}       {:+.4f}".format(
             m["d_hat"], m["n_rx"], m["spatial_pearson"], m["band_lsd_db"], m["rir_pearson"],
             m["rir_pearson_modal"]))
-    report["morph"] = {"L": c0.L, "W": c0.W, "w": c0.w, "per_depth": met,
+    report["morph"] = {"arm": Path(m_dir).name, "checkpoint": str(m_ck),
+                       "d_hat_min": lo, "L": c0.L, "W": c0.W, "w": c0.w, "per_depth": met,
                        "mode": [int(modes[1].n_x), int(modes[1].n_y), float(modes[1].f)]}
-    fig_morph(rooms, met, bins[1], modes[1], out / "figN_morph.png")
+    fig_morph(rooms, met, bins[1], modes[1], out / "figN_morph.png",
+              arm=Path(m_dir).name)
 
     json.dump(report, open(out / "demo_metrics.json", "w"), indent=1, default=float)
     for f in sorted(out.glob("fig*.png")):
