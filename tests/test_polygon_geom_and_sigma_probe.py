@@ -251,3 +251,25 @@ def test_reproduces_p4_1_recorded_sigma_statistics():
     assert float(np.exp(-b.mean() * cross_m)) == pytest.approx(0.082, abs=5e-4)
     assert list(z["sigma_rx"]) == pytest.approx([3.12, 4.82])
     assert pick_nlos_probe_receiver(VERTS_L, SRC_L, z["rx"]) == pytest.approx([3.12, 4.82])
+
+
+def test_probe_excludes_samples_that_left_the_room_entirely():
+    """The occluder is the REMOVED CORNER, not everything outside the polygon.
+
+    The ray runs to the bbox diagonal, so it exits through the far wall and keeps going. Those
+    samples are outside the polygon too, and counting them as solid diluted a real localized
+    contrast toward 1.0 -- on P4-2's test shapes 82% of the 'solid' samples were out-of-room.
+    Here the field is opaque ONLY inside the notch and transparent everywhere else, so an
+    unclipped probe would read far below the true contrast.
+    """
+    def fn(P):
+        x, y = P[..., 0], P[..., 1]
+        in_notch = (x < NOTCH_X) & (y > NOTCH_Y) & (x >= 0) & (y <= W1)
+        return torch.where(in_notch, torch.full_like(x, 8.0), torch.full_like(x, 0.1))
+    out = _probe(fn)
+    assert out["probed"]
+    assert out["n_samples_beyond_room"] > 0, "this ray should leave the room"
+    # every counted solid sample must be inside the bounding box
+    assert out["solid_over_air"] > 5.0, (
+        "clipped ratio {:.2f} -- out-of-room samples are still being counted as solid".format(
+            out["solid_over_air"]))

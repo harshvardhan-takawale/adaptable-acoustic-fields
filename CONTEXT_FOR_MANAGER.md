@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-2 COMPLETE (2026-09-12)** — the notch family. **GATE 2 FAILS on all four arms** (best in-slab spatial Pearson **0.7978** vs a 0.80 threshold) and the sigma ratio reads **~1.00 on every arm** — no occlusion mechanism, which is the number that predicts shape transfer will not work. **Task A is a clean win**: edit linearity restored, `edit_bw_slope` 0.871 -> **0.957** against Arm C's 0.959, and `geom_token_m` is adopted. The shape-edit sweep refutes both pre-registered outcomes: accuracy is worst at SHALLOW notches, best at deep ones, and the held-out band is unremarkable. See the section directly below. Prior: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **P4-3 COMPLETE (2026-09-13)** — **GATE 2 PASSES on two arms** (X1 attention-residual **0.8438**, D more-data **0.8021**, threshold 0.80) after four P4-2 failures. **The shallow-notch weakness was a DATA problem**: Arm D eliminates the U-shaped accuracy curve (amplitude 0.2185 -> 0.0752) with sigma unchanged at ~1.0. **Injecting the mechanism did NOT help** — Arm S learns a real, generalizing 8x sigma contrast in the wall and is the WORST arm. Two bugs found that had published wrong numbers (D73, D74). See the section directly below. Prior: **P4-2 COMPLETE (2026-09-12)** — the notch family. **GATE 2 FAILS on all four arms** (best in-slab spatial Pearson **0.7978** vs a 0.80 threshold) and the sigma ratio reads **~1.00 on every arm** — no occlusion mechanism, which is the number that predicts shape transfer will not work. **Task A is a clean win**: edit linearity restored, `edit_bw_slope` 0.871 -> **0.957** against Arm C's 0.959, and `geom_token_m` is adopted. The shape-edit sweep refutes both pre-registered outcomes: accuracy is worst at SHALLOW notches, best at deep ones, and the held-out band is unremarkable. See the section directly below. Prior: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -11,10 +11,79 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
 
+## Phase 4 — P4-3 COMPLETE (2026-09-13): GATE 2 PASSES, and the mechanism question answers negatively
+
+Full writeup `tasks/CHUNK_P4_3_RESULTS.md`; phase status `PHASE4_SUMMARY.md`; decisions
+**D73-D78**; Q21 substantially answered, **Q22 resolved** (-> D78). Tests **524 passed**.
+
+**VERIFY FIRST, answered**: Gate 2 was **NOT** contaminated. The P4-2 corpus was built AFTER the
+D67c grid fix — all 75 rooms and all 75 `.done` sentinels inside one 83-second window starting
+seven seconds BEFORE the fix commit, all four arms recording the post-fix manifest sha, and an
+independent re-check giving 0 attr mismatches, 0 off-grid parameters, 0 node disagreements. No
+rebuild, no re-run.
+
+**GATE 2 (15 frozen test shapes, identical for every arm, threshold 0.80):**
+
+| arm | in-slab R | out-slab R | LSD | RIR r | sigma ray | sigma volume | gate |
+|---|---:|---:|---:|---:|---:|---:|:--:|
+| BASELINE `mean_unmasked` | 0.7483 | 0.7369 | 4.84 | 0.9989 | 1.036 | 1.041 | FAIL |
+| **X1 `attn_residual`** | **0.8438** | 0.7612 | 4.61 | 0.9988 | 1.130 | 1.180 | **PASS** |
+| X2 `attn` | 0.7789 | 0.7427 | 4.70 | 0.9987 | 1.053 | - | FAIL |
+| S sigma-supervision | 0.7329 | 0.6650 | 4.67 | 0.9989 | 1.089 | **8.077** | FAIL |
+| **D data(92)** | **0.8021** | **0.7641** | **4.42** | **0.9992** | 0.933 | 1.042 | **PASS** |
+
+**THE SHAPE-EDIT SWEEP IS WHERE THE REAL EFFECT IS** (20 unseen depths, fixed bounding box):
+
+| arm | shallow half (d_hat <= 0.32) | deep half (>= 0.74) | mean | U amplitude |
+|---|---:|---:|---:|---:|
+| BASELINE | +0.7017 | +0.8375 | +0.7615 | 0.2185 |
+| X1 | +0.7503 | +0.8491 | +0.7836 | 0.1633 |
+| X2 | +0.7286 | +0.6971 | +0.7011 | 0.0819 |
+| S | +0.5331 | +0.6815 | +0.5906 | 0.2273 |
+| **D** | **+0.8893** | **+0.8878** | **+0.8811** | **0.0752** |
+
+**THE FOUR THINGS TO TAKE.**
+
+1. **Add data before architecture.** Arm D is the cheapest intervention in the phase — 32 FDTD
+   rooms, ~5 min of CPU — and produced the largest effect: the U **eliminated** (the ordering even
+   inverts; its best point is now the pure rectangle), Gate 2 passed, best LSD and best RIR. And
+   it wins *despite* a handicap: 92 shapes at a matched 60K is ~35% fewer steps per shape, chosen
+   deliberately so data was the only variable. D72's density warning was first-order.
+2. **The mechanism question answers NEGATIVELY (Q21).** A learned occluder is neither necessary
+   (D passes without one, sigma ~1.0) nor sufficient (S has a real, generalizing 8x one and is the
+   worst arm). **Do not spend the renderer rewrite**; it was predicated on occlusion being the
+   binding constraint. The one untested residue: S supervised sigma in the notch VOLUME, and the
+   contrast is absent on the grazing path the renderer integrates along (1.09 vs 8.08) — a
+   path-targeted supervision is cheap and is the only version of option (c) not yet falsified.
+3. **Attention helps, narrowly, and not for the stated reason.** X1 posts the phase's best
+   Gate-2 number but produces only **0.7% position-dependence** in the pooled conditioning and no
+   sigma contrast. The pre-registered condition ("raises sigma AND flattens the U") is NOT met.
+   Use the RESIDUAL form: X2, the literal replacement, is worse than the baseline everywhere.
+4. **Do not read flatness without level.** X2 has the second-flattest sweep in the phase and is
+   worse than the baseline at all 20 depths — it flattened by uniform degradation.
+
+**TWO BUGS THAT HAD ALREADY PUBLISHED WRONG NUMBERS.**
+
+* **D73 — `load_model` ignored `token_pool`, so P4-2's extent arms were evaluated as
+  mean-pooled.** Silent, because `extent_sum` adds no parameters and its state_dict is
+  key-identical. Corrected: extent_masked 0.5763 -> **0.7835**, extent_unmasked 0.5681 ->
+  **0.7916**; control exact (mean_unmasked delta +0.0000). **D69 is RETRACTED** — corrected gaps
+  +0.014 and **-0.043**, i.e. extent BEATS mean under the unmasked loss. Gate 2's verdict, the
+  sigma finding, D70 and D71 are unaffected.
+* **D74 — the sigma probe counted everything outside the polygon as solid; 82% of its samples had
+  left the room entirely** (99% on one shape). Harmless for the near-uniform fields P4-1/P4-2
+  measured — **D71 and Q21 stand** — but it diluted Arm S's real 8x contrast to 1.31. Now clipped
+  to the bounding box, with the out-of-room count reported.
+
+**WHAT TO DO NEXT.** Scale the corpus along the shape parameters (Arm D generalizes the lesson),
+not the renderer. If the mechanism question is pursued at all, run the path-targeted sigma
+supervision first — it is one training run and it is the only untested branch. Still **do not
+build the Z-corridor**.
+
 ## Phase 4 — P4-2 COMPLETE (2026-09-12): the notch family, GATE 2 FAILS
 
 Full writeup `tasks/CHUNK_P4_2_RESULTS.md`; phase status `PHASE4_SUMMARY.md`; decisions
-**D66-D72**; open questions **Q21-Q22** (Q19 and Q20 both RESOLVED and removed).
+**D66-D72**; open questions **Q21** (Q19 and Q20 both RESOLVED and removed).
 Tests **506 passed**.
 
 **GATE 2 — FAIL on all four arms.** One model, 60 training shapes, 15 frozen test shapes from a

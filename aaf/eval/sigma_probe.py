@@ -135,10 +135,23 @@ def probe_sigma_occlusion(model, verts, src, device, rx: Optional[np.ndarray] = 
     cond = build_cond_vector_2d(cond_source, L, W, edge_alphas, verts=verts, device=device)
     t, pts, sig = sigma_along_ray(model, cond, rx0, np.asarray(src, float) - rx0, src,
                                   device, n=n, verts=verts)
-    solid = ~polygon_contains(verts, pts)
+    # THE OCCLUDER IS THE REMOVED CORNER, NOT EVERYTHING OUTSIDE THE POLYGON.
+    #
+    # The ray runs to `reach` = the bbox diagonal, so it passes the source and exits through the
+    # far wall; every sample beyond that wall is also "outside the polygon". Counting those as
+    # solid measured 82% out-of-room samples on P4-2's test shapes (99% on one), which is
+    # harmless for a near-uniform sigma field -- P4-1 and P4-2 both read ~1.0 either way -- but
+    # it DILUTES a genuinely localized notch contrast toward 1.0 and would hide exactly the
+    # mechanism this probe exists to detect. Arm S reads 1.31 unclipped and 8.08 clipped.
+    outside_poly = ~polygon_contains(verts, pts)
+    in_bbox = ((pts[:, 0] >= min(xs)) & (pts[:, 0] <= max(xs))
+               & (pts[:, 1] >= min(ys)) & (pts[:, 1] <= max(ys)))
+    solid = outside_poly & in_bbox
+    n_beyond_room = int((outside_poly & ~in_bbox).sum())
     if not solid.any():
         return {"probed": False,
-                "reason": "the probe ray does not cross solid; nothing to measure"}
+                "reason": "the probe ray does not cross the removed corner; nothing to measure",
+                "n_beyond_room": n_beyond_room}
 
     a, b = sig[solid], sig[~solid]
     dx = float(t[1] - t[0])
@@ -159,6 +172,9 @@ def probe_sigma_occlusion(model, verts, src, device, rx: Optional[np.ndarray] = 
         "probed": True,
         "rx": [float(x) for x in rx0],
         "n_samples": int(len(sig)), "n_samples_in_solid": int(solid.sum()),
+        # How much of the ray left the room entirely. Kept so the clipping above is auditable
+        # and so a future reader can reproduce the unclipped (diluted) number if they need it.
+        "n_samples_beyond_room": n_beyond_room,
         "mean_sigma_solid": float(a.mean()), "mean_sigma_air": float(b.mean()),
         "sd_sigma_solid": float(a.std()), "sd_sigma_air": float(b.std()),
         "solid_over_air": float(a.mean() / b.mean()) if b.mean() > 0 else float("nan"),

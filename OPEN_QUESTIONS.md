@@ -136,79 +136,34 @@ Measured on the FIG-5 geometry, an LSD taken over the **27 baseline modal-peak b
 
 **What resolving it requires**: (b) and (c) are metric-only and need no new simulation. (d) needs one diagnostic run on a single config comparing `H_complex` against `H_deconv`. Nothing downstream is blocked — the figure quotes all three LSDs side by side with the caveat printed — but every accuracy claim in the meeting pack depends on which one is called "the" LSD.
 
-### Q21 — Gate 2 FAILED and sigma sits at ~1.0 on every arm. Does the renderer need a geometry-aware occlusion term before shape transfer is attempted again? (P4-2)
+### Q21 — Does the renderer need a geometry-aware occlusion term? *(P4-3: substantially ANSWERED, negatively — kept open only for the narrow residue)*
 
 **Asker**: P4-2 agent. **Owner**: manager / research call.
 
-Q19 chose option (a) — run Stage 2 as specified and let it answer empirically. It answered, and
-the answer is consistent across four independent arms.
+P4-2 asked this after Gate 2 failed on all four arms with sigma ~ 1.0. P4-3 ran two of the three
+proposed options and the answer is clearer than expected.
 
-Gate 2 failed on all four: best in-slab spatial Pearson **0.7978** against a 0.80 threshold
-(mean pooling, DC-masked), then 0.748, 0.576, 0.568. The NLOS-deficit criterion passed
-everywhere — all four deficits are NEGATIVE, i.e. NLOS receivers are slightly BETTER predicted
-than LOS ones — which is itself the tell: if the model were representing shadow geometry,
-NLOS would be the hard case, not the easy one.
+**Option (b), more data — RUN, and it WORKS.** Arm D added 32 training shapes in the thin
+`d_hat` band and nothing else. The U-shaped accuracy curve is **gone** (amplitude 0.2185 ->
+0.0752, shallow half +0.7017 -> +0.8893), **Gate 2 PASSES** at 0.8021, and sigma stays at
+**0.93-1.04** — the baseline's value. So the shallow-notch weakness was a DATA problem and is
+separable from the mechanism question (D75).
 
-The sigma probe, run on all 10 probeable test shapes per arm, reads solid/air ratio
-**0.9987, 0.9896, 1.0361, 0.9820** — indistinguishable from 1.0, and **two of the four are
-BELOW 1.0**, i.e. slightly LESS attenuation inside the wall than in air. Mean transmittance
-ratios 1.003, 1.027, 1.087, 0.917. P4-1's per-scene fit at least reached 1.075 with a real
-effect size; the multi-shape model has no occlusion mechanism at all. Combined with D66 (sigma
-can only express a wall on the receiver->point leg; a source-side wall must be memorized in
-`signal`), this is the predicted failure mode from Q19, observed.
+**Option (c), inject the mechanism — RUN, and it FAILS.** Arm S learns a real occluder that
+GENERALIZES: volume-sampling the removed corner on unseen shapes reads **8.08** against the
+baseline's 1.04, held by a hinge that was active in only 3 of 300 logged checkpoints. And it is
+the **worst arm in the phase** — in-slab 0.7329 (below the 0.7483 baseline), sweep mean +0.5906,
+worse at all 20 depths (D77).
 
-**The question**: what changes before shape transfer is attempted again?
-* **(a) Renderer change — add source-side occlusion** (a second transmittance leg from `tx`, or
-  geometry-conditioned ray termination). Addresses the diagnosed cause directly. Wide blast
-  radius: it changes the renderer for every arm and invalidates cross-phase comparisons, so it
-  needs its own gate and a re-run of at least one reference arm.
-* **(b) Data/capacity change — more shapes, longer training.** The best arm missed by 0.002 and
-  the corpus is 60 shapes; it is not established that the ceiling is architectural. Cheapest to
-  test, and it would settle whether (a) is necessary or merely sufficient. But sigma ~ 1.0
-  predicts this plateaus, because nothing in the loss rewards putting attenuation in the wall.
-* **(c) Supervise the mechanism directly** — an auxiliary loss on sigma inside known-solid
-  regions. Cheap, and it tests whether the architecture CAN represent occlusion when told to,
-  separating "cannot" from "has no reason to".
+**So a learned occluder is neither necessary (D passes without one) nor sufficient (S has one and
+fails).** That is strong evidence against option (a), the renderer rewrite, as the next move --
+it was predicated on occlusion being the binding constraint, and a model that demonstrably
+represents occlusion is the worst one measured.
 
-**What resolving it requires**: (b) is one training run on an enlarged corpus and needs no new
-code. (c) is a loss term plus the solid mask; the dataset stores the geometry (`verts`, `d`, `w`) from which the solid mask is RECONSTRUCTIBLE in closed form -- `x < w and y > W - d` for this axis-aligned notch. It does not store a mask array; only a scalar `notch_solid_nodes` count (corrected in P4-3, which implements the term). (a) is a
-renderer change and should not be started until (b) or (c) has established that it is needed.
-**Nothing is blocked today** — but D66 plus a sigma ratio of 1.0 is the strongest evidence the
-project has that in-distribution accuracy will keep failing to transfer, and (b) is the honest
-next step before spending a renderer rewrite on it.
-
-### Q22 — The held-out slab is EASIER than the rest of the test set. Is the hold-out measuring what it was designed to measure? (P4-2)
-
-**Asker**: P4-2 agent. **Owner**: manager.
-
-Gate 2's headline criterion reads on in-slab test shapes, on the premise that interpolating into
-a deliberately emptied band of `d_hat` is the hard case. The data says the opposite, on every
-arm: in-slab spatial Pearson **exceeds** out-of-slab by +0.096 (mean/masked, 0.798 vs 0.702),
-+0.011 (mean/unmasked), +0.179 (extent/masked), +0.040 (extent/unmasked).
-
-So the binding difficulty is not the 0.15-wide gap in one parameter — it is shape generalization
-in general, and the slab hold-out is not isolating it. Two readings, and they have different
-consequences:
-* the slab is too NARROW to bite (0.15 of a normalized range, against a sampling target of
-  0.125 — barely more than one sample spacing), so in-slab shapes are effectively interpolated
-  from immediate neighbours; or
-* in-slab shapes are systematically easier for an unrelated reason — they cluster at moderate
-  `d_hat` where the notch is large enough to be well-conditioned but not large enough to make
-  the room strongly non-convex, while out-of-slab includes both near-rectangles and the deepest
-  notches.
-
-**UPDATE (same chunk, independent evidence).** The shape-edit sweep tests this on a cleaner
-axis: 20 unseen depths at a FIXED bounding box, so `L`, `W` and `w` cannot confound it. In-slab
-**+0.783** vs out-of-slab **+0.817** — a deficit of just **+0.034**. Meanwhile the same sweep
-shows a large, real accuracy structure along `d̂` that has nothing to do with the slab: a U-shape
-with minimum **+0.741** at `d̂ ≈ 0.21` and maximum **+0.906** at `d̂ ≈ 0.90`, reproduced
-independently by band LSD. So the answer is leaning strongly to the first reading — the slab is
-simply not where the difficulty lives, and the difficulty that does exist is a *shallow-notch*
-problem the hold-out design never looked at. See also D72: the corpus is 7.5x denser in some
-`d̂` deciles than others while formally satisfying its max-gap invariant.
-
-**What resolving it requires**: the second reading is checkable today from `per_shape` in the
-GATE2 JSONs at zero compute cost, and should be checked before any future chunk reuses this
-hold-out design. If the slab is simply too narrow, the gate criterion is measuring general
-shape generalization under a misleading name, and the honest fix is to report both numbers (as
-this chunk does) rather than to widen the slab and re-run.
+**What remains open, narrowly.** Arm S supervised sigma in the notch VOLUME; the clipped ray
+probe shows the contrast is absent on the grazing path the renderer actually integrates along
+(1.09 vs 8.08, D74d). A sigma supervision targeted **on the occlusion path** is a different and
+untested experiment, and is the only version of option (c) that has not been falsified. It is
+cheap — the same auxiliary term with points sampled along receiver->source rays instead of
+uniformly in the corner. Until that is run, "injecting occlusion does not help" is established
+for volume supervision and merely likely for path supervision.
