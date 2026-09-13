@@ -28,6 +28,16 @@ with NLOS deficit <= 0.15:
 | `extent_masked` | extent-sum | DC-masked | +0.5763 | +0.3975 | 6.42 | 0.070 | -0.126 | **0.9896** |
 | `extent_unmasked` | extent-sum | unmasked | +0.5681 | +0.5284 | 8.77 | 0.9967 | -0.065 | **0.9820** |
 
+> **CORRECTION (P4-3): the two extent rows are WRONG and are superseded.** `load_model` never
+> passed `token_pool`; `extent_sum` adds no parameters, so both extent checkpoints loaded
+> silently and were rendered with MEAN pooling. Corrected: **extent_masked +0.7835**,
+> **extent_unmasked +0.7916** (band LSD 4.81). Control exact: mean_unmasked re-evaluates to
+> +0.7483, delta +0.0000. **Gate 2 verdict unchanged** (all four FAIL, best mean_masked 0.7978);
+> **sigma unchanged** (~1.0). **D69 is RETRACTED** — the corrected pooling gaps are +0.014 and
+> **-0.043**, i.e. extent BEATS mean under the unmasked loss, and the pooling axis is not
+> resolved. D70, D71 and Q21 are unaffected; D70 is now supported on four correct arms. See D73.
+
+
 **THE THREE THINGS NOT TO MISREAD.**
 
 1. **0.7978 vs 0.80 is a FAIL, not an "almost".** The threshold was frozen before the run and is
@@ -82,9 +92,9 @@ explains the slope loss for moderate absorption edits and not for edits at the r
 
 **TWO OF THE SPEC'S OWN HYPOTHESES CAME BACK NEGATIVE**, both with controls so they need not be
 re-run:
-* **Extent-weighted pooling is WORSE than masked mean** (D69) — by 0.222 and 0.180 in-slab across
-  two independent loss arms. Same ordering both times. A *normalized* extent weighting was not
-  tested and is the obvious rescue.
+* ~~**Extent-weighted pooling is WORSE than masked mean** (D69)~~ — **RETRACTED (D73)**: that
+  comparison rendered the extent checkpoints through mean pooling. Corrected gaps +0.014 and
+  **-0.043**; the pooling axis is **not resolved**.
 * **DC-masking destroys the impulse response** (D70) — RIR Pearson **0.9989 -> 0.0630** for a
   +0.05 modal gain. The unmasked loss is primary downstream; any future DC-masked LSD must be
   reported with its RIR correlation.

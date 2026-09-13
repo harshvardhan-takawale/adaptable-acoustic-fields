@@ -87,6 +87,17 @@ reported generalization it never tested.
 | `extent_masked` | extent-sum | DC-masked | +0.5763 | +0.3975 | 6.42 | 0.070 | −0.126 | **0.9896** | **FAIL** |
 | `extent_unmasked` | extent-sum | unmasked | +0.5681 | +0.5284 | 8.77 | 0.9967 | −0.065 | **0.9820** | **FAIL** |
 
+> **CORRECTION (P4-3, 2026-09-12): the two extent rows below were computed with the WRONG
+> POOLING and are superseded.** `load_model` never passed `token_pool`, and because
+> `extent_sum` adds no parameters its `state_dict` is key-identical to `masked_mean`'s, so both
+> extent checkpoints loaded silently and rendered through mean pooling. Corrected in-slab
+> spatial Pearson: **extent_masked 0.7835** (was 0.5763) and **extent_unmasked 0.7916** (was
+> 0.5681); `extent_unmasked` band LSD 8.77 -> 4.81 dB. The control is exact — `mean_unmasked`
+> re-evaluates to 0.7483, delta +0.0000. **The Gate 2 verdict is unchanged** (all four FAIL,
+> best still mean_masked 0.7978) and **the sigma ratios are unchanged**. See **D73**, and note
+> that **section 3(a) below is RETRACTED**.
+
+
 The best arm misses by **0.0022**. That is reported as a fail, not a near-pass, and the threshold
 frozen before the run is not revisited after seeing the result (D71c).
 
@@ -168,6 +179,13 @@ model is simply unconstrained there. That is the RIR collapse, drawn.
 ## 3. Three findings the spec did not anticipate
 
 ### (a) The spec's pooling hypothesis is empirically WRONG (D69)
+
+> **RETRACTED (P4-3).** This section rests on the mis-evaluated extent numbers corrected above.
+> The corrected gaps are **+0.014 (masked)** and **−0.043 (unmasked)** — under the unmasked loss
+> that D70 makes primary, **extent_sum BEATS masked_mean**. The four arms lie within 0.05 of one
+> another and the pooling axis is **not resolved** by this data. D69 is retracted in **D73**;
+> the text below is kept only so the retracted claim and its evidence stay legible.
+
 
 The spec proposed `Σ extentᵢ · φ(tokenᵢ)` on the reasoning that a longer boundary should have a
 larger effect. Implemented **raw** exactly as specified (normalizing would destroy the very

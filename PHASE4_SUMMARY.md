@@ -97,9 +97,12 @@ but not the explanation (D72).
    test shapes with ZERO NLOS receivers.
 3. **The held-out slab is EASIER than the rest of the test set** on every arm (Q22). It is not
    isolating the difficulty it was designed to isolate.
-4. **Two of the spec's own hypotheses came back negative**: extent-weighted pooling is worse than
-   masked mean by 0.22/0.18 (D69), and DC-masking destroys the impulse response, RIR Pearson
-   0.9989 → 0.0630 (D70). Both have controls and need not be re-run.
+4. **One of the spec's two hypotheses came back negative; the other was a BUG.** DC-masking
+   destroys the impulse response — RIR Pearson 0.9989 → 0.0630 (D70) — and that now holds on
+   four correctly-evaluated arms. The pooling claim (D69) is **RETRACTED**: `load_model` never
+   passed `token_pool`, so both extent arms were rendered with mean pooling. Corrected gaps are
+   +0.014 and **−0.043**, i.e. extent *beats* mean under the unmasked loss, and the pooling axis
+   is **not resolved** (D73).
 5. **Task A's S4 split did NOT recover** (0.491 vs Arm C's 0.789). The entanglement explanation
    holds for moderate absorption edits, not for edits at the range edge.
 6. **`tx` has been `(0.5, 0.5)` m in 100% of the prior 2D corpus**; P4-2's family uses a single
@@ -116,7 +119,7 @@ but not the explanation (D72).
 `outputs/p4_2/stage2/sweep/sweep_metrics.json` ·
 `outputs/p4_2/stage2/sweep/fig{I_sweep_accuracy,J_sweep_waterfall,K_sweep_field_strip}.png` ·
 `outputs/p4_2/taskA/metrics.json` · `outputs/p4_2/taskA/splits_eval/{summary,verdict}.json` ·
-`configs/sweeps_2d_mat/p4_2_shapes_manifest.json` · `DECISIONS.md` (D66–D72) ·
+`configs/sweeps_2d_mat/p4_2_shapes_manifest.json` · `DECISIONS.md` (D66–D73) ·
 `OPEN_QUESTIONS.md` (Q21–Q22)
 
 ---

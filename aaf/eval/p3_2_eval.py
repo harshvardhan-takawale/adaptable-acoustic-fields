@@ -189,6 +189,12 @@ def load_model(ckpt_path: Path, device: torch.device):
         cond_dim=int(cfg["cond_dim"]),
         # None for every pre-P4-1 checkpoint => the legacy (x+1)/2 position map (D64).
         world_scale=cfg.get("world_scale"),
+        # P4-3: token_pool MUST come from the checkpoint. Omitting it defaulted every polygon
+        # arm to masked_mean, and because `extent_sum` adds NO PARAMETERS its state_dict is
+        # key-identical to masked_mean's -- so `load_state_dict` SUCCEEDED SILENTLY and P4-2's
+        # two extent arms were evaluated with the wrong pooling. The attention arms add
+        # parameters and therefore failed loudly, which is the only reason this surfaced.
+        token_pool=(cfg.get("token_pool") or None),
         l_head_enabled=False,
     ).to(device)
     model.load_state_dict(st["model"])

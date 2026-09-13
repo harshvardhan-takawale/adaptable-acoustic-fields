@@ -281,3 +281,22 @@ def test_an_unknown_pool_is_rejected():
         INR2D_AutoDecoder(n_rooms=4, latent_dim=16, n_freq_bins=N_FREQ,
                           cond_source="geom_token", cond_dim=324, conditioning_type="film",
                           token_pool="attn_typo", world_scale=10.0)
+
+
+# ------------------------------------------------- load_model must honour token_pool (P4-3)
+def test_load_model_passes_token_pool_from_the_checkpoint():
+    """The bug this test exists for cost P4-2 two arms' worth of conclusions.
+
+    `load_model` rebuilt the model WITHOUT `token_pool`, so every polygon arm was reconstructed
+    as masked_mean. For `extent_sum` that is silent: it adds no parameters, so its state_dict is
+    key-identical and `load_state_dict` succeeds -- the checkpoint then renders through the WRONG
+    POOLING and reports numbers for an arm that was never evaluated. It only surfaced because the
+    attention arms add parameters and failed loudly.
+
+    Read as text so it runs without a GPU.
+    """
+    src = Path(__file__).resolve().parents[1].joinpath("aaf/eval/p3_2_eval.py").read_text()
+    body = src.split("model = INR2D_AutoDecoder(", 1)[1].split(").to(device)", 1)[0]
+    assert "token_pool" in body, (
+        "load_model does not pass token_pool; extent_sum and attention checkpoints would be "
+        "rebuilt as masked_mean")
