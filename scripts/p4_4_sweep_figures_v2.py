@@ -257,7 +257,11 @@ def main() -> int:
                  "(rectangle, L, T, double-notch, U) side by side, each drawn at its own "
                  "room's mode (0,1)")
         fixed = ("five HELD-OUT rooms, one per family, chosen for comparable bounding boxes "
-                 "(L 5.30-5.72 m, W 4.02-4.64 m) and a visible notch")
+                 "(L 5.30-5.72 m, W 4.02-4.64 m) and a visible notch. The geometry is the "
+                 "family corpus's; the FDTD was re-run at figN's RECEIVER density (0.08 m "
+                 "grid, ~3-4k points) instead of the corpus's 800 scattered points, so the "
+                 "panels resolve the field. Same solver, same dx, same source -- only the "
+                 "sampling changed")
         note = ("This is a SELECTED set: 5 of the 50 held-out family rooms, picked for "
                 "comparable bounding boxes and a visible notch, NOT the average room. For "
                 "context, the family evaluator's means over all 50 are rect +0.847, L +0.766, "

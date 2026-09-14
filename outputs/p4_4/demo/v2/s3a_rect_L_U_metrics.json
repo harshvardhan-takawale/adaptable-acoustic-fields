@@ -1,0 +1,289 @@
+{
+ "sweep": "s3a_rect_L_U",
+ "arm": "p4_4_FAM",
+ "checkpoint": "outputs/p4_4/p4_4_FAM/ckpt_iter0060000.pt",
+ "iter": 60000,
+ "n_modes": 3,
+ "n_modes_note": "spatial_pearson is averaged over the first 3 resolvable modes of each frame's own bounding box -- figN's protocol. Gate 2 uses 6 and reads lower; the two are not comparable.",
+ "mode_idx_shown": 1,
+ "title": "Rectangle to L to U: one bounding box, one notch width each; the NW corner is removed, then the NE -- boundary tokens 4 -> 6 -> 8",
+ "swept": "notch DEPTH, in TWO phases: frames 1-4 grow the NW notch (rect -> L), frames 5-8 grow the NE notch (L -> U). Two knobs move, one at a time -- this is not a single-parameter sweep",
+ "fixed": "L = 6.00 m, W = 5.00 m, NW width 2.00 m, NE width 2.00 m; boundary tokens 4 -> 6 -> 8",
+ "note": "",
+ "png": "outputs/p4_4/demo/v2/fig_s3a_rect_L_U.png",
+ "per_frame": [
+  {
+   "label": "NW d=0.00",
+   "room": "rectL6.00_W5.00",
+   "kind": "rect",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 4,
+   "d_hat": 0.0,
+   "notches": [],
+   "n_rx": 4320,
+   "nlos_frac": 0.0,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.839974906250779,
+   "spatial_pearson_per_mode": [
+    0.9274327413951923,
+    0.7674447355917284,
+    0.8250472417654162
+   ],
+   "spatial_pearson_shown_mode": 0.7674447355917284,
+   "band_lsd_db": 6.134882517485162
+  },
+  {
+   "label": "NW d=0.50",
+   "room": "LL6.00_W5.00_NWd0.50w2.00x0.00",
+   "kind": "L",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 6,
+   "d_hat": 0.2222222222222222,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 0.5,
+     "w": 2.0,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 4166,
+   "nlos_frac": 0.000480076812290009,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.8193661637787572,
+   "spatial_pearson_per_mode": [
+    0.9114796497720353,
+    0.7088750974133625,
+    0.8377437441508735
+   ],
+   "spatial_pearson_shown_mode": 0.7088750974133625,
+   "band_lsd_db": 6.146261335387661
+  },
+  {
+   "label": "NW d=1.00",
+   "room": "LL6.00_W5.00_NWd1.00w2.00x0.00",
+   "kind": "L",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 6,
+   "d_hat": 0.4444444444444444,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.0,
+     "w": 2.0,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3993,
+   "nlos_frac": 0.007012271475081433,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.8675170424159112,
+   "spatial_pearson_per_mode": [
+    0.9340790381135798,
+    0.8971533649627914,
+    0.7713187241713625
+   ],
+   "spatial_pearson_shown_mode": 0.8971533649627914,
+   "band_lsd_db": 6.174610976406351
+  },
+  {
+   "label": "NW d=1.50",
+   "room": "LL6.00_W5.00_NWd1.50w2.00x0.00",
+   "kind": "L",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 6,
+   "d_hat": 0.6666666666666666,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.5,
+     "w": 2.0,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3843,
+   "nlos_frac": 0.025761124121779888,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.748790710090423,
+   "spatial_pearson_per_mode": [
+    0.9456294130135587,
+    0.8084206862058864,
+    0.4923220310518239
+   ],
+   "spatial_pearson_shown_mode": 0.8084206862058864,
+   "band_lsd_db": 6.365401848197402
+  },
+  {
+   "label": "NE d=0.38",
+   "room": "UL6.00_W5.00_NEd0.38w2.00x0.00_NWd1.50w2.00x0.00",
+   "kind": "U",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 8,
+   "d_hat": 0.6666666666666666,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.5,
+     "w": 2.0,
+     "x0": 0.0
+    },
+    {
+     "side": "NE",
+     "d": 0.38,
+     "w": 2.0,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3718,
+   "nlos_frac": 0.026627218934911268,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.7866304999617785,
+   "spatial_pearson_per_mode": [
+    0.9447551414060207,
+    0.8952829629595949,
+    0.5198533955197199
+   ],
+   "spatial_pearson_shown_mode": 0.8952829629595949,
+   "band_lsd_db": 6.305060734849889
+  },
+  {
+   "label": "NE d=0.76",
+   "room": "UL6.00_W5.00_NEd0.76w2.00x0.00_NWd1.50w2.00x0.00",
+   "kind": "U",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 8,
+   "d_hat": 0.6666666666666666,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.5,
+     "w": 2.0,
+     "x0": 0.0
+    },
+    {
+     "side": "NE",
+     "d": 0.76,
+     "w": 2.0,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3593,
+   "nlos_frac": 0.027553576398552715,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.7897986131637119,
+   "spatial_pearson_per_mode": [
+    0.9586857178795927,
+    0.8998519736405208,
+    0.5108581479710222
+   ],
+   "spatial_pearson_shown_mode": 0.8998519736405208,
+   "band_lsd_db": 6.327527917948854
+  },
+  {
+   "label": "NE d=1.12",
+   "room": "UL6.00_W5.00_NEd1.12w2.00x0.00_NWd1.50w2.00x0.00",
+   "kind": "U",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 8,
+   "d_hat": 0.6666666666666666,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.5,
+     "w": 2.0,
+     "x0": 0.0
+    },
+    {
+     "side": "NE",
+     "d": 1.12,
+     "w": 2.0,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3493,
+   "nlos_frac": 0.02834239908388203,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.7564266385437488,
+   "spatial_pearson_per_mode": [
+    0.9618850877539605,
+    0.7457882293916462,
+    0.5616065984856395
+   ],
+   "spatial_pearson_shown_mode": 0.7457882293916462,
+   "band_lsd_db": 6.529519573835157
+  },
+  {
+   "label": "NE d=1.50",
+   "room": "UL6.00_W5.00_NEd1.50w2.00x0.00_NWd1.50w2.00x0.00",
+   "kind": "U",
+   "L": 6.0,
+   "W": 5.0,
+   "n_tokens": 8,
+   "d_hat": 0.6666666666666666,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.5,
+     "w": 2.0,
+     "x0": 0.0
+    },
+    {
+     "side": "NE",
+     "d": 1.5,
+     "w": 2.0,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3368,
+   "nlos_frac": 0.029394299287410885,
+   "mode": [
+    0,
+    1,
+    34.300000000000004
+   ],
+   "spatial_pearson": 0.6713422861170898,
+   "spatial_pearson_per_mode": [
+    0.9540359118302005,
+    0.5311762230210098,
+    0.5288147235000591
+   ],
+   "spatial_pearson_shown_mode": 0.5311762230210098,
+   "band_lsd_db": 6.585487820952938
+  }
+ ]
+}
