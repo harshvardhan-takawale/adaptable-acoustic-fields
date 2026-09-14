@@ -198,6 +198,17 @@ def fig_sweep(rooms, met, mode_idx, out, swept, fixed, arm, note="", col_w=COL_W
     fs_one = float(np.clip(0.6 * (np.pi / 4.0) * pitch_pt ** 2, 2.0, 40.0))
     freqs = [m["mode"][2] for m in met]
     show_f = (max(freqs) - min(freqs)) > 0.5      # the mode moves when the bbox is swept
+    # THE ARRAYS, NOT THE PIXELS. A frame whose values are all NaN scatters happily and draws a
+    # blank panel; `_assert_size`'s ink check is a pixel heuristic and cannot separate "blank
+    # panel" from "dark field". Checking finiteness here names the frame and the row.
+    for k, r in enumerate(rooms):
+        for which in ("P", "T"):
+            v = _db(r[which][:, bins[k]])
+            frac = float(np.isfinite(v).mean())
+            if frac < 0.5:
+                raise AssertionError(
+                    "frame {} ({}) row {} is {:.1%} finite at bin {} -- the panel would be "
+                    "blank".format(k, r["label"], which, frac, bins[k]))
     for k, r in enumerate(rooms):
         for row, which, lab in ((0, "P", "predicted"), (1, "T", "FDTD")):
             ax = axes[row, k]
@@ -229,8 +240,14 @@ def fig_sweep(rooms, met, mode_idx, out, swept, fixed, arm, note="", col_w=COL_W
     import textwrap
     fig_w_in = fig.get_size_inches()[0]
     cols = max(60, int(fig_w_in / 0.082))
+    # The receiver sampling is MEASURED from the rooms being drawn and appended, never asserted
+    # in prose. A caption that states a density can disagree with the arrays it labels -- that is
+    # exactly how the gallery came to claim a 0.08 m grid over 800 scattered points -- whereas a
+    # caption that counts them cannot.
+    nrx = [len(r["rx"]) for r in rooms]
+    meas = "  Receivers actually drawn: {}-{} per panel.".format(min(nrx), max(nrx))
     body = "\n".join("\n".join(textwrap.wrap(ln, cols)) if ln else ""
-                     for ln in CAPTION.format(swept, fixed, arm, note).split("\n"))
+                     for ln in (CAPTION.format(swept, fixed, arm, note) + meas).split("\n"))
     fig.text(0.5, 0.008, body, ha="center", fontsize=11.5)
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -248,8 +265,15 @@ def _assert_size(out):
             out, w, h, MIN_W, MIN_H))
     a = np.asarray(im.convert("L"))
     ink = float((a < 250).mean())
-    if ink < 0.02:
-        raise AssertionError("{} is {:.3%} ink -- effectively blank".format(out, ink))
+    # 0.02 was far too low to mean anything. A figure whose BOTH rows are entirely NaN still
+    # renders its title, axis labels, column headers and colourbar, and measures 6.8% ink -- so
+    # the old threshold would have passed a completely empty pair of rows. The real guard is the
+    # finite-data check in `fig_sweep`, which looks at the arrays rather than at pixels; this is
+    # the backstop, and it is set above the all-NaN floor.
+    if ink < 0.15:
+        raise AssertionError(
+            "{} is {:.1%} ink -- an all-NaN figure measures ~6.8%, so this is empty or "
+            "near-empty".format(out, ink))
     print("  {}  {}x{}  ink {:.1%}  {:.1f} MB".format(
         out, w, h, ink, Path(out).stat().st_size / 1e6), flush=True)
 
@@ -258,7 +282,13 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sweep", required=True, help="a key of SWEEPS, or 'gallery'")
     ap.add_argument("--data-dir", default="data/track_p4_4_sweeps")
-    ap.add_argument("--family-dir", default="data/track_p4_4_family")
+    ap.add_argument("--family-dir", default="data/track_p4_4_sweeps",
+                    help="corpus for the gallery. Defaults to the SWEEP directory, not "
+                         "data/track_p4_4_family: the five gallery rooms exist in both, with "
+                         "identical filenames, at 800 scattered receivers in the family corpus "
+                         "and ~3k on a 0.08 m grid here. Defaulting to the family corpus made "
+                         "the no-flag invocation draw the sparse fields, and no FileNotFoundError "
+                         "can fire to say so because the names match.")
     ap.add_argument("--out", default="outputs/p4_4/demo/v2")
     ap.add_argument("--mode-idx", type=int, default=1,
                     help="which mode of the bounding box to draw; 1 = the lowest non-DC one, "
@@ -278,10 +308,9 @@ def main() -> int:
                  "room's mode (0,1)")
         fixed = ("five HELD-OUT rooms, one per family, chosen for comparable bounding boxes "
                  "(L 5.30-5.72 m, W 4.02-4.64 m) and a visible notch. The geometry is the "
-                 "family corpus's; the FDTD was re-run at figN's RECEIVER density (0.08 m "
-                 "grid, ~3-4k points) instead of the corpus's 800 scattered points, so the "
-                 "panels resolve the field. Same solver, same dx, same source -- only the "
-                 "sampling changed")
+                 "family corpus's; the FDTD was re-run at figN's receiver density instead of "
+                 "the corpus's 800 scattered points, so the panels resolve the field. Same "
+                 "solver, same dx, same source -- only the sampling changed")
         note = ("This is a SELECTED set: 5 of the 50 held-out family rooms, picked for "
                 "comparable bounding boxes and a visible notch, NOT the average room. For "
                 "context, the family evaluator's means over all 50 are rect +0.847, L +0.766, "

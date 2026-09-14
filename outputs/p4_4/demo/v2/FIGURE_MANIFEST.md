@@ -166,7 +166,7 @@ Mean spatial r **+0.7351**, mean band LSD **6.18 dB** over the 8 frames.
 https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_4/demo/v2/fig_gallery.png
 
 * **Swept**: nothing -- this is a gallery, not a sweep: five different room FAMILIES (rectangle, L, T, double-notch, U) side by side, each drawn at its own room's mode (0,1)
-* **Fixed**: five HELD-OUT rooms, one per family, chosen for comparable bounding boxes (L 5.30-5.72 m, W 4.02-4.64 m) and a visible notch. The geometry is the family corpus's; the FDTD was re-run at figN's RECEIVER density (0.08 m grid, ~3-4k points) instead of the corpus's 800 scattered points, so the panels resolve the field. Same solver, same dx, same source -- only the sampling changed
+* **Fixed**: five HELD-OUT rooms, one per family, chosen for comparable bounding boxes (L 5.30-5.72 m, W 4.02-4.64 m) and a visible notch. The geometry is the family corpus's; the FDTD was re-run at figN's receiver density instead of the corpus's 800 scattered points, so the panels resolve the field. Same solver, same dx, same source -- only the sampling changed
 * **Checkpoint**: `outputs/p4_4/p4_4_FAM/ckpt_iter0060000.pt` (iter 60000)
 * **Mode drawn**: index 1 of the bounding box's analytic list
 
