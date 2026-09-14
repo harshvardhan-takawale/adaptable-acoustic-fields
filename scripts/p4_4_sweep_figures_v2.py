@@ -47,7 +47,7 @@ from aaf.data.shape_configs import SRC
 from aaf.eval.modal_projection import enumerate_modes
 from aaf.eval.p3_2_eval import load_model
 from scripts.p4_3_demo_pack import DF_HZ, DPI, N_MODES_SHOWN, _db, _pearson, render
-from scripts.p4_4_sweeps import GALLERY, SWEEP_CKPT, SWEEPS, validate
+from scripts.p4_4_sweeps import SWEEP_CKPT, SWEEPS, gallery_configs, validate
 
 MIN_W, MIN_H = 2560, 1440          # the deck's requirement, asserted after every save
 COL_W_IN = 3.40                    # figN's 2.95, widened so 8 columns clear MIN_H once the
@@ -249,10 +249,7 @@ def main() -> int:
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if a.sweep == "gallery":
-        from aaf.data.multi_notch import configs_from_rows
-        rows = json.load(open("configs/sweeps_2d_mat/p4_4_family_manifest.json"))["configs"]
-        by = {r["filename"][:-3]: r for r in rows}
-        frames = [(lab, configs_from_rows([by[fn]])[0]) for lab, fn in GALLERY]
+        frames = gallery_configs()
         data_dir, run_dir = a.family_dir, "outputs/p4_4/p4_4_FAM"
         # NOT a sweep: nothing varies continuously, so saying "swept: ..." here would misdescribe
         # the figure. Five different FAMILIES, each at its own room's mode (0,1).
@@ -264,9 +261,9 @@ def main() -> int:
         note = ("This is a SELECTED set: 5 of the 50 held-out family rooms, picked for "
                 "comparable bounding boxes and a visible notch, NOT the average room. For "
                 "context, the family evaluator's means over all 50 are rect +0.847, L +0.766, "
-                "T +0.758, DN +0.704, U +0.673 -- but those are its SIX-mode protocol and the "
-                "per-panel r above is figN's THREE-mode one, which reads higher. The two "
-                "numbers are not comparable and neither is a gate result.")
+                "T +0.758, DN +0.704, U +0.673 -- but those use its SIX-mode protocol and the "
+                "per-panel r above uses figN's THREE-mode one. The two are NOT comparable in "
+                "either direction, and neither is a gate result.")
         col_w = GALLERY_COL_W_IN
         title = "One model, five room shapes it never saw"
     else:

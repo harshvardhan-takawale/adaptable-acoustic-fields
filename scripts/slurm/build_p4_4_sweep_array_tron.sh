@@ -23,4 +23,4 @@ export PYTHONPATH="${PWD}"
 # The FDTD loop is numpy element-wise; extra BLAS threads only add churn.
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 echo "host=$(hostname); job=${SLURM_JOB_ID}; task=${SLURM_ARRAY_TASK_ID}"
-python scripts/build_p4_4_sweep_rooms.py --idx "${SLURM_ARRAY_TASK_ID}" --chunk 2
+python scripts/build_p4_4_sweep_rooms.py --sweeps "${SWEEPS_ARG:-s1_notch_width,s2_room_width,s3a_rect_L_U,s3b_rect_L_DN,s3c_rect_L_U_fav}" --idx "${SLURM_ARRAY_TASK_ID}" --chunk "${CHUNK:-2}"

@@ -24,9 +24,13 @@ pass**, nothing is optimised at demo time, and **no measurement of any of these 
 
 `spatial Pearson` is the correlation between predicted and FDTD |H| in dB across all receivers,
 **averaged over the first 3 resolvable modes of each frame's own bounding box**. That is
-`figN_morph`'s protocol, kept so a v2 strip can be read beside it. **Gate 2 and the P4-2/P4-4
-sweep curves use 6 modes and read LOWER**; the two are not comparable, and no number here should
-be quoted against a gate threshold.
+`figN_morph`'s protocol, kept so a v2 strip can be read beside it. **Gate 2, the P4-2/P4-4
+sweep curves and `p4_4_family_eval` use 6 modes**, so no number here is comparable to one of
+theirs and **none of it may be quoted against a gate threshold**. The difference is not a fixed
+offset in a known direction: on the P4-3 demo rooms the 3-mode number read above the gate, while
+`s3c`'s terminal frame -- the same room the family evaluator scored +0.7968 -- reads +0.7052
+here. Two things differ there, not one: the mode count, and the receiver set (800 scattered
+points in the family corpus against ~2.6k on a 0.08 m grid).
 
 `R(shown)` is the correlation at the single mode the figure actually draws. `band LSD` is the
 mean absolute dB error over **every** bin in 0-300 Hz and every receiver -- a whole-band number,

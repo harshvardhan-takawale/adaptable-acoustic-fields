@@ -47,7 +47,7 @@ from aaf.sim.polygon_geom import (
 )
 from scripts.build_p4_2_shapes import BAND_HI_HZ, C, DX, FS, N
 from scripts.build_p4_4_sweeps_common import RX_CORNER_CLEAR, RX_STEP, RX_WALL_CLEAR
-from scripts.p4_4_sweeps import SWEEPS, validate
+from scripts.p4_4_sweeps import SWEEPS, gallery_configs, validate
 
 OUT_DIR = "data/track_p4_4_sweeps"
 
@@ -148,7 +148,14 @@ def work_list(names):
     """
     seen, out = set(), []
     for nm in names:
-        for _lab, c in validate(nm)[0]:
+        # "gallery" re-simulates the five family rooms at figN's RECEIVER density. The physics
+        # is identical -- same solver, same dx, same geometry, same source -- and only the
+        # receiver sampling changes (800 scattered points in the family corpus, ~3-4k on a
+        # 0.08 m grid here). It writes to this sweep directory, NOT over
+        # `data/track_p4_4_family/`, because the published family eval was computed on those
+        # 800 receivers and overwriting them would silently invalidate it.
+        frames = gallery_configs() if nm == "gallery" else validate(nm)[0]
+        for _lab, c in frames:
             if c.filename in seen:
                 continue
             seen.add(c.filename)

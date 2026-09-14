@@ -136,10 +136,11 @@ def s3c_rect_L_U_fav():
 
     `UL5.70_W4.02_NEd1.74w2.22x0.00_NWd0.68w0.62x0.00` scores +0.7968 on the held-out family
     set, the highest of the ten. Ending the sweep there means the last column has a number
-    measured by an evaluator that never saw this figure. NOTE THE PROTOCOLS DIFFER: +0.7968 is
-    the family evaluator's SIX-mode mean and this figure prints figN's THREE-mode one, which
-    reads higher. The endpoint is an independent check that the room is a good one, not a
-    number the figure should reproduce.
+    measured by an evaluator that never saw this figure. NOTE THAT TWO THINGS DIFFER, NOT ONE:
+    +0.7968 is the family evaluator's SIX-mode mean over the corpus's 800 scattered receivers,
+    and this figure prints figN's THREE-mode mean over ~2.6k receivers on a 0.08 m grid. The
+    endpoint is an independent check that the room is a good one to end on; it is NOT a number
+    this figure should reproduce, and the gap between them is not evidence about either.
     """
     return _two_phase(5.70, 4.02, "NE", 0.62, 2.22, 0.68, 1.74, SHAPE_ID0 + 400, "U")
 
@@ -176,6 +177,27 @@ GALLERY = [
     ("double-notch", "DNL5.30_W4.50_NWd1.06w1.02x0.00_SEd0.34w1.70x0.00"),
     ("U",         "UL5.70_W4.02_NEd1.74w2.22x0.00_NWd0.68w0.62x0.00"),
 ]
+
+
+FAMILY_MANIFEST = "configs/sweeps_2d_mat/p4_4_family_manifest.json"
+
+
+def gallery_configs():
+    """The five gallery rooms as `FamilyConfig`s, read from the frozen family manifest.
+
+    ONE loader, shared by the builder and the figure script, for the same reason the sweep specs
+    are shared: if the builder simulated one set of rooms and the figure drew another, the
+    mismatch would surface as a missing file at best and as a figure of the wrong rooms at worst.
+    """
+    import json
+
+    from aaf.data.multi_notch import configs_from_rows
+    rows = json.load(open(FAMILY_MANIFEST))["configs"]
+    by = {r["filename"][:-3]: r for r in rows}
+    missing = [fn for _lab, fn in GALLERY if fn not in by]
+    if missing:
+        raise KeyError("gallery rooms absent from {}: {}".format(FAMILY_MANIFEST, missing))
+    return [(lab, configs_from_rows([by[fn]])[0]) for lab, fn in GALLERY]
 
 
 def validate(name: str):
