@@ -172,7 +172,10 @@ def fig_sweep(rooms, met, mode_idx, out, swept, fixed, arm, note="", col_w=COL_W
     vmax = float(np.percentile(vals, 99.5)); vmin = vmax - 40.0
     # Axes span the LARGEST frame, not the first: in a room-size sweep, pinning to frame 0 crops
     # every later column, and a cropped field map looks like a modelling failure.
-    fs = [float(np.clip(2600.0 / max(len(r["rx"]), 1), 2.0, 16.0)) for r in rooms]
+    # Marker area scaled to the receiver COUNT. figN's s=3 is tuned for its ~4000-point 0.08 m
+    # grid; the family corpus stores 800 scattered receivers per room, and s=3 there renders as
+    # confetti with the field structure invisible between the dots.
+    fs = [float(np.clip(12000.0 / max(len(r["rx"]), 1), 3.0, 30.0)) for r in rooms]
     freqs = [m["mode"][2] for m in met]
     show_f = (max(freqs) - min(freqs)) > 0.5      # the mode moves when the bbox is swept
     for k, r in enumerate(rooms):
@@ -200,7 +203,15 @@ def fig_sweep(rooms, met, mode_idx, out, swept, fixed, arm, note="", col_w=COL_W
         else "mode ({},{}) {:.0f} Hz".format(m0[0], m0[1], m0[2]))
     fig.suptitle("{}  |  {}  |  ckpt {}".format(title or swept, mode_txt, arm),
                  fontsize=16, fontweight="bold")
-    fig.text(0.5, 0.008, CAPTION.format(swept, fixed, arm, note), ha="center", fontsize=11.5)
+    # WRAP the caption to the canvas. `bbox_inches="tight"` grows the saved image to contain
+    # every artist, so one long unwrapped line silently widens the PNG well past the panels and
+    # leaves large dead margins -- the figure looks padded rather than full.
+    import textwrap
+    fig_w_in = fig.get_size_inches()[0]
+    cols = max(60, int(fig_w_in / 0.082))
+    body = "\n".join("\n".join(textwrap.wrap(ln, cols)) if ln else ""
+                     for ln in CAPTION.format(swept, fixed, arm, note).split("\n"))
+    fig.text(0.5, 0.008, body, ha="center", fontsize=11.5)
     fig.savefig(out, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     _assert_size(out)
@@ -243,7 +254,11 @@ def main() -> int:
         by = {r["filename"][:-3]: r for r in rows}
         frames = [(lab, configs_from_rows([by[fn]])[0]) for lab, fn in GALLERY]
         data_dir, run_dir = a.family_dir, "outputs/p4_4/p4_4_FAM"
-        swept = "The family: one model, five room shapes it never saw"
+        # NOT a sweep: nothing varies continuously, so saying "swept: ..." here would misdescribe
+        # the figure. Five different FAMILIES, each at its own room's mode (0,1).
+        swept = ("nothing -- this is a gallery, not a sweep: five different room FAMILIES "
+                 "(rectangle, L, T, double-notch, U) side by side, each drawn at its own "
+                 "room's mode (0,1)")
         fixed = ("five HELD-OUT rooms, one per family, chosen for comparable bounding boxes "
                  "(L 5.30-5.72 m, W 4.02-4.64 m) and a visible notch")
         note = ("This is a SELECTED set: 5 of the 50 held-out family rooms, picked for "
@@ -279,7 +294,10 @@ def main() -> int:
             m["label"], m["n_tokens"], m["n_rx"], 100 * m["nlos_frac"],
             m["spatial_pearson"], m["spatial_pearson_shown_mode"], m["band_lsd_db"]))
 
-    png = out / "fig_{}.png".format(a.sweep)
+    # A second mode of the same sweep must not overwrite the first: the render cache is shared
+    # (same frames, same checkpoint) so it costs seconds, but only if the outputs are distinct.
+    tag = a.sweep if a.mode_idx == 1 else "{}_mode{}".format(a.sweep, a.mode_idx)
+    png = out / "fig_{}.png".format(tag)
     fig_sweep(rooms, met, a.mode_idx, png, swept, fixed, arm, note=note, col_w=col_w,
               title=title)
     json.dump({"sweep": a.sweep, "arm": arm, "checkpoint": str(ck), "iter": int(it),
@@ -290,7 +308,7 @@ def main() -> int:
                "mode_idx_shown": a.mode_idx, "title": title, "swept": swept,
                "fixed": fixed, "note": note,
                "png": str(png), "per_frame": met},
-              open(out / "{}_metrics.json".format(a.sweep), "w"), indent=1, default=float)
+              open(out / "{}_metrics.json".format(tag), "w"), indent=1, default=float)
     return 0
 
 

@@ -90,11 +90,14 @@ def main() -> int:
                      "rectangle, stored with `w = 0.0`. Every notched frame carries `w = 2.00`. "
                      "Only the title changed; the render cache was intact, so the numbers are "
                      "the published ones.\n")
-        parts.append("| frame | d_hat | n_rx | spatial r (3-mode) | band LSD dB |")
+        # d_hat IS the frame label here; the per-room `tag` is "M" for every frame of the
+        # morph and a column of identical "M"s tells the reader nothing.
+        parts.append("| frame (d_hat) | notch depth d (m) | n_rx | spatial r (3-mode) | "
+                     "band LSD dB |")
         parts.append("|---|---|---|---|---|")
         for m in mo["per_depth"]:
-            parts.append("| {} | {:.3f} | {} | **{:+.4f}** | {:.2f} |".format(
-                m["tag"], m["d_hat"], m["n_rx"], m["spatial_pearson"], m["band_lsd_db"]))
+            parts.append("| {:.3f} | {:.2f} | {} | **{:+.4f}** | {:.2f} |".format(
+                m["d_hat"], m["d"], m["n_rx"], m["spatial_pearson"], m["band_lsd_db"]))
         parts.append("")
 
     for i, name in enumerate(ORDER, start=1):
