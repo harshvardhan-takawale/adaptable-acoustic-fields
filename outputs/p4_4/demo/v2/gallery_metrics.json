@@ -1,0 +1,181 @@
+{
+ "sweep": "gallery",
+ "arm": "p4_4_FAM",
+ "checkpoint": "outputs/p4_4/p4_4_FAM/ckpt_iter0060000.pt",
+ "iter": 60000,
+ "n_modes": 3,
+ "n_modes_note": "spatial_pearson is averaged over the first 3 resolvable modes of each frame's own bounding box -- figN's protocol. Gate 2 uses 6 and reads lower; the two are not comparable.",
+ "mode_idx_shown": 1,
+ "title": "One model, five room shapes it never saw",
+ "swept": "nothing -- this is a gallery, not a sweep: five different room FAMILIES (rectangle, L, T, double-notch, U) side by side, each drawn at its own room's mode (0,1)",
+ "fixed": "five HELD-OUT rooms, one per family, chosen for comparable bounding boxes (L 5.30-5.72 m, W 4.02-4.64 m) and a visible notch. The geometry is the family corpus's; the FDTD was re-run at figN's RECEIVER density (0.08 m grid, ~3-4k points) instead of the corpus's 800 scattered points, so the panels resolve the field. Same solver, same dx, same source -- only the sampling changed",
+ "note": "This is a SELECTED set: 5 of the 50 held-out family rooms, picked for comparable bounding boxes and a visible notch, NOT the average room. For context, the family evaluator's means over all 50 are rect +0.847, L +0.766, T +0.758, DN +0.704, U +0.673 -- but those use its SIX-mode protocol and the per-panel r above uses figN's THREE-mode one. The two are NOT comparable in either direction, and neither is a gate result.",
+ "png": "outputs/p4_4/demo/v2/fig_gallery.png",
+ "per_frame": [
+  {
+   "label": "rectangle",
+   "room": "rectL5.62_W4.18",
+   "kind": "rect",
+   "L": 5.62,
+   "W": 4.18,
+   "n_tokens": 4,
+   "d_hat": 0.0,
+   "notches": [],
+   "n_rx": 3400,
+   "nlos_frac": 0.0,
+   "mode": [
+    0,
+    1,
+    41.0287081339713
+   ],
+   "spatial_pearson": 0.7788831917037481,
+   "spatial_pearson_per_mode": [
+    0.7697718935350347,
+    0.8416552224831495,
+    0.7252224590930602
+   ],
+   "spatial_pearson_shown_mode": 0.8416552224831495,
+   "band_lsd_db": 6.156064649322336
+  },
+  {
+   "label": "L",
+   "room": "LL5.56_W4.52_NWd1.10w2.22x0.00",
+   "kind": "L",
+   "L": 5.56,
+   "W": 4.52,
+   "n_tokens": 6,
+   "d_hat": 0.5408062930186825,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.1,
+     "w": 2.22,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3225,
+   "nlos_frac": 0.01705426356589146,
+   "mode": [
+    0,
+    1,
+    37.942477876106196
+   ],
+   "spatial_pearson": 0.8231644725691561,
+   "spatial_pearson_per_mode": [
+    0.9335421275678512,
+    0.8999932099896969,
+    0.6359580801499207
+   ],
+   "spatial_pearson_shown_mode": 0.8999932099896969,
+   "band_lsd_db": 6.317264139365803
+  },
+  {
+   "label": "T",
+   "room": "TL5.72_W4.64_midNd0.56w0.88x1.94",
+   "kind": "T",
+   "L": 5.72,
+   "W": 4.64,
+   "n_tokens": 8,
+   "d_hat": 0.26819923371647514,
+   "notches": [
+    {
+     "side": "midN",
+     "d": 0.56,
+     "w": 0.88,
+     "x0": 1.94
+    }
+   ],
+   "n_rx": 3695,
+   "nlos_frac": 0.0010825439783491708,
+   "mode": [
+    0,
+    1,
+    36.96120689655173
+   ],
+   "spatial_pearson": 0.7083375790764156,
+   "spatial_pearson_per_mode": [
+    0.9398790900767957,
+    0.5206757149139721,
+    0.664457932238479
+   ],
+   "spatial_pearson_shown_mode": 0.5206757149139721,
+   "band_lsd_db": 6.518312012746649
+  },
+  {
+   "label": "double-notch",
+   "room": "DNL5.30_W4.50_NWd1.06w1.02x0.00_SEd0.34w1.70x0.00",
+   "kind": "DN",
+   "L": 5.3,
+   "W": 4.5,
+   "n_tokens": 8,
+   "d_hat": 0.5234567901234568,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 1.06,
+     "w": 1.02,
+     "x0": 0.0
+    },
+    {
+     "side": "SE",
+     "d": 0.34,
+     "w": 1.7,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 3162,
+   "nlos_frac": 0.0025300442757748565,
+   "mode": [
+    0,
+    1,
+    38.11111111111111
+   ],
+   "spatial_pearson": 0.8380591690946767,
+   "spatial_pearson_per_mode": [
+    0.9325904832207983,
+    0.9046732549601466,
+    0.676913769103085
+   ],
+   "spatial_pearson_shown_mode": 0.9046732549601466,
+   "band_lsd_db": 6.284452391294242
+  },
+  {
+   "label": "U",
+   "room": "UL5.70_W4.02_NEd1.74w2.22x0.00_NWd0.68w0.62x0.00",
+   "kind": "U",
+   "L": 5.7,
+   "W": 4.02,
+   "n_tokens": 8,
+   "d_hat": 0.3758982863460476,
+   "notches": [
+    {
+     "side": "NW",
+     "d": 0.68,
+     "w": 0.62,
+     "x0": 0.0
+    },
+    {
+     "side": "NE",
+     "d": 1.74,
+     "w": 2.22,
+     "x0": 0.0
+    }
+   ],
+   "n_rx": 2623,
+   "nlos_frac": 0.0,
+   "mode": [
+    0,
+    1,
+    42.661691542288565
+   ],
+   "spatial_pearson": 0.7051757457857494,
+   "spatial_pearson_per_mode": [
+    0.8560455428063043,
+    0.8239894364686302,
+    0.4354922580823136
+   ],
+   "spatial_pearson_shown_mode": 0.8239894364686302,
+   "band_lsd_db": 6.327289606494073
+  }
+ ]
+}
