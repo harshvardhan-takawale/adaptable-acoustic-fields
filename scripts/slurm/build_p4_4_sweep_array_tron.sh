@@ -1,10 +1,10 @@
 #!/bin/bash
 # P4-4 demo v2: FDTD ground truth for the morph-expansion sweeps. 36 unique rooms, CPU only.
 # Usage:  sbatch --array=0-17 scripts/slurm/build_p4_4_sweep_array.sh
-#SBATCH --job-name=aaf_p4_4_v2fdtd
-#SBATCH --partition=scavenger
-#SBATCH --account=scavenger
-#SBATCH --qos=scavenger
+#SBATCH --job-name=aaf_v2fdtd_tron
+#SBATCH --partition=tron
+#SBATCH --account=nexus
+#SBATCH --qos=default
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16G

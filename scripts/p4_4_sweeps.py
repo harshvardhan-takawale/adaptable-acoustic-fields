@@ -61,8 +61,10 @@ def s1_notch_width():
         out.append(("w={:.2f}".format(w),
                     FamilyConfig(L, W, (Notch("NW", d, w),), split="sweep",
                                  shape_id=SHAPE_ID0 + i)))
-    return out, {"swept": "notch width w (m)", "fixed": "L = 6.00 m, W = 5.00 m, notch depth "
-                 "d = 1.50 m (d_hat = 0.667)"}
+    return out, {"title": "The morph, sideways: L = 6.00 m, W = 5.00 m and notch DEPTH "
+                 "1.50 m all FIXED; the corner grows ACROSS and the field reorganises",
+                 "swept": "notch width w, 0.30 -> 2.70 m",
+                 "fixed": "L = 6.00 m, W = 5.00 m, notch depth d = 1.50 m (d_hat = 0.667)"}
 
 
 def s2_room_width():
@@ -79,8 +81,12 @@ def s2_room_width():
         out.append(("W={:.2f}".format(W),
                     FamilyConfig(L, W, (Notch("NW", d, w),), split="sweep",
                                  shape_id=SHAPE_ID0 + 100 + i)))
-    return out, {"swept": "room width W (m)", "fixed": "L = 6.00 m, notch d = 1.20 m and "
-                 "w = 2.00 m held in METRES (so d_hat falls 0.667 -> 0.485)"}
+    return out, {"title": "Same notch, bigger room: L = 6.00 m and the notch (d = 1.20 m, "
+                 "w = 2.00 m) all FIXED in metres; only the ROOM grows",
+                 "swept": "room width W, 4.00 -> 5.50 m",
+                 "fixed": "L = 6.00 m, notch d = 1.20 m and w = 2.00 m held in METRES, so "
+                          "d_hat falls 0.667 -> 0.485 as a consequence of the size, not as a "
+                          "second knob"}
 
 
 def _two_phase(L, W, side2, w1, w2, d1_end, d2_end, id0, fam):
@@ -99,9 +105,13 @@ def _two_phase(L, W, side2, w1, w2, d1_end, d2_end, id0, fam):
         ns = (Notch("NW", d1_end, w1), Notch(side2, d, w2))
         out.append(("{} d={:.2f}".format(side2, d),
                     FamilyConfig(L, W, ns, split="sweep", shape_id=id0 + 10 + i)))
-    return out, {"swept": "notch DEPTH, in two phases: frames 1-4 grow the NW notch "
-                          "(rect -> L), frames 5-8 grow the {} notch (L -> {})".format(
-                              side2, fam),
+    return out, {"title": "Rectangle to L to {}: one bounding box, one notch width each; "
+                          "the NW corner is removed, then the {} -- boundary tokens 4 -> 6 -> "
+                          "8".format(fam, side2),
+                 "swept": "notch DEPTH, in TWO phases: frames 1-4 grow the NW notch "
+                          "(rect -> L), frames 5-8 grow the {} notch (L -> {}). Two knobs "
+                          "move, one at a time -- this is not a single-parameter "
+                          "sweep".format(side2, fam),
                  "fixed": "L = {:.2f} m, W = {:.2f} m, NW width {:.2f} m, {} width {:.2f} m; "
                           "boundary tokens 4 -> 6 -> 8".format(L, W, w1, side2, w2)}
 
@@ -126,7 +136,10 @@ def s3c_rect_L_U_fav():
 
     `UL5.70_W4.02_NEd1.74w2.22x0.00_NWd0.68w0.62x0.00` scores +0.7968 on the held-out family
     set, the highest of the ten. Ending the sweep there means the last column has a number
-    measured by an evaluator that never saw this figure.
+    measured by an evaluator that never saw this figure. NOTE THE PROTOCOLS DIFFER: +0.7968 is
+    the family evaluator's SIX-mode mean and this figure prints figN's THREE-mode one, which
+    reads higher. The endpoint is an independent check that the room is a good one, not a
+    number the figure should reproduce.
     """
     return _two_phase(5.70, 4.02, "NE", 0.62, 2.22, 0.68, 1.74, SHAPE_ID0 + 400, "U")
 
@@ -154,7 +167,8 @@ SWEEP_CKPT = {
 # 50 test rooms for (a) comparable bounding boxes, so the analytic mode lists nearly coincide,
 # and (b) a VISIBLE notch -- the tightest-bbox set contains a "T" whose notch is 4 cm deep, which
 # is a rectangle wearing a label. This IS a selected set and the caption says so; the per-family
-# held-out means are printed beside it so the selection cannot be mistaken for the average.
+# held-out means are printed beside it so the selection cannot be mistaken for the average, with
+# the protocol difference (6-mode there, 3-mode here) stated alongside.
 GALLERY = [
     ("rectangle", "rectL5.62_W4.18"),
     ("L",         "LL5.56_W4.52_NWd1.10w2.22x0.00"),
