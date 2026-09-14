@@ -199,6 +199,7 @@ slurm-*.out
 !/outputs/p4_1/**/*.png
 !/outputs/p4_2/**/*.png
 !/outputs/p4_3/**/*.png
+!/outputs/p4_4/**/*.png
 
 # Arm C demo pack: 440 MB of cached dense field dumps stay local; figures+JSON are pushed.
 outputs/armC_demo/fields/
