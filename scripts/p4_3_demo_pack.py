@@ -313,6 +313,12 @@ def fig_morph(rooms, met, b, mode, out, arm=""):
     vals = np.concatenate([_db(r["T"][:, b]) for r in rooms])
     vmax = float(np.percentile(vals, 99.5)); vmin = vmax - 40.0
     cfg0 = rooms[0]["cfg"]
+    # The FIXED notch width, read off a frame that HAS a notch. Frame 0 of a FULL-RANGE morph is
+    # d = 0 -- a pure rectangle -- and `build_p4_2_sweep` stores w = 0.0 for it (`w = 0.0 if
+    # d <= 0.0 else SWEEP_W_NOTCH`). Taking the width from `rooms[0]` therefore printed
+    # "notch width 0.00 m" across a strip whose notch is plainly present and growing. The width
+    # is constant over every notched frame by construction, so the max is that constant.
+    w_fix = max(r["cfg"].w for r in rooms)
     for k, r in enumerate(rooms):
         for row, which, lab in ((0, "P", "predicted"), (1, "T", "FDTD")):
             ax = axes[row, k]
@@ -330,7 +336,7 @@ def fig_morph(rooms, met, b, mode, out, arm=""):
     fig.colorbar(s, ax=axes, fraction=0.014, pad=0.01).set_label("|H| dB", fontsize=10)
     fig.suptitle("The morph: L = {:.2f} m, W = {:.2f} m, notch width {:.2f} m all FIXED; the "
                  "corner grows and the field reorganises  |  mode ({},{}) {:.0f} Hz  |  ckpt "
-                 "{}".format(cfg0.L, cfg0.W, cfg0.w, mode.n_x, mode.n_y, mode.f, arm),
+                 "{}".format(cfg0.L, cfg0.W, w_fix, mode.n_x, mode.n_y, mode.f, arm),
                  fontsize=15, fontweight="bold")
     fig.text(0.5, 0.008, MORPH_NOTE.format(
         float(np.mean([m["band_lsd_db"] for m in met]))), ha="center", fontsize=10.5)
@@ -441,7 +447,8 @@ def main() -> int:
             m["d_hat"], m["n_rx"], m["spatial_pearson"], m["band_lsd_db"], m["rir_pearson"],
             m["rir_pearson_modal"]))
     report["morph"] = {"arm": Path(m_dir).name, "checkpoint": str(m_ck),
-                       "d_hat_min": lo, "L": c0.L, "W": c0.W, "w": c0.w, "per_depth": met,
+                       "d_hat_min": lo, "L": c0.L, "W": c0.W,
+                       "w": max(r["cfg"].w for r in rooms), "per_depth": met,
                        "mode": [int(modes[1].n_x), int(modes[1].n_y), float(modes[1].f)]}
     fig_morph(rooms, met, bins[1], modes[1], out / "figN_morph.png",
               arm=Path(m_dir).name)
