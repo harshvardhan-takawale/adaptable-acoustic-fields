@@ -2,7 +2,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-3 COMPLETE (2026-09-13)** — **GATE 2 PASSES on two arms** (X1 attention-residual **0.8438**, D more-data **0.8021**, threshold 0.80) after four P4-2 failures. **The shallow-notch weakness was a DATA problem**: Arm D eliminates the U-shaped accuracy curve (amplitude 0.2185 -> 0.0752) with sigma unchanged at ~1.0. **Injecting the mechanism did NOT help** — Arm S learns a real, generalizing 8x sigma contrast in the wall and is the WORST arm. Two bugs found that had published wrong numbers (D73, D74). See the section directly below. Prior: **P4-2 COMPLETE (2026-09-12)** — the notch family. **GATE 2 FAILS on all four arms** (best in-slab spatial Pearson **0.7978** vs a 0.80 threshold) and the sigma ratio reads **~1.00 on every arm** — no occlusion mechanism, which is the number that predicts shape transfer will not work. **Task A is a clean win**: edit linearity restored, `edit_bw_slope` 0.871 -> **0.957** against Arm C's 0.959, and `geom_token_m` is adopted. The shape-edit sweep refutes both pre-registered outcomes: accuracy is worst at SHALLOW notches, best at deep ones, and the held-out band is unremarkable. See the section directly below. Prior: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
+**Last updated**: **P4-4 COMPLETE (2026-09-14)** — **the ramp did not ramp and both targets were missed.** Scaling the corpus 5.4x moved the gated metric by **-0.0001** and cost 0.22 on the depth sweep; best in-slab **0.8420** against a 0.88 target, best band LSD **4.42 dB** against 3.0. All three P4-4 arms nonetheless **PASS** the frozen Gate-2 criterion where all four P4-2 arms failed. **Task 3's headline: re-describing an IDENTICAL room with redundant tokens costs more accuracy (-0.13 to -0.24) than adding two reflex corners does (-0.135)** — so tokenization fragility, not corner count, is what the Z-corridor hinges on. See the section directly below. Prior: **P4-3 COMPLETE (2026-09-13)** — **GATE 2 PASSES on two arms** (X1 attention-residual **0.8438**, D more-data **0.8021**, threshold 0.80) after four P4-2 failures. **The shallow-notch weakness was a DATA problem**: Arm D eliminates the U-shaped accuracy curve (amplitude 0.2185 -> 0.0752) with sigma unchanged at ~1.0. **Injecting the mechanism did NOT help** — Arm S learns a real, generalizing 8x sigma contrast in the wall and is the WORST arm. Two bugs found that had published wrong numbers (D73, D74). See the section directly below. Prior: **P4-2 COMPLETE (2026-09-12)** — the notch family. **GATE 2 FAILS on all four arms** (best in-slab spatial Pearson **0.7978** vs a 0.80 threshold) and the sigma ratio reads **~1.00 on every arm** — no occlusion mechanism, which is the number that predicts shape transfer will not work. **Task A is a clean win**: edit linearity restored, `edit_bw_slope` 0.871 -> **0.957** against Arm C's 0.959, and `geom_token_m` is adopted. The shape-edit sweep refutes both pre-registered outcomes: accuracy is worst at SHALLOW notches, best at deep ones, and the held-out band is unremarkable. See the section directly below. Prior: **P4-1 COMPLETE (2026-09-11)** — shape editing Stages 0 and 1, BOTH GATES PASS; token-only geometry beats the (L, W) baseline and the architecture fits a non-convex room, but no occlusion MECHANISM was demonstrated. See the section directly below. Prior: **Repo sync (2026-09-10)** — a five-chunk backlog of run telemetry and eval output is now committed and fetchable; see the maintenance section below and D63. No science changed. Prior: **Arm C demo pack v2 COMPLETE (2026-08-18)** — modal-hierarchy screen, multi-mode Fig A, the Delta difference maps, and the doorway motivator (whose solver reproduces FT-B's published numbers to 0.004 dB). See the section directly below and `tasks/CHUNK_ARMC_V2_RESULTS.md`. Prior: **Arm C demo pack v1 COMPLETE (2026-08-18)** — see the section directly below; it is the first dense-field zero-shot demo on the clean ISM corpus and it passed its pre-registered 0.70 spatial-Pearson abort rule at worst 0.920 / mean 0.951. Prior chunk: **P3-2c + FT-1 COMPLETE (2026-08-15)**. Two headline outcomes, both partly negative and both actionable:
 
 1. **P3-2c's density sweep is CONFOUNDED by its own design** — the pre-registered control (north) tracks the manipulation perfectly (Spearman **1.000**, spread **0.316** vs a 0.15 tolerance) while the manipulated wall (west) does not (Spearman **-0.400**). No west-specific gap effect is identifiable. **The reportable result is the within-run extrapolation curve**: edit slope 0.917 / 0.597 / 0.313 at +0.106 / +0.288 / +0.511 beyond the training edge, crossing the 0.80 threshold at **dm ~ 0.173**.
 2. **FT-1 FT-A is GO-WITH-CHANGES.** A 2D FDTD solver passes all 10 correctness gates at **0.83 s/room** (0.231 CPU-h per 1000 configs, **52x** inside budget, interior structure free). But all ten gates ran the single on-grid geometry while **39 of 40 train and 9 of 10 test rooms are off the dx grid**, and both new edit parameters are **dx-quantized** — which collides with D52's finding that continuous sampling is the operative variable. **FT-B and FT-C were NOT run.**
@@ -10,6 +10,78 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 **Also fixed this chunk: a regression I introduced.** The P3-2c audit A1 commit (`ee6ead0`) made the entire per-cell slope regression dead code, so **every rho computed between `ee6ead0` and `ad91b3a` was NaN**. Caught because P3-2c re-evaluates P3-2b arm C as its first curve point and reproduced every number except rho. The A1 guard tests could not have caught it — they asserted over stored `summary.json` files produced by the pre-A1 code, validating documents rather than the code that writes them. `tests/test_p3_2b_slopefit_regression.py` now fits synthetic data end-to-end. No published number changed.
 
 Prior: P3-2b (2026-08-14); P3-2 (2026-08-13); P3-1 PAUSED (2026-08-12).
+
+## Phase 4 — P4-4 COMPLETE (2026-09-14): the ramp saturates, and tokenization is the real constraint
+
+Full writeup `tasks/CHUNK_P4_4_RESULTS.md`; decisions **D79-D84**. Tests **563 passed**.
+
+**TASK 2 -- THE SCALING CURVE SATURATES AND REVERSES.** Three runs of one architecture on
+strictly NESTED corpora (92 subset 250 subset 500) with byte-identical test shapes and matched
+60K iterations:
+
+| corpus | draws/shape | in-slab R | LSD dB | U ampl | sweep mean |
+|---:|---:|---:|---:|---:|---:|
+| 92 | 5,217 | 0.8337 | 4.46 | 0.0619 | 0.8276 |
+| 250 | 1,920 | **0.8420** | 4.43 | 0.1027 | 0.6857 |
+| 500 | 960 | 0.8336 | 4.51 | 0.1206 | 0.6036 |
+
+92->250 is +0.0082; 250->500 is **-0.0083**. Over 5.4x more data the gate moves **-0.0001** while
+the depth sweep falls 0.828 -> 0.604.
+
+**The mechanism is arithmetic.** The batch draws 8 configs per iteration whatever the corpus
+size, so draws-per-shape falls 5217 / 1920 / 960. The sweep probes ONE bounding box in depth and
+needs per-room fidelity; Gate 2 probes 15 VARIED shapes and needs breadth. Degradation is uniform
+across d_hat -- a global fidelity loss, not a regime failure. **This bounds D75 rather than
+contradicting it**: 60->92 worked because breadth was limiting; by 250-500 steps-per-shape is
+limiting and the trade reverses. **Scale corpus and iteration budget together.** 500 shapes at
+matched draws/shape (~500K iters) is untested and is the obvious next experiment.
+
+**GATE 2 -- all three P4-4 arms PASS** (all four P4-2 arms failed). Best out-of-slab **0.8359**
+(C250), the best in the phase. **BOTH TARGETS MISSED**: 0.8420 against 0.88, and 4.42 dB against
+3.0 -- a 47% miss, flagged as a risk when planning and again mid-training, and reported as a miss.
+
+**THE SPEC'S ORTHOGONALITY PREMISE DOES NOT HOLD.** C92 (attention on an extent base) lands
+within **0.003 dB** of X1 (attention on a mean base). Attention dominates; the extent base is
+nearly inert. Treat them as one arm. And on an identical corpus the two metric families
+**disagree in sign**: attn+extent beats masked_mean +0.0316 in-slab and +0.0419 out-of-slab while
+LOSING 1.8 dB on val LSD and 0.054 on the sweep. P4-3 saw the same inversion; P4-4 predicted the
+repeat from the val trajectory BEFORE Gate 2 ran, and Gate 2 confirmed it.
+
+**TASK 3 -- CORNER COUNT DEGRADES GENTLY; TOKENIZATION DOES NOT.** 300 training rooms across five
+families, 50 held out, dataset gate **14/14** (including the simulator item: an L and a U with the
+same bounding box differ by 4.31 dB).
+
+| reflex corners | tokens | spatial R | LSD |
+|---:|---:|---:|---:|
+| 0 (rect) | 4 | +0.8469 | 4.44 |
+| 1 (L) | 6 | +0.7663 | 4.69 |
+| 2 (U/T/DN) | 8 | +0.7116 | 4.77 |
+
+Monotone and **decelerating** (-0.081 then -0.055); 2-corner rooms keep 84% of the rectangle's
+accuracy. U is hardest (+0.6727) -- two notches on the same wall leave the narrowest stem.
+
+**But the token-count control is the headline.** The SAME rooms re-tokenized with collinear
+vertices -- identical physics, identical `.h5`, identical receivers, only the conditioning changes:
+
+| room | tokens | spatial R | delta |
+|---|---:|---:|---:|
+| rect | 4 -> 8 | 0.8469 -> **0.6029** | **-0.2440** |
+| rect | 4 -> 12 | 0.8469 -> 0.7163 | -0.1306 |
+| L | 6 -> 12 | 0.7663 -> **0.5642** | **-0.2021** |
+
+**Re-describing an identical room costs MORE than adding two reflex corners (-0.135).** The
+honest reading is not "token count costs accuracy" -- training used ONE tokenization convention,
+so a redundantly tokenized rectangle is out of distribution in the conditioning, and the
+**non-monotonicity proves it** (0.603 at 8 tokens but 0.716 at 12). The supported claim is
+weaker and more useful: **the conditioning depends on HOW a room is described, not only WHICH
+room it is.**
+
+**WHAT TO DO BEFORE THE Z-CORRIDOR.** A Z has 10 tokens and every training room has 4, 6 or 8 --
+out of distribution in exactly the dimension the model is fragile in. **Train with tokenization
+AUGMENTATION** (each room presented at several equivalent tokenizations), then re-run the
+control. One training run, **no new simulation** -- the control reuses existing `.h5` unchanged
+-- and it converts Z from a gamble into a test. sigma remains **1.0132**; reflex corners do not
+make the model discover occlusion.
 
 ## Phase 4 — P4-3 COMPLETE (2026-09-13): GATE 2 PASSES, and the mechanism question answers negatively
 

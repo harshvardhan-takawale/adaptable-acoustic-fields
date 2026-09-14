@@ -12,7 +12,7 @@ base lands within 0.003 dB of attention-on-a-mean-base: the attention residual d
 extent base it rides on is very nearly inert.
 
 **Date**: 2026-09-14 · **Branch**: `main` · Tests: **563 passed**
-**Decisions**: D79–D82 · Task 3 (two-reflex-corner families) training at time of writing.
+**Decisions**: D79–D84 · All three tasks complete.
 
 ---
 
@@ -121,48 +121,84 @@ difference, not a discrepancy, and it is now self-describing.
 
 ---
 
-## 3. Task 3 — two reflex corners (corpus COMPLETE, training in flight)
+## 3. Task 3 — two reflex corners, and the token-count control (COMPLETE)
 
-350 rooms built, 70 per family — rect (0 reflex corners, 4 tokens), L (1, 6), U (2, 8), T (2, 8),
-DN (2, 8) — 60 train + 10 test each, 3 in-slab test rooms per notched family.
-**Dataset gate: 14/14 PASS.**
+One model, 300 training rooms — 60 each of rect (0 reflex corners, 4 tokens), L (1, 6), U (2, 8),
+T (2, 8), DN (2, 8) — evaluated on 50 held-out rooms, 10 per family. **Dataset gate 14/14 PASS**,
+including the one item bookkeeping cannot fake: an L and a U with the **same bounding box** differ
+by **4.31 dB mean**. Nothing in the model, conditioner, renderer or solver changed.
 
-Nothing in the model, conditioner, renderer or solver changed: `MAX_SEG_POLY = 12` already covers
-4/6/8 and leaves room for a 10-vertex Z, `cond_dim` stays 324, existing checkpoints stay loadable.
+### Q1 — corner count degrades monotonically, and decelerates (D83)
 
-The gate's one **simulator-level** item is the one bookkeeping cannot fake: an L and a U with the
-**same bounding box** differ by **4.31 dB mean**. Every other item — unique filenames, balanced
-families, matching token counts, an empty hold-out slab, grid alignment, reflex-corner counts —
-would pass on a corpus whose second notch had been silently dropped.
+| reflex corners | family | tokens | spatial R | LSD dB | RIR r |
+|---:|---|---:|---:|---:|---:|
+| 0 | rect | 4 | **+0.8469** | 4.44 | 0.856 |
+| 1 | L | 6 | +0.7663 | 4.69 | 0.839 |
+| 2 | T | 8 | +0.7582 | 4.64 | 0.806 |
+| 2 | DN | 8 | +0.7039 | 4.83 | 0.807 |
+| 2 | U | 8 | **+0.6727** | 4.82 | 0.758 |
+| **2 (pooled)** | | 8 | **+0.7116** | 4.77 | |
 
-**The token-count control, and a constraint worth having found.** Comparing a rectangle (4
-tokens) with a U (8) confounds token count with geometry. The control re-tokenizes the **same**
-room with collinear vertices: identical physics, identical `.h5`, identical receivers, only the
-conditioning changes. `MAX_SEG_POLY = 12` bounds what is reachable — rect at 4/8/12, L at 6/12,
-and the 8-token families not at all — which makes the **rectangle the cleanest control in the
-corpus: one room, three token counts, literally fixed geometry.** The U/T/DN rows carry the
-across-*geometry* comparison instead, so the spec's single question splits into two clean
-measurements rather than one confounded one.
+0 → 1 costs −0.081; 1 → 2 costs −0.055. Decelerating, not collapsing: 2-corner rooms retain 84%
+of the rectangle's accuracy. **U is hardest**, which is geometrically sensible — two notches on
+the *same* wall leave a narrow north stem and the most severely non-convex interior.
 
-Training runs on `attn_residual_extent`, chosen on Task 2's gated evidence rather than assumed.
+σ reads **1.0132** over 32 probeable rooms. Adding reflex corners does not make the model
+discover occlusion — unchanged from every measurement since P4-2.
+
+### Q2 — and corner count is NOT the dominant term (D84)
+
+The same rooms, re-tokenized with **collinear** vertices. Identical physics, identical `.h5`,
+identical receivers, identical polygon (verified: `polygon_contains` agrees on 4000 random
+points). Only the conditioning vector changes.
+
+| room | tokens | spatial R | Δ vs native |
+|---|---:|---:|---:|
+| rect | 4 (native) | +0.8469 | — |
+| rect | 8 | **+0.6029** | **−0.2440** |
+| rect | 12 | +0.7163 | −0.1306 |
+| L | 6 (native) | +0.7663 | — |
+| L | 12 | **+0.5642** | **−0.2021** |
+
+**Re-describing an identical room costs more than adding two reflex corners does** (−0.13 to
+−0.24 against −0.135). The rectangle is a room the model reconstructs at 0.847 when described
+minimally and 0.603 when described redundantly — same room, same physics, same receivers.
+
+**The honest reading is not "token count costs accuracy".** The model was trained with one
+tokenization convention, so in training 8 tokens *always* meant a 2-corner room. A redundantly
+tokenized rectangle is **out of distribution in the conditioning**, and this measures robustness
+to that shift, not an intrinsic per-token cost. **The non-monotonicity proves it**: the rectangle
+scores 0.603 at 8 tokens but 0.716 at 12, which no monotone "more tokens is worse" law produces.
+What the data supports is weaker and more useful: **the learned conditioning depends on HOW a
+room is described, not only on WHICH room it is.**
+
+### What this means for the Z-corridor
+
+A Z has **10 tokens**; every training room has 4, 6 or 8. It is out of distribution in exactly
+the dimension this control shows the model is fragile in, and that fragility is worth more
+accuracy than the extra corner. Corner count alone does not forbid Z — the per-step loss is
+shrinking — but the tokenization result, not the corner table, is the right predictor.
+
+**Recommended before Stage 3**: train with **tokenization augmentation** — present each room at
+several equivalent tokenizations so the conditioning is pushed toward invariance — then re-run
+this control. One training run, **no new simulation** (the control reuses existing `.h5`
+unchanged), and it converts Z from a gamble into a test.
 
 ---
 
 ## 4. What the manager should take from this
 
-1. **Corpus scaling is not free at fixed compute.** 5.4× more data bought nothing on the gate and
-   cost 0.22 on the sweep, because draws-per-shape fell 5.4×. Scale the corpus and the iteration
-   budget together, or state which one you held fixed. The next experiment is 500 shapes at
-   matched draws/shape (~500K iterations), which is untested.
-2. **Two metric families disagree in sign here, reproducibly.** Val LSD (in-distribution, training
-   receivers) and Gate 2 (15 unseen shapes) have now inverted in two consecutive chunks for the
-   same architectural reason. Quote both or neither; a shape-generalization claim belongs on
-   Gate 2.
-3. **The attention residual is the whole architectural effect.** The extent base adds ~0.003 dB.
-   Treat `attn_residual` and `attn_residual_extent` as one arm, not two.
-4. **The targets were missed.** 0.842 against 0.88, 4.42 dB against 3.0. The gate moved; the
-   targets did not.
-5. **`enumerate_modes` is the analytic rectangular mode list and three chunks used it on
-   non-convex rooms without writing down why** (D79). The practice is sound — it only picks which
-   bins to correlate at, and prediction and truth are read at the same bin — but the argument
-   existed nowhere and now does.
+1. **Corpus scaling is not free at fixed compute.** 5.4x more data bought −0.0001 on the gate and
+   cost 0.22 on the sweep, because draws-per-shape fell 5.4x. Scale corpus and iteration budget
+   together, or state which you held fixed. 500 shapes at matched draws/shape is untested.
+2. **Tokenization fragility, not corner count, is what Z hinges on.** Re-describing an identical
+   room costs −0.13 to −0.24; adding two reflex corners costs −0.135. Train with tokenization
+   augmentation before Stage 3 — one run, no new simulation.
+3. **Two metric families disagree in sign, reproducibly.** Val LSD and Gate 2 have now inverted
+   in two consecutive chunks for the same reason. A shape-generalization claim belongs on Gate 2.
+4. **The attention residual is the whole architectural effect.** The extent base adds ~0.003 dB;
+   treat `attn_residual` and `attn_residual_extent` as one arm.
+5. **Both targets were missed.** 0.842 against 0.88; 4.42 dB against 3.0. The gate moved (all
+   three P4-4 arms pass where all four P4-2 arms failed); the targets did not.
+6. **`enumerate_modes` is the analytic rectangular mode list** and three chunks used it on
+   non-convex rooms without writing down why (D79). Sound, but the argument existed nowhere.
