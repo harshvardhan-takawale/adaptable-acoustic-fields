@@ -46,6 +46,7 @@ from matplotlib.patches import Polygon as MplPolygon
 from aaf.data.shape_configs import SRC
 from aaf.eval.modal_projection import enumerate_modes
 from aaf.eval.p3_2_eval import load_model
+from scripts.build_p4_4_sweeps_common import RX_STEP
 from scripts.p4_3_demo_pack import DF_HZ, DPI, N_MODES_SHOWN, _db, _pearson, render
 from scripts.p4_4_sweeps import SWEEP_CKPT, SWEEPS, gallery_configs, validate
 
@@ -96,16 +97,24 @@ def load_frames(frames, data_dir, model, renderer, dev, cache=None, ck=None):
     """
     import h5py
     key = "|".join(c.filename for _, c in frames)
+    # THE DATA DIRECTORY IS PART OF THE KEY. The same room filename exists in more than one
+    # corpus at DIFFERENT receiver densities -- `data/track_p4_4_family` stores 800 scattered
+    # points and `data/track_p4_4_sweeps` stores ~3-4k on a 0.08 m grid -- so checkpoint plus
+    # filenames does NOT identify the arrays. Without this the gallery would have silently
+    # redrawn the 800-point fields under a caption claiming the dense ones. A cache written
+    # before this field existed is refused rather than trusted.
+    want_dir = str(Path(data_dir))
     if cache and Path(cache).exists():
         z = np.load(cache, allow_pickle=False)
-        if str(z["ckpt"]) == str(ck) and str(z["key"]) == key:
+        have_dir = str(z["data_dir"]) if "data_dir" in z.files else None
+        if str(z["ckpt"]) == str(ck) and str(z["key"]) == key and have_dir == want_dir:
             out = [{"label": lab, "cfg": c, "T": z["T{}".format(i)], "P": z["P{}".format(i)],
                     "rx": z["rx{}".format(i)], "los": z["los{}".format(i)]}
                    for i, (lab, c) in enumerate(frames)]
             print("[cache] reused {} frames from {}".format(len(out), cache), flush=True)
             return out
-        print("[cache] {} is for another checkpoint or frame list -- re-rendering".format(cache),
-              flush=True)
+        print("[cache] {} is for another checkpoint, frame list or data dir -- re-rendering"
+              .format(cache), flush=True)
     out = []
     for lab, c in frames:
         p = Path(data_dir) / c.filename
@@ -120,7 +129,7 @@ def load_frames(frames, data_dir, model, renderer, dev, cache=None, ck=None):
         print("  {:16s} {} tok  n_rx {:5d}".format(lab, c.n_tokens, len(rx)), flush=True)
     if cache:
         Path(cache).parent.mkdir(parents=True, exist_ok=True)
-        blob = {"ckpt": str(ck), "key": key}
+        blob = {"ckpt": str(ck), "key": key, "data_dir": want_dir}
         for i, r in enumerate(out):
             blob["T{}".format(i)], blob["P{}".format(i)] = r["T"], r["P"]
             blob["rx{}".format(i)], blob["los{}".format(i)] = r["rx"], r["los"]
@@ -172,16 +181,27 @@ def fig_sweep(rooms, met, mode_idx, out, swept, fixed, arm, note="", col_w=COL_W
     vmax = float(np.percentile(vals, 99.5)); vmin = vmax - 40.0
     # Axes span the LARGEST frame, not the first: in a room-size sweep, pinning to frame 0 crops
     # every later column, and a cropped field map looks like a modelling failure.
-    # Marker area scaled to the receiver COUNT. figN's s=3 is tuned for its ~4000-point 0.08 m
-    # grid; the family corpus stores 800 scattered receivers per room, and s=3 there renders as
-    # confetti with the field structure invisible between the dots.
-    fs = [float(np.clip(12000.0 / max(len(r["rx"]), 1), 3.0, 30.0)) for r in rooms]
+    # ONE marker size for the whole row, derived from the RECEIVER SPACING and the panel scale.
+    #
+    # Scaling per frame by 1/n_rx was wrong, and wrong in an unhelpful direction. Every frame is
+    # sampled on the same 0.08 m grid and every panel shares one axis scale, so the correct dot
+    # size is identical in every column; n_rx varies only because the rooms have different
+    # AREAS. Cutting a notch removes area, so the frames with the most geometry removed -- which
+    # are also the worst-scoring ones -- were drawn with the fattest, most overlapping dots and
+    # therefore looked the smoothest. A per-column rendering difference with no physical cause,
+    # favouring exactly the columns that deserve it least.
+    #
+    # The size is the one at which neighbouring receivers just touch, times 0.6 so the grid stays
+    # legible: marker AREA is in points^2, and a 0.08 m spacing maps to
+    # 0.08 * col_w * 72 / (Lmax + 0.4) points on the page.
+    pitch_pt = RX_STEP * col_w * 72.0 / (Lmax + 0.4)
+    fs_one = float(np.clip(0.6 * (np.pi / 4.0) * pitch_pt ** 2, 2.0, 40.0))
     freqs = [m["mode"][2] for m in met]
     show_f = (max(freqs) - min(freqs)) > 0.5      # the mode moves when the bbox is swept
     for k, r in enumerate(rooms):
         for row, which, lab in ((0, "P", "predicted"), (1, "T", "FDTD")):
             ax = axes[row, k]
-            s = ax.scatter(r["rx"][:, 0], r["rx"][:, 1], c=_db(r[which][:, bins[k]]), s=fs[k],
+            s = ax.scatter(r["rx"][:, 0], r["rx"][:, 1], c=_db(r[which][:, bins[k]]), s=fs_one,
                            vmin=vmin, vmax=vmax, cmap="magma")
             ax.add_patch(MplPolygon(r["cfg"].verts, closed=True, fill=False, ec="black",
                                     lw=1.5, zorder=6))
