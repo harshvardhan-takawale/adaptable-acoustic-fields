@@ -112,8 +112,15 @@ class Corpus:
     """The training corpus exactly as the trainer preloads it."""
 
     def __init__(self, manifest, data_dir, cfg, dev):
-        rows = json.load(open(manifest))["configs"]
-        self.configs = configs_from_rows(rows, split="train")
+        man = json.load(open(manifest))
+        rows = man["configs"]
+        if str(man.get("schema", "")).startswith("p3_3fast.trackB"):
+            # D137 item 4: the doorway corpus -- the trainer's own config branch and kinds filter
+            from aaf.data.aperture_configs import configs_from_rows as aper_rows
+            kinds = cfg.get("config_kinds")
+            self.configs = aper_rows(rows, split="train", **({"kinds": tuple(kinds)} if kinds else {}))
+        else:
+            self.configs = configs_from_rows(rows, split="train")
         H, rx, cond, gid, self.geom = [], [], [], [], []
         gidx = {}
         for c in self.configs:
@@ -125,8 +132,12 @@ class Corpus:
                 gidx[(c.L, c.W)] = len(self.geom)
                 self.geom.append((c.L, c.W))
             gid.append(gidx[(c.L, c.W)])
-            cond.append(build_cond_vector_2d(cfg["cond_source"], c.L, c.W, c.edge_alphas,
-                                             verts=c.verts).numpy())
+            # the trainer's call (multi_room_2d_mat.py:366-371), schema-agnostic
+            _v = getattr(c, "verts", None)
+            cond.append(build_cond_vector_2d(cfg["cond_source"], c.L, c.W,
+                                             c.edge_alphas if _v is not None else c.alphas,
+                                             x0=getattr(c, "x0", None), a=getattr(c, "a", None),
+                                             verts=_v).numpy())
         self.H = torch.tensor(np.stack(H), device=dev)
         self.rx = torch.tensor(np.stack(rx), device=dev)
         self.src = torch.tensor(src, device=dev)
@@ -283,6 +294,7 @@ def main() -> int:
     ap.add_argument("--rows", type=int, default=4)
     ap.add_argument("--rx-per-config", type=int, default=2)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--tag", default="", help="prefix for the output file (e.g. trackB_20K)")
     ap.add_argument("--smoke", action="store_true", help="2 batches, to fail fast")
     ap.add_argument("--state", choices=("C250_60K", "fresh_init", "both"), default="both",
                     help="one state per job lets the two run in parallel")
@@ -328,7 +340,8 @@ def main() -> int:
                   "HOLDS" if above < 0.15 else "FAILS"), flush=True)
         del model, renderer
         torch.cuda.empty_cache()
-    name = "a1_smoke_{}.json".format(a.state) if a.smoke else "a1_{}.json".format(a.state)
+    pre = "a1_{}_".format(a.tag) if a.tag else "a1_"
+    name = "a1_smoke_{}.json".format(a.state) if a.smoke else "{}{}.json".format(pre, a.state)
     json.dump(report, open(out / name, "w"), indent=1)
     print("wrote", out / name, flush=True)
     return 0

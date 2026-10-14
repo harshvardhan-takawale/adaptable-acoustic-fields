@@ -80,12 +80,17 @@ def render(name, ck):
                      "lsd_0_100": float(np.mean(np.abs(dP[:, :200] - dT[:, :200]))),
                      "lsd_0_300": float(np.mean(np.abs(dP - dT))),
                      "lsd_0_200": float(np.mean(np.abs(dP[:, :401] - dT[:, :401]))),
-                     "r_25_100": float(np.nanmean(r_bins[:150])), "r_25_300": float(np.nanmean(r_bins))})
+                     "r_25_100": float(np.nanmean(r_bins[:150])), "r_25_300": float(np.nanmean(r_bins)),
+                     # D137 item (1): per band, for the training-vs-test comparison
+                     "r_100_200": float(np.nanmean(r_bins[150:350])), "r_200_300": float(np.nanmean(r_bins[350:551])),
+                     "lsd_100_200": float(np.mean(np.abs(dP[:, 200:400] - dT[:, 200:400]))),
+                     "lsd_200_300": float(np.mean(np.abs(dP[:, 400:601] - dT[:, 400:601])))})
     rep = {"name": name, "checkpoint": str(ck), "iter": int(it), "n_rooms": len(rows),
            "lsd_0_100": float(np.mean([r["lsd_0_100"] for r in rows])),
            "lsd_0_300": float(np.mean([r["lsd_0_300"] for r in rows])),
            "lsd_0_200": float(np.mean([r["lsd_0_200"] for r in rows])),
            "r_25_100": float(np.mean([r["r_25_100"] for r in rows])),
+           **{k: float(np.mean([r[k] for r in rows])) for k in ("r_100_200", "r_200_300", "lsd_100_200", "lsd_200_300")},
            "r_25_300": float(np.mean([r["r_25_300"] for r in rows])), "rooms": rows}
     OUT.mkdir(parents=True, exist_ok=True)
     json.dump(rep, open(OUT / "{}.json".format(name), "w"), indent=1)
