@@ -28,7 +28,12 @@ while true; do
     echo "$(date +%H:%M) ${A}_${K} COMPLETE"; exit 0
   fi
   if [ ! -f "outputs/p4_5/arms/$A/$CK" ] && ! squeue -j "$JOB" -h 2>/dev/null | grep -q .; then
-    echo "$(date +%H:%M) ARM $A: training job $JOB gone before $CK"; exit 2
+    # grace period: a job that has just FINISHED may leave the queue a moment before its final
+    # checkpoint is visible on the shared filesystem (B1b @60K, 2026-10-14) -- re-check first
+    sleep 120
+    if [ ! -f "outputs/p4_5/arms/$A/$CK" ]; then
+      echo "$(date +%H:%M) ARM $A: training job $JOB gone before $CK"; exit 2
+    fi
   fi
   sleep 90
 done
