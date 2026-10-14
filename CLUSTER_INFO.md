@@ -137,3 +137,8 @@ srun --pty --partition=scavenger --account=scavenger --qos=scavenger \
 
 - `scripts/run_chunk2_pipeline.sh`: memory_check → 3× single-room train (parallel, scavenger) → 3× single-room eval (parallel, scavenger). Wall ~2 h.
 - `scripts/run_chunk3_pipeline.sh`: memory_check → 1 multi-room train (tron, non-preemptible) → 6× zero-shot eval (parallel, scavenger) → latent probe (scavenger). Wall ~3 h. The training script defaults to `--partition=tron --account=nexus --qos=default`; if tron is unavailable, edit `scripts/slurm/multi_room_train.sh` to swap those three SBATCH lines for `--partition=scavenger --account=scavenger --qos=scavenger`.
+
+## Project storage quota (added 2026-10-14, D143)
+
+`/fs/nexus-projects/multimodal_recon` is a **500 GB per-project export**. Check it with `df -h /fs/nexus-projects/multimodal_recon` (the Size column is the quota). A filesystem-wide `df` shows ~300T and is misleading. When it fills: running jobs die with exit code 1 and NO traceback (stderr cannot be written), and new jobs fail in 0-2 s with **signal 53 and no log file**, the same signature as the legacy43 node fault (D88). Before relaunching anything after a mass failure, run `touch` in `logs/slurm/` and check `df`. Big consumers: every-2K checkpoints (682 MB full, 227 MB thinned), dense 15-shape render caches (~1 GB each, `outputs/p4_5/gate2_dense/cache/`), A2 render caches (`outputs/p4_5/eval/cache/`).
+
