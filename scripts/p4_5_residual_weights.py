@@ -9,8 +9,8 @@ RELATIVE-RESIDUAL weighting,
 i.e. B1's normalisation times how wrong B1 @60K still is, relative to the target, in each bin.
 Bins B1 already fits lose weight; bins it still misses -- the top of the band -- keep or gain it.
 
-Rows = what the loss sees, the same population as D96: training configs (every 5th of the 250 by
-filename: 50 configs), their TRAINING receivers (`val_rx_indices` excluded), rendered with the
+Rows = what the loss sees, the same population as D96: training configs (every `--every`-th of the
+250 by filename; run for B12 with --every 10 = 25 configs, 17,500 rows), their TRAINING receivers (`val_rx_indices` excluded), rendered with the
 polygon path of `p4_5_gate2_dense.render_all`. Residual is complex (the spec terms are L1 on real
 and imaginary parts), RMS over rows.
 
