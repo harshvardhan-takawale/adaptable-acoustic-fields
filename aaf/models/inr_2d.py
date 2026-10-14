@@ -482,6 +482,22 @@ class INR2D_AutoDecoder(nn.Module):
         self._dir_encoding = tcnn.Encoding(2, hg_cfg, dtype=torch.float32)
         self._tx_dir_encoding = tcnn.Encoding(2, hg_cfg, dtype=torch.float32)
 
+        # P4-5 B2: coarse-to-fine hash levels. A BUFFER, not a Python attribute, so the mask
+        # state is saved in every checkpoint's state_dict: a B2 checkpoint taken at 30K reloads
+        # with exactly the levels that were active at 30K. Were it an attribute, evaluating that
+        # checkpoint would silently switch on four never-trained levels -- the D73 hazard class
+        # (behaviour that differs without the parameters differing). All ones by default, and
+        # x * 1.0 is exact in IEEE-754 for values AND gradients, so every pre-P4-5 model is
+        # bit-identical. Applied only to the four POSITION encoders; the two direction encoders
+        # encode ray angle, not space.
+        self._n_levels = int(hg_cfg["n_levels"])
+        self._n_feat = int(hg_cfg.get("n_features_per_level", 2))
+        if self._pos_encoding.n_output_dims != self._n_levels * self._n_feat:
+            raise ValueError("hash encoder outputs {} columns, expected n_levels*F = {}: the "
+                             "level-major layout the level mask assumes does not hold".format(
+                                 self._pos_encoding.n_output_dims, self._n_levels * self._n_feat))
+        self.register_buffer("level_mask", torch.ones(self._n_levels))
+
         # Sigma branch — concat path widens by latent_dim; FiLM path drops z_s
         # from the cat and modulates the encoded feature instead.
         # Sigma encoded feature (without z_s): [pos_emb, tx_pos_emb].
@@ -630,6 +646,29 @@ class INR2D_AutoDecoder(nn.Module):
         if z_s.dim() == 1:
             z_s = z_s.unsqueeze(0)
         return self.l_head(z_s).squeeze(-1)
+
+    @torch.no_grad()
+    def set_active_levels(self, n: int) -> None:
+        """P4-5 B2: switch on the coarsest ``n`` hash levels and zero the rest.
+
+        Switched-off levels contribute exactly zero to the MLP input and therefore receive
+        exactly zero gradient, so their hash entries stay at initialisation until activated.
+        """
+        n = max(1, min(int(n), self._n_levels))
+        self.level_mask.zero_()
+        self.level_mask[:n] = 1.0
+
+    def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
+                              missing_keys, unexpected_keys, error_msgs):
+        """Every checkpoint written before P4-5 lacks ``level_mask``. A strict load would refuse
+        them, so a missing mask is filled with ONES -- exactly the behaviour those models were
+        trained with -- in this one place rather than at every caller (load_model, the trainer's
+        resume, and the scripts that load weights directly)."""
+        key = prefix + "level_mask"
+        if key not in state_dict:
+            state_dict[key] = torch.ones_like(self.level_mask)
+        super()._load_from_state_dict(state_dict, prefix, local_metadata, strict,
+                                      missing_keys, unexpected_keys, error_msgs)
 
     def get_latent(self, room_id: Union[int, torch.Tensor]) -> torch.Tensor:
         """Look up the learnable latent for one or more training rooms.
@@ -781,12 +820,15 @@ class INR2D_AutoDecoder(nn.Module):
         pos_emb = self._pos_encoding(pts_flat)
         tx_pos_emb = self._tx_pos_encoding(tx_flat)
         sigma_feat = torch.cat([pos_emb, tx_pos_emb], dim=-1)       # [B*N, sigma_feat_dim]
+        # Level mask AFTER FiLM: masking before it would leave beta(z), not zero, in the
+        # switched-off columns -- a conditioning-dependent constant, not an absent level.
+        lm = self.level_mask.repeat_interleave(self._n_feat)        # [n_levels * F]
         if self.conditioning_type in ("film", "film_lora"):
             gamma_beta = self.film_sigma(z_s_flat)
             gamma_s, beta_s = gamma_beta.chunk(2, dim=-1)
-            sigma_input = gamma_s * sigma_feat + beta_s
+            sigma_input = (gamma_s * sigma_feat + beta_s) * torch.cat([lm, lm])
         else:
-            sigma_input = torch.cat([sigma_feat, z_s_flat], dim=-1)
+            sigma_input = torch.cat([sigma_feat * torch.cat([lm, lm]), z_s_flat], dim=-1)
         sigma_feature = self._model_encoder_sigma(sigma_input)
 
         attn_raw = self._model_decoder_sigma(F.relu(sigma_feature))
@@ -818,12 +860,17 @@ class INR2D_AutoDecoder(nn.Module):
             ],
             dim=-1,
         )                                                           # [B*N, signal_feat_dim]
+        # Mask only the two position-encoder blocks at the END of signal_feat; the sigma feature
+        # and the two direction encoders pass through unchanged.
+        keep = torch.ones(signal_feat.shape[-1] - 2 * lm.numel(), device=lm.device,
+                          dtype=lm.dtype)
+        sig_mask = torch.cat([keep, lm, lm])
         if self.conditioning_type in ("film", "film_lora"):
             gamma_beta = self.film_signal(z_s_flat)
             gamma_g, beta_g = gamma_beta.chunk(2, dim=-1)
-            feature_all = gamma_g * signal_feat + beta_g
+            feature_all = (gamma_g * signal_feat + beta_g) * sig_mask
         else:
-            feature_all = torch.cat([signal_feat, z_s_flat], dim=-1)
+            feature_all = torch.cat([signal_feat * sig_mask, z_s_flat], dim=-1)
 
         signal_raw = self._model_signal(feature_all)
         # film_lora: same additive rank-r correction on the signal MLP output.

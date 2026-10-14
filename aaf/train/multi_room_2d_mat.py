@@ -28,6 +28,7 @@ Three things here differ from the 3D trainer for reasons specific to this chunk:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import time
@@ -127,6 +128,23 @@ class P32TrainCfg:
     #: the measured ratio exceeds this, so a model that discovers occlusion on its own is not
     #: dragged further by a term it no longer needs.
     sigma_aux_ratio_target: float = 3.0
+    #: P4-5 B1/B1b. Path to a .npy of one weight per supervised bin, applied to L_spec_real and
+    #: L_spec_imag only (L_amp and L_phase are already scale-free). "" = off, and the loss then
+    #: runs the ORIGINAL code path, so every earlier arm is bit-identical. See D92 for why this
+    #: re-weights rather than equalises: the spec terms are L1.
+    loss_spec_bin_weights: str = ""
+    #: P4-5 B3. Frequency curriculum "it0:hz0,it1:hz1,...": from iteration it_k the loss covers
+    #: bins below hz_k. Masked bins carry exactly zero gradient, and the mean stays over the FULL
+    #: band so an active bin weighs what it does in the baseline. "" = off. Validation is always
+    #: full-band and unweighted, so val curves stay comparable across arms.
+    loss_curriculum: str = ""
+    #: P4-5 B2. Coarse-to-fine hash levels "start:every": `start` levels active at iteration 0
+    #: and one more every `every` iterations. "" = off (all levels, bit-identical).
+    c2f_levels: str = ""
+    #: P4-5. Keep every checkpoint but strip optimizer/scheduler state from all but the newest,
+    #: which is all a resume needs. ~2/3 of a checkpoint is Adam state, so retaining every 2K
+    #: checkpoint for five arms costs ~38 GB instead of ~102 GB. Off by default.
+    ckpt_thin_old: bool = False
     val_every: int = 2_000
     val_max_configs: int = 88
     ckpt_every: int = 2_000
@@ -168,7 +186,7 @@ def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
     return torch.cat([solid, air], dim=0)
 
 
-def _losses(H_pred, H_target, lo_bin: int = 0):
+def _losses(H_pred, H_target, lo_bin: int = 0, w_spec=None, hi_bin=None):
     """The P3-1 4-term frequency loss. Both tensors are ALREADY band-limited.
 
     ``lo_bin`` drops bins ``[0, lo_bin)`` from every term by SLICING, so the excluded bins leave
@@ -181,11 +199,43 @@ def _losses(H_pred, H_target, lo_bin: int = 0):
     while ``L_amp`` is log10 and ``L_phase`` is a cosine and neither is. The ISM corpus does not
     have the problem at all (bin 0 is 18.3 dB BELOW the strongest mode), so ``lo_bin`` stays 0
     there.
+
+    P4-5 adds two optional arguments. With both at their default (None) the ORIGINAL code path
+    below runs untouched, so bit-identity with every earlier arm is guaranteed by branching
+    rather than argued from arithmetic.
+
+    ``w_spec`` (B1/B1b): one weight per bin, multiplied into the two linear-domain spec terms.
+    ``hi_bin`` (B3): bins ``[hi_bin, n)`` are dropped by SLICING -- the same mechanism as
+    ``lo_bin``, so their gradient is exactly zero -- but the mean is still taken over the FULL
+    band width. Plain slicing would divide by the shorter width and silently weight each active
+    bin up by n/hi_bin (3x at a 0-100 Hz stage); dividing by the full width keeps every active
+    bin at exactly the weight it has in the baseline, so the stage changes WHICH bins are fitted
+    and nothing else.
     """
     if lo_bin:
         H_pred = H_pred[..., lo_bin:]
         H_target = H_target[..., lo_bin:]
+        if w_spec is not None:
+            w_spec = w_spec[lo_bin:]
     eps = 1e-6
+    if w_spec is not None or hi_bin is not None:
+        n_full = H_pred.shape[-1]
+        if hi_bin is not None:
+            H_pred, H_target = H_pred[..., :hi_bin], H_target[..., :hi_bin]
+            if w_spec is not None:
+                w_spec = w_spec[:hi_bin]
+        denom = float(H_pred[..., 0].numel() * n_full)               # rows x FULL band
+        e_r = (H_pred.real - H_target.real).abs()
+        e_i = (H_pred.imag - H_target.imag).abs()
+        if w_spec is not None:
+            e_r, e_i = e_r * w_spec, e_i * w_spec
+        return {
+            "L_spec_real": e_r.sum() / denom,
+            "L_spec_imag": e_i.sum() / denom,
+            "L_amp": (torch.log10(H_pred.abs() + eps)
+                      - torch.log10(H_target.abs() + eps)).abs().sum() / denom,
+            "L_phase": (1.0 - torch.cos(H_pred.angle() - H_target.angle())).sum() / denom,
+        }
     return {
         "L_spec_real": F.l1_loss(H_pred.real, H_target.real),
         "L_spec_imag": F.l1_loss(H_pred.imag, H_target.imag),
@@ -374,8 +424,66 @@ class P32Trainer:
               "name": "network"}])
         self.sched = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.opt, T_max=cfg.n_iters, eta_min=cfg.eta_min)
+
+        # ---- P4-5 loss/encoder options, all off by default ------------------------
+        self.spec_w, self.spec_w_info = None, None
+        if cfg.loss_spec_bin_weights:
+            p = Path(cfg.loss_spec_bin_weights)
+            w = np.load(p).astype(np.float32)
+            if w.shape != (self.n_band,):
+                raise ValueError(f"{p}: {w.shape} weights for a {self.n_band}-bin band")
+            if not np.all(np.isfinite(w)) or (w <= 0).any():
+                raise ValueError(f"{p}: weights must be finite and strictly positive")
+            self.spec_w = torch.tensor(w, device=self.device)
+            self.spec_w_info = {"path": str(p),
+                                "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                                "min": float(w.min()), "max": float(w.max()),
+                                "max_over_min": float(w.max() / w.min())}
+            print(f"[loss] spec bin weights {p}: min {w.min():.4g} max {w.max():.4g} "
+                  f"(ratio {w.max() / w.min():.1f})")
+        self.curriculum = self._parse_curriculum(cfg.loss_curriculum)
+        self.c2f = None
+        if cfg.c2f_levels:
+            start, every = (int(x) for x in cfg.c2f_levels.split(":"))
+            if not (1 <= start <= cfg.n_levels and every >= 1):
+                raise ValueError(f"c2f_levels {cfg.c2f_levels!r}: need 1<=start<=n_levels, "
+                                 f"every>=1")
+            self.c2f = (start, every)
+            print(f"[c2f] {start} levels at it 0, +1 every {every} -> all {cfg.n_levels} at "
+                  f"it {(cfg.n_levels - start) * every}")
+
         self.scalars: List[dict] = []
         self.start_iter = self._maybe_resume()
+
+    def _parse_curriculum(self, spec: str):
+        """'0:100,15000:200,35000:300' -> [(0, hi_bin), (15000, hi_bin), ...], hi_bin in band
+        bins. A stage whose edge reaches the band top maps to None: the full band, which runs
+        the ORIGINAL loss path rather than an equivalent-but-different one."""
+        if not spec:
+            return None
+        df = float(self.cfg.fs) / float(self.cfg.n_time_samples)
+        out = []
+        for part in spec.split(","):
+            it_s, hz_s = part.split(":")
+            hb = int(round(float(hz_s) / df)) + 1                    # bins 0..hz INCLUSIVE
+            out.append((int(it_s), None if hb >= self.n_band else hb))
+        out.sort()
+        if out[0][0] != 0:
+            raise ValueError(f"loss_curriculum {spec!r} must start at iteration 0")
+        print(f"[curriculum] {out}")
+        return out
+
+    def _stage(self, it: int):
+        """(hi_bin or None, active hash levels or None) for this iteration."""
+        hi = None
+        if self.curriculum:
+            for start, hb in self.curriculum:
+                if it >= start:
+                    hi = hb
+        lv = None
+        if self.c2f:
+            lv = min(self.cfg.n_levels, self.c2f[0] + it // self.c2f[1])
+        return hi, lv
 
     # ---------------------------------------------------------------- rendering
     def _render(self, cfg_ids: torch.Tensor, rx_ids: torch.Tensor) -> torch.Tensor:
@@ -471,6 +579,12 @@ class P32Trainer:
         self.opt.zero_grad(set_to_none=True)
         n_cfg = max(1, cfg.batch_size // cfg.rx_per_config)
         agg = {}
+        hi_bin, levels = self._stage(it)
+        if levels is not None:
+            self.model.set_active_levels(levels)
+            agg["c2f_active_levels"] = float(levels)
+        if hi_bin is not None:
+            agg["curriculum_hi_bin"] = float(hi_bin)
         for _ in range(cfg.grad_accum_steps):
             ci = torch.randint(0, len(self.configs), (n_cfg,), device=self.device)
             ci = ci.repeat_interleave(cfg.rx_per_config)
@@ -478,7 +592,7 @@ class P32Trainer:
                 torch.randint(0, self.train_rx_idx.numel(), (ci.numel(),), device=self.device)]
             H_pred = self._render(ci, ri)
             H_tgt = self.H[ci, ri]
-            terms = _losses(H_pred, H_tgt, self.loss_lo_bin)
+            terms = _losses(H_pred, H_tgt, self.loss_lo_bin, w_spec=self.spec_w, hi_bin=hi_bin)
             w_r, w_i, w_a, w_p = cfg.weights
             loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
                     + w_a * terms["L_amp"] + w_p * terms["L_phase"])
@@ -554,6 +668,39 @@ class P32Trainer:
         ckpts = sorted(self.out.glob("ckpt_iter*.pt"))
         for old in ckpts[:-max(1, self.cfg.ckpt_keep_last)]:
             old.unlink()
+        if self.cfg.ckpt_thin_old:
+            self._thin_older_than(path)
+
+    def _thin_older_than(self, newest: Path):
+        """Strip optimizer/scheduler state from every checkpoint but `newest`.
+
+        Model weights, cfg and iteration are kept, so every retained checkpoint stays fully
+        evaluable through `load_model`; only the newest -- the one a resume reads -- keeps the
+        Adam moments. Written to a temp file and renamed, so a crash mid-rewrite leaves the
+        original intact rather than a truncated file.
+
+        `_thinned` remembers what is already done, so after the first call -- which scans
+        everything, covering a resume -- each save touches only the one checkpoint it just
+        superseded, instead of re-reading up to ~29 files (~6.6 GB) every 2K iterations."""
+        if not hasattr(self, "_thinned"):
+            self._thinned = set()
+        for c in sorted(self.out.glob("ckpt_iter*.pt")):
+            if c == newest or c in self._thinned:
+                continue
+            try:
+                st = torch.load(c, map_location="cpu")
+            except Exception:
+                continue
+            if st.get("thinned"):
+                self._thinned.add(c)
+                continue
+            st.pop("optimizer", None)
+            st.pop("scheduler", None)
+            st["thinned"] = True
+            tmp = c.with_suffix(".pt.thin")
+            torch.save(st, tmp)
+            tmp.replace(c)
+            self._thinned.add(c)
 
     def _maybe_resume(self) -> int:
         ckpts = sorted(self.out.glob("ckpt_iter*.pt"), reverse=True)
@@ -561,6 +708,10 @@ class P32Trainer:
             try:
                 st = torch.load(c, map_location=self.device)
             except Exception:
+                continue
+            if st.get("thinned") or "optimizer" not in st:
+                # A thinned checkpoint has no Adam moments; resuming from it would restart the
+                # optimiser cold mid-run. Only the newest is ever full, so skip to it.
                 continue
             prev = st.get("cfg", {})
             # world_scale and token_pool change what the SAME-SHAPED weights MEAN, so a
@@ -570,8 +721,11 @@ class P32Trainer:
             # sigma_aux_weight joins the list for the same reason: it changes what the weights
             # MEAN (a model trained under the auxiliary term has a deliberately reshaped sigma
             # field), and resuming across it would silently mix two objectives.
+            # P4-5: the bin weights, the curriculum and the c2f schedule each define a different
+            # objective or encoder; a cross-resume would silently splice two arms together.
             for k in ("cond_source", "cond_dim", "n_pts_per_ray", "n_azi", "n_iters",
-                      "world_scale", "token_pool", "base_resolution", "sigma_aux_weight"):
+                      "world_scale", "token_pool", "base_resolution", "sigma_aux_weight",
+                      "loss_spec_bin_weights", "loss_curriculum", "c2f_levels"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
@@ -616,6 +770,9 @@ class P32Trainer:
             "geometries": self.geom_dims, "band": list(self.band),
             "val_rx": list(self.val_rx),
             "config_labels": [c.label for c in self.configs],
+            # P4-5: the weight FILE can change under the same path; its sha pins what ran.
+            "spec_bin_weights": self.spec_w_info,
+            "curriculum_bins": self.curriculum, "c2f": self.c2f,
         }, indent=1, default=str))
         t0 = time.time()
         for it in range(self.start_iter + 1, cfg.n_iters + 1):
