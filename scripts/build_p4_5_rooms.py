@@ -49,7 +49,10 @@ OUT = {"rx4x": "data/track_p4_5_rx4x", "testdense": "data/track_p4_5_testdense",
        # B6 (D99, Q22): the 250 training rooms with receivers OFF the shared lattice
        "offlat": "data/track_p4_5_offlat",
        # manager item 3: one dense held-out room per family, to BOUND the family eval (D102(d))
-       "famdense": "data/track_p4_5_famdense"}
+       "famdense": "data/track_p4_5_famdense",
+       # manager (D112): the SECOND room per family -- the other median room; same directory,
+       # distinct filenames, so the first five are untouched
+       "famdense2": "data/track_p4_5_famdense"}
 FAMILY_MANIFEST = "configs/sweeps_2d_mat/p4_4_family_manifest.json"
 
 N_RX_4X = 4 * N_RX                       # 3200 -- identical in every room: the trainer stacks
@@ -267,9 +270,12 @@ def build_offlat(cfg, out: Path, force=False):
     return "built"
 
 
-def family_test_rooms():
+def family_test_rooms(second: bool = False):
     """One held-out room per family, PRE-REGISTERED, not score-based: the median-d_hat test room
-    of each family (rectangles: the median-AREA test room). Ties by filename."""
+    of each family (rectangles: the median-AREA test room). Ties by filename.
+
+    ``second=True`` gives the OTHER median room: each family has 10 test rooms, so the sorted list
+    has two medians, indices 4 (the first pick) and 5. Fixed in D112 before any score."""
     from aaf.data.multi_notch import configs_from_rows as fam_rows
     rows = json.load(open(FAMILY_MANIFEST))["configs"]
     out = []
@@ -277,7 +283,7 @@ def family_test_rooms():
         cs = [c for c in fam_rows(rows, split="test") if c.kind == fam]
         key = (lambda c: (c.L * c.W, c.filename)) if fam == "rect" else (lambda c: (c.d_hat, c.filename))
         cs = sorted(cs, key=key)
-        out.append((fam, cs[(len(cs) - 1) // 2]))
+        out.append((fam, cs[(len(cs) - 1) // 2 + (1 if second else 0)]))
     return out
 
 
@@ -391,6 +397,8 @@ def worklist(mode):
         return test_shapes_for_a2()
     if mode == "famdense":
         return family_test_rooms()
+    if mode == "famdense2":
+        return family_test_rooms(second=True)
     if mode == "testdense15":
         rows = json.load(open(TEST_MANIFEST))["configs"]
         return [(c.filename[:-3], c) for c in sorted(configs_from_rows(rows, split="test"),
@@ -411,7 +419,7 @@ def main() -> int:
     work = worklist(a.mode)
     if a.plan or a.idx is None:
         desc = ([{"tag": t, "file": c.filename, "d_hat": round(c.d_hat, 4)} for t, c in work]
-                if a.mode in ("testdense", "testdense15", "famdense") else len(work))
+                if a.mode in ("testdense", "testdense15", "famdense", "famdense2") else len(work))
         print(json.dumps({"mode": a.mode, "out": str(out), "n_total": len(work),
                           "array_range": "0-{}".format((len(work) - 1) // a.chunk),
                           "work": desc}, indent=1))
@@ -419,7 +427,7 @@ def main() -> int:
     for w in work[a.idx * a.chunk:(a.idx + 1) * a.chunk]:
         if a.mode == "rx4x":
             print(build_rx4x(w, out, a.force), w.filename, flush=True)
-        elif a.mode == "famdense":
+        elif a.mode in ("famdense", "famdense2"):
             print(build_famdense(w[0], w[1], out, a.force), w[1].filename, flush=True)
         elif a.mode == "offlat":
             print(build_offlat(w, out, a.force), w.filename, flush=True)
