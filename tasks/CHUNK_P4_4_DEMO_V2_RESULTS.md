@@ -1,18 +1,20 @@
 # P4-4 demo v2 — the morph-figure expansion pack
 
-> **ERRATUM (P4-5, D99 + D102, 2026-10-13) -- read before any Gate-2 number below.** Every P4 room places its 800 receivers on one absolute lattice (0.12 + 0.06 k m), and the attention-pooling arms MEMORISED it: accuracy at those exact positions is far higher than 2 cm away. Gate 2 and every 800-receiver number in this document were measured AT those positions. Re-scored on a dense 64x64 lattice with the frozen evaluator (verified exact on all 14 fields against the published C250 Gate 2), **four of the five published Gate-2 passes do not survive**:
+> **ERRATUM (P4-5, D99 + D102 + D105 + D106, 2026-10-13) -- read before any Gate-2 number below.** Every P4 room places its 800 receivers on one absolute lattice (0.12 + 0.06 k m), and the attention-pooling arms MEMORISED it. Gate 2 and every 800-receiver number below were measured AT those positions. Re-scored on a dense lattice with the frozen evaluator (verified exact on all 14 fields), with across-shape bootstrap 95% CIs:
 >
-> | checkpoint | pooling | published in-slab | dense **off-lattice** | verdict |
-> |---|---|---|---|---|
-> | P4-3 D | masked_mean | 0.8021 PASS | **0.8063 PASS** | stands |
-> | P4-3 X1 | attn_residual | 0.8438 PASS | **0.7581 FAIL** | overturned |
-> | P4-4 C92 | attn_residual_extent | 0.8337 PASS | **0.7545 FAIL** | overturned |
-> | P4-4 C250 | attn_residual_extent | 0.8420 PASS | **0.6109 FAIL** | overturned |
-> | P4-4 C500 | attn_residual_extent | 0.8336 PASS | **0.5641 FAIL** | overturned |
+> | checkpoint | pooling | published in-slab [95% CI] | dense **off-lattice** [95% CI] |
+> |---|---|---|---|
+> | P4-3 D | masked_mean | 0.8021 [0.765, 0.839] at threshold | **0.8063 [0.766, 0.845] at threshold** |
+> | P4-3 X1 | attn_residual | 0.8438 [0.794, 0.886] at threshold | **0.7581 [0.715, 0.811] at threshold** |
+> | P4-4 C92 | attn_residual_extent | 0.8337 [0.794, 0.869] at threshold | **0.7545 [0.710, 0.795] FAIL** |
+> | P4-4 C250 | attn_residual_extent | 0.8420 [0.804, 0.878] PASS | **0.6109 [0.580, 0.656] FAIL** |
+> | P4-4 C500 | attn_residual_extent | 0.8336 [0.782, 0.875] at threshold | **0.5641 [0.544, 0.587] FAIL** |
+>
+> With 6 in-slab shapes the gate cannot resolve +-0.04, so the verdicts are mostly noise-limited. **What is robust:** the shifts (C250 0.842 -> 0.611, non-overlapping CIs), and pooling -- on the identical 92-shape corpus, mean pooling (D) beats attention (C92) off-lattice by +0.12 / +0.32 / +0.24 at 25-100 / 100-200 / 200-300 Hz, in 14-15 of 15 shapes (paired 95% CIs exclude zero). **And the material comparison inverts (D106):** material receivers were drawn per room at untrained positions, so shape is NOT at parity with material below 100 Hz as a field (3.4-3.9 dB vs 1.7-2.3).
 >
 > Here specifically: §3 ("sparse receiver sampling flatters the model") is a LATTICE effect, not a density effect (D99).
 >
-> Full table, both exactness checks and every affected decision: D102 in https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md and https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/gate2_dense/GATE2_DENSE_CORRECTION.md
+> Full tables, both exactness checks, every affected decision: D102, D105, D106 in https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md and https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/gate2_dense/GATE2_DENSE_CORRECTION.md
 
 **Rendering only. No training. No new simulation for any room that already had the receivers the
 figure needed.** Seven figures, all >= 2560x1440, all zero-shot: unseen shapes, one forward pass

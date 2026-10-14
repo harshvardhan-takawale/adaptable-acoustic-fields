@@ -49,6 +49,33 @@ Every P4 room -- training and test -- places its 800 receivers on one absolute l
 | P4-3 X2 | +0.070 | -0.046 | -0.060 |
 | P4-3 S | +0.020 | +0.008 | +0.002 |
 
+
+## AMENDMENT (D105): bootstrap CIs -- the verdicts are noise-limited, the shifts are not
+
+Across-test-shape bootstrap, stratified by slab, percentile 95% CI, 10k resamples. A CI that includes 0.80 reads **at threshold**, whichever side the estimate sits. This amends point 1 below: the published verdicts were mostly unresolvable too, so "four of five passes do not survive" overstated what a 6-shape gate can resolve.
+
+| checkpoint | published in-slab [95% CI] | verdict | dense off-lattice [95% CI] | verdict |
+|---|---|---|---|---|
+| P4-3 D | 0.8021 [0.764, 0.839] | AT THRESHOLD | 0.8063 [0.766, 0.845] | AT THRESHOLD |
+| P4-3 X1 | 0.8438 [0.794, 0.886] | AT THRESHOLD | 0.7581 [0.715, 0.811] | AT THRESHOLD |
+| P4-4 C92 | 0.8337 [0.794, 0.869] | AT THRESHOLD | 0.7545 [0.710, 0.795] | FAIL |
+| P4-4 C250 | 0.8420 [0.804, 0.878] | PASS | 0.6109 [0.580, 0.656] | FAIL |
+| P4-4 C500 | 0.8336 [0.782, 0.875] | AT THRESHOLD | 0.5641 [0.544, 0.587] | FAIL |
+| P4-3 X2 | 0.7789 [0.714, 0.836] | AT THRESHOLD | 0.6627 [0.587, 0.718] | FAIL |
+| P4-3 S | 0.7329 [0.691, 0.773] | FAIL | 0.7338 [0.690, 0.778] | FAIL |
+
+**Robust:** the shift (C250 0.842 [0.804, 0.878] -> 0.611 [0.580, 0.656], non-overlapping) and the pooling contrast, paired over all 15 frozen shapes, off-lattice dense:
+
+| band | D (mean pooling) | C92 (attention, same corpus) | D - C92 [95% CI] | D better in |
+|---|---|---|---|---|
+| 25-100 Hz | 0.752 | 0.630 | +0.122 [+0.092, +0.148] | 14/15 |
+| 100-200 Hz | 0.453 | 0.130 | +0.324 [+0.279, +0.365] | 15/15 |
+| 200-300 Hz | 0.319 | 0.083 | +0.237 [+0.210, +0.265] | 15/15 |
+
+## AMENDMENT (D106): the material comparison inverts
+
+Material receivers were drawn PER ROOM (8x8 linspace scaled to each room's L, W: `scripts/build_2d_mat_dataset.py:39-42`, `scripts/build_p3_3fast_trackA.py:32-35`), test geometries disjoint from training, 3.7-6.1% positional coincidence. The material work's 1.7-2.3 dB was a field measurement; shape's 2.32 dB below 100 Hz was at memorised positions. As a field, shape below 100 Hz is 3.4-3.9 dB -- **not at parity**.
+
 ## What it means
 
 1. **Four of the five published Gate-2 passes do not survive** (X1, C92, C250, C500). **Arm D's does**, and is the only one.

@@ -47,7 +47,10 @@ OUT = {"rx4x": "data/track_p4_5_rx4x", "testdense": "data/track_p4_5_testdense",
        # `testdense`, so A2's three rooms are reused (their .done sentinels skip them)
        "testdense15": "data/track_p4_5_testdense", "a3": "data/track_p4_5_a3",
        # B6 (D99, Q22): the 250 training rooms with receivers OFF the shared lattice
-       "offlat": "data/track_p4_5_offlat"}
+       "offlat": "data/track_p4_5_offlat",
+       # manager item 3: one dense held-out room per family, to BOUND the family eval (D102(d))
+       "famdense": "data/track_p4_5_famdense"}
+FAMILY_MANIFEST = "configs/sweeps_2d_mat/p4_4_family_manifest.json"
 
 N_RX_4X = 4 * N_RX                       # 3200 -- identical in every room: the trainer stacks
 RX_SEED_4X = 20261013                    # seeds ONLY the 2400 appended receivers
@@ -264,6 +267,77 @@ def build_offlat(cfg, out: Path, force=False):
     return "built"
 
 
+def family_test_rooms():
+    """One held-out room per family, PRE-REGISTERED, not score-based: the median-d_hat test room
+    of each family (rectangles: the median-AREA test room). Ties by filename."""
+    from aaf.data.multi_notch import configs_from_rows as fam_rows
+    rows = json.load(open(FAMILY_MANIFEST))["configs"]
+    out = []
+    for fam in ("rect", "L", "T", "DN", "U"):
+        cs = [c for c in fam_rows(rows, split="test") if c.kind == fam]
+        key = (lambda c: (c.L * c.W, c.filename)) if fam == "rect" else (lambda c: (c.d_hat, c.filename))
+        cs = sorted(cs, key=key)
+        out.append((fam, cs[(len(cs) - 1) // 2]))
+    return out
+
+
+def build_famdense(tag, cfg, out: Path, force=False):
+    """A family room on a 64x64 lattice, multi-notch geometry (`solid_blocks`, every reflex
+    corner cleared), with the node-for-node polygon assert. Same lattice construction as A2's."""
+    from aaf.data.multi_notch import reflex_corners, solid_blocks
+    from scripts.build_p4_3_demo_rooms import CORNER_CLEAR, WALL_CLEAR
+    path, done = out / cfg.filename, out / (cfg.filename + ".done")
+    if done.exists() and path.exists() and not force:
+        return "skip"
+    dx = 0.02
+    nx, dxx = F._fit_axis(cfg.L, dx, "L")
+    ny, dxy = F._fit_axis(cfg.W, dx, "W")
+    m = solid_blocks(nx, ny, dxx, dxy, cfg.L, cfg.W, cfg.notches)
+    extra = [{"type": "mask", "solid": m, "alpha": ALPHA}] if m.any() else None
+    geom = F.build_geometry(cfg.L, cfg.W, [ALPHA] * 4, dx=dx, extra_walls=extra)
+    ii, jj = np.meshgrid(np.arange(nx), np.arange(ny), indexing="ij")
+    want = polygon_contains(cfg.verts, np.stack([ii * dxx, jj * dxy], axis=-1))
+    bad = int((geom.air != want).sum())
+    if bad:
+        raise AssertionError("{}: air mask disagrees with polygon at {} nodes".format(cfg.label, bad))
+    xs = np.linspace(WALL_CLEAR, cfg.L - WALL_CLEAR, GRID_N)
+    ys = np.linspace(WALL_CLEAR, cfg.W - WALL_CLEAR, GRID_N)
+    X, Y = np.meshgrid(xs, ys, indexing="ij")
+    P = np.stack([X.ravel(), Y.ravel()], axis=-1)
+    keep = polygon_contains(cfg.verts, P)
+    V = cfg.verts
+    for (x0, y0), (x1, y1) in zip(V, V[1:] + V[:1]):                # every wall, notch faces too
+        if abs(x1 - x0) < 1e-9:
+            keep &= ~((np.abs(P[:, 0] - x0) < WALL_CLEAR) & (P[:, 1] >= min(y0, y1) - WALL_CLEAR)
+                      & (P[:, 1] <= max(y0, y1) + WALL_CLEAR))
+        else:
+            keep &= ~((np.abs(P[:, 1] - y0) < WALL_CLEAR) & (P[:, 0] >= min(x0, x1) - WALL_CLEAR)
+                      & (P[:, 0] <= max(x0, x1) + WALL_CLEAR))
+    for cx, cy in reflex_corners(cfg.L, cfg.W, cfg.notches):
+        keep &= np.hypot(P[:, 0] - cx, P[:, 1] - cy) > CORNER_CLEAR
+    rx = P[keep]
+    i, j = np.rint(rx[:, 0] / dxx).astype(int), np.rint(rx[:, 1] / dxy).astype(int)
+    if not geom.air[i, j].all():
+        raise RuntimeError("{}: lattice points on solid".format(cfg.label))
+    H, rx_snap, res, fs, n, loop_s = _simulate(cfg, rx, dx, geom, extra)
+    los = line_of_sight(cfg.verts, SRC, rx_snap)
+    with h5py.File(path, "w") as f:
+        f.create_dataset("ism/H_complex", data=H, compression="gzip", compression_opts=4)
+        a = f.attrs
+        a["source_pos"] = json.dumps(list(SRC))
+        a["receiver_pos"] = json.dumps(rx_snap.tolist())
+        a["line_of_sight"] = json.dumps([bool(x) for x in los])
+        a["lattice_keep"] = json.dumps([bool(x) for x in keep])
+        a["label"], a["kind"], a["family_tag"] = cfg.label, cfg.kind, tag
+        a["verts"] = json.dumps([list(v) for v in cfg.verts])
+        a["L"], a["W"], a["d_hat"] = cfg.L, cfg.W, cfg.d_hat
+        a["n_rx"], a["loop_s"], a["dx"] = int(len(rx)), round(loop_s, 1), dx
+    done.touch()
+    print("built famdense {:5s} {:52s} n_rx {:5d} {:.0f}s".format(tag, cfg.label, len(rx), loop_s),
+          flush=True)
+    return "built"
+
+
 def build_testdense(tag, cfg, out: Path, force=False):
     path, done = out / cfg.filename, out / (cfg.filename + ".done")
     if done.exists() and path.exists() and not force:
@@ -315,6 +389,8 @@ def worklist(mode):
         return sorted(configs_from_rows(rows, split="train"), key=lambda c: c.filename)
     if mode == "testdense":
         return test_shapes_for_a2()
+    if mode == "famdense":
+        return family_test_rooms()
     if mode == "testdense15":
         rows = json.load(open(TEST_MANIFEST))["configs"]
         return [(c.filename[:-3], c) for c in sorted(configs_from_rows(rows, split="test"),
@@ -335,7 +411,7 @@ def main() -> int:
     work = worklist(a.mode)
     if a.plan or a.idx is None:
         desc = ([{"tag": t, "file": c.filename, "d_hat": round(c.d_hat, 4)} for t, c in work]
-                if a.mode in ("testdense", "testdense15") else len(work))
+                if a.mode in ("testdense", "testdense15", "famdense") else len(work))
         print(json.dumps({"mode": a.mode, "out": str(out), "n_total": len(work),
                           "array_range": "0-{}".format((len(work) - 1) // a.chunk),
                           "work": desc}, indent=1))
@@ -343,6 +419,8 @@ def main() -> int:
     for w in work[a.idx * a.chunk:(a.idx + 1) * a.chunk]:
         if a.mode == "rx4x":
             print(build_rx4x(w, out, a.force), w.filename, flush=True)
+        elif a.mode == "famdense":
+            print(build_famdense(w[0], w[1], out, a.force), w[1].filename, flush=True)
         elif a.mode == "offlat":
             print(build_offlat(w, out, a.force), w.filename, flush=True)
         elif a.mode in ("testdense", "testdense15"):
