@@ -196,6 +196,10 @@ def load_model(ckpt_path: Path, device: torch.device):
         # parameters and therefore failed loudly, which is the only reason this surfaced.
         token_pool=(cfg.get("token_pool") or None),
         l_head_enabled=False,
+        # P4-5 B5: MUST come from the checkpoint, for D73's reason. Omitted, a B5 model would be
+        # built without its DC head; strict loading would at least fail loudly on the head's
+        # unexpected keys, but the term is the whole point of the arm, so it is passed explicitly.
+        dc_head_bins=int(cfg.get("dc_head_bins", 0) or 0),
     ).to(device)
     model.load_state_dict(st["model"])
     model.eval()

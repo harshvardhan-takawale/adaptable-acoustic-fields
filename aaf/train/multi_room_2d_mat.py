@@ -145,6 +145,10 @@ class P32TrainCfg:
     #: which is all a resume needs. ~2/3 of a checkpoint is Adam state, so retaining every 2K
     #: checkpoint for five arms costs ~38 GB instead of ~102 GB. Off by default.
     ckpt_thin_old: bool = False
+    #: P4-5 B5. Number of low bins (from 0) covered by the near-DC compliance head, which predicts
+    #: one spatially uniform complex value per room per bin from the conditioning and is added
+    #: inside the renderer. 0 = no head (bit-identical to every earlier arm). 41 = 0-20 Hz.
+    dc_head_bins: int = 0
     val_every: int = 2_000
     val_max_configs: int = 88
     ckpt_every: int = 2_000
@@ -413,7 +417,19 @@ class P32Trainer:
             cond_source=cfg.cond_source, cond_dim=cfg.cond_dim,
             l_head_enabled=False, world_scale=cfg.world_scale,
             token_pool=(cfg.token_pool or None),
+            dc_head_bins=int(cfg.dc_head_bins),
         ).to(self.device)
+        if cfg.dc_head_bins > 0:
+            # The head's output scale: corpus RMS of the SPATIAL-MEAN target per bin, training
+            # receivers only. Set once before training; it is a buffer, so it is saved in every
+            # checkpoint and a resume or an evaluation reproduces it without the corpus.
+            nb = int(cfg.dc_head_bins)
+            m = self.H[:, self.train_rx_idx, :nb].mean(dim=1)              # [C, nb] complex
+            sc = m.abs().pow(2).mean(dim=0).sqrt().clamp(min=1e-6).float()
+            with torch.no_grad():
+                self.model.dc_scale.copy_(sc)
+            print(f"[dc_head] {nb} bins (0-{(nb - 1) * cfg.fs / cfg.n_time_samples:.1f} Hz) | "
+                  f"scale bin0 {float(sc[0]):.1f}  bin{nb - 1} {float(sc[-1]):.3g}")
         self.renderer = FreqRenderer2D(
             n_azi=cfg.n_azi, n_pts_per_ray=cfg.n_pts_per_ray, near=cfg.near,
             fs=cfg.fs, n_time_samples=cfg.n_time_samples, c=cfg.c,
@@ -725,7 +741,8 @@ class P32Trainer:
             # objective or encoder; a cross-resume would silently splice two arms together.
             for k in ("cond_source", "cond_dim", "n_pts_per_ray", "n_azi", "n_iters",
                       "world_scale", "token_pool", "base_resolution", "sigma_aux_weight",
-                      "loss_spec_bin_weights", "loss_curriculum", "c2f_levels"):
+                      "loss_spec_bin_weights", "loss_curriculum", "c2f_levels",
+                      "dc_head_bins"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "

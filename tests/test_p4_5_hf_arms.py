@@ -257,3 +257,85 @@ def test_thinning_strips_only_older_checkpoints_and_resume_skips_them(tmp_path):
     b.unlink()
     me = types.SimpleNamespace(out=tmp_path, device="cpu")
     assert P32Trainer._maybe_resume(me) == 0
+
+
+# --------------------------------------------------------------------------- B5: DC head
+def _model_dc(nb, seed=0):
+    from aaf.models.inr_2d import INR2D_AutoDecoder
+    torch.manual_seed(seed)
+    hg = dict(otype="HashGrid", n_levels=20, n_features_per_level=2, log2_hashmap_size=18,
+              base_resolution=80, per_level_scale=1.5)
+    m = INR2D_AutoDecoder(n_rooms=4, latent_dim=16, n_freq_bins=4097, hash_grid_config=hg,
+                          cond_source="geom_token", cond_dim=324, conditioning_type="film",
+                          token_pool="attn_residual_extent", world_scale=10.0,
+                          dc_head_bins=nb).cuda().eval()
+    return m
+
+
+def _render_rows(m, n=6, seed=3):
+    from aaf.renderers.freq_2d import FreqRenderer2D
+    r = FreqRenderer2D(n_azi=16, n_pts_per_ray=16, near=1e-3, fs=4096, n_time_samples=8192,
+                       c=343.0).cuda().eval()
+    g = torch.Generator(device="cuda").manual_seed(seed)
+    rx = torch.rand(n, 2, generator=g, device="cuda") * 4.0 + 0.5
+    tx = torch.tensor([[0.5, 1.6]], device="cuda").expand(n, -1)
+    z = (torch.randn(1, 324, generator=g, device="cuda") * 0.1).expand(n, -1)
+    with torch.no_grad():
+        return r(m, rx, tx, torch.zeros(2, device="cuda"), torch.tensor([6.0, 5.0], device="cuda"),
+                 z_s=z)
+
+
+@GPU
+def test_dc_head_is_built_last_and_zero_at_init_so_b5_starts_as_the_baseline():
+    """Same seed, with and without the head: every shared weight identical (the head is built
+    after them) and the render bit-identical (the head's last layer is zero)."""
+    a, b = _model_dc(0), _model_dc(41)
+    sa, sb = a.state_dict(), b.state_dict()
+    shared = [k for k in sa if k in sb]
+    assert all(torch.equal(sa[k], sb[k]) for k in shared)
+    assert set(sb) - set(sa) and all(k.startswith("dc_") for k in set(sb) - set(sa))
+    assert torch.equal(_render_rows(a), _render_rows(b))
+
+
+@GPU
+def test_dc_head_is_applied_inside_the_renderer_uniformly_and_only_below_its_bins():
+    m = _model_dc(41)
+    base = _render_rows(m)
+    with torch.no_grad():
+        m.dc_head[-1].bias.fill_(0.5)                 # the firing case: a nonzero head
+        m.dc_scale.fill_(2.0)
+    got = _render_rows(m)
+    d = got - base
+    assert torch.equal(d[:, 41:], torch.zeros_like(d[:, 41:])), "head leaked above its bins"
+    assert torch.count_nonzero(d[:, :41]) > 0, "head not applied by the renderer"
+    assert torch.allclose(d[:, :41], d[:1, :41].expand_as(d[:, :41])), "term not uniform in space"
+    assert torch.allclose(d[0, :41], torch.complex(torch.ones(41, device="cuda"),
+                                                   torch.ones(41, device="cuda")))
+
+
+@GPU
+def test_a_b5_checkpoint_reloads_with_its_head_and_scale(tmp_path):
+    """D73: load_model must rebuild the head from the checkpoint cfg and reproduce the render."""
+    from aaf.eval.p3_2_eval import load_model
+    m0, r0, cfg, _meta, _it = load_model(Path("outputs/p4_4/p4_4_C250/ckpt_iter0060000.pt"),
+                                         torch.device("cuda"))
+    from aaf.models.inr_2d import INR2D_AutoDecoder
+    cfg = dict(cfg); cfg["dc_head_bins"] = 41
+    hg = dict(otype="HashGrid", n_levels=int(cfg["n_levels"]), n_features_per_level=2,
+              log2_hashmap_size=int(cfg["log2_hashmap_size"]),
+              base_resolution=int(cfg["base_resolution"]),
+              per_level_scale=float(cfg["per_level_scale"]))
+    m = INR2D_AutoDecoder(n_rooms=1, latent_dim=int(cfg["latent_dim"]), n_freq_bins=4097,
+                          hash_grid_config=hg, conditioning_type="film",
+                          cond_source="geom_token", cond_dim=324, world_scale=10.0,
+                          token_pool=cfg["token_pool"], dc_head_bins=41).cuda().eval()
+    sd = m0.state_dict()
+    m.load_state_dict({**m.state_dict(), **{k: v for k, v in sd.items() if k in m.state_dict()}})
+    with torch.no_grad():
+        m.dc_head[-1].bias.normal_(0, 0.3)
+        m.dc_scale.uniform_(1.0, 50.0)
+    want = _render_rows(m)
+    torch.save({"iter": 2000, "model": m.state_dict(), "cfg": cfg}, tmp_path / "b5.pt")
+    m2, *_ = load_model(tmp_path / "b5.pt", torch.device("cuda"))
+    assert m2.dc_head is not None and torch.equal(m2.dc_scale, m.dc_scale)
+    assert torch.equal(_render_rows(m2), want)

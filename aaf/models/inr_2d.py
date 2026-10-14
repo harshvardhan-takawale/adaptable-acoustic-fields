@@ -266,6 +266,7 @@ class INR2D_AutoDecoder(nn.Module):
         l_head_out_dim: int = 1,
         world_scale: Optional[float] = None,
         token_pool: Optional[str] = None,
+        dc_head_bins: int = 0,
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -306,6 +307,9 @@ class INR2D_AutoDecoder(nn.Module):
         if self.world_scale is not None and self.world_scale <= 0.0:
             raise ValueError(f"world_scale must be > 0, got {self.world_scale}")
         self.cond_dim = int(cond_dim) if cond_dim is not None else self.latent_dim
+        # The RAW conditioning width, kept before any arm reduces `cond_dim` internally: the
+        # P4-5 DC head reads the raw vector the renderer is handed.
+        self._raw_cond_dim = self.cond_dim
 
         # --- Track A2 shared segment encoder (D58) -----------------------------------------
         # The conditioning vector arrives as [32 geometry | 16 tokens x 26]. ONE MLP is applied
@@ -614,6 +618,44 @@ class INR2D_AutoDecoder(nn.Module):
                 )
         else:
             self.l_head = None
+
+        # P4-5 B5: a head for the near-DC COMPLIANCE term, so the field network stops paying for
+        # it. Below ~10 Hz the field is spatially uniform (|mean|^2 / mean|H|^2 = 1.000 at
+        # 0-5 Hz, 0.963 at 10 Hz) and 0-10 Hz holds 99.9% of all in-band energy; at C250's 60K
+        # the 0-10 Hz band takes ~93% of the optimiser's step (D97). D70 retired MASKING that
+        # band because the prediction there went unconstrained and the RIR collapsed; this
+        # PREDICTS it instead, from the conditioning alone, as one value per room per bin.
+        #
+        # Built LAST, after every other layer, so a model without it consumes the RNG exactly as
+        # before and every earlier checkpoint builds bit-identically. The final layer is zero-
+        # initialised, so at iteration 0 the term is exactly 0 and B5 IS the baseline. `dc_scale`
+        # is a buffer the trainer fills with the corpus RMS of the spatial-mean target per bin:
+        # the term must reach |H| ~ 1200 at DC, and without the scale an O(1)-weight head would
+        # need ~50K Adam steps of drift to get there. It is added inside the RENDERER
+        # (`FreqRenderer2D.forward`), not by callers, so no evaluation path can drop it.
+        self.dc_head_bins = int(dc_head_bins)
+        if self.dc_head_bins > 0:
+            self.dc_head = nn.Sequential(
+                nn.Linear(self._raw_cond_dim, 128), nn.ReLU(),
+                nn.Linear(128, 128), nn.ReLU(),
+                nn.Linear(128, 2 * self.dc_head_bins))
+            nn.init.zeros_(self.dc_head[-1].weight)
+            nn.init.zeros_(self.dc_head[-1].bias)
+            self.register_buffer("dc_scale", torch.ones(self.dc_head_bins))
+        else:
+            self.dc_head = None
+
+    def dc_term(self, z_s: torch.Tensor, n_freq: int) -> Optional[torch.Tensor]:
+        """[B, n_freq] complex near-DC term (zero above `dc_head_bins`), or None if no head."""
+        if self.dc_head is None or z_s is None:
+            return None
+        z = z_s if z_s.dim() == 2 else z_s.reshape(z_s.shape[0], -1)
+        o = self.dc_head(z.to(self.dc_scale.dtype))
+        nb = self.dc_head_bins
+        term = torch.complex(o[:, :nb], o[:, nb:]) * self.dc_scale
+        out = torch.zeros(z.shape[0], n_freq, dtype=term.dtype, device=term.device)
+        out[:, :min(nb, n_freq)] = term[:, :min(nb, n_freq)]
+        return out
 
     def _normalize_unit(self, x: torch.Tensor) -> torch.Tensor:
         """Map network position inputs into tinycudann's [0, 1] HashGrid domain.

@@ -229,4 +229,11 @@ class FreqRenderer2D(nn.Module):
         # Sum over points along each ray, then over rays.
         rendered_per_ray = (signal_with_delays * alpha * transmittance).sum(dim=-2)
         H_pred = rendered_per_ray.sum(dim=-2)  # [B, n_freq]
+        # P4-5 B5: the near-DC compliance head, if the model has one. Added HERE rather than by
+        # callers so that every evaluation path -- the trainer, Gate 2, the demo renders --
+        # includes it; a caller-side addition could be silently omitted (the D73 hazard). A
+        # model without the head returns None and H_pred is untouched.
+        dc = model.dc_term(z_s, H_pred.shape[-1]) if hasattr(model, "dc_term") else None
+        if dc is not None:
+            H_pred = H_pred + dc.to(H_pred.dtype)
         return H_pred

@@ -94,6 +94,7 @@ def build_model(ckpt, dev, fresh):
         conditioning_type=str(cfg.get("conditioning_type", "film")),
         cond_source=str(cfg["cond_source"]), cond_dim=int(cfg["cond_dim"]),
         world_scale=cfg.get("world_scale"), token_pool=(cfg.get("token_pool") or None),
+        dc_head_bins=int(cfg.get("dc_head_bins", 0) or 0),
         l_head_enabled=False).to(dev)
     if not fresh:
         model.load_state_dict(st["model"])

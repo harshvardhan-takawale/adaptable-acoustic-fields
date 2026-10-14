@@ -43,10 +43,15 @@ TRAIN_MANIFEST = "configs/sweeps_2d_mat/p4_4_shapes_250.json"
 TEST_MANIFEST = "configs/sweeps_2d_mat/p4_2_shapes_manifest.json"
 SRC_DIR = "data/track_p4_2_shapes"
 OUT = {"rx4x": "data/track_p4_5_rx4x", "testdense": "data/track_p4_5_testdense",
-       "a3": "data/track_p4_5_a3"}
+       # all 15 frozen test shapes densely, for the D99 Gate-2 re-score; same directory as
+       # `testdense`, so A2's three rooms are reused (their .done sentinels skip them)
+       "testdense15": "data/track_p4_5_testdense", "a3": "data/track_p4_5_a3",
+       # B6 (D99, Q22): the 250 training rooms with receivers OFF the shared lattice
+       "offlat": "data/track_p4_5_offlat"}
 
 N_RX_4X = 4 * N_RX                       # 3200 -- identical in every room: the trainer stacks
 RX_SEED_4X = 20261013                    # seeds ONLY the 2400 appended receivers
+RX_SEED_OFFLAT = 20261014                # B6: per-room draw over EVERY FDTD node
 A3_STEP = 0.08                           # node-aligned at BOTH dx = 0.02 and dx = 0.01
 H_REPRO_TOL = 1e-5                       # relative; FFT batching may reorder a few float ops
 
@@ -220,6 +225,45 @@ def build_rx4x(cfg, out: Path, force=False):
     return "built"
 
 
+def rx_offlat(cfg, geom, dxx, dxy):
+    """B6: 800 receivers drawn per room, uniformly, from EVERY in-room 0.02 m FDTD node.
+
+    D99 found the model memorises the absolute receiver lattice (0.12 + 0.06 k) because every P4
+    room puts its receivers there. Drawing from all nodes -- with the same 0.12 m wall and
+    0.15 m reflex-corner clearance as the corpus builder -- leaves ~1 in 9 receivers on the old
+    lattice, its natural rate, so no absolute position is privileged: a given point is a
+    receiver in ~3 training rooms instead of ~30. The count stays at 800, so the trainer's
+    stacking, its validation set and its per-iteration cost are unchanged."""
+    P = _air_only(_wall_clear(cfg, _grid(cfg, 0.02)), geom, dxx, dxy)
+    if len(P) < N_RX:
+        raise RuntimeError("{}: only {} node candidates".format(cfg.label, len(P)))
+    rng = np.random.default_rng([RX_SEED_OFFLAT, cfg.shape_id])
+    return P[np.sort(rng.choice(len(P), size=N_RX, replace=False))], len(P)
+
+
+def build_offlat(cfg, out: Path, force=False):
+    path, done = out / cfg.filename, out / (cfg.filename + ".done")
+    if done.exists() and path.exists() and not force:
+        return "skip"
+    dx = 0.02
+    geom, extra, m, dxx, dxy = _geometry(cfg, dx)
+    rx, pool = rx_offlat(cfg, geom, dxx, dxy)
+    H, rx_snap, res, fs, n, loop_s = _simulate(cfg, rx, dx, geom, extra)
+    if H.shape[0] != N_RX:
+        raise AssertionError("{}: {} receivers, need exactly {}".format(cfg.label, H.shape[0], N_RX))
+    k = (rx_snap - 0.12) / 0.06
+    on = float(np.all(np.abs(k - np.round(k)) < 1e-6, axis=1).mean())
+    los = line_of_sight(cfg.verts, SRC, rx_snap)
+    _write(path, cfg, H, rx_snap, los, res, dx, dxx, dxy, fs, n, m, geom, loop_s, {
+        "rx_construction": "800 drawn uniformly from every in-room 0.02 m node, seed [{}, "
+                           "shape_id] (B6, D99)".format(RX_SEED_OFFLAT),
+        "rx_candidate_pool": int(pool), "frac_on_old_lattice": on})
+    done.touch()
+    print("built {:34s} pool {:5d}  on-old-lattice {:.3f} {:.0f}s".format(
+        cfg.label, pool, on, loop_s), flush=True)
+    return "built"
+
+
 def build_testdense(tag, cfg, out: Path, force=False):
     path, done = out / cfg.filename, out / (cfg.filename + ".done")
     if done.exists() and path.exists() and not force:
@@ -266,11 +310,15 @@ def build_a3(dx, out: Path, force=False):
 
 
 def worklist(mode):
-    if mode == "rx4x":
+    if mode in ("rx4x", "offlat"):
         rows = json.load(open(TRAIN_MANIFEST))["configs"]
         return sorted(configs_from_rows(rows, split="train"), key=lambda c: c.filename)
     if mode == "testdense":
         return test_shapes_for_a2()
+    if mode == "testdense15":
+        rows = json.load(open(TEST_MANIFEST))["configs"]
+        return [(c.filename[:-3], c) for c in sorted(configs_from_rows(rows, split="test"),
+                                                     key=lambda c: c.filename)]
     return [0.02, 0.01]
 
 
@@ -287,7 +335,7 @@ def main() -> int:
     work = worklist(a.mode)
     if a.plan or a.idx is None:
         desc = ([{"tag": t, "file": c.filename, "d_hat": round(c.d_hat, 4)} for t, c in work]
-                if a.mode == "testdense" else len(work))
+                if a.mode in ("testdense", "testdense15") else len(work))
         print(json.dumps({"mode": a.mode, "out": str(out), "n_total": len(work),
                           "array_range": "0-{}".format((len(work) - 1) // a.chunk),
                           "work": desc}, indent=1))
@@ -295,7 +343,9 @@ def main() -> int:
     for w in work[a.idx * a.chunk:(a.idx + 1) * a.chunk]:
         if a.mode == "rx4x":
             print(build_rx4x(w, out, a.force), w.filename, flush=True)
-        elif a.mode == "testdense":
+        elif a.mode == "offlat":
+            print(build_offlat(w, out, a.force), w.filename, flush=True)
+        elif a.mode in ("testdense", "testdense15"):
             print(build_testdense(w[0], w[1], out, a.force), w[1].filename, flush=True)
         else:
             print(build_a3(w, out, a.force), "dx", w, flush=True)
