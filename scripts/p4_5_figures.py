@@ -1,13 +1,16 @@
-"""P4-5 headline figure: spatial Pearson vs frequency, baseline + every arm, one axis.
+"""P4-5 headline figure: spatial Pearson vs frequency, every arm and the references, one axis.
 
-Reads whatever `outputs/p4_5/eval/<name>.json` files exist, so it can be re-run as each
-evaluation lands; an arm with no JSON yet is simply absent and the legend says which iteration
-each curve is. The full 25-300 Hz range is always drawn -- nothing cropped, no frequency selected.
-The A3 ground-truth-validity limit is drawn as a vertical line; when A3 found none (valid to
-300 Hz), the figure says so rather than omitting the line silently.
+AFTER D99 THE HEADLINE IS THE OFF-LATTICE CURVE. Every P4 room puts its receivers on one absolute
+lattice (0.12 + 0.06 k) and the attention-pooling arms memorised it, so a curve over all dense
+receivers mixes the model-as-a-field (~89% of points) with the model-at-memorised-positions
+(~11%). The top panel is OFF-lattice only -- the honest measure of a continuous field. The
+bottom panel is ON-lattice only, where Gate 2 and every 800-receiver number were measured, so the
+gap between the panels is the memorisation, frequency by frequency.
 
-Curves are the 3-shape DENSE mean, smoothed with the same +-2.5 Hz window the reported marks
-use; the raw per-bin values are in the JSON.
+Curves are computed per bin from each evaluation's render cache (`p4_5_eval.py`), per room, then
+averaged over the 3 frozen dense test shapes, then smoothed with the same +-2.5 Hz window the
+reported marks use. Full 0-300 Hz, nothing cropped, no frequency selected. A3 found ground truth
+valid across the whole band, and the figure says so rather than omitting the line silently.
 """
 from __future__ import annotations
 
@@ -15,23 +18,31 @@ import argparse
 import json
 from pathlib import Path
 
+import h5py
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-DF = 0.5
-HALF = 5
-ARMS = [("baseline", "C250 baseline", "0.15", 3.0),
-        ("B1", "B1  1/RMS spec weights", "#0072B2", 1.8),
-        ("B1b", "B1b gradient-calibrated weights", "#56B4E9", 1.8),
-        ("B2", "B2  coarse-to-fine levels", "#E69F00", 1.8),
-        ("B3", "B3  frequency curriculum", "#009E73", 1.8),
-        ("B4", "B4  4x receivers", "#D55E00", 1.8)]
+from scripts.build_p4_5_rooms import test_shapes_for_a2
+from scripts.p4_5_eval import DENSE_DIR, _db, _pearson_cols
+
+DF, HALF = 0.5, 5
+# (name prefix, label, colour, line width, line style)
+CURVES = [("baseline", "C250 baseline (attention)", "0.15", 3.0, "-"),
+          ("P4-3_D", "Arm D: mean pooling, 92 shapes (reference)", "#7A1F5C", 2.4, "--"),
+          ("P4-4_C92", "C92: attention, same 92 shapes (reference)", "0.55", 1.8, "--"),
+          ("B1", "B1  1/RMS spec weights", "#0072B2", 1.6, "-"),
+          ("B1b", "B1b gradient-calibrated weights", "#56B4E9", 1.6, "-"),
+          ("B2", "B2  coarse-to-fine levels", "#E69F00", 1.6, "-"),
+          ("B3", "B3  frequency curriculum", "#009E73", 1.6, "-"),
+          ("B4", "B4  4x receivers (same lattice)", "#D55E00", 1.6, "-"),
+          ("B5", "B5  DC compliance head", "#CC79A7", 1.6, "-"),
+          ("B6", "B6  off-lattice receivers", "#F0E442", 2.0, "-"),
+          ("B7", "B7  mean pooling, 250 shapes", "#8B0000", 2.4, "-")]
 
 
 def _smooth(r):
-    r = np.asarray(r, float)
     out = np.full_like(r, np.nan)
     for i in range(len(r)):
         s = r[max(0, i - HALF):i + HALF + 1]
@@ -40,14 +51,33 @@ def _smooth(r):
     return out
 
 
-def _latest(ev, arm, prefer):
-    """The requested iteration if present, else the latest available, labelled honestly."""
-    cands = sorted(ev.glob("{}_*K.json".format(arm)),
-                   key=lambda p: int(p.stem.split("_")[-1][:-1]))
-    want = ev / "{}_{}.json".format(arm, prefer)
+def _onlat(rx):
+    k = (rx - 0.12) / 0.06
+    return np.all(np.abs(k - np.round(k)) < 1e-6, axis=1)
+
+
+def split_curves(cache):
+    """Per-bin dB spatial Pearson on and off the lattice, averaged over the 3 dense shapes."""
+    z = np.load(cache, allow_pickle=False)
+    on, off = [], []
+    for i, (_tag, c) in enumerate(test_shapes_for_a2()):
+        with h5py.File(Path(DENSE_DIR) / c.filename) as f:
+            rx = np.asarray(json.loads(f.attrs["receiver_pos"]))
+        P, T = z["dP%d" % i], z["dT%d" % i]
+        m = _onlat(rx)
+        on.append(_pearson_cols(_db(P[m]), _db(T[m])))
+        off.append(_pearson_cols(_db(P[~m]), _db(T[~m])))
+    return np.nanmean(np.stack(on), 0), np.nanmean(np.stack(off), 0)
+
+
+def pick(ev, prefix, prefer):
+    """`<prefix>_<prefer>` if evaluated, else the latest iteration available -- labelled."""
+    want = ev / "cache" / "render_{}_{}.npz".format(prefix, prefer)
     if want.exists():
-        return want
-    return cands[-1] if cands else None
+        return want, prefer
+    c = sorted(ev.glob("cache/render_{}_*K.npz".format(prefix)),
+               key=lambda p: int(p.stem.split("_")[-1][:-1]))
+    return (c[-1], c[-1].stem.split("_")[-1]) if c else (None, None)
 
 
 def main() -> int:
@@ -58,52 +88,46 @@ def main() -> int:
     ap.add_argument("--out", default="outputs/p4_5/fig_hf_curve.png")
     a = ap.parse_args()
     ev = Path(a.eval)
-    a3 = json.load(open(a.a3)) if Path(a.a3).exists() else {}
-    lim = a3.get("gt_validity_limit_hz")
-
-    fig, ax = plt.subplots(2, 1, figsize=(14, 11), dpi=170, sharex=True,
+    lim = json.load(open(a.a3)).get("gt_validity_limit_hz") if Path(a.a3).exists() else None
+    f = np.arange(601) * DF
+    fig, ax = plt.subplots(2, 1, figsize=(15, 12), dpi=170, sharex=True,
                            gridspec_kw={"height_ratios": [3, 2]})
-    f = None
-    table = []
-    for key, lab, col, lw in ARMS:
-        p = _latest(ev, key, "60K") if key != "baseline" else ev / "baseline_60K.json"
-        if p is None or not p.exists():
+    marks = {}
+    for prefix, lab, col, lw, ls in CURVES:
+        cache, tag = pick(ev, prefix, a.at)
+        if cache is None:
             continue
-        j = json.load(open(p))
-        f = np.asarray(j["freqs_hz"])
-        tag = p.stem.split("_")[-1]
-        ax[0].plot(f, _smooth(j["dense_mean_r_db"]), color=col, lw=lw,
-                   label="{} @ {}".format(lab, tag))
-        ax[1].plot(f, _smooth(j["sparse_mean_r_db"]), color=col, lw=lw * 0.8)
-        table.append((lab, tag, j["dense_mean_marks"], j["band_lsd_db"],
-                      j["rir_pearson_gate2_style"], j["rir_pearson_modal_20_300"]))
-    if f is None:
-        raise SystemExit("no evaluation JSONs yet")
+        on, off = split_curves(cache)
+        ax[0].plot(f, _smooth(off), color=col, lw=lw, ls=ls, label="{} @ {}".format(lab, tag))
+        ax[1].plot(f, _smooth(on), color=col, lw=lw * 0.8, ls=ls)
+        marks[lab + " @ " + tag] = {
+            band: (float(np.nanmean(off[b0:b1])), float(np.nanmean(on[b0:b1])))
+            for band, (b0, b1) in (("25-100", (50, 200)), ("100-200", (200, 400)),
+                                   ("200-300", (400, 601)))}
     for a_ in ax:
         a_.axvspan(0, 25, color="0.93", zorder=0)
         a_.grid(alpha=0.25)
+        a_.set_xlim(0, 300)
         if lim:
             a_.axvline(lim, color="k", ls=":", lw=1.5)
-        a_.set_xlim(0, 300)
-    ax[0].set_ylabel("spatial Pearson (dB)\n3 frozen test shapes, dense 64x64")
-    ax[1].set_ylabel("spatial Pearson (dB)\n15 frozen test shapes, 800 rx")
+    ax[0].set_ylabel("spatial Pearson (dB), OFF the training lattice\n= the model as a continuous "
+                     "field (headline)")
+    ax[1].set_ylabel("ON the training lattice\n= where Gate 2 was measured")
     ax[1].set_xlabel("frequency (Hz)")
     gt = ("A3: ground truth valid to {:.0f} Hz (dotted)".format(lim) if lim else
-          "A3: ground truth valid across the whole band (dx 0.02 vs 0.01, r >= 0.99 to 300 Hz)")
-    ax[0].set_title("Does the high-frequency tail lift?  Spatial accuracy vs frequency, every "
-                    "0.5 Hz bin from 25 to 300 Hz, +-2.5 Hz smoothing\n" + gt, loc="left",
-                    fontsize=11)
-    ax[0].legend(fontsize=9, loc="lower left")
+          "A3: FDTD ground truth valid across the whole band (dx 0.02 vs 0.01, r >= 0.99 to 300 Hz)")
+    ax[0].set_title("Does the high-frequency tail lift?  3 frozen test shapes, dense 64x64, every "
+                    "0.5 Hz bin, +-2.5 Hz smoothing\n" + gt, loc="left", fontsize=11)
+    ax[0].legend(fontsize=8.5, loc="upper right", ncol=2)
     fig.tight_layout()
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(a.out, facecolor="white")
+    json.dump(marks, open(Path(a.out).with_suffix(".json"), "w"), indent=1)
     print("wrote", a.out)
-    print("{:34s} {:>4s}  {}   LSD 0-100/100-200/200-300   RIR g2 / modal".format(
-        "arm", "iter", "  ".join("{:>6s}".format(k + "Hz") for k in table[0][2])))
-    for lab, tag, mk, lsd, g2, mod in table:
-        print("{:34s} {:>4s}  {}   {:.2f} / {:.2f} / {:.2f}   {:+.4f} / {:+.4f}".format(
-            lab, tag, "  ".join("{:+.4f}".format(v) for v in mk.values()),
-            lsd["0-100"], lsd["100-200"], lsd["200-300"], g2, mod))
+    print("{:52s} {:>17s} {:>17s} {:>17s}".format("curve  (off-lattice / on-lattice)", "25-100 Hz",
+                                                  "100-200 Hz", "200-300 Hz"))
+    for k, v in marks.items():
+        print("{:52s} ".format(k) + " ".join("{:+.3f} / {:+.3f}  ".format(*v[b]) for b in v))
     return 0
 
 
