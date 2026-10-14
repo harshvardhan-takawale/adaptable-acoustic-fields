@@ -30,3 +30,5 @@ python scripts/p4_2_stage2_eval.py --run-dir "${RUN}" --checkpoint "${RUN}/${CK}
 # D98's energy/contrast diagnostic -- both CPU-only, from the render cache just written.
 python scripts/p4_5_lattice_diag.py --cache "outputs/p4_5/eval/cache/render_${NAME}.npz" --name "${NAME}"
 python scripts/p4_5_energy_diag.py --cache "outputs/p4_5/eval/cache/render_${NAME}.npz" --name "${NAME}"
+# D108: the supra-physical fraction is a standing metric for every checkpoint.
+python scripts/p4_5_kspace_diag.py --names "${NAME}" --out "outputs/p4_5/diagnostics/kspace_${NAME}" 2>&1 | tail -3 || true
