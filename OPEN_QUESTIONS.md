@@ -167,3 +167,26 @@ untested experiment, and is the only version of option (c) that has not been fal
 cheap — the same auxiliary term with points sampled along receiver->source rays instead of
 uniformly in the corner. Until that is run, "injecting occlusion does not help" is established
 for volume supervision and merely likely for path supervision.
+
+### Q22 — Break the receiver lattice, or subtract the DC term? *(P4-5, raised by D99; a research-direction call for the manager)*
+
+D99 shows the model has memorised the absolute positions where training receivers sit: every
+P4 room places its receivers on one lattice (0.12 + 0.06 k), the hash encoding is indexed by
+absolute position, and accuracy spikes there -- r 0.765 at a lattice point vs 0.498 two
+centimetres away (25-100 Hz), 0.427 vs 0.149 at 100-200 Hz. Off the lattice the model predicts
+high-frequency texture with the right energy and contrast and almost no correlation (r 0.10).
+
+The manager asked for **B5** (subtract the near-DC compliance term so it stops taking 93% of the
+step). That attacks A1's finding. It does not attack D99's, and D99 may be the larger effect:
+it degrades accuracy at EVERY frequency, including 25-100 Hz (0.77 -> 0.50), where the DC term
+is not the problem.
+
+The candidate that attacks D99 directly, call it **B6 -- off-lattice receivers**: re-simulate
+the 250 training rooms with 800 receivers drawn per room from ALL in-room 0.02 m FDTD nodes
+(not only the 1-in-9 on the shared lattice), so no absolute position is privileged. Same
+architecture, loss, iterations. Cost: ~0.9 CPU-h of FDTD (minutes as an array, as B4 was) plus
+one ~13 h training run. Prediction if D99 is right: the off-lattice dense curve rises toward the
+on-lattice one, and the on/off gap closes.
+
+Both fit the one-day box only if one of them starts within a few hours; tron's four GPUs are
+occupied by B1-B4 until ~09:40, so either would run on scavenger. **Question: B5, B6, or both?**

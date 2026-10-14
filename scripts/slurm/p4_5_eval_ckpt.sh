@@ -26,3 +26,7 @@ python scripts/p4_5_eval.py --checkpoint "${RUN}/${CK}" --name "${NAME}"
 python scripts/p4_2_stage2_eval.py --run-dir "${RUN}" --checkpoint "${RUN}/${CK}" \
     --manifest configs/sweeps_2d_mat/p4_2_shapes_manifest.json --data-dir data/track_p4_2_shapes \
     --out "outputs/p4_5/eval/gate2_${NAME}"
+# D99: every evaluation also splits the dense set by training-lattice membership, and reports
+# D98's energy/contrast diagnostic -- both CPU-only, from the render cache just written.
+python scripts/p4_5_lattice_diag.py --cache "outputs/p4_5/eval/cache/render_${NAME}.npz" --name "${NAME}"
+python scripts/p4_5_energy_diag.py --cache "outputs/p4_5/eval/cache/render_${NAME}.npz" --name "${NAME}"
