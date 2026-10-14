@@ -1,6 +1,6 @@
 # Chunk P4-5 — High-frequency diagnosis and fixes: RESULTS
 
-**Status: IN PROGRESS (2026-10-14).** Diagnostics A1-A3 and the record corrections are complete. The arms are training: B1-B4 on tron, B1b/B5/B6/B7 on scavenger. 30K evaluations land 03:00-06:00 and 60K ~10 h later. Sections marked PENDING fill in as each lands. Decisions D92-D116 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
+**Status: IN PROGRESS (2026-10-14).** Diagnostics A1-A3 and the record corrections are complete. The arms are training: B1-B4 on tron, B1b/B5/B6/B7 on scavenger. 30K evaluations land 03:00-06:00 and 60K ~10 h later. Sections marked PENDING fill in as each lands. Decisions D92-D122 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
 
 ---
 
@@ -71,10 +71,35 @@ Dense 15-shape Gate-2, OFF-lattice in-slab level and on-minus-off gap with paire
 
 **What the early reads show.** (1) **No attention arm on the shared lattice shows a gap through 20K** (B1, B4, B5). Memorisation, if it comes, comes later, so a 10-12K gap read is not the early signal hoped for, and B6's zero gap at 10K is not yet evidence. (2) B1, B4 and B5 are far ahead of C250's 60K field at 10-20K. B6 and B7, whose training validation tracks C250's (5.65 / 5.34 vs 5.50 dB at 10K), are not. The likely reading is that the three interventions (1/RMS weights, 4x receivers, DC head) genuinely improve the field, rather than that the field later degrades; there is no C250 checkpoint before 60K to check. (3) B5's DC head shows up at 26-300 Hz, where the head outputs exactly zero, so it is the field network that improved, as D97 predicts once the DC no longer takes ~93% of the step.
 
-### 30K / 60K
+### 30K (all eight original arms), the manager's reporting standard
 
-PENDING. Reading order (manager): **B7, B6** first; **B5** third; **B1 / B1b / B2 / B3** last and conditioned on pooling. **B4** is a supervision-density diagnostic only, and its on-lattice number appears in no headline. For every arm: off-lattice first, with its CI, and the excess supra-physical fraction beside it. No Gate-2 verdict without its bootstrap interval. Per D100(c): if B6's 800-receiver Gate-2 falls while its off-lattice rises, the arm has succeeded.
+OFF-lattice first. Dense Gate-2 in-slab level and gap from 15 frozen shapes with paired, slab-stratified bootstrap CIs (`GAP_CI_30K.json`). High-frequency gap at 100-200 Hz on the same 15 shapes (`HF_GAP.json`). It has a non-memorisation floor of about +0.01 to +0.035, seen in Arm D and in B6, which never trained on the lattice. Excess supra-physical fraction at 100-300 Hz. Off-lattice LSD below 100 Hz on 15 shapes [CI] (`RISK_METRICS.json`). Full-band RIR (all bins, DC included, every off-lattice receiver) and modal RIR. Training validation LSD at 30K; C250 is 4.86 at 30K.
+
+| arm @30K | off-lattice in-slab [CI] | gap in-slab [CI] | HF gap 100-200 | excess S | LSD<100 [CI] | full / modal RIR | val LSD | r @100 / 200 Hz |
+|---|---|---|---|---|---|---|---|---|
+| **B5** DC head | **0.920 [0.909, 0.931]** | -0.002 [-0.007, +0.003] | +0.014 | +0.009 | **1.58 [1.42, 1.75]** | 0.9998 / **0.932** | 2.95 | 0.706 / 0.356 |
+| **B1** 1/RMS weights | **0.896 [0.881, 0.914]** | -0.002 [-0.007, +0.002] | +0.016 | +0.004 | **1.95 [1.79, 2.13]** | 0.9997 / 0.926 | **2.82** | 0.682 / **0.451** |
+| B1b calibrated weights | 0.850 [0.825, 0.875] | -0.003 [-0.007, +0.001] | +0.015 | +0.004 | 2.31 [2.11, 2.52] | 0.9996 / 0.916 | 2.96 | 0.696 / 0.415 |
+| B4 4x rx *(diagnostic)* | 0.921 [0.907, 0.932] | -0.001 [-0.004, +0.002] | +0.015 | +0.023 | 2.03 [1.89, 2.18] | 0.9997 / 0.918 | 3.76 | 0.749 / 0.414 |
+| B6 off-lattice rx | 0.763 [0.724, 0.793] | -0.008 [-0.016, +0.001] | +0.035 | +0.004 | 3.05 [2.91, 3.20] | 0.9994 / 0.796 | 4.98 | 0.342 / 0.336 |
+| B7 mean, 250 shapes | 0.664 [0.647, 0.683] | **+0.118 [+0.078, +0.158]** | **+0.244** | **+0.295** | 3.54 [3.41, 3.68] | 0.9992 / 0.819 | 4.86 | 0.229 / 0.228 |
+| B2 coarse-to-fine | 0.696 [0.658, 0.739] | **+0.083 [+0.059, +0.106]** | **+0.230** | **+0.207** | 3.15 [3.02, 3.31] | 0.9994 / 0.831 | 4.73 | 0.210 / 0.149 |
+| B3 curriculum* | 0.671 [0.641, 0.695] | **+0.135 [+0.120, +0.148]** | +0.147 | +0.042 | 3.59 [3.42, 3.77] | 0.9881 / 0.293 | 9.15 | 0.192 / 0.062 |
+| *C250 @60K (baseline)* | *0.611 [0.580, 0.656]* | *+0.230 [+0.191, +0.277]* | *+0.281* | *+0.272* | *3.67 [3.56, 3.79]* | *0.9988 / 0.862* | *4.42 (60K)* | *0.209 / 0.257* |
+| *Arm D @60K (reference)* | *0.806 [0.766, 0.845]* | *+0.008* | *+0.017* | *+0.023* | *2.79 [2.52, 3.11]* | *0.9996 / —* | — | *0.427 / 0.221* |
+
+\*B3's 200-300 Hz band is untrained until 35K by design, so it is not judged before 60K.
+
+**What 30K says.**
+1. **The DC-gradient interventions win, by two routes.** B1 (DC down-weighted in the gradient) and B5 (DC moved into its own head) both give zero gap, forbidden energy at the floor, material-level LSD below 100 Hz, the best time responses measured, and the high-frequency lift: r at 100 Hz goes from 0.209 to 0.68-0.71. B5 reweights nothing, so the shared factor is the DC, not spectral reweighting (D119(d), D121; holds at 30K, completed at 60K).
+2. **Memorisation needs a shared lattice AND the baseline (DC-dominated) loss, and given both it appears in the slow fitters** (D119(b), D117). Every arm whose training validation tracks C250's and that sits on the lattice memorises (B2, B3, B7). Every fast fitter does not (B1, B1b, B4, B5). B6 tracks C250 but trains off the lattice, and is clean. D117's 30K predictions scored **4 of 5**: B7's gap was predicted not to fall and fell from +0.151 to +0.118, within CI, while its high-frequency gap and forbidden energy grew.
+3. **Pooling is not protective at 250 shapes** (B7, D117). The 92-shape pooling contrast (D104/D105) holds only under the baseline loss at 92 shapes (D119(c)). B8 (mean pooling + B1's weights) completes the 2x2 at 30K/60K.
+4. **B4 is a diagnostic only.** More supervision on the same lattice did not feed memorisation through 30K; D99(g)'s false-positive risk did not materialise.
+
+### Still running
+
+B8 (2x2 fourth cell), B9 (bin-0-only ablation), B9b (near-DC-band ablation) and C250r (replica for C250 @30K); 30K reads ~10:30-11:30. All eight original arms at 60K ~13:00-17:00. The pre-registered "moved the tail" criterion and D116 / D119(d) are completed at 60K.
 
 ## 4. Decisions
 
-D92 pre-registration · D93 B4 needs FDTD · D94 GT-validity criterion · D95 B2 null · D96 B1 weights / DC risk · D97 A1 result · D98 energy pre-registration · D99 lattice memorisation · D100 B6 · D101 B5 · D102 Gate-2 correction · D103 B4 OOM · D104 pooling · D105 bootstrap CIs · D106 material inversion · D107/D108 k-space · D109 D80 mechanism refuted · D110 paper framing (amended by D115) · D111 family bound · D112 pre-registration of the pooling-on-family / token-invariance tests · D113 their results · D114 correction (P4-2 checkpoints exist) + pre-registration · D115 extent_sum memorises; D113(c) withdrawn · D116 pre-registration: DC x pooling pattern.
+D92 pre-registration · D93 B4 needs FDTD · D94 GT-validity criterion · D95 B2 null · D96 B1 weights / DC risk · D97 A1 result · D98 energy pre-registration · D99 lattice memorisation · D100 B6 · D101 B5 · D102 Gate-2 correction · D103 B4 OOM · D104 pooling · D105 bootstrap CIs · D106 material inversion · D107/D108 k-space · D109 D80 mechanism refuted · D110 paper framing (amended by D115) · D111 family bound · D112 pre-registration of the pooling-on-family / token-invariance tests · D113 their results · D114 correction (P4-2 checkpoints exist) + pre-registration · D115 extent_sum memorises; D113(c) withdrawn · D116 pre-registration: DC x pooling pattern · D117 B7 memorises; slow-fitter prediction · D118 30K B1-B4 · D119 manager's reading; D110 amended; B5 pre-registered; B8/B9/B9b/C250r · D120 B1 risk metrics, LSD parity, matched val · D121 B5 @30K holds · D122 B7 @30K.
