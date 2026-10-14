@@ -180,8 +180,12 @@ def _flat(grads, params):
                       for g, p in zip(grads, params)])
 
 
+EXCLUDE_PREFIX = ""          # D148: e.g. "dc_head" -- measure the FIELD network's shares only
+
+
 def measure(model, renderer, w, corpus, batches):
-    params = [p for p in model.parameters() if p.requires_grad]
+    params = [p for n, p in model.named_parameters()
+              if p.requires_grad and not (EXCLUDE_PREFIX and n.startswith(EXCLUDE_PREFIX))]
     n_par = sum(p.numel() for p in params)
     B = bands()
     wt = dict(zip(TERMS, w))
@@ -295,10 +299,13 @@ def main() -> int:
     ap.add_argument("--rx-per-config", type=int, default=2)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--tag", default="", help="prefix for the output file (e.g. trackB_20K)")
+    ap.add_argument("--exclude-prefix", default="", help="parameter-name prefix to EXCLUDE (D148: dc_head)")
     ap.add_argument("--smoke", action="store_true", help="2 batches, to fail fast")
     ap.add_argument("--state", choices=("C250_60K", "fresh_init", "both"), default="both",
                     help="one state per job lets the two run in parallel")
     a = ap.parse_args()
+    global EXCLUDE_PREFIX
+    EXCLUDE_PREFIX = a.exclude_prefix
     dev = torch.device("cuda")
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
