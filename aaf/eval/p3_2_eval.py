@@ -164,6 +164,12 @@ def load_model(ckpt_path: Path, device: torch.device):
 
     st = torch.load(str(ckpt_path), map_location=device)
     cfg = dict(st["cfg"])
+
+    def _signal_kwargs(c):
+        from aaf.train.multi_room_2d_mat import signal_kwargs
+        fsz = int(c["n_time_samples"]) // 2 + 1
+        lo, hi = band_indices(float(c["fs"]), fsz, 0.0, float(c.get("band_max_hz", 300)))
+        return signal_kwargs(c, hi - lo)
     meta_path = ckpt_path.parent / "train_meta.json"
     meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
     n_freq_bins = int(cfg["n_time_samples"]) // 2 + 1
@@ -200,6 +206,8 @@ def load_model(ckpt_path: Path, device: torch.device):
         # built without its DC head; strict loading would at least fail loudly on the head's
         # unexpected keys, but the term is the whole point of the arm, so it is passed explicitly.
         dc_head_bins=int(cfg.get("dc_head_bins", 0) or 0),
+        # P4-5 PB3 / W3 (D144): the trainer's own helper, so the pathway is rebuilt from the cfg
+        **_signal_kwargs(cfg),
     ).to(device)
     model.load_state_dict(st["model"])
     model.eval()

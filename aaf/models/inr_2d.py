@@ -26,7 +26,7 @@ Forward signature
 from __future__ import annotations
 
 import math
-from typing import Optional, Union
+from typing import Sequence, Optional, Union
 
 import math
 
@@ -267,6 +267,11 @@ class INR2D_AutoDecoder(nn.Module):
         world_scale: Optional[float] = None,
         token_pool: Optional[str] = None,
         dc_head_bins: int = 0,
+        signal_heads: int = 1,
+        signal_band_bins: int = 0,
+        signal_n_neurons: int = 0,
+        signal_band_edges: Sequence[int] = (),
+        signal_xfade_bins: int = 0,
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -565,11 +570,77 @@ class INR2D_AutoDecoder(nn.Module):
             self.film_signal = None
         self._sigma_feat_dim = sigma_feat_dim
         self._signal_feat_dim = signal_feat_dim
-        self._model_signal = tcnn.Network(
-            n_input_dims=n_signal_input,
-            n_output_dims=self.signal_output_dim,
-            network_config=mlp_cfg["signal"],
-        )
+        # P4-5 PB3 / W3 (D144): an ALTERNATIVE signal pathway, built only when asked for, so the
+        # default path consumes the RNG and builds exactly as before (bit-identical; tested).
+        #   signal_band_bins > 0 : heads produce ONLY bins [0, signal_band_bins) -- the supervised
+        #       band. The default MLP's rows for bins above it never receive gradient (the loss
+        #       sees bins 0-600 only), so restricting the output is a no-op for training and makes
+        #       a parameter count mean something. Bins above are returned as exact zeros.
+        #   signal_heads = H > 1 : H copies of the signal MLP (hidden + output), each with its OWN
+        #       FiLM from the shared room code, each producing only its band; adjacent heads are
+        #       blended by a raised-cosine crossfade of half-width signal_xfade_bins around each
+        #       edge, so the weights sum to exactly 1 in every bin. Supports and weights are
+        #       BUFFERS: they travel in every checkpoint (rule 8 / D73).
+        #   signal_n_neurons > 0 : hidden width override (W3, the parameter-matched control).
+        self.signal_heads = int(signal_heads)
+        self.signal_band_bins = int(signal_band_bins)
+        self._signal_alt = bool(self.signal_heads > 1 or self.signal_band_bins > 0 or int(signal_n_neurons) > 0)
+        if not self._signal_alt:
+            self._model_signal = tcnn.Network(
+                n_input_dims=n_signal_input,
+                n_output_dims=self.signal_output_dim,
+                network_config=mlp_cfg["signal"],
+            )
+        else:
+            if self.conditioning_type != "film":
+                raise ValueError("signal_heads / band-only / width override need conditioning_type='film'")
+            nb = self.signal_band_bins if self.signal_band_bins > 0 else self.n_freq_bins
+            edges = [int(e) for e in signal_band_edges]
+            if len(edges) != self.signal_heads - 1:
+                raise ValueError("need {} band edges for {} heads, got {}".format(
+                    self.signal_heads - 1, self.signal_heads, edges))
+            x = int(signal_xfade_bins)
+            bounds = [0] + edges + [nb]
+            if self.signal_heads > 1 and (x <= 0 or min(b - a for a, b in zip(bounds[:-1], bounds[1:])) <= 2 * x):
+                raise ValueError("crossfade half-width must be > 0 and every band wider than 2x it")
+            net_cfg = dict(mlp_cfg["signal"])
+            if int(signal_n_neurons) > 0:
+                net_cfg["n_neurons"] = int(signal_n_neurons)
+            self._model_signal = None
+            self._signal_nets = nn.ModuleList()
+            self._signal_films = nn.ModuleList()          # heads >= 1; head 0 uses film_signal
+            w_full = torch.zeros(self.signal_heads, nb)
+            lohi = []
+            b_idx = torch.arange(nb, dtype=torch.float32)
+            for k in range(self.signal_heads):
+                lo = 0 if k == 0 else edges[k - 1] - x
+                hi = nb - 1 if k == self.signal_heads - 1 else edges[k] + x
+                w = torch.ones(nb)
+                if k > 0:
+                    e = edges[k - 1]
+                    t = ((b_idx - (e - x)) / (2.0 * x)).clamp(0, 1)
+                    w = w * (0.5 - 0.5 * torch.cos(math.pi * t))
+                if k < self.signal_heads - 1:
+                    e = edges[k]
+                    t = ((b_idx - (e - x)) / (2.0 * x)).clamp(0, 1)
+                    w = w * (0.5 + 0.5 * torch.cos(math.pi * t))
+                w[:lo] = 0; w[hi + 1:] = 0
+                w_full[k] = w
+                lohi.append((lo, hi))
+                self._signal_nets.append(tcnn.Network(
+                    n_input_dims=n_signal_input, n_output_dims=2 * (hi - lo + 1), network_config=net_cfg))
+                if k > 0:
+                    f = nn.Linear(self.cond_dim, 2 * signal_feat_dim)
+                    nn.init.zeros_(f.weight)
+                    with torch.no_grad():
+                        f.bias[:signal_feat_dim].fill_(1.0)
+                        f.bias[signal_feat_dim:].zero_()
+                    self._signal_films.append(f)
+            if not torch.allclose(w_full.sum(0), torch.ones(nb), atol=1e-6):
+                raise AssertionError("crossfade weights do not sum to one")
+            self.register_buffer("signal_xfade_w", w_full)
+            self.register_buffer("signal_head_lohi", torch.tensor(lohi, dtype=torch.long))
+            self._signal_out_bins = nb
         # film_lora: output-side rank-r additive adapter on the signal MLP.
         if self.conditioning_type == "film_lora":
             r = self.lora_rank
@@ -644,6 +715,20 @@ class INR2D_AutoDecoder(nn.Module):
             self.register_buffer("dc_scale", torch.ones(self.dc_head_bins))
         else:
             self.dc_head = None
+
+    def signal_param_counts(self) -> dict:
+        """D144: parameters in the signal pathway (MLP(s) + their FiLM layers), raw and ACTIVE.
+        ACTIVE excludes output rows for bins above the supervised band, which never receive
+        gradient; for the band-restricted pathways raw == active."""
+        film = sum(p.numel() for p in self.film_signal.parameters())
+        if self._model_signal is not None:
+            raw = self._model_signal.params.numel()
+            width = 512
+            dead = width * 2 * max(0, self.n_freq_bins - 601)
+            return {"raw": int(raw + film), "active_band_0_300": int(raw - dead + film), "heads": 1}
+        nets = sum(n.params.numel() for n in self._signal_nets)
+        film += sum(p.numel() for f in self._signal_films for p in f.parameters())
+        return {"raw": int(nets + film), "active_band_0_300": int(nets + film), "heads": len(self._signal_nets)}
 
     def dc_term(self, z_s: torch.Tensor, n_freq: int) -> Optional[torch.Tensor]:
         """[B, n_freq] complex near-DC term (zero above `dc_head_bins`), or None if no head."""
@@ -914,14 +999,33 @@ class INR2D_AutoDecoder(nn.Module):
         else:
             feature_all = torch.cat([signal_feat * sig_mask, z_s_flat], dim=-1)
 
-        signal_raw = self._model_signal(feature_all)
-        # film_lora: same additive rank-r correction on the signal MLP output.
-        if self.conditioning_type == "film_lora":
-            signal_raw = signal_raw + self.proj_signal(
-                self.A_signal(z_s_flat) * self.B_signal(feature_all)
-            )
-        signal_re = signal_raw[..., :one_sided]
-        signal_im = signal_raw[..., one_sided:].clone()
+        if self._model_signal is None:
+            # PB3 / W3 (D144): per-band heads, each with its own FiLM, crossfaded; zero above band
+            signal_re = torch.zeros(feature_all.shape[0], one_sided, device=feature_all.device)
+            signal_im = torch.zeros_like(signal_re)
+            for k, net in enumerate(self._signal_nets):
+                if k == 0:
+                    feat_k = feature_all
+                else:
+                    gk, bk = self._signal_films[k - 1](z_s_flat).chunk(2, dim=-1)
+                    feat_k = (gk * signal_feat + bk) * sig_mask
+                raw_k = net(feat_k).float()
+                lo, hi = int(self.signal_head_lohi[k, 0]), int(self.signal_head_lohi[k, 1])
+                nbk = hi - lo + 1
+                wk = self.signal_xfade_w[k, lo:hi + 1]
+                signal_re[:, lo:hi + 1] = signal_re[:, lo:hi + 1] + wk * raw_k[:, :nbk]
+                signal_im[:, lo:hi + 1] = signal_im[:, lo:hi + 1] + wk * raw_k[:, nbk:]
+            signal_re = signal_re.to(attn_complex.real.dtype)
+            signal_im = signal_im.to(attn_complex.real.dtype)
+        else:
+            signal_raw = self._model_signal(feature_all)
+            # film_lora: same additive rank-r correction on the signal MLP output.
+            if self.conditioning_type == "film_lora":
+                signal_raw = signal_raw + self.proj_signal(
+                    self.A_signal(z_s_flat) * self.B_signal(feature_all)
+                )
+            signal_re = signal_raw[..., :one_sided]
+            signal_im = signal_raw[..., one_sided:].clone()
         # RFFT symmetry: zero the imaginary part of DC (and Nyquist if even-length).
         signal_im[..., 0] = 0
         if self._n_time_samples % 2 == 0:

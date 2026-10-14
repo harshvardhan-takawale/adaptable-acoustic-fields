@@ -60,6 +60,23 @@ VAL_RX = tuple(range(3, 64, 8))
 run's ``train_meta.json`` and any resumed run stay byte-comparable."""
 
 
+def signal_kwargs(cfg, n_band: int) -> dict:
+    """D144: the model kwargs for the PB3 / W3 signal pathway, from a train cfg (dataclass or
+    dict). The SAME function builds the model in training and in `load_model`, so an evaluation
+    cannot rebuild a different pathway from the same checkpoint (D73)."""
+    g = (lambda k, d: getattr(cfg, k, d)) if not isinstance(cfg, dict) else (lambda k, d: cfg.get(k, d))
+    heads = int(g("signal_heads", 1) or 1)
+    band_only = bool(g("signal_band_only", False))
+    width = int(g("signal_n_neurons", 0) or 0)
+    if heads <= 1 and not band_only and width <= 0:
+        return {}
+    df = float(g("fs", 4096)) / float(g("n_time_samples", 8192))
+    edges_hz = [float(x) for x in str(g("signal_band_edges_hz", "") or "").split(",") if x.strip()]
+    return {"signal_heads": heads, "signal_band_bins": int(n_band), "signal_n_neurons": width,
+            "signal_band_edges": [int(round(e / df)) for e in edges_hz],
+            "signal_xfade_bins": int(round(float(g("signal_xfade_hz", 10.0)) / df))}
+
+
 def val_rx_indices(n_rx: int):
     """Held-out receiver indices for a grid of ``n_rx`` receivers.
 
@@ -149,6 +166,15 @@ class P32TrainCfg:
     #: one spatially uniform complex value per room per bin from the conditioning and is added
     #: inside the renderer. 0 = no head (bit-identical to every earlier arm). 41 = 0-20 Hz.
     dc_head_bins: int = 0
+    #: P4-5 PB3 / W3 (D144). Default = the single full-output signal MLP, bit-identical.
+    #: signal_heads > 1: per-band signal heads with their own FiLM, split at signal_band_edges_hz
+    #: (comma list), raised-cosine crossfade +-signal_xfade_hz. signal_band_only: heads produce
+    #: only the supervised band. signal_n_neurons > 0: hidden-width override (W3 control).
+    signal_heads: int = 1
+    signal_band_only: bool = False
+    signal_n_neurons: int = 0
+    signal_band_edges_hz: str = ""
+    signal_xfade_hz: float = 10.0
     val_every: int = 2_000
     val_max_configs: int = 88
     ckpt_every: int = 2_000
@@ -418,7 +444,10 @@ class P32Trainer:
             l_head_enabled=False, world_scale=cfg.world_scale,
             token_pool=(cfg.token_pool or None),
             dc_head_bins=int(cfg.dc_head_bins),
+            **signal_kwargs(cfg, self.n_band),
         ).to(self.device)
+        if self.model._model_signal is None:
+            print("[signal] {}".format(self.model.signal_param_counts()), flush=True)
         if cfg.dc_head_bins > 0:
             # The head's output scale: corpus RMS of the SPATIAL-MEAN target per bin, training
             # receivers only. Set once before training; it is a buffer, so it is saved in every
@@ -742,7 +771,8 @@ class P32Trainer:
             for k in ("cond_source", "cond_dim", "n_pts_per_ray", "n_azi", "n_iters",
                       "world_scale", "token_pool", "base_resolution", "sigma_aux_weight",
                       "loss_spec_bin_weights", "loss_curriculum", "c2f_levels",
-                      "dc_head_bins"):
+                      "dc_head_bins", "signal_heads", "signal_band_only", "signal_n_neurons",
+                      "signal_band_edges_hz", "signal_xfade_hz"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
