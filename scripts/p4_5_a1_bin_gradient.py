@@ -299,7 +299,7 @@ def main() -> int:
     ap.add_argument("--rx-per-config", type=int, default=2)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--tag", default="", help="prefix for the output file (e.g. trackB_20K)")
-    ap.add_argument("--exclude-prefix", default="", help="parameter-name prefix to EXCLUDE (D148: dc_head)")
+    ap.add_argument("--exclude-prefix", default="", help="parameter-name prefix to EXCLUDE (D149: dc_head)")
     ap.add_argument("--smoke", action="store_true", help="2 batches, to fail fast")
     ap.add_argument("--state", choices=("C250_60K", "fresh_init", "both"), default="both",
                     help="one state per job lets the two run in parallel")
