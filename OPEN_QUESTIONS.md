@@ -167,3 +167,12 @@ untested experiment, and is the only version of option (c) that has not been fal
 cheap — the same auxiliary term with points sampled along receiver->source rays instead of
 uniformly in the corner. Until that is run, "injecting occlusion does not help" is established
 for volume supervision and merely likely for path supervision.
+
+### Q23 — What should the "8x" point of the receiver-density sweep be? *(P4-5, D126; the manager's call)*
+
+The sweep (manager item 7) is 1x / 2x / 4x / 8x at matched iterations, off-lattice metrics. 1x, 2x and 4x are all subsets of the 0.06 m lattice (nested). **8x = 6,400 receivers per room does not fit on that lattice**: the in-room candidate pool is 4,621 points in the smallest training room (6,480 in the first room checked; up to ~9.2k in the largest). Options:
+* **(a) "Full lattice"**: every in-room 0.06 m point, 4.6k-9.2k receivers, i.e. 5.8x-11.5x, varying by room size. Keeps the lattice structure; density is not uniform across rooms.
+* **(b) 8x on a 0.03 m lattice**: uniform 8x, but 3 of every 4 new points are off the 0.06 m lattice. That mixes density with B6's lattice-breaking, so the sweep would no longer vary density alone.
+* **(c) 8x capped at the pool**: 6,400 where possible and the full pool below that; nearly uniform, with a small-room deficit.
+
+All three need the trainer to STREAM targets instead of preloading them (8x is 7.7 GB of preload against B4's 3.85 GB, which already needed a 48 GB card, D103). That is an engineering change to `aaf/train/multi_room_2d_mat.py` with its own behavioural test (Rule 8: streaming must be bit-identical to preloading on a small corpus). The FDTD re-simulation is cheap (~0.9 CPU-h per 250 rooms, D93). **Recommendation: (a) if the deliverable is "how dense must a lattice survey be"; (c) if it is a clean doubling curve.** Not started pending the choice.

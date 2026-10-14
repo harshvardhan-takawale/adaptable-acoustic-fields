@@ -13,6 +13,12 @@
    per receiver against the FDTD's, averaged over every OFF-lattice dense receiver of each shape,
    then over shapes, with the same bootstrap. The receiver-0 "Gate-2 style" number from each
    arm's eval JSON (800-receiver data, D70's exact metric) is printed beside it.
+
+3. (D124 / manager item 8) PER-BAND LSD above 100 Hz (100-200, 200-300 Hz) off-lattice, and the
+   MODAL RIR (20-300 Hz band-limited, p4_5_eval's exact convention) computed separately ON and OFF
+   the training lattice from the same dense receivers. The modal RIR in every arm's eval JSON is
+   measured on the 15 shapes' 800 receivers -- i.e. ON the lattice -- so it can be raised by
+   memorisation; the off-lattice version cannot.
 """
 from __future__ import annotations
 
@@ -22,6 +28,8 @@ from pathlib import Path
 
 import numpy as np
 
+from aaf.eval.modal_decay import band_limited_rir
+from scripts.p4_5_eval import F_HI, MODAL_LO, RIR_FS, RIR_N
 from scripts.p4_5_gate2_dense import on_lattice
 
 CACHE = "outputs/p4_5/gate2_dense/cache/{}__track_p4_5_testdense.npz"
@@ -40,17 +48,29 @@ def rir_r(P, T):
     return (a * b).sum(1) / np.sqrt((a * a).sum(1) * (b * b).sum(1))
 
 
+def modal_r(P, T):
+    a = band_limited_rir(P, RIR_FS, RIR_N, f_lo=MODAL_LO, f_hi=F_HI)
+    b = band_limited_rir(T, RIR_FS, RIR_N, f_lo=MODAL_LO, f_hi=F_HI)
+    a = a - a.mean(1, keepdims=True); b = b - b.mean(1, keepdims=True)
+    return (a * b).sum(1) / np.sqrt((a * a).sum(1) * (b * b).sum(1))
+
+
 def per_shape(name):
     z = np.load(CACHE.format(name), allow_pickle=False)
-    lsd, rir = [], []
+    out = {k: [] for k in ("lsd", "rir", "lsd_100_200", "lsd_200_300", "modal_off", "modal_on")}
     i = 0
     while "P%d" % i in z.files:
         P, T, rx = z["P%d" % i][:, :601], z["T%d" % i][:, :601], z["rx%d" % i]
-        off = ~on_lattice(rx)
-        lsd.append(float(np.mean(np.abs(db(P[off, LO[0]:LO[1]]) - db(T[off, LO[0]:LO[1]])))))
-        rir.append(float(np.nanmean(rir_r(P[off], T[off]))))
+        on = on_lattice(rx); off = ~on
+        dP, dT = db(P[off]), db(T[off])
+        out["lsd"].append(float(np.mean(np.abs(dP[:, LO[0]:LO[1]] - dT[:, LO[0]:LO[1]]))))
+        out["lsd_100_200"].append(float(np.mean(np.abs(dP[:, 200:400] - dT[:, 200:400]))))
+        out["lsd_200_300"].append(float(np.mean(np.abs(dP[:, 400:601] - dT[:, 400:601]))))
+        out["rir"].append(float(np.nanmean(rir_r(P[off], T[off]))))
+        out["modal_off"].append(float(np.nanmean(modal_r(P[off], T[off]))))
+        out["modal_on"].append(float(np.nanmean(modal_r(P[on], T[on]))))
         i += 1
-    return np.array(lsd), np.array(rir)
+    return {k: np.array(v) for k, v in out.items()}
 
 
 def boot(x):
@@ -71,9 +91,14 @@ def main() -> int:
     print("{:22s} | {:>6s} {:>17s} {:>7s} | {:>7s} {:>17s} {:>9s}".format(
         "checkpoint", "LSD<100", "95% CI (15 shapes)", "3-shape", "fullRIR", "95% CI", "rx0 G2"))
     for n, e in zip(names, evals):
-        lsd, rir = per_shape(n)
+        m = per_shape(n)
+        lsd, rir = m["lsd"], m["rir"]
         r = {"name": n, "n_shapes": int(len(lsd)), "lsd_0_100_off": float(lsd.mean()), "lsd_ci95": boot(lsd),
+             "lsd_100_200_off": float(m["lsd_100_200"].mean()), "lsd_100_200_ci95": boot(m["lsd_100_200"]),
+             "lsd_200_300_off": float(m["lsd_200_300"].mean()), "lsd_200_300_ci95": boot(m["lsd_200_300"]),
              "rir_fullband_off": float(rir.mean()), "rir_ci95": boot(rir),
+             "rir_modal_off": float(m["modal_off"].mean()), "rir_modal_off_ci95": boot(m["modal_off"]),
+             "rir_modal_on_dense": float(m["modal_on"].mean()), "rir_modal_on_dense_ci95": boot(m["modal_on"]),
              "lsd_per_shape": lsd.tolist(), "rir_per_shape": rir.tolist()}
         if e != "-":
             lat = json.load(open("outputs/p4_5/diagnostics/lattice_{}.json".format(e)))
@@ -87,6 +112,10 @@ def main() -> int:
             "{:.2f}".format(r["lsd_0_100_off_3shape_A2"]) if "lsd_0_100_off_3shape_A2" in r else "-",
             r["rir_fullband_off"], *r["rir_ci95"],
             "{:.4f}".format(r["rir_gate2_style_rx0"]) if "rir_gate2_style_rx0" in r else "-"))
+        print("    per band off-lattice LSD 100-200 {:.2f} [{:.2f}, {:.2f}]  200-300 {:.2f} [{:.2f}, {:.2f}] | modal RIR OFF {:.4f} [{:.4f}, {:.4f}]  ON(dense) {:.4f}  ON(800-rx eval) {}".format(
+            r["lsd_100_200_off"], *r["lsd_100_200_ci95"], r["lsd_200_300_off"], *r["lsd_200_300_ci95"],
+            r["rir_modal_off"], *r["rir_modal_off_ci95"], r["rir_modal_on_dense"],
+            "{:.4f}".format(r["rir_modal_20_300"]) if "rir_modal_20_300" in r else "-"))
     json.dump({"method": __doc__.strip().splitlines()[0], "lsd_band_bins": list(LO), "rows": rows},
               open(a.out, "w"), indent=1)
     return 0
