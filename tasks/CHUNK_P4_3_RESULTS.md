@@ -1,5 +1,19 @@
 # Chunk results — P4-3: minimal shape-edit demo, and the mechanism question
 
+> **ERRATUM (P4-5, D99 + D102, 2026-10-13) -- read before any Gate-2 number below.** Every P4 room places its 800 receivers on one absolute lattice (0.12 + 0.06 k m), and the attention-pooling arms MEMORISED it: accuracy at those exact positions is far higher than 2 cm away. Gate 2 and every 800-receiver number in this document were measured AT those positions. Re-scored on a dense 64x64 lattice with the frozen evaluator (verified exact on all 14 fields against the published C250 Gate 2), **four of the five published Gate-2 passes do not survive**:
+>
+> | checkpoint | pooling | published in-slab | dense **off-lattice** | verdict |
+> |---|---|---|---|---|
+> | P4-3 D | masked_mean | 0.8021 PASS | **0.8063 PASS** | stands |
+> | P4-3 X1 | attn_residual | 0.8438 PASS | **0.7581 FAIL** | overturned |
+> | P4-4 C92 | attn_residual_extent | 0.8337 PASS | **0.7545 FAIL** | overturned |
+> | P4-4 C250 | attn_residual_extent | 0.8420 PASS | **0.6109 FAIL** | overturned |
+> | P4-4 C500 | attn_residual_extent | 0.8336 PASS | **0.5641 FAIL** | overturned |
+>
+> Here specifically: the headline "Gate 2 passes on two arms" holds for **D only**; X1's ranking above D reverses as a field (0.7581 vs 0.8063).
+>
+> Full table, both exactness checks and every affected decision: D102 in https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md and https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/gate2_dense/GATE2_DENSE_CORRECTION.md
+
 **VERIFY FIRST — Gate 2 was NOT contaminated. The P4-2 corpus was built AFTER the D67c
 grid-alignment fix, not before.** All 75 `.h5` files and all 75 `.done` sentinels carry mtimes
 inside a single 83-second window beginning 13:04:28 on 2026-09-11 — seven seconds *before* the
