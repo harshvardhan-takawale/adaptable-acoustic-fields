@@ -104,6 +104,11 @@ def main() -> int:
             band: (float(np.nanmean(off[b0:b1])), float(np.nanmean(on[b0:b1])))
             for band, (b0, b1) in (("25-100", (50, 200)), ("100-200", (200, 400)),
                                    ("200-300", (400, 601)))}
+        # the pre-registered point values (plan, A2): mean over +-2.5 Hz, so no lucky bin is picked
+        for hz in (50, 100, 150, 200, 250):
+            b = int(round(hz / DF))
+            marks[lab + " @ " + tag]["{}Hz".format(hz)] = (float(np.nanmean(off[b - HALF:b + HALF + 1])),
+                                                          float(np.nanmean(on[b - HALF:b + HALF + 1])))
     for a_ in ax:
         a_.axvspan(0, 25, color="0.93", zorder=0)
         a_.grid(alpha=0.25)
@@ -124,10 +129,10 @@ def main() -> int:
     fig.savefig(a.out, facecolor="white")
     json.dump(marks, open(Path(a.out).with_suffix(".json"), "w"), indent=1)
     print("wrote", a.out)
-    print("{:52s} {:>17s} {:>17s} {:>17s}".format("curve  (off-lattice / on-lattice)", "25-100 Hz",
-                                                  "100-200 Hz", "200-300 Hz"))
+    cols = ["25-100", "100-200", "200-300", "50Hz", "100Hz", "150Hz", "200Hz", "250Hz"]
+    print("{:52s} ".format("curve  (off-lattice / on-lattice)") + " ".join("{:>16s}".format(c) for c in cols))
     for k, v in marks.items():
-        print("{:52s} ".format(k) + " ".join("{:+.3f} / {:+.3f}  ".format(*v[b]) for b in v))
+        print("{:52s} ".format(k) + " ".join("{:+.3f} / {:+.3f}".format(*v[c]) for c in cols))
     return 0
 
 
