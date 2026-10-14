@@ -1,0 +1,40 @@
+{
+ "prediction": "bins above 100 Hz contribute under 15% of total gradient combined",
+ "scored_on": "C250 @ 60K, parameter-gradient projection share, bins >= 100 Hz",
+ "measured": 0.009166777420312688,
+ "se": 0.0043984636244808785,
+ "holds": true,
+ "also": {
+  "param_norm_share": 0.09929171524088021,
+  "loss_value_share": 0.744280482713892
+ },
+ "cumulative_proj": {
+  "below_50": 0.9768424897464083,
+  "below_100": 0.9908332225796873,
+  "below_150": 0.9939271037937747,
+  "below_200": 0.9976650348613055,
+  "below_300": 1.0000001654634922
+ },
+ "cumulative_norm": {
+  "below_50": 0.8074801666857291,
+  "below_100": 0.9007082847591198,
+  "below_150": 0.9397422095031491,
+  "below_200": 0.9589440586895484,
+  "below_300": 1.0
+ },
+ "cumulative_loss_value": {
+  "below_50": 0.07535074165810533,
+  "below_100": 0.2557195172861079,
+  "below_150": 0.4875097133152213,
+  "below_200": 0.646338562540558,
+  "below_300": 0.9980773421064454
+ },
+ "projection_closure": 1.0000001654634922,
+ "fresh_init": {
+  "share_above_100hz_param_proj": 0.656596969957745,
+  "se": 0.004000551640633943,
+  "share_above_100hz_param_norm": 0.6344648250584752,
+  "share_above_100hz_loss_value": 0.3368313137014314,
+  "prediction_holds": false
+ }
+}
