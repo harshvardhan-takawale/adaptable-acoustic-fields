@@ -1,0 +1,30 @@
+{
+ "method": "slab-stratified shape bootstrap, 10k, seed 20261013 fresh per checkpoint; gap paired",
+ "rows": [
+  {
+   "checkpoint": "C250r_20K",
+   "off_in_slab": 0.6040406780254151,
+   "off_in_ci95": [
+    0.562783893609058,
+    0.6452769652708495
+   ],
+   "off_in_verdict": "FAIL",
+   "p_off_in_below_080": 1.0,
+   "off_out_slab": 0.6288603580549329,
+   "off_out_ci95": [
+    0.5996233082246276,
+    0.6567310124028197
+   ],
+   "gap_in": 0.08989646200715001,
+   "gap_in_ci95": [
+    0.07609288183530533,
+    0.1039709137930293
+   ],
+   "gap_out": 0.0885524460537439,
+   "gap_out_ci95": [
+    0.07123869549859528,
+    0.10663629954339919
+   ]
+  }
+ ]
+}
