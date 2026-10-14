@@ -1,6 +1,6 @@
 # Phase 4 — Status Summary for Manager Review
 
-> **ERRATUM (P4-5, D99 + D102 + D105 + D106, 2026-10-13) -- read before any Gate-2 number below.** Every P4 room places its 800 receivers on one absolute lattice (0.12 + 0.06 k m), and the attention-pooling arms MEMORISED it. Gate 2 and every 800-receiver number below were measured AT those positions. Re-scored on a dense lattice with the frozen evaluator (verified exact on all 14 fields), with across-shape bootstrap 95% CIs:
+> **ERRATUM (P4-5, D99 + D102 + D105 + D106 + D109 + D111, 2026-10-13) -- read before any Gate-2 number below.** Every P4 room places its 800 receivers on one absolute lattice (0.12 + 0.06 k m), and the attention-pooling arms MEMORISED it. Gate 2 and every 800-receiver number below were measured AT those positions. Re-scored on a dense lattice with the frozen evaluator (verified exact on all 14 fields), with across-shape bootstrap 95% CIs:
 >
 > | checkpoint | pooling | published in-slab [95% CI] | dense **off-lattice** [95% CI] |
 > |---|---|---|---|
@@ -12,9 +12,9 @@
 >
 > With 6 in-slab shapes the gate cannot resolve +-0.04, so the verdicts are mostly noise-limited. **What is robust:** the shifts (C250 0.842 -> 0.611, non-overlapping CIs), and pooling -- on the identical 92-shape corpus, mean pooling (D) beats attention (C92) off-lattice by +0.12 / +0.32 / +0.24 at 25-100 / 100-200 / 200-300 Hz, in 14-15 of 15 shapes (paired 95% CIs exclude zero). **And the material comparison inverts (D106):** material receivers were drawn per room at untrained positions, so shape is NOT at parity with material below 100 Hz as a field (3.4-3.9 dB vs 1.7-2.3).
 >
-> Here specifically: the Gate-2 rows of the numbers table below are on-lattice values, and the parity-with-material claim is inverted as a field (D106).
+> Here specifically: the Gate-2 rows of the numbers table below are on-lattice values, and the parity-with-material claim is inverted as a field (D106). **The family eval is bounded (D111):** off the lattice it drops by 0.22 (0.17-0.28, 5 of 5 rooms). The corner-count ordering (D83) is unsupported as a field. **Tokenization fragility (D84, "the Z blocker") is real but smaller**: rect -0.11 -> -0.04, L -0.30 -> -0.21 off-lattice. "Corpus scaling saturates" (D80) declines as a field, and the offered mechanism is refuted (D109): observed without mechanism, not "more data hurts".
 >
-> Full tables, both exactness checks, every affected decision: D102, D105, D106 in https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md and https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/gate2_dense/GATE2_DENSE_CORRECTION.md
+> Full tables, both exactness checks, every affected decision: D102, D105, D106, D109, D111 in https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md and https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/gate2_dense/GATE2_DENSE_CORRECTION.md
 
 **Scope**: shape editing. The phase goal is to train on rectangles and L-rooms and render a
 Z-shaped corridor zero-shot. It is deliberately staged, each stage behind a gate, so that when

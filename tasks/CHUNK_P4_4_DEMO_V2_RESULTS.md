@@ -12,7 +12,7 @@
 >
 > With 6 in-slab shapes the gate cannot resolve +-0.04, so the verdicts are mostly noise-limited. **What is robust:** the shifts (C250 0.842 -> 0.611, non-overlapping CIs), and pooling -- on the identical 92-shape corpus, mean pooling (D) beats attention (C92) off-lattice by +0.12 / +0.32 / +0.24 at 25-100 / 100-200 / 200-300 Hz, in 14-15 of 15 shapes (paired 95% CIs exclude zero). **And the material comparison inverts (D106):** material receivers were drawn per room at untrained positions, so shape is NOT at parity with material below 100 Hz as a field (3.4-3.9 dB vs 1.7-2.3).
 >
-> Here specifically: §3 ("sparse receiver sampling flatters the model") is a LATTICE effect, not a density effect (D99).
+> Here specifically: §3 ("sparse receiver sampling flatters the model") is a LATTICE effect, not a density effect (D99). D111 confirms it on the same FAM checkpoint: dense ON-lattice points reproduce the published family values (within 0.02), while OFF-lattice points score 0.17-0.28 lower in 5 of 5 rooms.
 >
 > Full tables, both exactness checks, every affected decision: D102, D105, D106 in https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md and https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/gate2_dense/GATE2_DENSE_CORRECTION.md
 

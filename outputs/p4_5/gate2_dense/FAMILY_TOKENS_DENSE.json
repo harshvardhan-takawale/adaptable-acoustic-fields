@@ -1,0 +1,76 @@
+{
+ "checkpoint": "outputs/p4_4/p4_4_FAM/ckpt_iter0060000.pt",
+ "rows": [
+  {
+   "family": "rect",
+   "room": "rectL6.56_W4.12",
+   "refine_k": 1,
+   "n_tokens": 4,
+   "published_800rx": 0.8585140394368512,
+   "reproduced_800rx": 0.8585140396511989,
+   "dense_on": 0.8817292214708199,
+   "dense_off": 0.5764573714215634
+  },
+  {
+   "family": "rect",
+   "room": "rectL6.56_W4.12",
+   "refine_k": 2,
+   "n_tokens": 8,
+   "published_800rx": 0.7511414568742367,
+   "reproduced_800rx": 0.7511414561670026,
+   "dense_on": 0.7788196728709273,
+   "dense_off": 0.5381496150759985
+  },
+  {
+   "family": "rect",
+   "room": "rectL6.56_W4.12",
+   "refine_k": 3,
+   "n_tokens": 12,
+   "published_800rx": 0.7378684829407282,
+   "reproduced_800rx": 0.7378684824954562,
+   "dense_on": 0.7537213798712812,
+   "dense_off": 0.5411636440012526
+  },
+  {
+   "family": "L",
+   "room": "LL5.56_W4.52_NWd1.10w2.22x0.00",
+   "refine_k": 1,
+   "n_tokens": 6,
+   "published_800rx": 0.7812809611626417,
+   "reproduced_800rx": 0.7812809610610669,
+   "dense_on": 0.803923231012288,
+   "dense_off": 0.6133468149965094
+  },
+  {
+   "family": "L",
+   "room": "LL5.56_W4.52_NWd1.10w2.22x0.00",
+   "refine_k": 2,
+   "n_tokens": 12,
+   "published_800rx": 0.4772740967857259,
+   "reproduced_800rx": 0.4772740964538904,
+   "dense_on": 0.48259549463587564,
+   "dense_off": 0.4066962822495299
+  }
+ ],
+ "token_cost": {
+  "LL5.56_W4.52_NWd1.10w2.22x0.00 6->12 tok": {
+   "published_cost": -0.30400686437691576,
+   "dense_on_cost": -0.3213277363764124,
+   "dense_off_cost": -0.20665053274697953
+  },
+  "rectL6.56_W4.12 4->8 tok": {
+   "published_cost": -0.1073725825626145,
+   "dense_on_cost": -0.10290954859989254,
+   "dense_off_cost": -0.038307756345564936
+  },
+  "rectL6.56_W4.12 4->12 tok": {
+   "published_cost": -0.12064555649612307,
+   "dense_on_cost": -0.1280078415995387,
+   "dense_off_cost": -0.03529372742031078
+  }
+ },
+ "exact_reproduction_of_published": true,
+ "mismatches": [],
+ "max_abs_reproduction_error": 7.072341601244148e-10,
+ "reproduction_tolerance": 1e-06
+}

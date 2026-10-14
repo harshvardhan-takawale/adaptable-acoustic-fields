@@ -1,0 +1,81 @@
+{
+ "checkpoint": "outputs/p4_4/p4_4_FAM/ckpt_iter0060000.pt",
+ "metric": "p4_4_family_eval._metrics, N_MODES = 6",
+ "selection": "median-d_hat held-out room per family (rect: median area), by rule",
+ "rooms": [
+  {
+   "family": "rect",
+   "room": "rectL6.56_W4.12",
+   "d_hat": 0.0,
+   "n_dense": 4096,
+   "n_on_lattice": 420,
+   "published_800rx": 0.8585140394368512,
+   "reproduced_800rx": 0.8585140396511989,
+   "dense_all": 0.6022742153490953,
+   "dense_on": 0.8817292214708199,
+   "dense_off": 0.5764573714215634,
+   "shift_off_minus_published": -0.28205666801528784
+  },
+  {
+   "family": "L",
+   "room": "LL5.56_W4.52_NWd1.10w2.22x0.00",
+   "d_hat": 0.5408062930186825,
+   "n_dense": 3637,
+   "n_on_lattice": 417,
+   "published_800rx": 0.7812809611626417,
+   "reproduced_800rx": 0.7812809610610669,
+   "dense_all": 0.6314501228793542,
+   "dense_on": 0.803923231012288,
+   "dense_off": 0.6133468149965094,
+   "shift_off_minus_published": -0.16793414616613223
+  },
+  {
+   "family": "T",
+   "room": "TL5.56_W4.84_midNd1.00w0.90x2.22",
+   "d_hat": 0.4591368227731864,
+   "n_dense": 3908,
+   "n_on_lattice": 424,
+   "published_800rx": 0.7157447037475605,
+   "reproduced_800rx": 0.7157447038106776,
+   "dense_all": 0.5350009157007428,
+   "dense_on": 0.7174541352121461,
+   "dense_off": 0.5153820064279052,
+   "shift_off_minus_published": -0.20036269731965528
+  },
+  {
+   "family": "DN",
+   "room": "DNL5.30_W4.50_NWd1.06w1.02x0.00_SEd0.34w1.70x0.00",
+   "d_hat": 0.5234567901234568,
+   "n_dense": 3754,
+   "n_on_lattice": 440,
+   "published_800rx": 0.8486425471978084,
+   "reproduced_800rx": 0.8486425471790796,
+   "dense_all": 0.6216989689816534,
+   "dense_on": 0.8392044942669546,
+   "dense_off": 0.593668707639277,
+   "shift_off_minus_published": -0.25497383955853137
+  },
+  {
+   "family": "U",
+   "room": "UL5.00_W5.26_NEd0.14w0.48x0.00_NWd1.22w1.86x0.00",
+   "d_hat": 0.5154203633291086,
+   "n_dense": 3680,
+   "n_on_lattice": 395,
+   "published_800rx": 0.6912694464583223,
+   "reproduced_800rx": 0.6912694457779476,
+   "dense_all": 0.5011067459761913,
+   "dense_on": 0.6745127302073853,
+   "dense_off": 0.4851085947618645,
+   "shift_off_minus_published": -0.20616085169645781
+  }
+ ],
+ "exact_reproduction_of_published": true,
+ "mismatches": [],
+ "bound": {
+  "mean_shift": -0.22229764055121287,
+  "min_shift": -0.28205666801528784,
+  "max_shift": -0.16793414616613223
+ },
+ "max_abs_reproduction_error": 6.803747565342633e-10,
+ "reproduction_tolerance": 1e-06
+}

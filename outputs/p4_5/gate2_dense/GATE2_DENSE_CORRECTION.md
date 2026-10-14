@@ -82,7 +82,7 @@ Material receivers were drawn PER ROOM (8x8 linspace scaled to each room's L, W:
 2. **The memorisation comes from attention pooling.** Both masked_mean arms (D, S) show no on/off-lattice gap; all five attention arms lose 0.08-0.27. **D and C92 share the identical 92-shape corpus and differ only in pooling:** on-lattice C92 leads (0.8306 vs 0.8146); off-lattice D leads (**0.8063 vs 0.7545**).
 3. **D81 reverses**: attention pooling's +0.0316 on an identical corpus becomes **-0.052** as a field.
 4. **D80 reverses**: the saturating scaling curve (0.8337 / 0.8420 / 0.8336) **declines** as a field (0.7545 / 0.6109 / 0.5641).
-5. **Not re-scored, flagged**: the P4-4 family eval (attention arm, same lattice; no dense family test set exists) and P4-2's four arms (checkpoints no longer on disk; mean-type pooling, so probably not inflated -- inference, not measurement).
+5. **Family eval -- BOUNDED since (D111)**: one median-d_hat room per family re-simulated dense; published values reproduced to 7e-10; off-lattice shift mean **-0.222**, range [-0.282, -0.168], 5 of 5 rooms. D83's corner ordering unsupported as a field; D84's token cost shrinks off-lattice (rect -0.11 -> -0.04, L -0.30 -> -0.21). `FAMILY_DENSE_BOUND.json`, `FAMILY_TOKENS_DENSE.json`. **Not re-scored, flagged**: P4-2's four arms (checkpoints no longer on disk; mean-type pooling, so probably not inflated -- inference, not measurement).
 
 ## Files
 
