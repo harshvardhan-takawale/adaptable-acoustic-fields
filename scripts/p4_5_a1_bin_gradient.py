@@ -64,12 +64,19 @@ def bands():
     return out
 
 
-def elementwise_terms(P, T):
-    """`_losses` BEFORE its mean -- the identical formulas, kept elementwise [rows, bins]."""
+SPEC_W = None               # D153: the checkpoint's per-bin spec weights (the TRAINED objective)
+
+
+def elementwise_terms(P, T, spec_w=None):
+    """`_losses` BEFORE its mean -- the identical formulas, kept elementwise [rows, bins].
+
+    ``spec_w`` multiplies the two linear spec terms per bin, exactly as `_losses(w_spec=)` does
+    (whose weighted branch divides by rows x full band, i.e. the same mean taken here)."""
     eps = 1e-6
+    sw = 1.0 if spec_w is None else spec_w
     return {
-        "L_spec_real": (P.real - T.real).abs(),
-        "L_spec_imag": (P.imag - T.imag).abs(),
+        "L_spec_real": (P.real - T.real).abs() * sw,
+        "L_spec_imag": (P.imag - T.imag).abs() * sw,
         "L_amp": (torch.log10(P.abs() + eps) - torch.log10(T.abs() + eps)).abs(),
         "L_phase": 1.0 - torch.cos(P.angle() - T.angle()),
     }
@@ -198,7 +205,7 @@ def measure(model, renderer, w, corpus, batches):
     g_tot = torch.zeros(n_par, device=corpus.dev)
     for ci, ri in batches:
         P, T = corpus.render(model, renderer, ci, ri), corpus.H[ci, ri]
-        e = elementwise_terms(P, T)
+        e = elementwise_terms(P, T, SPEC_W)
         denom = float(P.shape[0] * N_BINS)               # `.mean()` over rows x bins
         for k, t in enumerate(TERMS):
             loss_val[k] += wt[t] * e[t].detach().sum(0).cpu().numpy() / denom
@@ -231,7 +238,7 @@ def measure(model, renderer, w, corpus, batches):
         acc_spec = torch.zeros(n_par, device=corpus.dev)
         for bi, (ci, ri) in enumerate(batches):
             P, T = corpus.render(model, renderer, ci, ri), corpus.H[ci, ri]
-            e = elementwise_terms(P, T)
+            e = elementwise_terms(P, T, SPEC_W)
             denom = float(P.shape[0] * N_BINS)
             for k, t in enumerate(TERMS):
                 piece = wt[t] * e[t][:, G].sum() / denom
@@ -301,10 +308,12 @@ def main() -> int:
     ap.add_argument("--tag", default="", help="prefix for the output file (e.g. trackB_20K)")
     ap.add_argument("--exclude-prefix", default="", help="parameter-name prefix to EXCLUDE (D149: dc_head)")
     ap.add_argument("--smoke", action="store_true", help="2 batches, to fail fast")
+    ap.add_argument("--objective", choices=("trained", "baseline"), default="trained",
+                    help="trained: apply the checkpoint's loss_spec_bin_weights (D153); baseline: ignore them")
     ap.add_argument("--state", choices=("C250_60K", "fresh_init", "both"), default="both",
                     help="one state per job lets the two run in parallel")
     a = ap.parse_args()
-    global EXCLUDE_PREFIX
+    global EXCLUDE_PREFIX, SPEC_W
     EXCLUDE_PREFIX = a.exclude_prefix
     dev = torch.device("cuda")
     out = Path(a.out)
@@ -323,6 +332,14 @@ def main() -> int:
             Habs = corpus.H[:, corpus.train_rx].abs()
             report["mean_abs_H_per_bin"] = Habs.mean((0, 1)).cpu().numpy().tolist()
             report["weights"] = list(w)
+            swp = cfg.get("loss_spec_bin_weights") or ""
+            if a.objective == "trained" and swp:
+                SPEC_W = torch.tensor(np.load(swp).astype(np.float32), device=dev)
+                assert SPEC_W.shape == (N_BINS,), SPEC_W.shape
+            report["objective"] = {"mode": a.objective, "loss_spec_bin_weights": swp,
+                                   "applied": SPEC_W is not None}
+            print("[objective] {} | spec weights {} applied={}".format(
+                a.objective, swp or "none", SPEC_W is not None), flush=True)
             batches = corpus.sample(nb, a.rows, a.rx_per_config, a.seed)
         print("=== state {} (iter {}) ===".format(state, 0 if state == "fresh_init" else it),
               flush=True)
