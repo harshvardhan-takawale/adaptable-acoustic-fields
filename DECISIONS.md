@@ -1366,3 +1366,35 @@ If declared, report dL_eff = L * lag / f in cm per test room. Otherwise the tran
 | Track B @20K (reference) | 0.26 / 6.99 / 7.58 / 9.87 dB | 7.72 dB | 0.01 / 0.28 / 0.31 / 0.40 |
 
 **Gate (D160(i)): 0-20 Hz must carry > 50% of the per-band error. It carries 2%, so FAILS.** The near-DC inter-room level is already right to 0.3 dB, with or without the head. The error grows with frequency, and the head fixed the 20-300 Hz part that it fixed (D147) by freeing the gradient (D149), not by carrying the room A / room B DC difference. D155(b)'s late rise in the field's 0-20 Hz A1 share is therefore not a sign of a mis-specified head that matters to the deliverable. **Consequence:** the two-region DC head is closed. The narrow-doorway deficit is an acoustic-band representation problem (the aperture is 0.15 m against a 0.02 m training grid and the 64-ray / 64-point renderer; A0c's note that apertures want dx <= 0.01). That is the manager's call for a later chunk.
+
+**D162 — t1 and t2 RESULTS: (t1) the transfer error is field SHAPE, not mode placement, so inverse-span geometry features are NOT launched. (t2) Out of family, the model fails most at LOW frequency (25-100 Hz r falls by ~0.30; LSD rises from 1.8 to 4.6-4.8 dB), and band separation does not help there.** Both on PB3 and B5 @60K; `outputs/p4_6/t1_lag/t1_lag.json`, `outputs/p4_6/family_oof/{PB3_60K,B5_60K}.json`.
+
+(a) **t1 lag test** (D160(h), as pre-registered). Values are PB3 / B5; "room-median lag" is the median over rooms of each room's median lag.
+
+| set | centre | room-median lag | systematic rooms | sign consistency | per-receiver mean abs lag | peak corr |
+|---|---|---|---|---|---|---|
+| test (15) | 125 Hz | +0.04 / -0.26 Hz | 5/15 / 5/15 | 0.65 / 0.65 | 2.1 / 2.1 Hz | 0.72 / 0.72 |
+| test (15) | 250 Hz | +0.04 / -0.09 Hz | **0/15 / 0/15** | 0.59 / 0.57 | **3.7 / 4.2 Hz** | 0.58 / 0.55 |
+| train (23) | 125 Hz | -0.07 / -0.07 Hz | 0 / 0 | 0.61 / 0.61 | 0.5 / 0.6 Hz | 0.89 / 0.86 |
+| train (23) | 250 Hz | -0.02 / -0.06 Hz | 0 / 0 | 0.56 / 0.57 | 1.0 / 2.0 Hz | 0.78 / 0.67 |
+
+**Verdict: NOT mode misplacement** for either model. Condition (1) fails: 0/15 test rooms are systematic at 250 Hz. Condition (2) is undefined (no room is systematic at both centres). Condition (3) holds for PB3 and narrowly fails for B5 (training median 0.29 Hz at 250 Hz). In test rooms the per-receiver spectral misalignment is large (3.7-4.2 Hz at 250 Hz, about 4x the training rooms') but its SIGN is near-random within a room (consistency 0.57-0.59, against 0.5 for chance). A single effective room-size error would shift every receiver the same way. **Per the pre-registration, the transfer error is field shape, not placement.** No dL_eff is reported, and the gated inverse-span geometry features are not launched.
+
+(b) **t2 out-of-family baseline** (D111's dense family rooms, two pre-registered median rooms per family; off-lattice; raw, with the render-time projection beside it).
+
+| model | group | r 25-100 / 100-200 / 200-300 | LSD 25-100 / 100-200 / 200-300 (dB) | projected r 25-100 / 100-200 / 200-300 |
+|---|---|---|---|---|
+| PB3 | in-family reference (rect, L) | 0.902 / 0.658 / 0.455 | 1.84 / 4.20 / 5.03 | 0.901 / 0.659 / 0.457 |
+| PB3 | **out of family (T, DN, U)** | **0.600 / 0.347 / 0.329** | **4.83 / 5.87 / 5.67** | 0.601 / 0.346 / 0.331 |
+| B5 | in-family reference | 0.897 / 0.639 / 0.458 | 1.90 / 4.30 / 5.12 | 0.898 / 0.640 / 0.460 |
+| B5 | **out of family** | **0.624 / 0.367 / 0.314** | **4.58 / 5.75 / 5.83** | 0.624 / 0.367 / 0.316 |
+
+Per family (PB3 raw, 25-100 / 200-300): rect 0.888 / 0.400, L 0.916 / 0.509, T 0.591 / 0.337, DN 0.580 / 0.315, U 0.631 / 0.336. **U at 100 Hz:** PB3 +0.112 (rooms +0.196 and +0.028), B5 +0.235 (+0.235 and +0.235), consistent with the roadmap's "U at 100 Hz, r 0.06".
+
+(c) **Reading.**
+* (1) **In family, the deficit is at 200-300 Hz** (transfer gap 0.28, D157). **Out of family, the collapse is at LOW frequency:** 25-100 Hz r falls by 0.27-0.30 and LSD rises ~3 dB. That is the band the DC fix made excellent in family. An unseen corner topology breaks the low-order modal field, not just the dense high band.
+* (2) PB3's band separation does not transfer across families (25-100 0.600 vs B5's 0.624; 200-300 0.329 vs 0.314). What it bought in family (+0.029 at 200-300 Hz, D157) is a within-family gain.
+* (3) Projection changes nothing measurable here (+-0.003): the out-of-family error is not supra-physical content.
+* (4) Together with t1: across the family boundary the field SHAPE is wrong, and conditioning on the new topology does not reach the low-order modes. This bears on g2 (U held out) and points to conditioning or representation, not data volume along the current families. g1 tests the data volume directly.
+
+(d) **Housekeeping.** The B5 / PB3 @60K dense caches kept for t1 (D160(b)) are now deleted.
