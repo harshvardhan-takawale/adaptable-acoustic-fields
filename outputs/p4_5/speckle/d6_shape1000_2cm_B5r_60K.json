@@ -1,0 +1,24 @@
+{
+ "n_nodes_2cm": 61874,
+ "exactness_rel_err": 1.9910592619076795e-10,
+ "bins": {
+  "200 Hz": {
+   "d1_ratio_2cm": 1.5427140014796223,
+   "d1_ratio_64grid": 1.106081485748291,
+   "corr_len_m_fdtd_dB": 0.32,
+   "corr_len_m_B5_dB": 0.26,
+   "corr_len_m_error_dB": 0.28,
+   "lsd_2cm": 4.675712320944938,
+   "pearson_dB_2cm": 0.4010198196600196
+  },
+  "280 Hz": {
+   "d1_ratio_2cm": 1.253792643768292,
+   "d1_ratio_64grid": 1.0352219343185425,
+   "corr_len_m_fdtd_dB": 0.24,
+   "corr_len_m_B5_dB": 0.22,
+   "corr_len_m_error_dB": 0.22,
+   "lsd_2cm": 7.252473629029489,
+   "pearson_dB_2cm": 0.4390268364113537
+  }
+ }
+}
