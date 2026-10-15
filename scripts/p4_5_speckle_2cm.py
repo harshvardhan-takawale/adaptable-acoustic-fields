@@ -26,6 +26,11 @@ CACHE = OUT / "cache"
 SHAPE_ID = 1000
 BINS = {"200 Hz": 400, "280 Hz": 560}
 CK = "outputs/p4_5/arms/B5/ckpt_iter0060000.pt"
+NAME = "B5_60K"             # dense-cache name and label; --checkpoint/--name re-target (D156: B5r)
+
+
+def _stem():
+    return "B5" if NAME == "B5_60K" else NAME     # B5 keeps its original file names
 H5 = "data/track_p4_5_testdense/L5.54_W5.28_d1.42_w1.52.h5"
 CHUNK = 6000
 
@@ -110,7 +115,7 @@ def run_render():
         if s0 % 8000 == 0:
             print("  rendered {}/{}".format(s0, len(P)), flush=True)
     CACHE.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(CACHE / "d6_B5_shape1000.npz", P=P, i=i, j=j, H=H)
+    np.savez_compressed(CACHE / "d6_{}_shape1000.npz".format(_stem()), P=P, i=i, j=j, H=H)
 
 
 def db(x):
@@ -156,11 +161,11 @@ def run_figure():
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    zt = np.load(CACHE / "d6_fdtd_shape1000.npz"); zp = np.load(CACHE / "d6_B5_shape1000.npz")
+    zt = np.load(CACHE / "d6_fdtd_shape1000.npz"); zp = np.load(CACHE / "d6_{}_shape1000.npz".format(_stem()))
     assert np.array_equal(zt["P"], zp["P"])
     i, j, P2 = zt["i"], zt["j"], zt["P"]
     cfg = shape_cfg()
-    zc = np.load("outputs/p4_5/gate2_dense/cache/B5_60K__track_p4_5_testdense.npz")
+    zc = np.load("outputs/p4_5/gate2_dense/cache/{}__track_p4_5_testdense.npz".format(NAME))
     with h5py.File(H5) as f:
         keep = np.asarray(json.loads(f.attrs["lattice_keep"]), bool).reshape(64, 64)
     from scripts.p4_5_speckle import grid_pairs
@@ -183,7 +188,7 @@ def run_figure():
             "pearson_dB_2cm": float(np.corrcoef(gP[ok], gT[ok])[0, 1])}
         lo, hi = np.nanpercentile(gT, [2, 98])
         ext = [0, (gT.shape[0] - 1) * 0.02, 0, (gT.shape[1] - 1) * 0.02]
-        for col, (g, t) in enumerate(((gT, "FDTD, 2 cm"), (gP, "B5 @60K, 2 cm"))):
+        for col, (g, t) in enumerate(((gT, "FDTD, 2 cm"), (gP, "{}, 2 cm".format(NAME)))):
             ax = axes[row, col]
             im = ax.imshow(g.T, origin="lower", extent=ext, vmin=lo, vmax=hi, cmap="viridis")
             ax.set_title("{} | {}".format(t, lab), fontsize=12)
@@ -191,7 +196,7 @@ def run_figure():
         xs = np.linspace(0.12, cfg.L - 0.12, 64); ys = np.linspace(0.12, cfg.W - 0.12, 64)
         ax = axes[row, 2]
         ax.pcolormesh(xs, ys, gd.reshape(64, 64).T, shading="nearest", vmin=lo, vmax=hi, cmap="viridis")
-        ax.set_title("B5 @60K at the 64x64 test nodes | {}".format(lab), fontsize=12)
+        ax.set_title("{} at the 64x64 test nodes | {}".format(NAME, lab), fontsize=12)
         for ax in axes[row]:
             ax.set_aspect("equal"); ax.set_xlim(0, cfg.L); ax.set_ylim(0, cfg.W)
             v = np.array(cfg.verts + [cfg.verts[0]]); ax.plot(v[:, 0], v[:, 1], "k-", lw=1)
@@ -201,18 +206,23 @@ def run_figure():
     fig.suptitle("Shape {} (unseen), dB|H| on every 2 cm FDTD node vs the 64x64 test grid".format(
         SHAPE_ID), fontsize=14)
     OUT.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT / "d6_shape1000_2cm.png", facecolor="white")
-    (OUT / "d6_shape1000_2cm.json").write_text(json.dumps(res, indent=1))
+    suf = "" if NAME == "B5_60K" else "_" + NAME
+    fig.savefig(OUT / "d6_shape1000_2cm{}.png".format(suf), facecolor="white")
+    (OUT / "d6_shape1000_2cm{}.json".format(suf)).write_text(json.dumps(res, indent=1))
     print(json.dumps(res, indent=1))
 
 
 def main():
+    global CK, NAME
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--fdtd", action="store_true")
     g.add_argument("--render", action="store_true")
     g.add_argument("--figure", action="store_true")
+    ap.add_argument("--checkpoint", default=CK)
+    ap.add_argument("--name", default=NAME)
     a = ap.parse_args()
+    CK, NAME = a.checkpoint, a.name
     run_fdtd() if a.fdtd else run_render() if a.render else run_figure()
 
 
