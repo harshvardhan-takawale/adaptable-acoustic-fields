@@ -1,6 +1,6 @@
 # Chunk P4-5 — High-frequency diagnosis and fixes: RESULTS
 
-**Status: IN PROGRESS (2026-10-14).** Diagnostics A1-A3 and the record corrections are complete. The arms are training: B1-B4 on tron, B1b/B5/B6/B7 on scavenger. 30K evaluations land 03:00-06:00 and 60K ~10 h later. Sections marked PENDING fill in as each lands. Decisions D92-D134 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
+**Status: IN PROGRESS (2026-10-14, 21:30).** Latest: section 5 (speckle thread, doorway resume, 60K round; D150-D152). Earlier status: Diagnostics A1-A3 and the record corrections are complete. The arms are training: B1-B4 on tron, B1b/B5/B6/B7 on scavenger. 30K evaluations land 03:00-06:00 and 60K ~10 h later. Sections marked PENDING fill in as each lands. Decisions D92-D134 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
 
 ---
 
@@ -100,6 +100,33 @@ OFF-lattice first. Dense Gate-2 in-slab level and gap from 15 frozen shapes with
 
 B8 (2x2 fourth cell), B9 (bin-0-only ablation), B9b (near-DC-band ablation) and C250r (replica for C250 @30K); 30K reads ~10:30-11:30. All eight original arms at 60K ~13:00-17:00. The pre-registered "moved the tail" criterion and D116 / D119(d) are completed at 60K.
 
+## 5. Late reads (D148-D152)
+
+### Speckle thread (D150 pre-registration, D152 results)
+
+15 dense test shapes, off-lattice pairs, shape-bootstrap CIs. d1 = speckle ratio (mean |dB step| between 4-neighbours, prediction over FDTD).
+
+| | d1 64x64, 200-300 Hz | d1 by FDTD-level quintile (Q1 nulls -> Q5 loud) | fine-scale energy / FDTD's | coherence |c| | off-lattice r 200-300 |
+|---|---|---|---|---|---|
+| B5 @60K | 0.968 [0.957, 0.980] | 0.61 / 1.09 / 1.28 / 1.42 / 1.46 | 2.55x | 0.455 | 0.467 |
+| B6 @60K | 0.469 (blur) | 0.21 / 0.43 / 0.61 / 0.83 / 1.28 | 4.19x | 0.357 | 0.267 |
+| C250 @60K | 2.113 | 0.93 / 2.02 / 2.87 / 3.85 / 5.40 | 111x | 0.039 | 0.118 |
+| B5, levels >= 6 masked (d3) | 0.650 | 0.37 / 0.70 / 0.87 / 1.04 / 1.19 | -- | -- | 0.343 (-0.124) |
+| B5, fan rotation average (d4) | 0.913 | 0.58 / 1.04 / 1.20 / 1.32 / 1.36 | -- | -- | 0.470 (+0.003) |
+| B5, physical projection (d5) | 0.908 | 0.58 / 1.03 / 1.19 / 1.32 / 1.36 | -- | -- | 0.469 (+0.002) |
+
+**d6, 2 cm, shape 1000** (FDTD re-simulated on all 61,874 nodes, exact to 2e-10): B5 d1 **1.45 (200 Hz) / 1.27 (280 Hz)**; after projection **0.89 / 0.94**; FDTD projected the same way **0.99 / 1.00**. Figure: [d6_shape1000_2cm.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/speckle/d6_shape1000_2cm.png).
+
+**Reading.** The speckle is supra-physical, under 1% of energy, and at 2-4 cm, finer than the test grid. A render-time projection removes it without blurring. The 200-300 Hz accuracy deficit is a wrong pattern at the field's own scale, which none of d3-d5 touches. Gates: a3 FAIL, a2 NEGATIVE, Helmholtz condition 1 FAIL. a1 (B5r) is running.
+
+### Doorway (D149 corrected, D150)
+
+TBdc and TB9b resumed to 30K (their early stops used an on-lattice val row with a jittering fan). Matched pair: Track B @20K vs TBdc @20K. Deliverable table: [DELIVERABLE.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/trackB_dc_eval/DELIVERABLE.md). Two-region DC head pre-registered, gated on TBdc @30K's field-only 10-20 Hz A1 share >= 0.15.
+
+### 60K round and PB3/W3 (D148, D151)
+
+C250r does not reproduce C250 at 60K (in-slab 0.775 vs 0.611; gap +0.099 vs +0.230; the difference is entirely at 25-100 Hz). B9b ties B5 (0.924) and is ahead at 200-300 Hz by +0.011 [+0.004, +0.017]. PB3/W3 @20K: equal training-room fit (r 0.550 / 0.553), PB3 ahead on test rooms (+0.020 [+0.009, +0.031]). Pre-registered scoring at 30K/60K.
+
 ## 4. Decisions
 
-D92 pre-registration · D93 B4 needs FDTD · D94 GT-validity criterion · D95 B2 null · D96 B1 weights / DC risk · D97 A1 result · D98 energy pre-registration · D99 lattice memorisation · D100 B6 · D101 B5 · D102 Gate-2 correction · D103 B4 OOM · D104 pooling · D105 bootstrap CIs · D106 material inversion · D107/D108 k-space · D109 D80 mechanism refuted · D110 paper framing (amended by D115) · D111 family bound · D112 pre-registration of the pooling-on-family / token-invariance tests · D113 their results · D114 correction (P4-2 checkpoints exist) + pre-registration · D115 extent_sum memorises; D113(c) withdrawn · D116 pre-registration: DC x pooling pattern · D117 B7 memorises; slow-fitter prediction · D118 30K B1-B4 · D119 manager's reading; D110 amended; B5 pre-registered; B8/B9/B9b/C250r · D120 B1 risk metrics, LSD parity, matched val · D121 B5 @30K holds · D122 B7 @30K.
+D92 pre-registration · D93 B4 needs FDTD · D94 GT-validity criterion · D95 B2 null · D96 B1 weights / DC risk · D97 A1 result · D98 energy pre-registration · D99 lattice memorisation · D100 B6 · D101 B5 · D102 Gate-2 correction · D103 B4 OOM · D104 pooling · D105 bootstrap CIs · D106 material inversion · D107/D108 k-space · D109 D80 mechanism refuted · D110 paper framing (amended by D115) · D111 family bound · D112 pre-registration of the pooling-on-family / token-invariance tests · D113 their results · D114 correction (P4-2 checkpoints exist) + pre-registration · D115 extent_sum memorises; D113(c) withdrawn · D116 pre-registration: DC x pooling pattern · D117 B7 memorises; slow-fitter prediction · D118 30K B1-B4 · D119 manager's reading; D110 amended; B5 pre-registered; B8/B9/B9b/C250r · D120 B1 risk metrics, LSD parity, matched val · D121 B5 @30K holds · D122 B7 @30K · ... · D148 PB3/W3 @4K · D149 TBdc A1 · D150 speckle pre-registration, doorway correction · D151 60K round, C250r · D152 speckle results.
