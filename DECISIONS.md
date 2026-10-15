@@ -1357,3 +1357,12 @@ If declared, report dL_eff = L * lag / f in cm per test room. Otherwise the tran
 (i) **t3 gate (manager), operationalised.** For TBdc @30K at a = 0.15 m (6 unseen test geometries), the per-band inter-room level difference (as the Track B evaluation: 20 log10 of the mean |H| ratio, room B over room A) over 0-20 / 20-100 / 100-200 / 200-300 Hz, prediction against FDTD. "Most of the error sits in 0-20 Hz" means 0-20 Hz carries > 50% of the summed per-band |LD error|. Then the two-region head is queued. Otherwise the problem is the aperture representation (A0c: apertures want dx <= 0.01), and the head is not the fix.
 
 (j) **Plumbing:** the training script strips any `p4_N_` prefix from run_id (P4-6 arms live in `outputs/p4_6/arms/<G>`), and `p4_5_eval_one.sh` takes `ARMS=` for the arms root. Both are unchanged for P4-5 paths.
+
+**D161 — t3 RESULT: the narrow-doorway error is in the ACOUSTIC band, not near DC. The two-region DC head is NOT the fix and is not queued. The problem is the aperture representation (A0c: apertures want dx <= 0.01).** TBdc @30K, a = 0.15 m, 6 unseen test geometries; inter-room level difference per band, the Track B evaluator's own `band_level_ratio` and rendering (`scripts/p4_6_doorway_bands.py`, `outputs/p4_6/doorway_bands/doorway_bands_a015.json`).
+
+| model | mean abs LD error 0-20 / 20-100 / 100-200 / 200-300 Hz | pooled 20-300 (deliverable) | share of per-band error, 0-20 / 20-100 / 100-200 / 200-300 |
+|---|---|---|---|
+| **TBdc @30K** | **0.30** / 4.00 / 4.76 / **8.16** dB | 4.77 dB | **0.02** / 0.23 / 0.28 / **0.47** |
+| Track B @20K (reference) | 0.26 / 6.99 / 7.58 / 9.87 dB | 7.72 dB | 0.01 / 0.28 / 0.31 / 0.40 |
+
+**Gate (D160(i)): 0-20 Hz must carry > 50% of the per-band error. It carries 2%, so FAILS.** The near-DC inter-room level is already right to 0.3 dB, with or without the head. The error grows with frequency, and the head fixed the 20-300 Hz part that it fixed (D147) by freeing the gradient (D149), not by carrying the room A / room B DC difference. D155(b)'s late rise in the field's 0-20 Hz A1 share is therefore not a sign of a mis-specified head that matters to the deliverable. **Consequence:** the two-region DC head is closed. The narrow-doorway deficit is an acoustic-band representation problem (the aperture is 0.15 m against a 0.02 m training grid and the 64-ray / 64-point renderer; A0c's note that apertures want dx <= 0.01). That is the manager's call for a later chunk.
