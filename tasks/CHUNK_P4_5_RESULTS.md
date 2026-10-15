@@ -1,6 +1,6 @@
 # Chunk P4-5 — High-frequency diagnosis and fixes: RESULTS
 
-**Status: IN PROGRESS (2026-10-14, 21:30).** Latest: section 5 (speckle thread, doorway resume, 60K round; D150-D152). Earlier status: Diagnostics A1-A3 and the record corrections are complete. The arms are training: B1-B4 on tron, B1b/B5/B6/B7 on scavenger. 30K evaluations land 03:00-06:00 and 60K ~10 h later. Sections marked PENDING fill in as each lands. Decisions D92-D134 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
+**Status: IN PROGRESS (2026-10-15, 07:45).** Latest: section 5 (speckle thread; doorway; 60K finals for PB3/W3/B10; D150-D158). B5r (a1) @60K pending (~10:00). Earlier status: Diagnostics A1-A3 and the record corrections are complete. The arms are training: B1-B4 on tron, B1b/B5/B6/B7 on scavenger. 30K evaluations land 03:00-06:00 and 60K ~10 h later. Sections marked PENDING fill in as each lands. Decisions D92-D134 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
 
 ---
 
@@ -127,6 +127,18 @@ TBdc and TB9b resumed to 30K (their early stops used an on-lattice val row with 
 
 C250r does not reproduce C250 at 60K (in-slab 0.775 vs 0.611; gap +0.099 vs +0.230; the difference is entirely at 25-100 Hz). B9b ties B5 (0.924) and is ahead at 200-300 Hz by +0.011 [+0.004, +0.017]. PB3/W3 @20K: equal training-room fit (r 0.550 / 0.553), PB3 ahead on test rooms (+0.020 [+0.009, +0.031]). Pre-registered scoring at 30K/60K.
 
+### Final 60K reads (D153-D158)
+
+| arm @60K | OFF in-slab [CI] | gap | test r 25-100 / 100-200 / 200-300 | train r 200-300 | note |
+|---|---|---|---|---|---|
+| B5 (default) | 0.924 [0.909, 0.939] | +0.001 | 0.887 / 0.631 / 0.467 | 0.648 | DC head |
+| PB3 | 0.931 [0.921, 0.942] | -0.002 | 0.895 / 0.647 / **0.496** | **0.772** | band separation: +0.029 transfer at 200-300 |
+| W3 | 0.921 [0.910, 0.931] | +0.002 | 0.897 / 0.646 / 0.472 | 0.746 | capacity: fit, not transfer |
+| B10 | 0.870 [0.858, 0.882] | -0.000 | 0.848 / 0.602 / 0.443 | 0.722 | = B1; declines 30K->60K |
+| B4 | 0.922 [0.913, 0.930] | +0.001 | 0.890 / 0.622 / 0.442 | 0.527 | only arm still climbing (+0.054 at 200-300, 30K->60K) |
+
+**D144 (PB3/W3) NOT MET as pre-registered:** fit is capacity, 200-300 Hz transfer is band separation, and transfer is now the deficit (fit-transfer gap 0.18 -> 0.28). **Doorway:** TBdc slope 0.62 of GT at 30K (Track B 0.32), plateaued; two-region head gate not met. Deliverable: [DELIVERABLE.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/trackB_dc_eval/DELIVERABLE.md).
+
 ## 4. Decisions
 
-D92 pre-registration · D93 B4 needs FDTD · D94 GT-validity criterion · D95 B2 null · D96 B1 weights / DC risk · D97 A1 result · D98 energy pre-registration · D99 lattice memorisation · D100 B6 · D101 B5 · D102 Gate-2 correction · D103 B4 OOM · D104 pooling · D105 bootstrap CIs · D106 material inversion · D107/D108 k-space · D109 D80 mechanism refuted · D110 paper framing (amended by D115) · D111 family bound · D112 pre-registration of the pooling-on-family / token-invariance tests · D113 their results · D114 correction (P4-2 checkpoints exist) + pre-registration · D115 extent_sum memorises; D113(c) withdrawn · D116 pre-registration: DC x pooling pattern · D117 B7 memorises; slow-fitter prediction · D118 30K B1-B4 · D119 manager's reading; D110 amended; B5 pre-registered; B8/B9/B9b/C250r · D120 B1 risk metrics, LSD parity, matched val · D121 B5 @30K holds · D122 B7 @30K · ... · D148 PB3/W3 @4K · D149 TBdc A1 · D150 speckle pre-registration, doorway correction · D151 60K round, C250r · D152 speckle results.
+D92 pre-registration · D93 B4 needs FDTD · D94 GT-validity criterion · D95 B2 null · D96 B1 weights / DC risk · D97 A1 result · D98 energy pre-registration · D99 lattice memorisation · D100 B6 · D101 B5 · D102 Gate-2 correction · D103 B4 OOM · D104 pooling · D105 bootstrap CIs · D106 material inversion · D107/D108 k-space · D109 D80 mechanism refuted · D110 paper framing (amended by D115) · D111 family bound · D112 pre-registration of the pooling-on-family / token-invariance tests · D113 their results · D114 correction (P4-2 checkpoints exist) + pre-registration · D115 extent_sum memorises; D113(c) withdrawn · D116 pre-registration: DC x pooling pattern · D117 B7 memorises; slow-fitter prediction · D118 30K B1-B4 · D119 manager's reading; D110 amended; B5 pre-registered; B8/B9/B9b/C250r · D120 B1 risk metrics, LSD parity, matched val · D121 B5 @30K holds · D122 B7 @30K · ... · D148 PB3/W3 @4K · D149 TBdc A1 · D150 speckle pre-registration, doorway correction · D151 60K round, C250r · D152 speckle results · D153 doorway @20K, A1 objective fix · D154 PB3/W3 @30K · D155 doorway @30K · D156 B5r @30K · D157 PB3/W3 final · D158 B10 final.
