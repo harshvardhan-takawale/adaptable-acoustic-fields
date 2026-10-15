@@ -1319,3 +1319,41 @@ Paired test-room differences (25-100 / 100-200 / 200-300): **PB3 - W3: -0.002 [-
 * **Against the a1 prediction** ("lowest speckle ratio of any arm, with accuracy at or above B5, because supervision now covers the whole plane"): **accuracy HOLDS; speckle FAILS.** Per-room receivers move the fine-scale content toward the right place but not toward the right amount. The visible 2 cm speckle is set elsewhere. The renderer-side projection (D152(f)) remains the only measured remedy for the speckle itself.
 * **Premise correction.** The prediction cited B6 as "the lowest excess fine-scale energy measured (-0.023)". That is B6 @20K. The same measure reads B6 +0.0285 @10K, -0.0226 @20K, +0.0038 @30K and **+0.0301 @60K**, the highest of B5 / B5r / B6 at 60K (0.0102 / 0.0034 / 0.0301). On the mask-aware measure B6 @60K is 4.2x FDTD (D152).
 * **Helmholtz gate (D150(b)) after a1:** condition 2 ("a1/a2 did not remove the speckle") is now MET: a1 did not, and a2 was not run (gate negative). Condition 1 (d2 |c| <= 0.1) still FAILS (0.455 for B5, 0.526 for B5r). As pre-registered, the Helmholtz arm is NOT queued. Manager's call (D152(g)(3)).
+
+**D160 — P4-5 CLOSED; P4-6 (geometry transfer) OPENED. The manager's correction to D145 recorded; Step 0 housekeeping done; t1 / arm pre-registrations fixed before any number is seen.**
+
+(a) **The manager's correction, recorded.** D145's "about 70% fit" assumed that fit and transfer add. D157 shows that extra capacity mostly WIDENS the train-to-test gap: training-room 200-300 Hz r went from 0.648 to 0.772, while test went only from 0.467 to 0.496, and the gap from 0.18 to 0.28. **The binding limit at 200-300 Hz is geometry generalisation.** Transfer to new shapes is also the roadmap blocker (U room at 100 Hz, r 0.06). From P4-6 on, every arm reports in-family test metrics AND out-of-family metrics.
+
+(b) **Storage (manager-approved).** Keep-list written to the repo FIRST (`outputs/p4_6/housekeeping/ckpt_keeplist.{json,md}`, `scripts/p4_6_ckpt_keeplist.py`): for each finished P4-5 arm, the final checkpoint, the 30K one, and every checkpoint cited in DECISIONS.md or a figure manifest. Citation forms: explicit path, `ARM @NK`, `ARM_NK`, and arm lists preceding `@NK` / `at NK`, matched generously. **All 47 kept checkpoints load through `load_model` (0 bad, `ckpt_keeplist_verify.json`), then 40.3 GB was deleted** (19 GB of checkpoints remain). Regenerable caches deleted: dense render cache 25 GB, A2 cache 9.2 GB, speckle projection cache 1.3 GB. **One deliberate, temporary exception:** the B5 @60K and PB3 @60K dense-test caches (1.0 GB) are kept until t1 has used them as its test-room spectra, which saves two ~17-minute re-renders; they are deleted after t1. Corpora, the dense test set and D111's dense family rooms were not touched. Free space 32 -> 66 GB.
+
+(c) **validate() fixed** (D150(d)): the trainer now renders validation with `renderer.eval()` (no fan jitter) and restores training mode after. Test (`tests/test_p4_6_trainer_fixes.py`, Rule 8): two validations at fixed weights now agree EXACTLY, the render saw eval mode, training mode is restored, and the same stub render in training mode does NOT repeat (the test's teeth). Val LSD curves of P4-6 arms are therefore deterministic and NOT comparable point-for-point with P4-5 val curves; no reported number uses them.
+
+(d) **Checkpoint retention for new arms:** "every 10K plus the final" via new options `ckpt_keep_every: 10000` and `ckpt_keep_last: 1` (the newest, which becomes the final). **One addition, my judgment:** `ckpt_keep_iters: "4000"`, because the default recipe's early kill signal (D135/D137) reads the 4K checkpoint, which the 10K rule would delete at 6K. Pruning is a tested function (`_prune_ckpts`); with the new options off it is exactly the old rule.
+
+(e) **Render-time physical projection is the default for every figure and deliverable render** (D152(d5)). It now lives in `aaf/eval/physical_projection.py` (`project_field`; least-squares band limit at 1.5 k0, bins >= 25 Hz). It is labelled POST-PROCESSING, and every report shows raw and projected metrics side by side. Test: physical plane waves kept to < 1e-3, bins below 25 Hz bit-identical, and the D152 diagnostics use the same function.
+
+(f) **g2 redefined (user decision).** FAM never held out a family: it trained on all five (rect, L, U, T, DN; 60 each) and held out 10 instances per family. So "FAM's held-out family" did not exist. **g2 holds out U as a whole:** `configs/sweeps_2d_mat/p4_6_family_holdU_manifest.json` is FAM's manifest with every U row's split set to `test_family`, giving 240 train (rect / L / T / DN), 40 in-family test and 70 out-of-family U. No data rebuilt. g2's training-room fit (and its 4K kill signal) needs off-lattice receivers in FAMILY training rooms, which do not exist yet. I will build a small set (FDTD re-simulation of a fixed subset of family training rooms, receivers drawn per room) before g2's 4K read.
+
+(g) **Arms (config-only; corpora verified complete on disk).** Common recipe: PB3 = B5 + per-band heads, or B5 for g4; every change listed in each config's header.
+* **g1** `P4_6_G1.yaml`: PB3 on the 500-shape corpus (C500's), 60K. **Pre-registered (manager):** if transfer is data-limited, test-room 200-300 Hz r >= 0.53 (PB3 @250: 0.496) AND the training-to-test gap falls below 0.22. If neither moves, shape count along the current families is not the lever, and the next step is conditioning.
+* **g2** `P4_6_G2.yaml`: PB3 on the family corpus with U held out, 60K. Report the held-out family per band beside the in-family families.
+* **g3** `P4_6_G3.yaml`: PB3 + 4x receivers (B4's corpus, no spec weights), 120K cosine, val_max_configs 10 as B4, RTX A6000 (D103). Reads at 30K, 60K and 120K; the 60K read against PB3 @60K gives density's contribution. **Pre-registered (manager):** test-room 200-300 Hz r >= 0.52 by 120K.
+* **g4** `P4_6_G4.yaml` (= `P4_5_B5L6.yaml`): hash grid capped at 6 levels. **Pre-registered (manager):** training-room 200-300 Hz fit FALLS, and test-room r stays within CI of B5 or rises, so the transfer gap shrinks. Speckle d1 is also reported.
+* **Gated, not launched:** the two-region DC head (gate: t3) and inverse-span geometry features (gate: t1 shows misplacement).
+
+(h) **t1 lag test, operationalised before computing** (the manager's criteria; the thresholds are mine). Models: PB3 and B5 @60K. Rooms:
+* TEST rooms: the 15 dense test shapes, off-lattice receivers.
+* TRAINING rooms: the fixed 23 training rooms of D125 at B6-corpus receivers off the lattice, as in `p4_5_train_offlat_fit`.
+
+Per receiver: dB spectra (prediction, FDTD) over windows of +-25 Hz centred at 125 Hz and 250 Hz, each mean-removed. The lag is the argmax of their normalised cross-correlation over +-10 Hz (+-20 bins), refined by a parabola; positive means the prediction's structure sits ABOVE FDTD's in frequency. Per room: median lag m_r and sign consistency s_r (the fraction of receivers with the sign of m_r). A room is **systematic** if |m_r| >= 0.5 Hz (one bin) and s_r >= 0.70.
+
+**"Mode misplacement" is declared only if ALL of:**
+1. >= 2/3 of test rooms are systematic at 250 Hz;
+2. across test rooms systematic at both centres, the median of |m_r(250)| / |m_r(125)| lies in [1.5, 2.5];
+3. on training rooms, the median |m_r| <= 0.25 Hz at both centres and <= 1/3 of training rooms are systematic.
+
+If declared, report dL_eff = L * lag / f in cm per test room. Otherwise the transfer error is field SHAPE, not placement.
+
+(i) **t3 gate (manager), operationalised.** For TBdc @30K at a = 0.15 m (6 unseen test geometries), the per-band inter-room level difference (as the Track B evaluation: 20 log10 of the mean |H| ratio, room B over room A) over 0-20 / 20-100 / 100-200 / 200-300 Hz, prediction against FDTD. "Most of the error sits in 0-20 Hz" means 0-20 Hz carries > 50% of the summed per-band |LD error|. Then the two-region head is queued. Otherwise the problem is the aperture representation (A0c: apertures want dx <= 0.01), and the head is not the fix.
+
+(j) **Plumbing:** the training script strips any `p4_N_` prefix from run_id (P4-6 arms live in `outputs/p4_6/arms/<G>`), and `p4_5_eval_one.sh` takes `ARMS=` for the arms root. Both are unchanged for P4-5 paths.

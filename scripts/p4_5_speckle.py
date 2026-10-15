@@ -73,59 +73,8 @@ def grid_pairs(keep):
     return np.concatenate(a), np.concatenate(b)
 
 
-def _torch():
-    import torch
-    return torch, torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-def _embed(vals, keep, n):
-    """[B, n_in] values at keep nodes -> [B, n, n] on the padded grid (zeros elsewhere)."""
-    torch, dev = _torch()
-    g = torch.zeros((vals.shape[0], n, n), dtype=torch.complex128, device=dev)
-    ix, iy = np.nonzero(keep)
-    g[:, ix, iy] = torch.as_tensor(np.asarray(vals), dtype=torch.complex128, device=dev)
-    return g
-
-
-def project_lowpass(vals, keep, K, kc, iters=CG_ITERS):
-    """Least-squares projection of in-room samples onto fields band-limited to |k| <= kc.
-
-    Solves min_g ||M g - f||^2 over g with FFT support in |K| <= kc (one kc per row), by CG on the
-    normal equations P M P g = P M f (P = band-limit projector, M = in-room mask), from g = 0.
-    Returns the fitted field at the keep nodes, [B, n_in]."""
-    torch, dev = _torch()
-    n = K.shape[0]
-    band = torch.as_tensor(K[None] <= np.asarray(kc)[:, None, None], device=dev)
-    m = torch.zeros((n, n), dtype=torch.float64, device=dev)
-    ix, iy = np.nonzero(keep)
-    m[ix, iy] = 1.0
-
-    def P(u):
-        return torch.fft.ifft2(torch.fft.fft2(u) * band)
-
-    def A(u):
-        return P(m * P(u))
-
-    b = P(_embed(vals, keep, n))
-    x = torch.zeros_like(b); r = b.clone(); p = r.clone()
-    rs = (r.abs() ** 2).sum((1, 2))
-    tol = 1e-24 * rs                                  # stop a row once |r| / |b| < 1e-12
-    for _ in range(iters):
-        live = rs > tol
-        if not bool(live.any()):
-            break
-        Ap = A(p)
-        pAp = (p.conj() * Ap).sum((1, 2)).real
-        # a converged row (few band-limited dof at low f) has pAp ~ rounding; freeze it there
-        ok = live & (pAp > 0)
-        alpha = torch.where(ok, rs / torch.where(ok, pAp, torch.ones_like(pAp)), torch.zeros_like(rs))
-        x = x + alpha[:, None, None] * p
-        r = r - alpha[:, None, None] * Ap
-        rs_new = (r.abs() ** 2).sum((1, 2))
-        beta = torch.where(ok, rs_new / torch.where(ok, rs, torch.ones_like(rs)), torch.zeros_like(rs))
-        p = torch.where(ok[:, None, None], r + beta[:, None, None] * p, p)
-        rs = torch.where(ok, rs_new, rs)
-    return x[:, ix, iy].cpu().numpy()
+from aaf.eval.physical_projection import _embed, _torch, project_lowpass  # noqa: E402,F401
+# (moved to the library in P4-6, D160; identical code)
 
 
 def normconv_lowpass(vals, keep, K, kc):

@@ -11,27 +11,28 @@
 set -u
 cd /fs/nexus-projects/multimodal_recon/adaptable-acoustic-fields
 A=$1; ITER=$2; JOB=$3; K=$((ITER / 1000))K
+ARMS=${ARMS:-outputs/p4_5/arms}          # P4-6: arms under outputs/p4_6/arms
 CK=$(printf "ckpt_iter%07d.pt" "$ITER"); MARK=outputs/p4_5/eval/.launched; mkdir -p "$MARK"
 G2=outputs/p4_5/gate2_dense/${A}_${K}__track_p4_5_testdense.json
 while true; do
-  if [ -f "outputs/p4_5/arms/$A/$CK" ] && [ ! -f "$MARK/${A}_${K}" ]; then
-    E=$(sbatch --parsable --export=ALL,RUN=outputs/p4_5/arms/$A,CK=$CK,NAME=${A}_${K} \
+  if [ -f "$ARMS/$A/$CK" ] && [ ! -f "$MARK/${A}_${K}" ]; then
+    E=$(sbatch --parsable --export=ALL,RUN=$ARMS/$A,CK=$CK,NAME=${A}_${K} \
         scripts/slurm/p4_5_eval_ckpt.sh) && touch "$MARK/${A}_${K}" && echo "$(date +%H:%M) launched eval ${A}_${K} -> $E"
   fi
-  if [ -f "outputs/p4_5/arms/$A/$CK" ] && [ ! -f "$MARK/${A}_${K}_dense" ]; then
+  if [ -f "$ARMS/$A/$CK" ] && [ ! -f "$MARK/${A}_${K}_dense" ]; then
     E=$(sbatch --parsable --partition=scavenger --account=scavenger --qos=scavenger --requeue \
         --gres=gpu:rtxa5000:1 --exclude=legacy43 --job-name=aaf_g2dense --time=03:00:00 \
-        --export=ALL,CMD="scripts/p4_5_gate2_dense.py --checkpoint outputs/p4_5/arms/$A/$CK --name ${A}_${K}" \
+        --export=ALL,CMD="scripts/p4_5_gate2_dense.py --checkpoint $ARMS/$A/$CK --name ${A}_${K}" \
         scripts/slurm/p4_5_gpu.sh) && touch "$MARK/${A}_${K}_dense" && echo "$(date +%H:%M) launched dense Gate-2 ${A}_${K} -> $E"
   fi
   if [ -f "outputs/p4_5/diagnostics/energy_${A}_${K}.json" ] && [ -f "$G2" ]; then
     echo "$(date +%H:%M) ${A}_${K} COMPLETE"; exit 0
   fi
-  if [ ! -f "outputs/p4_5/arms/$A/$CK" ] && ! squeue -j "$JOB" -h 2>/dev/null | grep -q .; then
+  if [ ! -f "$ARMS/$A/$CK" ] && ! squeue -j "$JOB" -h 2>/dev/null | grep -q .; then
     # grace period: a job that has just FINISHED may leave the queue a moment before its final
     # checkpoint is visible on the shared filesystem (B1b @60K, 2026-10-14) -- re-check first
     sleep 120
-    if [ ! -f "outputs/p4_5/arms/$A/$CK" ]; then
+    if [ ! -f "$ARMS/$A/$CK" ]; then
       echo "$(date +%H:%M) ARM $A: training job $JOB gone before $CK"; exit 2
     fi
   fi

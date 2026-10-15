@@ -1,0 +1,43 @@
+# P4-6 arm g1 (D160): PB3 on the 500-shape corpus (C500's: same data_dir, p4_4_shapes_500.json), 60K.
+# Is transfer data-limited now that memorisation is gone? GENERATED from P4_5_PB3.yaml -- differs ONLY in:
+# run_id, configs_manifest, checkpoint retention.
+# Retention (P4-6 rule, D160): every 10K + the final, plus 4K for D135's kill signal; the newest is
+# kept for resume (ckpt_keep_last 1) and older ones are thinned to weights only.
+run_id: p4_6_G1
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
+data_dir: data/track_p4_2_shapes
+configs_manifest: configs/sweeps_2d_mat/p4_4_shapes_500.json
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: attn_residual_extent
+loss_band_lo_hz: 0.0
+n_iters: 60000
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 0.0002
+val_every: 2000
+val_max_configs: 40
+ckpt_every: 2000
+ckpt_keep_last: 1
+early_stop_warmup: 60000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8
+ckpt_thin_old: true
+dc_head_bins: 41
+signal_heads: 3
+signal_band_edges_hz: "173.0,245.0"
+signal_xfade_hz: 10.0
+ckpt_keep_every: 10000
+ckpt_keep_iters: "4000"

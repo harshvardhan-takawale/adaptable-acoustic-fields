@@ -185,6 +185,13 @@ class P32TrainCfg:
     val_max_configs: int = 88
     ckpt_every: int = 2_000
     ckpt_keep_last: int = 10
+    #: P4-6 (D160). Also keep every checkpoint whose iteration is a multiple of this, beyond the
+    #: `ckpt_keep_last` newest. 0 = off (the original rule). With keep_last 1 and keep_every
+    #: 10000 a run retains every 10K plus its newest -- the final one when it ends.
+    ckpt_keep_every: int = 0
+    #: P4-6 (D160). Comma-separated iterations also kept, e.g. "4000" for D135's 4K kill-signal
+    #: read, which keep_every would otherwise delete two thousand iterations later. "" = none.
+    ckpt_keep_iters: str = ""
     log_every: int = 200
     early_stop_warmup: int = 10_000
     early_stop_patience: int = 10_000
@@ -293,6 +300,21 @@ def _losses(H_pred, H_target, lo_bin: int = 0, w_spec=None, hi_bin=None, amp_eps
 def _lsd_db(H_pred, H_target, eps=1e-8):
     return float((20.0 * (torch.log10(H_pred.abs() + eps)
                           - torch.log10(H_target.abs() + eps))).abs().mean())
+
+
+def _prune_ckpts(out_dir: Path, keep_last: int, keep_every: int = 0, keep_iters=()) -> list:
+    """Delete all but the `keep_last` newest `ckpt_iter*.pt`, sparing iteration multiples of
+    `keep_every` when it is > 0. Returns the deleted paths. With keep_every = 0 this is exactly
+    the rule `save_ckpt` always used."""
+    ckpts = sorted(Path(out_dir).glob("ckpt_iter*.pt"))
+    gone = []
+    for old in ckpts[:-max(1, keep_last)]:
+        it = int(old.stem.replace("ckpt_iter", ""))
+        if (keep_every > 0 and it % keep_every == 0) or it in keep_iters:
+            continue
+        old.unlink()
+        gone.append(old)
+    return gone
 
 
 class P32Trainer:
@@ -697,6 +719,18 @@ class P32Trainer:
     @torch.no_grad()
     def validate(self, it: int) -> dict:
         self.model.eval()
+        # D160: the renderer too. In training mode it jitters the ray fan on every call, so the
+        # val LSD early stopping reads moved with no change in the weights (D150(d)), and it did
+        # not match `load_model`-based evaluation, which forces eval mode. Restored after, so
+        # training keeps its jitter.
+        was_training = self.renderer.training
+        self.renderer.eval()
+        try:
+            return self._validate(it)
+        finally:
+            self.renderer.train(was_training)
+
+    def _validate(self, it: int) -> dict:
         preds, tgts = [], []
         chunk = 64
         for cid in self.val_cfg_ids:
@@ -739,9 +773,8 @@ class P32Trainer:
                     "cfg": meta_cfg}, tmp)
         tmp.replace(path)
         (self.out / "scalars.json").write_text(json.dumps(self.scalars, indent=1))
-        ckpts = sorted(self.out.glob("ckpt_iter*.pt"))
-        for old in ckpts[:-max(1, self.cfg.ckpt_keep_last)]:
-            old.unlink()
+        keep_iters = {int(x) for x in str(self.cfg.ckpt_keep_iters).split(",") if x.strip()}
+        _prune_ckpts(self.out, self.cfg.ckpt_keep_last, self.cfg.ckpt_keep_every, keep_iters)
         if self.cfg.ckpt_thin_old:
             self._thin_older_than(path)
 

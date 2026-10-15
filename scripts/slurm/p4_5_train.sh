@@ -34,7 +34,7 @@ export PYTHONPATH="${PWD}"
 
 CONFIG="${1:?usage: $0 <config-yaml>}"
 RUN_ID=$(python -c "import yaml; print(yaml.safe_load(open('${CONFIG}'))['run_id'])")
-OUT="${OUT_ROOT:-outputs/p4_5/arms}/${RUN_ID#p4_5_}"
+OUT="${OUT_ROOT:-outputs/p4_5/arms}/${RUN_ID#p4_[0-9]_}"   # P4-6: strips p4_5_ or p4_6_
 mkdir -p "${OUT}" logs/slurm
 echo "host=$(hostname); job=${SLURM_JOB_ID}; config=${CONFIG}; out=${OUT}"
 nvidia-smi -L || true
