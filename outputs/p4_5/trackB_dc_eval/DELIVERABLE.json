@@ -1,0 +1,144 @@
+{
+ "Track B @20K": {
+  "eval": "outputs/p3_3fast/trackB/EVAL.json",
+  "checkpoint": "outputs/p3_3fast/p3_3fast_trackB/ckpt_iter0020000.pt",
+  "abs_ld_error_db_per_aperture": {
+   "open": [
+    0.7967671789256973,
+    6
+   ],
+   "0.95": [
+    3.468325503081266,
+    6
+   ],
+   "1.00": [
+    3.321954779982889,
+    6
+   ],
+   "1.05": [
+    3.1843044637682016,
+    6
+   ],
+   "0.15": [
+    7.720247147960386,
+    6
+   ],
+   "0.30": [
+    6.160467886805336,
+    6
+   ],
+   "0.50": [
+    5.068963988132375,
+    6
+   ],
+   "0.70": [
+    4.236324649088823,
+    6
+   ],
+   "1.50": [
+    2.1483725508735554,
+    6
+   ],
+   "2.00": [
+    1.4357241310055846,
+    6
+   ],
+   "2.50": [
+    0.8469529473392923,
+    6
+   ]
+  },
+  "abs_ld_error_db_by_group": {
+   "seen_apertures": 3.5517275600163813,
+   "held_out_band": 3.3248615822774528
+  },
+  "slope_pred": 2.4567838239823656,
+  "slope_gt": 7.610736791564267,
+  "slope_ratio": 0.322804991325605,
+  "r2_pred": 0.17177869073526886,
+  "r2_gt": 0.9481291929635227,
+  "heldout_residual_pred": {
+   "rms_residual_seen_db": 2.463128858859024,
+   "rms_residual_heldout_db": 2.297930634670745,
+   "mean_residual_heldout_db": 0.018898649538829596,
+   "heldout_over_seen_rms": 0.9329315542732901
+  },
+  "heldout_residual_gt": {
+   "rms_residual_seen_db": 0.8505135556322383,
+   "rms_residual_heldout_db": 0.6790970011177283,
+   "mean_residual_heldout_db": 0.43840588211258913,
+   "heldout_over_seen_rms": 0.7984552352171675
+  }
+ },
+ "TBdc @14K": {
+  "eval": "outputs/p4_5/trackB_dc_eval/EVAL.json",
+  "checkpoint": "outputs/p4_5/arms/TBdc/ckpt_iter0014000.pt",
+  "abs_ld_error_db_per_aperture": {
+   "open": [
+    0.419426864125154,
+    6
+   ],
+   "0.95": [
+    1.3989396886443768,
+    6
+   ],
+   "1.00": [
+    1.3439428359405718,
+    6
+   ],
+   "1.05": [
+    1.283756590266258,
+    6
+   ],
+   "0.15": [
+    4.818977050925871,
+    6
+   ],
+   "0.30": [
+    3.2904220202206527,
+    6
+   ],
+   "0.50": [
+    2.404254559201401,
+    6
+   ],
+   "0.70": [
+    1.8346199046505542,
+    6
+   ],
+   "1.50": [
+    0.7831057554113077,
+    6
+   ],
+   "2.00": [
+    0.6716608920008866,
+    6
+   ],
+   "2.50": [
+    0.6282520856503174,
+    6
+   ]
+  },
+  "abs_ld_error_db_by_group": {
+   "seen_apertures": 1.856339891523268,
+   "held_out_band": 1.3422130382837356
+  },
+  "slope_pred": 4.574091088519728,
+  "slope_gt": 7.610736665716324,
+  "slope_ratio": 0.6010050392525588,
+  "r2_pred": 0.7571869733910537,
+  "r2_gt": 0.9481291883358633,
+  "heldout_residual_pred": {
+   "rms_residual_seen_db": 1.3000716381519406,
+   "rms_residual_heldout_db": 0.6679073212066867,
+   "mean_residual_heldout_db": -0.14487972331188104,
+   "heldout_over_seen_rms": 0.5137465518101147
+  },
+  "heldout_residual_gt": {
+   "rms_residual_seen_db": 0.8505135820485624,
+   "rms_residual_heldout_db": 0.6790970322593706,
+   "mean_residual_heldout_db": 0.43840596151307376,
+   "heldout_over_seen_rms": 0.79845524703284
+  }
+ }
+}
