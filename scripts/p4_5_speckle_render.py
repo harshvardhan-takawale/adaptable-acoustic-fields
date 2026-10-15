@@ -82,7 +82,7 @@ def main():
     a = ap.parse_args()
     out = cache_path(a.name)
     if a.average:
-        names = a.average.split(",")
+        names = a.average.replace("+", ",").split(",")  # "+": survives sbatch --export (D133)
         zs = [np.load(cache_path(n), allow_pickle=False) for n in names]
         blob = {"key": "AVERAGE[" + ";".join(str(z["key"]) for z in zs) + "]"}
         i = 0

@@ -150,6 +150,12 @@ class P32TrainCfg:
     #: runs the ORIGINAL code path, so every earlier arm is bit-identical. See D92 for why this
     #: re-weights rather than equalises: the spec terms are L1.
     loss_spec_bin_weights: str = ""
+    #: P4-5 a3 (D150). Floored log-amplitude loss: L_amp on log10(|H| + eps_b) with
+    #: eps_b = loss_amp_floor_frac x the per-bin target RMS read from loss_amp_floor_ref (a JSON
+    #: with "rms_per_bin", e.g. outputs/p4_5/arms/weights/B1_weights.json). 0.0 = off, and the
+    #: loss runs the ORIGINAL code path (scalar eps 1e-6), so every earlier arm is bit-identical.
+    loss_amp_floor_frac: float = 0.0
+    loss_amp_floor_ref: str = ""
     #: P4-5 B3. Frequency curriculum "it0:hz0,it1:hz1,...": from iteration it_k the loss covers
     #: bins below hz_k. Masked bins carry exactly zero gradient, and the mean stays over the FULL
     #: band so an active bin weighs what it does in the baseline. "" = off. Validation is always
@@ -216,7 +222,7 @@ def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
     return torch.cat([solid, air], dim=0)
 
 
-def _losses(H_pred, H_target, lo_bin: int = 0, w_spec=None, hi_bin=None):
+def _losses(H_pred, H_target, lo_bin: int = 0, w_spec=None, hi_bin=None, amp_eps=None):
     """The P3-1 4-term frequency loss. Both tensors are ALREADY band-limited.
 
     ``lo_bin`` drops bins ``[0, lo_bin)`` from every term by SLICING, so the excluded bins leave
@@ -241,19 +247,28 @@ def _losses(H_pred, H_target, lo_bin: int = 0, w_spec=None, hi_bin=None):
     bin up by n/hi_bin (3x at a 0-100 Hz stage); dividing by the full width keeps every active
     bin at exactly the weight it has in the baseline, so the stage changes WHICH bins are fitted
     and nothing else.
+
+    ``amp_eps`` (a3, D150): one floor per bin replacing L_amp's scalar eps, so the log-amplitude
+    term stops amplifying differences between two near-null magnitudes (eps_b = 0.05 x the bin's
+    target RMS, about -26 dB). Only L_amp changes; the other three terms are untouched.
     """
     if lo_bin:
         H_pred = H_pred[..., lo_bin:]
         H_target = H_target[..., lo_bin:]
         if w_spec is not None:
             w_spec = w_spec[lo_bin:]
+        if amp_eps is not None:
+            amp_eps = amp_eps[lo_bin:]
     eps = 1e-6
-    if w_spec is not None or hi_bin is not None:
+    if w_spec is not None or hi_bin is not None or amp_eps is not None:
         n_full = H_pred.shape[-1]
         if hi_bin is not None:
             H_pred, H_target = H_pred[..., :hi_bin], H_target[..., :hi_bin]
             if w_spec is not None:
                 w_spec = w_spec[:hi_bin]
+            if amp_eps is not None:
+                amp_eps = amp_eps[:hi_bin]
+        e_amp = eps if amp_eps is None else amp_eps
         denom = float(H_pred[..., 0].numel() * n_full)               # rows x FULL band
         e_r = (H_pred.real - H_target.real).abs()
         e_i = (H_pred.imag - H_target.imag).abs()
@@ -262,8 +277,8 @@ def _losses(H_pred, H_target, lo_bin: int = 0, w_spec=None, hi_bin=None):
         return {
             "L_spec_real": e_r.sum() / denom,
             "L_spec_imag": e_i.sum() / denom,
-            "L_amp": (torch.log10(H_pred.abs() + eps)
-                      - torch.log10(H_target.abs() + eps)).abs().sum() / denom,
+            "L_amp": (torch.log10(H_pred.abs() + e_amp)
+                      - torch.log10(H_target.abs() + e_amp)).abs().sum() / denom,
             "L_phase": (1.0 - torch.cos(H_pred.angle() - H_target.angle())).sum() / denom,
         }
     return {
@@ -486,6 +501,19 @@ class P32Trainer:
                                 "max_over_min": float(w.max() / w.min())}
             print(f"[loss] spec bin weights {p}: min {w.min():.4g} max {w.max():.4g} "
                   f"(ratio {w.max() / w.min():.1f})")
+        self.amp_eps, self.amp_floor_info = None, None
+        if cfg.loss_amp_floor_frac > 0.0:
+            p = Path(cfg.loss_amp_floor_ref)
+            rms = np.asarray(json.loads(p.read_text())["rms_per_bin"], dtype=np.float64)
+            if rms.shape != (self.n_band,) or not np.all(np.isfinite(rms)) or (rms <= 0).any():
+                raise ValueError(f"{p}: rms_per_bin must be {self.n_band} finite positive values")
+            e = (cfg.loss_amp_floor_frac * rms).astype(np.float32)
+            self.amp_eps = torch.tensor(e, device=self.device)
+            self.amp_floor_info = {"path": str(p), "frac": cfg.loss_amp_floor_frac,
+                                   "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                                   "eps_min": float(e.min()), "eps_max": float(e.max())}
+            print(f"[loss] L_amp floor {cfg.loss_amp_floor_frac} x rms_per_bin ({p}): "
+                  f"eps min {e.min():.4g} max {e.max():.4g}")
         self.curriculum = self._parse_curriculum(cfg.loss_curriculum)
         self.c2f = None
         if cfg.c2f_levels:
@@ -637,7 +665,8 @@ class P32Trainer:
                 torch.randint(0, self.train_rx_idx.numel(), (ci.numel(),), device=self.device)]
             H_pred = self._render(ci, ri)
             H_tgt = self.H[ci, ri]
-            terms = _losses(H_pred, H_tgt, self.loss_lo_bin, w_spec=self.spec_w, hi_bin=hi_bin)
+            terms = _losses(H_pred, H_tgt, self.loss_lo_bin, w_spec=self.spec_w, hi_bin=hi_bin,
+                            amp_eps=self.amp_eps)
             w_r, w_i, w_a, w_p = cfg.weights
             loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
                     + w_a * terms["L_amp"] + w_p * terms["L_phase"])
@@ -772,7 +801,8 @@ class P32Trainer:
                       "world_scale", "token_pool", "base_resolution", "sigma_aux_weight",
                       "loss_spec_bin_weights", "loss_curriculum", "c2f_levels",
                       "dc_head_bins", "signal_heads", "signal_band_only", "signal_n_neurons",
-                      "signal_band_edges_hz", "signal_xfade_hz"):
+                      "signal_band_edges_hz", "signal_xfade_hz", "loss_amp_floor_frac",
+                      "loss_amp_floor_ref"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
@@ -819,6 +849,7 @@ class P32Trainer:
             "config_labels": [c.label for c in self.configs],
             # P4-5: the weight FILE can change under the same path; its sha pins what ran.
             "spec_bin_weights": self.spec_w_info,
+            "amp_floor": self.amp_floor_info,
             "curriculum_bins": self.curriculum, "c2f": self.c2f,
         }, indent=1, default=str))
         t0 = time.time()

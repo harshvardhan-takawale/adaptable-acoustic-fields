@@ -37,6 +37,7 @@ CACHE = "outputs/p4_5/gate2_dense/cache/{}__track_p4_5_testdense.npz"
 DENSE = Path("data/track_p4_5_testdense")
 OUT = Path("outputs/p4_5/speckle")
 BANDS = {"25-100": (50, 200), "100-200": (200, 400), "200-300": (400, 601)}
+BANDS_0 = "25-100"
 DF, C, CUT, WALL, NG, PAD = 0.5, 343.0, 1.5, 0.12, 64, 4      # PAD 4: k-step fine enough at 25 Hz
 SEED, NB = 20261013, 10000
 CG_ITERS = 300
@@ -172,7 +173,7 @@ def lowpass_all(F, keep, K, method):
     return out, bins
 
 
-def analyse(name, project, t_cache):
+def analyse(name, project, t_cache, d1_only=False):
     z = np.load(CACHE.format(name), allow_pickle=False)
     per = {"d1_off": {b: [] for b in BANDS}, "d1_all": {b: [] for b in BANDS},
            "r": {b: [] for b in BANDS}, "lsd": {b: [] for b in BANDS}}
@@ -182,7 +183,7 @@ def analyse(name, project, t_cache):
     if project:
         for k in ("r_lp", "lsd_lp", "r_ceil", "lsd_ceil"):
             per[k] = {b: [] for b in BANDS}
-    qsum = np.zeros((15, 5, 2))                      # shape x quintile x (sum dP, sum dT), 200-300 Hz
+    qsum = np.zeros((15, 5, 3))              # shape x quintile x (sum dP, sum dT, n pairs), 200-300 Hz
     i = 0
     while "P%d" % i in z.files:
         P, T, rx = z["P%d" % i][:, :601], z["T%d" % i][:, :601], z["rx%d" % i]
@@ -204,10 +205,10 @@ def analyse(name, project, t_cache):
         dPo, dTo = dP[both_off][:, lo:hi], dT[both_off][:, lo:hi]
         q = np.argsort(np.argsort(lvl, axis=0), axis=0) * 5 // lvl.shape[0]
         for k in range(5):
-            qsum[i, k] = [dPo[q == k].sum(), dTo[q == k].sum()]
+            qsum[i, k] = [dPo[q == k].sum(), dTo[q == k].sum(), float((q == k).sum())]
         # d2 / d5
         key = str(i)
-        for meth in ("ls", "nc"):
+        for meth in (() if d1_only else ("ls", "nc")):
             if "T_%s_%s" % (meth, key) in t_cache:
                 LT = t_cache["T_%s_%s" % (meth, key)]
             else:
@@ -237,7 +238,7 @@ def analyse(name, project, t_cache):
             name, i, per["d1_off"]["200-300"][-1], per["r"]["200-300"][-1]), flush=True)
         i += 1
     rep = {"name": name, "n_shapes": i, "per_shape": per,
-           "summary": {k: {b: boot(v[b]) for b in BANDS} for k, v in per.items()}}
+           "summary": {k: {b: boot(v[b]) for b in BANDS} for k, v in per.items() if v[BANDS_0]}}
     qs = qsum[:i]
     exc = qs[:, :, 0] - qs[:, :, 1]
 
@@ -250,6 +251,9 @@ def analyse(name, project, t_cache):
     share_b = np.array([qstats(ix)[1] for ix in idx])
     rep["quintiles_200_300"] = {
         "ratio": ratio_q.tolist(), "excess_share": share_q.tolist(),
+        "mean_step_db_P": (qs[:, :, 0].sum(0) / qs[:, :, 2].sum(0)).tolist(),
+        "mean_step_db_T": (qs[:, :, 1].sum(0) / qs[:, :, 2].sum(0)).tolist(),
+        "mean_excess_step_db": (exc.sum(0) / qs[:, :, 2].sum(0)).tolist(),
         "excess_share_ci": [np.percentile(share_b[:, k], [2.5, 97.5]).tolist() for k in range(5)],
         "gate_a3": bool(share_q[0] >= 0.40 and ratio_q[0] == ratio_q.max()),
         "note": "Q1 = lowest FDTD level (min of the pair, dB). D150(b): a3 runs iff Q1 holds >= 40% "
@@ -265,20 +269,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--names", required=True)
     ap.add_argument("--project", action="store_true")
+    ap.add_argument("--d1-only", action="store_true", help="d1 + accuracy only (d3/d4 variants)")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     tpath = OUT / "cache" / "T_lowpass.npz"
     tpath.parent.mkdir(parents=True, exist_ok=True)
     t_cache = dict(np.load(tpath)) if tpath.exists() else {}
     n0 = len(t_cache)
-    for name in a.names.split(","):
-        rep = analyse(name, a.project, t_cache)
+    for name in a.names.replace("+", ",").split(","):  # "+": survives sbatch --export (D133)
+        rep = analyse(name, a.project, t_cache, a.d1_only)
         (OUT / "{}.json".format(name)).write_text(json.dumps(rep, indent=1))
         s = rep["summary"]
         for bnd in BANDS:
-            print("{:14s} {:8s} d1_off {:.3f} [{:.3f},{:.3f}]  |c|ls {:.3f}  hp P/T {:.2f}  r {:.3f}  lsd {:.2f}".format(
-                name, bnd, *s["d1_off"][bnd], s["d2_ls_c_abs"][bnd][0], s["d2_ls_hp_ratio"][bnd][0],
-                s["r"][bnd][0], s["lsd"][bnd][0]), flush=True)
+            c2 = s.get("d2_ls_c_abs", {bnd: [float("nan")]})[bnd][0]
+            h2 = s.get("d2_ls_hp_ratio", {bnd: [float("nan")]})[bnd][0]
+            print("{:14s} {:8s} d1_off {:.3f} [{:.3f},{:.3f}]  |c|ls {:.3f}  hp P/T {:.2f}  "
+                  "r {:.3f}  lsd {:.2f}".format(name, bnd, *s["d1_off"][bnd], c2, h2,
+                                               s["r"][bnd][0], s["lsd"][bnd][0]), flush=True)
         qz = rep["quintiles_200_300"]
         print("   quintile ratio", np.round(qz["ratio"], 3), "excess share", np.round(qz["excess_share"], 3),
               "gate_a3", qz["gate_a3"], flush=True)
