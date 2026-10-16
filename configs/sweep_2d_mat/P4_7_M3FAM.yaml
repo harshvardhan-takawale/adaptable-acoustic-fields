@@ -1,0 +1,47 @@
+# P4-7 arm M3-fam (m3, D170(g)): the modal hybrid on G2's corpus (family, U held out), 60K.
+# GENERATED from P4_6_G2.yaml -- differs ONLY in run_id, modal_prior_dir and modal_k.
+# H = H_modal + H_net: H_modal = m1's formula (frozen C, modes to 600 Hz) with the zero mode's exact record,
+# precomputed per (room, receiver) by scripts/p4_7_m3_precompute.py; H_net = PB3 (its DC head scaled on the
+# residual). modal_k 48: the first 48 mode-cluster kernels A sum psi(x_r) psi(x_s) + k / k_600 enter the field
+# network through a zero-initialised map (the network is exactly PB3 at step 0).
+# Pre-registered (D170(g)): held-out U 25-100 Hz r >= 0.85; adds over physics; no band > 0.02 below H_modal alone.
+run_id: p4_7_M3FAM
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
+data_dir: data/track_p4_4_family
+configs_manifest: configs/sweeps_2d_mat/p4_6_family_holdU_manifest.json
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: attn_residual_extent
+loss_band_lo_hz: 0.0
+n_iters: 60000
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 0.0002
+val_every: 2000
+val_max_configs: 60
+ckpt_every: 2000
+ckpt_keep_last: 1
+early_stop_warmup: 60000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8
+ckpt_thin_old: true
+dc_head_bins: 41
+signal_heads: 3
+signal_band_edges_hz: "173.0,245.0"
+signal_xfade_hz: 10.0
+ckpt_keep_every: 10000
+ckpt_keep_iters: "4000"
+modal_prior_dir: data/track_p4_7_modal/track_p4_4_family
+modal_k: 48

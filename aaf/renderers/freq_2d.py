@@ -125,8 +125,16 @@ class FreqRenderer2D(nn.Module):
         room_min: torch.Tensor,
         room_max: torch.Tensor,
         z_s: Optional[torch.Tensor] = None,
+        modal_feat: Optional[torch.Tensor] = None,
+        h_prior: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Render H(f) at each receiver via 2D volume integration.
+
+        P4-7 m3 (D170(g)): ``modal_feat`` [B, F] is forwarded to the model (only when given, so
+        models without the input keep their call), and ``h_prior`` [B, n_freq] -- the physics
+        modal prior -- is added LAST. A model trained with a prior carries a
+        ``requires_modal_prior`` buffer and is refused without one; a prior given to a model
+        without the buffer is refused too.
 
         Args:
             model: an ``nn.Module`` whose forward signature is
@@ -176,7 +184,11 @@ class FreqRenderer2D(nn.Module):
         pts_flat = pts.reshape(B, N, 2)
         view_flat = view.reshape(B, N, 2)
         tx_flat = tx.reshape(B, N, 2)
-        attn, signal = model(pts_flat, view_flat, tx_flat, tx_view=tx_view, z_s=z_s)
+        if modal_feat is not None:
+            attn, signal = model(pts_flat, view_flat, tx_flat, tx_view=tx_view, z_s=z_s,
+                                 modal_feat=modal_feat)
+        else:
+            attn, signal = model(pts_flat, view_flat, tx_flat, tx_view=tx_view, z_s=z_s)
         # attn, signal: [B, N, n_freq_bins] complex
         n_freq = attn.size(-1)
         attn = attn.view(B, N_a, N_p, n_freq)
@@ -236,4 +248,16 @@ class FreqRenderer2D(nn.Module):
         dc = model.dc_term(z_s, H_pred.shape[-1]) if hasattr(model, "dc_term") else None
         if dc is not None:
             H_pred = H_pred + dc.to(H_pred.dtype)
+        req = getattr(model, "requires_modal_prior", None)
+        if req is not None and bool(req):
+            if h_prior is None:
+                raise ValueError("this model was trained with a physics modal prior (P4-7 m3); render "
+                                 "it through aaf.eval.modal_prior.ModalPriorRenderer or pass h_prior")
+            nb = int(h_prior.shape[-1])               # the prior covers bins 0..nb-1 (0-300 Hz)
+            if h_prior.shape[0] != H_pred.shape[0] or nb > H_pred.shape[-1]:
+                raise ValueError("h_prior {} does not fit the render {}".format(
+                    tuple(h_prior.shape), tuple(H_pred.shape)))
+            H_pred = torch.cat([H_pred[:, :nb] + h_prior.to(H_pred.dtype), H_pred[:, nb:]], dim=-1)
+        elif h_prior is not None:
+            raise ValueError("h_prior given, but this model was not trained with a modal prior")
         return H_pred

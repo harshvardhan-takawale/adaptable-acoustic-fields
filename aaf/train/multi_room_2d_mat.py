@@ -214,6 +214,13 @@ class P32TrainCfg:
     #: whose files disagree on the source is now REFUSED rather than silently trained against the
     #: last file's source.
     per_room_source: bool = False
+    #: P4-7 m3 (D170(g)). modal_prior_dir: a directory of per-room `aaf.eval.modal_prior` files
+    #: (`scripts/p4_7_m3_precompute.py`); when set, every render is H_modal + H_net and the loss is
+    #: applied to the sum. modal_k: the number of mode clusters whose kernels (and k / k_600) are fed
+    #: to the field network (0 = none; needs modal_prior_dir). Both default off; off, nothing is
+    #: loaded and every render is the pre-change one.
+    modal_prior_dir: str = ""
+    modal_k: int = 0
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -471,7 +478,34 @@ class P32Trainer:
                     "per_room_source is off: the trainer would render every room with the LAST "
                     "file's source".format(len({tuple(x) for x in src_all.tolist()}), spread))
             self.src_per = None
-        self.H = torch.tensor(np.stack(H_list), device=self.device)          # [C,64,B]
+        self.H = torch.tensor(np.stack(H_list), device=self.device)
+        # P4-7 m3 (D170(g)): the physics prior and the modal-kernel features, per (config, receiver).
+        self.H_prior = self.modal_feat = None
+        if cfg.modal_k > 0 and not cfg.modal_prior_dir:
+            raise ValueError("modal_k > 0 needs modal_prior_dir (the features come with the prior)")
+        if cfg.modal_prior_dir and cfg.sigma_aux_weight > 0.0:
+            raise ValueError("a modal prior with sigma_aux_weight > 0 is not supported (the sigma term "
+                             "queries the field network without the modal features)")
+        if cfg.modal_prior_dir:
+            from aaf.eval.modal_prior import feat_rows, load_room
+            if lo != 0 or hi > 601:
+                raise ValueError("the modal prior is stored for bins 0-600; band {}:{} unsupported".format(lo, hi))
+            hp, mf = [], []
+            for ci, c in enumerate(self.configs):
+                d = load_room(Path(cfg.modal_prior_dir) / (c.filename + ".npz"))
+                if d["rx"].shape != rx_list[ci].shape or np.abs(d["rx"] - rx_list[ci]).max() > 1e-4:
+                    raise ValueError("{}: the modal prior's receivers are not the corpus file's".format(
+                        c.filename))
+                if np.abs(d["src"] - srcs[ci]).max() > 1e-4:
+                    raise ValueError("{}: the modal prior's source is not the corpus file's".format(c.filename))
+                hp.append(d["H"][:, :self.n_band])
+                if cfg.modal_k > 0:
+                    mf.append(feat_rows(d["s"], d["kc"], int(cfg.modal_k)))
+            self.H_prior = torch.tensor(np.stack(hp), device=self.device)           # [C, n_rx, B]
+            if cfg.modal_k > 0:
+                self.modal_feat = torch.tensor(np.stack(mf), device=self.device)    # [C, n_rx, 2k]
+            print("[modal] prior loaded for {} configs | features {}".format(
+                len(hp), 0 if self.modal_feat is None else int(self.modal_feat.shape[-1])), flush=True)          # [C,64,B]
         self.rx = torch.tensor(np.stack(rx_list), device=self.device)        # [C,64,2]
         self.geom_id = torch.tensor(geom_id, dtype=torch.long, device=self.device)
         self.cond = torch.tensor(np.stack(conds), dtype=torch.float32, device=self.device)
@@ -520,6 +554,7 @@ class P32Trainer:
             token_pool=(cfg.token_pool or None),
             dc_head_bins=int(cfg.dc_head_bins),
             **signal_kwargs(cfg, self.n_band),
+            **({"modal_feat_dim": 2 * int(cfg.modal_k), "modal_prior": True} if cfg.modal_prior_dir else {}),
         ).to(self.device)
         if self.model._model_signal is None:
             print("[signal] {}".format(self.model.signal_param_counts()), flush=True)
@@ -528,7 +563,9 @@ class P32Trainer:
             # receivers only. Set once before training; it is a buffer, so it is saved in every
             # checkpoint and a resume or an evaluation reproduces it without the corpus.
             nb = int(cfg.dc_head_bins)
-            m = self.H[:, self.train_rx_idx, :nb].mean(dim=1)              # [C, nb] complex
+            # P4-7 m3: with a modal prior the head models the RESIDUAL (the prior carries the zero mode)
+            tgt = self.H if self.H_prior is None else self.H - self.H_prior
+            m = tgt[:, self.train_rx_idx, :nb].mean(dim=1)                 # [C, nb] complex
             sc = m.abs().pow(2).mean(dim=0).sqrt().clamp(min=1e-6).float()
             with torch.no_grad():
                 self.model.dc_scale.copy_(sc)
@@ -647,7 +684,14 @@ class P32Trainer:
                 else:
                     tx = src_per[cfg_ids[sub]]
                 z = self.cond[cfg_ids[sub]]
-                H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z)
+                h_prior = getattr(self, "H_prior", None)
+                if h_prior is None:
+                    H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z)
+                else:
+                    mf = self.modal_feat
+                    H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z,
+                                      h_prior=h_prior[cfg_ids[sub], rx_ids[sub]],
+                                      modal_feat=None if mf is None else mf[cfg_ids[sub], rx_ids[sub]])
                 out[sub] = H[:, self.band[0]:self.band[1]]
         return out
 
@@ -663,6 +707,8 @@ class P32Trainer:
         if cfg.per_room_source:
             raise ValueError("augmentation with per_room_source is not implemented yet: the D4 "
                              "tables transform one global source (P4-7 m4, D169)")
+        if cfg.modal_prior_dir:
+            raise ValueError("augmentation with a modal prior is not implemented (P4-7 m3, D170)")
         elems = ["e"] + [g.strip() for g in str(cfg.aug_d4_elems).split(",")
                          if g.strip() and g.strip() != "e"]
         for g in elems:
@@ -994,7 +1040,7 @@ class P32Trainer:
                       "dc_head_bins", "signal_heads", "signal_band_only", "signal_n_neurons",
                       "signal_band_edges_hz", "signal_xfade_hz", "loss_amp_floor_frac",
                       "loss_amp_floor_ref", "aug_d4_p", "aug_d4_elems", "aug_recip_p",
-                      "per_room_source"):
+                      "per_room_source", "modal_prior_dir", "modal_k"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
@@ -1044,6 +1090,8 @@ class P32Trainer:
             "amp_floor": self.amp_floor_info,
             "curriculum_bins": self.curriculum, "c2f": self.c2f,
             **({"augment": self._aug["info"]} if getattr(self, "_aug", None) is not None else {}),
+            **({"modal_prior": {"dir": cfg.modal_prior_dir, "modal_k": int(cfg.modal_k)}}
+               if cfg.modal_prior_dir else {}),
             **({"per_room_source": {"n_distinct": int(len({tuple(x) for x in
                                                            self.src_per.tolist()}))}}
                if getattr(self, "src_per", None) is not None else {}),

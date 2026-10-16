@@ -208,6 +208,11 @@ def load_model(ckpt_path: Path, device: torch.device):
         dc_head_bins=int(cfg.get("dc_head_bins", 0) or 0),
         # P4-5 PB3 / W3 (D144): the trainer's own helper, so the pathway is rebuilt from the cfg
         **_signal_kwargs(cfg),
+        # P4-7 m3 (D170(g)): both MUST come from the checkpoint (the D73 lesson). The input map adds
+        # parameters and the prior flag is a buffer, so a strict load fails loudly if either is
+        # omitted; they are passed explicitly anyway.
+        **({"modal_feat_dim": 2 * int(cfg.get("modal_k", 0) or 0), "modal_prior": True}
+           if cfg.get("modal_prior_dir") else {}),
     ).to(device)
     model.load_state_dict(st["model"])
     model.eval()
@@ -217,6 +222,11 @@ def load_model(ckpt_path: Path, device: torch.device):
         n_time_samples=int(cfg["n_time_samples"]), c=float(cfg["c"]),
     ).to(device)
     renderer.eval()
+    if cfg.get("modal_prior_dir"):
+        # every evaluator renders H_modal + H_net without knowing about m3: the wrapper finds each
+        # row's precomputed prior by room and receiver, and refuses rows it has none for
+        from aaf.eval.modal_prior import ModalPriorRenderer
+        renderer = ModalPriorRenderer(renderer).eval()
     return model, renderer, cfg, meta, int(st["iter"])
 
 

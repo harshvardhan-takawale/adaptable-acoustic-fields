@@ -94,7 +94,7 @@ def main():
     ap.add_argument("--chunk", type=int, default=5)
     ap.add_argument("--plan", action="store_true")
     a = ap.parse_args()
-    w = work(a.sets.split(","))
+    w = work([x for x in a.sets.replace("+", ",").split(",") if x])   # "+" survives sbatch --export
     if a.plan or a.idx is None:
         print("{} rooms -> --array=0-{} at chunk {}".format(len(w), (len(w) - 1) // a.chunk, a.chunk))
         return

@@ -1,6 +1,7 @@
 #!/bin/bash
 # P4-7 m3 (D170(g)): modal prior + features per room. SETS env var = comma list (see the script).
-# Usage:  sbatch --array=0-59 --export=ALL,SETS=famtrain,testdense,shapestest,famdense,famoffl scripts/slurm/p4_7_m3_precompute_array.sh
+# Usage:  sbatch --array=0-59 --export=ALL,SETS=famtrain+testdense+shapestest+famdense+famoffl scripts/slurm/p4_7_m3_precompute_array.sh
+# ('+' separates sets: sbatch --export splits its value on commas.)
 #SBATCH --job-name=aaf_m3pre
 #SBATCH --partition=scavenger
 #SBATCH --account=scavenger

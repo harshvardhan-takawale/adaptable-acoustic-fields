@@ -225,6 +225,8 @@ class ModalPriorRenderer(torch.nn.Module):
         if self._index is None:
             self._index = {}
             for p in sorted(self._root.rglob("*.npz")):
+                if p.name.endswith(".tmp.npz"):                    # a precompute still writing it
+                    continue
                 with np.load(str(p), allow_pickle=False) as z:
                     self._index.setdefault(str(z["cond_key"]), []).append(p)
         if key not in self._index:

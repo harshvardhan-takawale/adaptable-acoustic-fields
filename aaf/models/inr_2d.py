@@ -272,6 +272,8 @@ class INR2D_AutoDecoder(nn.Module):
         signal_n_neurons: int = 0,
         signal_band_edges: Sequence[int] = (),
         signal_xfade_bins: int = 0,
+        modal_feat_dim: int = 0,
+        modal_prior: bool = False,
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -715,6 +717,21 @@ class INR2D_AutoDecoder(nn.Module):
             self.register_buffer("dc_scale", torch.ones(self.dc_head_bins))
         else:
             self.dc_head = None
+        # P4-7 m3 (D170(g)). Built after the DC head, so a model without them consumes the RNG
+        # exactly as before. `modal_proj` maps the per-receiver modal-kernel features into the
+        # signal feature vector (before FiLM, so every band head sees them); it is ZERO-initialised,
+        # so at iteration 0 the network is exactly the model without it. `requires_modal_prior`
+        # is a buffer, so it travels with the checkpoint and the renderer can refuse to render a
+        # prior-trained model without its prior (the D73 hazard).
+        self.modal_feat_dim = int(modal_feat_dim)
+        if self.modal_feat_dim > 0:
+            self.modal_proj = nn.Linear(self.modal_feat_dim, self._signal_feat_dim)
+            nn.init.zeros_(self.modal_proj.weight)
+            nn.init.zeros_(self.modal_proj.bias)
+        else:
+            self.modal_proj = None
+        if modal_prior:
+            self.register_buffer("requires_modal_prior", torch.ones((), dtype=torch.bool))
 
     def signal_param_counts(self) -> dict:
         """D144: parameters in the signal pathway (MLP(s) + their FiLM layers), raw and ACTIVE.
@@ -845,7 +862,13 @@ class INR2D_AutoDecoder(nn.Module):
         tx: torch.Tensor,                   # [B, N, 2]
         tx_view: Optional[torch.Tensor] = None,
         z_s: Optional[torch.Tensor] = None,
+        modal_feat: Optional[torch.Tensor] = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        if self.modal_feat_dim > 0 and modal_feat is None:
+            raise ValueError("this model was built with modal-kernel inputs (modal_feat_dim={}); pass "
+                             "modal_feat [B, {}]".format(self.modal_feat_dim, self.modal_feat_dim))
+        if self.modal_feat_dim == 0 and modal_feat is not None:
+            raise ValueError("modal_feat given to a model without the modal input map")
         if z_s is None:
             raise ValueError(
                 "INR2D_AutoDecoder.forward() requires z_s. Pass either "
@@ -987,6 +1010,10 @@ class INR2D_AutoDecoder(nn.Module):
             ],
             dim=-1,
         )                                                           # [B*N, signal_feat_dim]
+        if self.modal_feat_dim > 0:
+            # P4-7 m3: per-RECEIVER features, shared by every point of that receiver's rays.
+            mf = modal_feat.to(signal_feat.dtype).unsqueeze(1).expand(B, N, -1).reshape(B * N, -1)
+            signal_feat = signal_feat + self.modal_proj(mf)
         # Mask only the two position-encoder blocks at the END of signal_feat; the sigma feature
         # and the two direction encoders pass through unchanged.
         keep = torch.ones(signal_feat.shape[-1] - 2 * lm.numel(), device=lm.device,
