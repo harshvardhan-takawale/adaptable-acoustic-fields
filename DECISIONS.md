@@ -1590,3 +1590,67 @@ Files: `outputs/p4_6/GAP_CI_G3_60K.json`, `RISK_METRICS_G3_60K.json`, `family_oo
 * **Source:** uniform in air, >= 0.5 m from every wall and every reflex corner. **Receivers:** 800 per room drawn from the room's own 0.02 m FDTD nodes (B6 style, off any shared lattice), >= 0.12 m from walls and 0.15 m from reflex corners (as B6), and >= 0.10 m from the source (mine: keeps receivers off the source node's near-field singularity). Walls alpha 0.15. FDTD at the corpus settings (dx 0.02, fs 30720, n 61440).
 * **The trainer needs a per-room source** (it currently keeps only the LAST file's `source_pos`, silently): added behind a default-off flag, with a refusal when sources differ and the flag is off, and Rule-8 behavioural tests (default path bit-identical; per-room path renders each row with its own source).
 * **Then:** G1's recipe on C500 + CX500 (1000 rooms) at 60K, standard report in family and out of family. No threshold was given; reported against G1.
+
+**D170 — m1 (physics-only modal baseline): out-of-family 25-100 Hz r 0.923 >= 0.85, so m3 LAUNCHES (pre-registered, D169(a)); the baseline is NOT poor in family (0.922). With the zero mode's exact record in place of its continuous term, physics reaches r 0.97-0.99 / 0.97-0.98 / 0.96 in and out of family; the network reads 0.60-0.63 out of family. m3 is pre-registered in (g).** Files: `outputs/p4_7/m1_modal.json` / `.md`, per-room `outputs/p4_7/m1/room*.json`, `scripts/p4_7_m1_modal.py`.
+
+(a) **Per-band r and LSD (dB), off-lattice, above 20 Hz** (25-100 / 100-200 / 200-300 Hz; same receivers and metric as the network's JSONs). "Modal" is the pre-registered primary formula with the frozen C; "+exact zero" replaces ONLY the zero-mode term with its exact record (see (c)); "td" is the exact discrete modal synthesis, no fit.
+
+| rooms | modal (primary) r | LSD | +exact zero r | LSD | td (no fit) r | PB3 @60K r | G1 @60K r | G1 LSD |
+|---|---|---|---|---|---|---|---|---|
+| 15 test shapes (in family) | 0.922 / 0.923 / 0.936 | 1.6 / 1.6 / 1.4 | 0.988 / 0.976 / 0.960 | 0.6 / 0.8 / 1.0 | 0.988 / 0.976 / 0.961 | 0.895 / 0.647 / 0.496 | 0.931 / 0.721 / 0.581 | 1.5 / 3.7 / 4.3 |
+| family rect + L (in-family ref) | 0.926 / 0.923 / 0.940 | 1.6 / 1.6 / 1.3 | 0.990 / 0.979 / 0.964 | 0.4 / 0.7 / 1.0 | 0.990 / 0.979 / 0.965 | 0.902 / 0.658 / 0.455 | 0.922 / 0.704 / 0.549 | 1.6 / 3.9 / 4.5 |
+| **T, DN, U (out of family)** | **0.923** / 0.928 / 0.941 | 1.7 / 1.5 / 1.3 | **0.978** / 0.974 / 0.962 | 0.9 / 0.8 / 1.0 | 0.978 / 0.974 / 0.962 | 0.600 / 0.347 / 0.329 | 0.628 / 0.372 / 0.358 | 4.6 / 5.7 / 5.6 |
+| U only | 0.914 / 0.927 / 0.936 | 1.8 / 1.5 / 1.4 | 0.973 / 0.972 / 0.960 | 1.0 / 0.9 / 1.1 | 0.973 / 0.972 / 0.960 | 0.631 / 0.320 / 0.336 | 0.718 / 0.434 / 0.402 | 3.4 / 5.2 / 5.2 |
+| 5 C250 training rooms | 0.924 / 0.929 / 0.941 | 1.7 / 1.5 / 1.3 | 0.988 / 0.978 / 0.964 | 0.6 / 0.7 / 1.0 | 0.988 / 0.978 / 0.965 | (2 of 5 rooms scored) | | |
+
+Physics does not care which family a room is in: the out-of-family rooms score as the in-family ones (0.923 vs 0.922). The network's whole out-of-family deficit (D162) is a deficit of the learned representation, not of the information in the inputs.
+
+(b) **Checks.**
+* Calibration on the rectangle: C = 3.2055 + 0.0380 i (|C| 3.2058, arg 0.68 deg) against the analytic dA / (c dt)^2 = 3.2086, i.e. within 0.1%. The relative residual is 0.124.
+* Sign: "+ i k eta" fits (residual 0.124); "- i k eta" does not (0.999, C 0.13 at -111 deg). Confirmed for the rfft convention.
+* Mode counts: 216-367 modes to 600 Hz per room, each within +-3 of Weyl's law A k^2 / 4 pi + P k / 4 pi.
+* Operator asymmetry: exactly 0 in rectangles; 0.75-1.36e-3 (relative Frobenius) in notched rooms, at the reflex-corner nodes (D65). It costs nothing measurable: notched rooms score as rectangles.
+* Eigen-solve time (to 800 Hz, 4 CPU threads): median 102 s, range 34-309 s per room, 3569 s for all 30. For comparison, the FDTD loop for the same dense rooms took median 58 s (14-83 s).
+* Truncation: modes to 800 Hz change r by <= +0.001 in every group, so 600 Hz is converged.
+* Damping: scaling eta by 0.5 or 2 LOSES 0.02-0.09 r and 1.0-2.4 dB LSD in every band. The analytic first-order Robin damping (beta = tanh(m/4), p5) is at the optimum, not merely close to it.
+
+(c) **The gap between the primary formula and exact physics is ENTIRELY the zero mode.**
+* The continuous zero-mode term C S psi_0^2 / (-k^2 + i k eta_0) differs from the zero mode's actual content in the 2 s record by a median 96% at 25-300 Hz (range 92-98%), across all 30 rooms. The record's zero mode is a slowly relaxing pressure step (the DC-free pulse leaves a ramp over the whole window; D101(b), D165 p2), and it carries 14-18% of the target norm at 25-100 Hz.
+* Replacing that one term with its exact record (one scalar leapfrog recursion per room: it depends only on A, P, beta and the pulse) lifts the formula to the td level in every group (e.g. test shapes 0.922 -> 0.988 at 25-100 Hz).
+* What remains (td vs FDTD: r 0.96-0.99, LSD 0.4-1.1 dB) is the diagonal (first-order) damping and the operator symmetrisation.
+* The same exact record is what the manager's condition for retrying scale augmentation needs ("zero mode subtracted analytically", D165 p2).
+
+(d) **Zero mode against D101.**
+* eta_0 = beta P / A to within 0-2% (the excess is the reflex-corner node weights).
+* The exact modal synthesis reproduces the FDTD spatial mean at 0-20 Hz to a median 0.6% (max 5.5%), and its DC level to 0.95-1.02x.
+* Across the 30 rooms, |H(0)| correlates with 1/A at 0.905 (|H(0)| x A spread 8.4%; D101: 0.936, 7.8%) but with **1/P at 1.000 (|H(0)| x P spread 0.1%)**. **Refinement of D101 (measured):** the DC level is 1/(beta P), because it is psi_0^2 / eta_0 = (1/A) / (beta P / A). The 1/area law was a proxy through the corpus's A-P covariance. The decay rate is c beta P / A, as D101 found.
+
+(e) **Decision (pre-registered): m3 launches.** The baseline is not poor in family, so the diagnostic branch does not apply. Its diagnostics ran anyway, and that is how (c) was found.
+
+(f) **Caveat (labelled inference; OPEN_QUESTIONS Q24).**
+* The baseline is the solver's own discrete operator in a modal basis, so its accuracy on FDTD ground truth is close to tautological. It needs the exact geometry, source and wall beta at inference, and its eigen-solve costs about as much as the FDTD (102 s vs 58 s median per dense room).
+* What it buys: one solve serves every source and receiver position, so source editing comes free. A first-order Robin closure holds for any wall.
+* Whether the INR's role becomes "the residual over physics" or something else is a research-direction question for the manager. It is not acted on here beyond the pre-registered m3.
+
+(g) **m3 PRE-REGISTRATION (before any m3 number).**
+* **Arm M3-fam** (first): G2's recipe (PB3 on the family corpus, U held out, 60K), then **M3-500** on G1's corpus (C500, 60K) once M3-fam is read.
+* **Residual:** H = H_modal + H_net. H_net is the full PB3 render (field network + DC head). The PB3 loss is applied to the SUM.
+* H_modal is m1's formula with the frozen C, modes to 600 Hz, and **the zero-mode term replaced by its exact record** (design choice, mine, from (c): the continuous zero-mode term is wrong above 20 Hz by ~96% by construction of the 2 s record). It is precomputed per (room, receiver).
+* The DC head's scale is computed from the RESIDUAL target (T - H_modal), since the prior now carries the zero mode.
+* **Features:** for the first K = 48 mode CLUSTERS (eigenvalues within 1e-4 relative are one cluster; degenerate pairs summed), s_c = A x sum over n in c of psi_n(x_r) psi_n(x_s) (sign-invariant; x A makes it O(1)), plus k_c / k_600. That is 96 values per (room, receiver). K = 48 reaches about 240 Hz in a 30 m^2 room.
+* They enter the field network as extra inputs: a zero-initialised linear map added to the signal feature vector before FiLM, so every band head sees them. **The network is exactly PB3 at step 0**, and the renderer adds H_modal last.
+* **Guards against the D73 hazard:**
+  * The model carries a `requires_modal_prior` buffer, and the renderer REFUSES to render without a prior when it is set.
+  * The model refuses to run without features when it has the input map.
+  * `load_model` rebuilds both from the checkpoint.
+  * Evaluators get the prior and features through one helper.
+* Rule-8 tests:
+  * bit-identity at init;
+  * waking the map changes the output;
+  * the prior adds exactly;
+  * the refusals fire.
+* **Pre-registered readings (M3-fam), off-lattice, raw and projected:**
+  1. **Out-of-family repair:** held-out U at 25-100 Hz r >= 0.85 (G2: 0.554).
+  2. **The network adds over physics:** M3-fam beats H_modal alone on held-out U AND on the in-family family rooms, by >= 0.01 r at 200-300 Hz or >= 0.2 dB LSD in any band. Otherwise the network contributes nothing measurable over the prior.
+  3. **Harm:** any band where the hybrid is more than 0.02 r below H_modal alone is a failure of the residual design, whatever (1) says.
+* Standard report (D160) for both arms, including the 4K kill signal (its calibration does not transfer to a residual target; reported, not used to kill).

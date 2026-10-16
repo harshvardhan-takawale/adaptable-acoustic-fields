@@ -4,7 +4,22 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-6 g1/g2/g4 FINAL (2026-10-16, 07:50; D167) + P4-7 prep done (D164-D166).**
+**Last updated**: **P4-7 IN PROGRESS (2026-10-16, 14:40; D169-D170).** Write-up (live): [CHUNK_P4_7_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_7_RESULTS.md).
+
+* **m1 (physics-only modal baseline, D170): m3 LAUNCHES.**
+  * Out-of-family 25-100 Hz r is **0.923** (threshold 0.85; the network reads 0.60-0.63), and 0.922 in family.
+  * With the zero mode's exact 2 s record in place of its continuous term, physics reads **0.97-0.99 / 0.97-0.98 / 0.96** in AND out of family (G1: 0.93 / 0.72 / 0.58 in family).
+  * Calibration C is within 0.1% of the analytic dA/(c dt)^2. The +ikη sign is confirmed. The analytic damping is optimal (η x0.5 or x2 loses 0.02-0.09 r).
+  * D101 refined: the DC level is 1/(βP) exactly; 1/A was a proxy.
+  * **Caveat, Q24 (your call):** this is the solver's own operator in modal form, so it is near-tautological on FDTD truth and needs exact geometry and β. What is the INR for?
+* **m2 (A-fam, A-500):** D4 flips + reciprocity, training on tron, due ~02:30. The leakage pre-flight found 0 U-topology images under all 8 D4 elements; transposes leak the d̂ slab, flips do not.
+* **m4:** CX500 is built (500 rooms; 1-2 notches at any corner or side midpoint, U excluded; per-room source and off-lattice receivers).
+  * The trainer now supports a per-room source (default off, tested; it refuses mixed-source corpora when off).
+  * Arm GX (G1's recipe on C500 + CX500) is queued.
+* **m3:** pre-registered in D170(g) (residual over H_modal with the exact zero mode, plus 48 modal-kernel features with zero-init). Implementation is in progress; M3-fam goes first.
+* **G3:** preempted at 77K, requeued. Its 120K read follows.
+
+Earlier: **P4-6 g1/g2/g4 FINAL (2026-10-16, 07:50; D167) + P4-7 prep done (D164-D166).**
 
 * **g1 (PB3, 500 shapes) HOLDS:** test 200-300 Hz r 0.581 (>= 0.53), train-to-test gap 0.094 (< 0.22), Gate-2 **0.955** (best in project). Transfer is data-limited ALONG the family.
 * **g2 (family corpus, U held out):** U 0.554 / 0.257 / 0.294 vs in-family 0.835 / 0.576 / 0.436. The recipe does not transfer to an unseen family; within-family coverage helps (T 0.81 vs PB3 0.59).

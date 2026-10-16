@@ -1,0 +1,23 @@
+{
+ "k": 25,
+ "set": "train",
+ "family": "rect",
+ "label": "rect_L5.74_W5.06_d0.00_w0.00",
+ "role": "calibration",
+ "pick": null,
+ "n_air": 73152,
+ "n_rx": 800,
+ "asymmetry": 0.0,
+ "area": 29.044399999999996,
+ "perimeter": 21.599999999999998,
+ "beta": 0.04060739027615024,
+ "n_modes_600": 297,
+ "n_modes_800": 522,
+ "weyl_600": 298.0992827856795,
+ "eig_s": 110.9,
+ "eig_requested": 620,
+ "td_s": 1.5,
+ "eta0": 0.03019926836033121,
+ "f0": 0.0,
+ "psi0_sq_x_area": 0.9999999999996133
+}

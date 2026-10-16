@@ -1,0 +1,23 @@
+{
+ "k": 15,
+ "set": "family",
+ "family": "rect",
+ "label": "rectL6.56_W4.12",
+ "role": null,
+ "pick": "first",
+ "n_air": 68103,
+ "n_rx": 4096,
+ "asymmetry": 0.0,
+ "area": 27.027200000000004,
+ "perimeter": 21.36,
+ "beta": 0.04060739027615024,
+ "n_modes_600": 278,
+ "n_modes_800": 492,
+ "weyl_600": 278.497794865717,
+ "eig_s": 175.1,
+ "eig_requested": 580,
+ "td_s": 1.8,
+ "eta0": 0.03209262729023181,
+ "f0": 0.0,
+ "psi0_sq_x_area": 0.9999999999997331
+}

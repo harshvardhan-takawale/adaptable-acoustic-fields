@@ -176,3 +176,17 @@ The sweep (manager item 7) is 1x / 2x / 4x / 8x at matched iterations, off-latti
 * **(c) 8x capped at the pool**: 6,400 where possible and the full pool below that; nearly uniform, with a small-room deficit.
 
 All three need the trainer to STREAM targets instead of preloading them (8x is 7.7 GB of preload against B4's 3.85 GB, which already needed a 48 GB card, D103). That is an engineering change to `aaf/train/multi_room_2d_mat.py` with its own behavioural test (Rule 8: streaming must be bit-identical to preloading on a small corpus). The FDTD re-simulation is cheap (~0.9 CPU-h per 250 rooms, D93). **Recommendation: (a) if the deliverable is "how dense must a lattice survey be"; (c) if it is a clean doubling curve.** Not started pending the choice.
+
+### Q24 — With a per-room modal solve at r 0.96-0.99, what is the INR for? *(P4-7 m1, D170(f); the manager's call)*
+
+m1 found that the solver's own operator, solved once per room in a modal basis (to 600 Hz, first-order Robin damping, frozen C, exact zero mode), scores r 0.97-0.99 / 0.97-0.98 / 0.96 in AND out of family. The best network scores 0.93 / 0.72 / 0.58 in family and 0.63 / 0.37 / 0.36 out of family. Three facts bound what that comparison means:
+* **Near-tautological on this data.** The ground truth is the same discrete operator, so physics "transferring" to unseen families is not evidence about real rooms: the baseline has every input the FDTD has (exact polygon, source, wall beta).
+* **Cost.** The eigen-solve costs about as much as the FDTD itself: 102 s vs 58 s median per dense room. Neither is real-time. But one solve serves EVERY source and receiver position, and the FDTD needs one run per source.
+* **What it does not cover.** Phase 2 targets are frequency-dependent or unknown materials, measured (not simulated) rooms, and partial geometry knowledge. A modal prior needs the boundary condition and the geometry; an INR fitted to measurements does not.
+
+**Options:**
+* (a) The INR becomes the residual / correction over a physics prior (m3 as pre-registered). The deliverable is then "physics + learned residual", and its value must be measured where the prior is WRONG: unknown beta, approximate geometry, measured data.
+* (b) The modal prior is used only as a feature / regulariser for an INR that must work without exact geometry.
+* (c) The INR's target shifts to what physics cannot give cheaply (e.g. real-time rendering of many rooms, inverse problems).
+
+**Not acted on beyond m3, as pre-registered.** One concrete probe would make m3 informative under (a): perturb the prior (beta x 0.5 / x 2, or geometry snapped to 10 cm) and measure whether the residual network recovers the truth. m1 already shows what the unaided prior loses under a beta error of 2x: 0.02-0.09 r and 1-2.4 dB.
