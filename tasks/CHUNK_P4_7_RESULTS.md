@@ -56,7 +56,7 @@ Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both 
 - **Corpus** (`aaf/data/cx_rooms.py`, [manifest](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/sweeps_2d_mat/p4_7_cx500_manifest.json)): 500 rooms, built in 63 CPU tasks (median 14 s per room), 1.7 GB.
   - **Notches:** 1–2 at any of 4 corners or 4 side midpoints. Topologies: L 143, T 174, LT (corner + side) 110, TT 54, DN 19. Positions: 68–102 rooms each.
   - **Exclusions:** the U topology (any orientation), the held-out d̂ slab (also the transposed one for corner notches), and passages under 0.8 m.
-  - **Source:** uniform in air, ≥ 0.5 m from every edge; 500 distinct positions, x 0.50–6.30, y 0.50–4.92.
+  - **Source:** uniform in air, ≥ 0.5 m from every edge; 499 distinct positions over 500 rooms (two rooms share one), x 0.50–6.30, y 0.50–4.92.
   - **Receivers:** 800 per room from the room's own 0.02 m nodes, ≥ 0.12 m from walls, ≥ 0.15 m from reflex corners and ≥ 0.10 m from the source. 11% land on the old lattice (B6-like).
   - **Tests:** 8 CPU tests (`tests/test_cx_rooms.py`), including the exclusions on all 500 rooms and the polygon against an independent rasterisation and against the family code.
 - **Trainer per-room source** (06e9010, default off):
@@ -64,12 +64,23 @@ Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both 
   - Off: `_render` equals the frozen pre-change copy. On, with a single-source corpus: renders are bit-identical. On, with a mixed corpus: each row is rendered with its own source, and the output changes.
   - C500's rows, re-expressed as polygon rows, condition bit-identically (500 / 500).
   - Tests: 119 trainer-related tests pass.
-- **Arm GX:** G1's recipe on C500 + CX500 (1000 rooms), 60K, `per_room_source: true`. Queued on tron; reported against G1, in family and out of family.
+- **Arm GX:** G1's recipe on C500 + CX500 (1000 rooms), 60K, `per_room_source: true`. **Training** on tron (0.76 s/it, due ~03:30): 1000 configs, 500 distinct sources, 35 validation rooms. Reported against G1, in family and out of family.
 
-## m3 — modal hybrid (pre-registered D170(g); implementation in progress)
+## m3 — modal hybrid (pre-registered D170(g)): implemented (a7c9833); M3-fam launched
 - **Residual:** H = H_modal + H_net. H_modal is m1's formula (frozen C, modes to 600 Hz) **with the exact zero-mode record**; H_net is PB3; the loss is applied to the sum.
 - **Features:** for the first 48 mode clusters, s_c = A·Σψₙ(x_r)ψₙ(x_s) (degenerate modes summed) and k_c / k₆₀₀. They enter through a zero-initialised map added to the signal features, so the network equals PB3 at step 0.
-- **Guards:** the renderer refuses to render without the prior.
+- **Guards:** the renderer refuses to render without the prior. `load_model` returns a wrapper that finds each row's precomputed prior by room (conditioning vector) and receiver, and refuses misses, so every existing evaluator renders H_modal + H_net unchanged.
+- **Precompute** (`aaf/eval/modal_prior.py`, `scripts/p4_7_m3_precompute.py`): the library reproduces m1's exact-zero scores to 4e-7.
+  - Done: 240 family training rooms and 500 C500 training rooms.
+  - Running: the evaluation sets (15 dense test shapes, the 15 at 800 receivers, 10 family rooms, 20 + 23 off-lattice training rooms).
+  - Bug found and fixed: `sbatch --export` splits on commas, so the first array silently received one set. Sets are now `+`-separated.
+- **Tests:** 8 new Rule-8 tests, plus the 113 existing trainer tests. They include:
+  - H_modal against the actual FDTD on a small room (teeth: the continuous zero mode, the wrong damping sign);
+  - degenerate pairs summed, so the features are invariant to the eigenspace basis;
+  - the zero-initialised map is bit-identical, and woken it changes the output;
+  - the trainer's render is bit-identical to the prior-free render plus the prior;
+  - the evaluator path (load_model → wrapper) reproduces the trainer path.
+- **M3-fam:** G2's config + `modal_prior_dir` + `modal_k: 48`, queued on tron. M3-500 follows once M3-fam is read; its training priors are already computed.
 - **Order:** M3-fam (G2's corpus) first, then M3-500 (G1's corpus).
 - **Readings:**
   1. Held-out U at 25–100 Hz ≥ 0.85.
