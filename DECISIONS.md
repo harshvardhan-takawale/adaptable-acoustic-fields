@@ -1412,3 +1412,26 @@ For reference, B5 @4K was 2.53. Dense Gate-2 off-lattice in-slab / gap at 4K: G1
 * **Comparability.** G3 is the only P4-6 arm on Ada hardware. Run-to-run tcnn nondeterminism already exceeds any hardware effect (D151), so its numbers compare with the others as a new run would.
 * **Preemption.** G3 was preempted at 22:10 (and once before) and resumes from its newest checkpoint each time.
 * `CLUSTER_INFO.md` now records the 48 GB scarcity and the L40S alternative.
+
+**D164 — P4-7 PREP (physics priors for unseen geometry), PRE-REGISTERED before any p1-p3 number. No training launches.** The manager's spec; operationalisations are mine where noted.
+* **(p1) Orientation audit.** Notch corner / side counts per corpus and split (C250, C500, the 15 test shapes, family), plus every other asymmetric feature: source position, receiver-lattice anchoring, wall alphas, L > W. If notches sit predominantly in one corner, that is recorded as a likely contributor to the out-of-family failure (D162).
+* **(p2) Scale invariance, verified before use.**
+  * **Wall model.** The FDTD wall model is the frequency-INDEPENDENT Kowalczyk-van Walstijn boundary (`fdtd_2d.py:162-196`: real scalar admittance xi = (1-R)/(1+R), R = sqrt(1-alpha)). In 2D, H_alpha(f; alpha x) = H(alpha f; x) for the pulse-free transfer function, i.e. h_alpha(t) = h(t/alpha)/alpha, with no amplitude factor in frequency.
+  * **Rooms.** 3 C250 training rooms, chosen by rule: the smallest notch-snapping error on the scaled grids, over alpha in {0.8, 0.9}.
+  * **Simulations.** Each room simulated directly at alpha = 0.8 and 0.9 (corpus dx / fs / n, source at alpha*SRC).
+  * **Comparison.** Against the augmentation of the original's `H_deconv`: time-domain h(t/alpha)/alpha with zero padding to the record length. ~200 receivers per room per alpha, at original nodes whose scaled images are within 1 mm of a scaled-grid node. Bands 0-20 (split 0-10 / 10-20), 20-100, 100-200, 200-300 Hz.
+  * **PASS (thresholds mine):** in every band above 20 Hz, for all 3 rooms x 2 alphas, relative complex L2 <= 2x D94's dx 0.02-vs-0.01 floor (<= 1.6% / 3.8% / 4.6% for 20-100 / 100-200 / 200-300 Hz) AND dB spatial r >= 0.99 (D94's criterion).
+  * **Control.** alpha = 1 must give ~0.
+  * **Expected.** Deviations confined to near 0 Hz (the 2 s window), reported with the original record's energy in its last (1-alpha)T.
+  * **If it fails above 20 Hz:** stop, do not implement scale augmentation, and report why.
+* **(p3) Geometry sensitivity.**
+  * **Room.** D111's U room `UL5.00_W5.26_NEd0.14w0.48x0.00_NWd1.22w1.86x0.00` with its 14 cm NE notch removed, an L with the same NW notch. Simulated at the U's own 3680 receivers.
+  * **Metrics.** At 50 / 100 / 200 Hz (single bins 100 / 200 / 400, and +-2.5 Hz means), over off-lattice receivers: GT change dT = mean |dB T_L - dB T_U|, model change dP = mean |dB P_L - dB P_U| for PB3 and B5 @60K, the ratio dP/dT, and the spatial Pearson between the change fields.
+  * **Verdict (threshold mine):** "the encoder reacts to segment count, not physical size" if dP/dT >= 3 at >= 2 of the 3 frequencies, for either model. Then arc-length boundary sampling is the recommended fix.
+  * **Confound, reported:** the L version's d_hat 0.515 lies inside C250's held-out slab, and L < W.
+* **(p4) Loader work, behind flags, default off and default path untouched.**
+  * **D4.** All 8 elements are supported. The DEFAULT is the flips {fx, fy, r180}, because the transposing elements map notch width to depth and leak C250 / C500 / holdU's held-out d_hat slab (measured in design: 88/500 and 43/240 rooms). They are refused on a slab corpus unless the manager decides otherwise.
+  * **Reciprocity swaps.** Exact in rectangles, approximate in notched rooms (the D65 wall-tip residual). A corpus-resolution pre-flight measures it.
+  * **Scale.** Only if p2 passes.
+  * **Test.** The manager's: a 90 deg rotation (and all 8 elements) of a room maps its FDTD field exactly.
+* **(p5)** Wall impedance beta per material, from the FDTD boundary model, recorded for a later wall-condition loss.
