@@ -1559,3 +1559,12 @@ The render-time projection changes every out-of-family r by <= 0.002 (raw and pr
 * Along a family, transfer is data-limited and doubling the corpus closes most of the 200-300 Hz gap (g1).
 * Across families it is not: neither more L shapes (g1) nor seen two-notch families (g2) transfer to U. This agrees with t1 / t2 / p3 (the field SHAPE is wrong out of family) and p1 (the corpora never place a notch outside a fixed set of positions relative to the fixed source).
 * The P4-7 lever this points to is orientation / configuration diversity (D4 flips, now in the loader, D166) and conditioning, not representation capacity (g4) or density (g3 at 30K = PB3; scored at 60K and 120K).
+
+**D168 — G3 (PB3 + 4x receivers, 120K cosine) at 60K: density adds NOTHING to band separation's transfer (G3 - PB3 +0.002 / -0.005 / -0.005, all n.s.); it raises training-room fit (0.798 vs 0.772) and so WIDENS the train-to-test gap (0.307 vs 0.276), the same pattern as capacity (D157).** The pre-registered threshold (test 200-300 Hz r >= 0.52) is scored at 120K. G3 @60K reads 0.491, so it needs +0.03 from the remaining half of the schedule.
+* Gate-2 0.929 [0.920, 0.938], gap -0.000. Test r 0.897 / 0.642 / 0.491, LSD 1.88 / 4.17 / 4.79 dB. Modal RIR off 0.940, full RIR 0.9998.
+* Out of family: T / DN / U 0.593 / 0.374 / 0.327; rect / L 0.899 / 0.651 / 0.473. U at 100 Hz +0.33.
+* Speckle d1 0.963 raw / 0.910 projected; abs c 0.447.
+* G3 is mid-schedule (LR 1.28e-4 of a 120K cosine), so the 60K comparison with PB3's END-of-schedule 60K favours PB3. The density contribution the manager asked for ("the 60K read against PB3 @60K") is nonetheless nil within CI.
+* With D158 (B4 vs B10) and D167 (G1): along-family transfer responds to more SHAPES (G1 +0.085), not to more RECEIVERS per shape (G3 ~0).
+
+Files: `outputs/p4_6/GAP_CI_G3_60K.json`, `RISK_METRICS_G3_60K.json`, `family_oof/G3_60K.json`, `speckle/G3_60K.json`, `train_offlat_fit/G3_60K.json`.
