@@ -1,0 +1,104 @@
+{
+ "model": "Kowalczyk-van Walstijn locally reacting, frequency-independent real admittance",
+ "formulas": {
+  "R": "sqrt(1-alpha)",
+  "xi": "(1-R)/(1+R) = tanh(m/4), m = -ln(1-alpha)",
+  "Z/(rho c)": "1/xi",
+  "robin_time": "dp/dn_out = -(xi/c) dp/dt",
+  "robin_freq_rfft_convention": "dp/dn_out = -i k xi p, k = 2 pi f / c"
+ },
+ "frequency_dependence": "none (real scalar per face; no mass/spring/resistance filter)",
+ "discrete_note": "centred KW realises xi*cos(w dt/2)/cos(k dx/2), ~+0.1% at 300 Hz, dx 0.02 (inference)",
+ "materials": [
+  {
+   "material": "M0 brick / ALPHA_BASELINE (every P4 wall, divider, notch mask)",
+   "alpha": 0.15,
+   "m": 0.16251892949777494,
+   "R": 0.9219544457292888,
+   "beta_xi_admittance": 0.04060739027615024,
+   "Z_over_rho_c": 24.626059276390524,
+   "source": "aaf/walls.py:41-49; shape_configs.ALPHA"
+  },
+  {
+   "material": "M1 concrete",
+   "alpha": 0.05,
+   "m": 0.05129329438755058,
+   "R": 0.9746794344808963,
+   "beta_xi_admittance": 0.012822620764144402,
+   "Z_over_rho_c": 77.98717737923567,
+   "source": "aaf/walls.py:41-49"
+  },
+  {
+   "material": "UNSEEN material",
+   "alpha": 0.3,
+   "m": 0.35667494393873245,
+   "R": 0.8366600265340756,
+   "beta_xi_admittance": 0.08893315643949634,
+   "Z_over_rho_c": 11.244400176893837,
+   "source": "aaf/data/mat_configs.py:55"
+  },
+  {
+   "material": "M2 curtain",
+   "alpha": 0.5,
+   "m": 0.6931471805599453,
+   "R": 0.7071067811865476,
+   "beta_xi_admittance": 0.17157287525380988,
+   "Z_over_rho_c": 5.828427124746191,
+   "source": "aaf/walls.py:41-49"
+  },
+  {
+   "material": "M3 absorber panel",
+   "alpha": 0.7,
+   "m": 1.203972804325936,
+   "R": 0.5477225575051662,
+   "beta_xi_admittance": 0.2922212642709539,
+   "Z_over_rho_c": 3.422064450014761,
+   "source": "aaf/walls.py:41-49"
+  },
+  {
+   "material": "P3-2c preset",
+   "alpha": 0.75,
+   "m": 1.3862943611198906,
+   "R": 0.5,
+   "beta_xi_admittance": 0.3333333333333333,
+   "Z_over_rho_c": 3.0,
+   "source": "aaf/data/mat_configs_p3_2c.py"
+  },
+  {
+   "material": "P3-2c preset / continuous-range top",
+   "alpha": 0.8,
+   "m": 1.6094379124341005,
+   "R": 0.44721359549995787,
+   "beta_xi_admittance": 0.3819660112501052,
+   "Z_over_rho_c": 2.6180339887498945,
+   "source": "aaf/data/mat_configs_p3_2c.py; mat_configs_cont m<=1.61"
+  },
+  {
+   "material": "window (segment corpus)",
+   "alpha": 0.93,
+   "m": 2.659260036932779,
+   "R": 0.26457513110645897,
+   "beta_xi_admittance": 0.5815588578355719,
+   "Z_over_rho_c": 1.7195164109816323,
+   "source": "aaf/data/seg_configs.py"
+  },
+  {
+   "material": "window top (segment corpus)",
+   "alpha": 0.95,
+   "m": 2.99573227355399,
+   "R": 0.22360679774997907,
+   "beta_xi_admittance": 0.6345120047368862,
+   "Z_over_rho_c": 1.5760143110525877,
+   "source": "aaf/data/seg_configs.py"
+  },
+  {
+   "material": "continuous-range bottom",
+   "alpha": 0.0198,
+   "m": 0.01999864650668997,
+   "R": 0.9900505037623081,
+   "beta_xi_admittance": 0.004999619968881098,
+   "Z_over_rho_c": 200.0152024002331,
+   "source": "aaf/data/mat_configs_cont.py m>=0.02"
+  }
+ ]
+}
