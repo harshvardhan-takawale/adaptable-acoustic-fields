@@ -130,7 +130,7 @@ def analyse(name, project, t_cache, d1_only=False):
         for k in ("c_abs", "c_re", "hp_ratio", "hp_frac_P", "hp_frac_T"):
             per["d2_%s_%s" % (meth, k)] = {b: [] for b in BANDS}
     if project:
-        for k in ("r_lp", "lsd_lp", "r_ceil", "lsd_ceil"):
+        for k in ("r_lp", "lsd_lp", "r_ceil", "lsd_ceil", "d1_off_proj"):
             per[k] = {b: [] for b in BANDS}
     qsum = np.zeros((15, 5, 3))              # shape x quintile x (sum dP, sum dT, n pairs), 200-300 Hz
     i = 0
@@ -183,6 +183,11 @@ def analyse(name, project, t_cache, d1_only=False):
                         float(np.mean(np.abs(db(LP[off, lo2:hi2]) - db(T[off, lo2:hi2])))))
                     per["lsd_ceil"][bnd].append(
                         float(np.mean(np.abs(db(LT[off, lo2:hi2]) - db(T[off, lo2:hi2])))))
+                # P4-6 standard report (D160(e)): d1 of the PROJECTED field (post-processing), same pairs
+                dPp = np.abs(db(LP[a]) - db(LP[b]))
+                rat_p = dPp[both_off].mean(0) / dT[both_off].mean(0)
+                for bnd, (lo2, hi2) in BANDS.items():
+                    per["d1_off_proj"][bnd].append(float(np.nanmean(rat_p[max(lo2, 50):hi2])))
         print("  {} shape {:2d}: d1_off 200-300 {:.3f}  r {:.3f}".format(
             name, i, per["d1_off"]["200-300"][-1], per["r"]["200-300"][-1]), flush=True)
         i += 1
