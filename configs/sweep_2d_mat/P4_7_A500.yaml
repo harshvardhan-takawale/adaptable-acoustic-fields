@@ -1,0 +1,46 @@
+# P4-7 arm A-500 (m2, D169): configuration diversity on the 500-shape corpus.
+# GENERATED from P4_6_G1.yaml -- differs ONLY in run_id and the three augmentation flags.
+# D4 elements: the default flips (fx, fy, r180); C500 is a slab corpus (88 / 500 would leak under
+# the transposing elements). Leakage pre-flight: no image is a U (outputs/p4_7/m2_leak_preflight.json).
+# Pre-registered (D169): out-of-family mean (T, DN, U) at 25-100 Hz r rises by >= 0.10 over G1 (0.628).
+run_id: p4_7_A500
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
+data_dir: data/track_p4_2_shapes
+configs_manifest: configs/sweeps_2d_mat/p4_4_shapes_500.json
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: attn_residual_extent
+loss_band_lo_hz: 0.0
+n_iters: 60000
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 0.0002
+val_every: 2000
+val_max_configs: 40
+ckpt_every: 2000
+ckpt_keep_last: 1
+early_stop_warmup: 60000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8
+ckpt_thin_old: true
+dc_head_bins: 41
+signal_heads: 3
+signal_band_edges_hz: "173.0,245.0"
+signal_xfade_hz: 10.0
+ckpt_keep_every: 10000
+ckpt_keep_iters: "4000"
+aug_d4_p: 0.5
+aug_d4_elems: "fx,fy,r180"
+aug_recip_p: 0.25

@@ -1,0 +1,217 @@
+{
+ "u_family_ranges": {
+  "L": [
+   5.0,
+   6.98
+  ],
+  "W": [
+   4.0,
+   5.46
+  ],
+  "d": [
+   0.02,
+   2.18
+  ],
+  "w": [
+   0.4,
+   2.96
+  ]
+ },
+ "cell_m": 0.01,
+ "arms": {
+  "A-fam": {
+   "manifest": "configs/sweeps_2d_mat/p4_6_family_holdU_manifest.json",
+   "n_train": 240,
+   "d_hat_holdout": [
+    0.45,
+    0.6
+   ],
+   "identity_class_mismatches": 0,
+   "per_element": {
+    "e": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "r90": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 43
+    },
+    "r180": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "r270": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 43
+    },
+    "fx": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "fy": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "tr": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 43
+    },
+    "atr": {
+     "classes": {
+      "DN": 60,
+      "L": 60,
+      "T": 60,
+      "rect": 60
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 43
+    }
+   },
+   "leaking_elements": [
+    "r90",
+    "r270",
+    "tr",
+    "atr"
+   ]
+  },
+  "A-500": {
+   "manifest": "configs/sweeps_2d_mat/p4_4_shapes_500.json",
+   "n_train": 500,
+   "d_hat_holdout": [
+    0.45,
+    0.6
+   ],
+   "identity_class_mismatches": 0,
+   "per_element": {
+    "e": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "r90": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 88
+    },
+    "r180": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "r270": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 88
+    },
+    "fx": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "fy": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 0
+    },
+    "tr": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 88
+    },
+    "atr": {
+     "classes": {
+      "rect": 8,
+      "L": 492
+     },
+     "U_topology": 0,
+     "U_in_param_ranges": 0,
+     "d_hat_slab_leaks": 88
+    }
+   },
+   "leaking_elements": [
+    "r90",
+    "r270",
+    "tr",
+    "atr"
+   ]
+  }
+ }
+}
