@@ -4,7 +4,14 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-6 IN PROGRESS + P4-7 PREP DONE (2026-10-16, 00:50).**
+**Last updated**: **P4-6 g1/g2/g4 FINAL (2026-10-16, 07:50; D167) + P4-7 prep done (D164-D166).**
+
+* **g1 (PB3, 500 shapes) HOLDS:** test 200-300 Hz r 0.581 (>= 0.53), train-to-test gap 0.094 (< 0.22), Gate-2 **0.955** (best in project). Transfer is data-limited ALONG the family.
+* **g2 (family corpus, U held out):** U 0.554 / 0.257 / 0.294 vs in-family 0.835 / 0.576 / 0.436. The recipe does not transfer to an unseen family; within-family coverage helps (T 0.81 vs PB3 0.59).
+* **g4 (6-level hash cap) REFUTED:** fit, transfer and speckle unchanged.
+* **g3 (PB3 + 4x rx, 120K):** equal to PB3 at 30K; the 60K read is due ~10:00, final later. Write-up: [CHUNK_P4_6_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_6_RESULTS.md).
+
+Earlier: **P4-6 IN PROGRESS + P4-7 PREP DONE (2026-10-16, 00:50).**
 
 * **P4-7 prep** ([CHUNK_P4_7_PREP_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_7_PREP_RESULTS.md), D164-D166):
   * **p1:** the L corpora have 100% NW notches, and every room has the same SW source and lattice. Likely contributor to the out-of-family failure.

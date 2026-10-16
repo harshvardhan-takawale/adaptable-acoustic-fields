@@ -1,6 +1,6 @@
 # Chunk P4-6 — Geometry transfer: RESULTS (live)
 
-**Status: IN PROGRESS (2026-10-15, 18:05).** Step 0 and Step 1 are complete. The arms g1, g2 and g4 are training on tron; g3 is queued for an L40S. Decisions D160–D162 are in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
+**Status: g1 / g2 / g4 final at 60K (D167, 2026-10-16 07:50); g3 (120K) still training.** Step 0 and Step 1 are complete. The arms g1, g2 and g4 are training on tron; g3 is queued for an L40S. Decisions D160–D162 are in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
 
 **The chunk's premise** (the manager's correction, D160(a)): at 200–300 Hz the binding limit is geometry generalisation, not fit. Extra capacity raised training-room fit (r 0.648 → 0.772) but widened the train-to-test gap (0.18 → 0.28; D157). Every arm reports in-family AND out-of-family metrics.
 
@@ -45,10 +45,19 @@ The gate fails, so **the two-region DC head is closed**. The deficit is the aper
 
 | arm | what | pre-registered (manager) | status |
 |---|---|---|---|
-| g1 | PB3 on the 500-shape corpus, 60K | test 200–300 Hz r >= 0.53 AND train-to-test gap < 0.22 | training |
-| g2 | PB3 on the family corpus, U held out, 60K | report held-out U per band beside the in-family families | training |
-| g3 | PB3 + 4× receivers, 120K cosine | test 200–300 Hz r >= 0.52 by 120K; reads at 30K / 60K / 120K | queued (L40S) |
-| g4 | B5 + hash grid capped at 6 levels, 60K | training-room fit falls, test r within CI of B5 or higher, so the gap shrinks; speckle d1 | training |
+| g1 | PB3 on the 500-shape corpus, 60K | test 200–300 Hz r >= 0.53 AND train-to-test gap < 0.22 | **HOLDS**: 0.581 and 0.094 (D167) |
+| g2 | PB3 on the family corpus, U held out, 60K | report held-out U per band beside the in-family families | **does not transfer**: U 0.554 / 0.257 / 0.294 vs in-family 0.835 / 0.576 / 0.436 (D167) |
+| g3 | PB3 + 4× receivers, 120K cosine | test 200–300 Hz r >= 0.52 by 120K; reads at 30K / 60K / 120K | training (L40S); equal to PB3 at 30K |
+| g4 | B5 + hash grid capped at 6 levels, 60K | training-room fit falls, test r within CI of B5 or higher, so the gap shrinks; speckle d1 | **REFUTED**: fit unchanged, test −0.010, speckle unchanged (D167) |
+
+**60K results (D167):**
+- **g1 (500 shapes):** the best model in the project. Gate-2 0.955; test r 0.931 / 0.721 / **0.581**; train-to-test gap 0.094 (PB3 0.276).
+  - Transfer along the family is data-limited.
+  - Out of family it moves only slightly: T / DN / U 0.628 / 0.372 / 0.358 vs PB3 0.600 / 0.347 / 0.329. U at 100 Hz rises from +0.11 to +0.42.
+- **g2 (U held out):** the recipe does not transfer to an unseen family.
+  - The held-out U scores 0.554 / 0.257 / 0.294, worse than PB3's U, even though g2 trained on T and DN.
+  - Within-family coverage helps strongly (T 0.808 vs PB3 0.591).
+- **g4 (6-level cap):** refuted. Fit, transfer and speckle are all unchanged or slightly worse.
 
 **Interim @30K (D166):**
 - **G1 (500 shapes):** test r 0.919 / 0.683 / **0.545**. That is above the 0.53 threshold already, with a training-to-test gap of about 0.04 (PB3 @30K: 0.14).
