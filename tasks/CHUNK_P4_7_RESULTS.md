@@ -80,7 +80,12 @@ Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both 
   - the zero-initialised map is bit-identical, and woken it changes the output;
   - the trainer's render is bit-identical to the prior-free render plus the prior;
   - the evaluator path (load_model → wrapper) reproduces the trainer path.
-- **M3-fam:** G2's config + `modal_prior_dir` + `modal_k: 48`, queued on tron. M3-500 follows once M3-fam is read; its training priors are already computed.
+- **M3-fam:** G2's config + `modal_prior_dir` + `modal_k: 48`. **Training** on tron (0.77 s/it, due ~03:40).
+  - Priors and 96 features loaded for all 240 rooms.
+  - The DC head's residual scale is 30.5 at bin 0, against ~1190 for the full target: the prior carries ~97% of the DC level.
+  - Loss at 200 iterations is 0.16 (A-fam: 1.4–1.5).
+  - M3-500 follows once M3-fam is read; its training priors are already computed.
+- **Reports:** `scripts/p4_7_watch_report.sh` launches each arm's full standard report as its checkpoint lands: the 4K kill signal, then 30K and 60K for every P4-7 arm, and G3 at 120K. The watchers are detached, so they survive a session break.
 - **Order:** M3-fam (G2's corpus) first, then M3-500 (G1's corpus).
 - **Readings:**
   1. Held-out U at 25–100 Hz ≥ 0.85.
