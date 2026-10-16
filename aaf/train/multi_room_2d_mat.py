@@ -197,6 +197,18 @@ class P32TrainCfg:
     early_stop_patience: int = 10_000
     early_stop_min_rel_improvement: float = 0.003
     seed: int = 0
+    #: P4-7 prep p4 (D164). Geometric augmentation, ALL OFF by default: with every probability at
+    #: 0.0 nothing is imported, drawn or allocated, and `_step` runs its original lines.
+    #: aug_d4_p: probability that a drawn config is replaced by a non-identity D4 image (receivers,
+    #: source, polygon and wall alphas transformed together; the field is unchanged). aug_d4_elems:
+    #: the allowed images; default = the flips, because the transposing ones carry rooms into the
+    #: held-out d_hat slab (D164; refused when they would). aug_recip_p: probability that a row swaps
+    #: source and receiver (target unchanged). aug_seed: -1 derives it from `seed`. The draws use
+    #: their own CPU generator and never touch the global RNG streams.
+    aug_d4_p: float = 0.0
+    aug_d4_elems: str = "fx,fy,r180"
+    aug_recip_p: float = 0.0
+    aug_seed: int = -1
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -300,6 +312,11 @@ def _losses(H_pred, H_target, lo_bin: int = 0, w_spec=None, hi_bin=None, amp_eps
 def _lsd_db(H_pred, H_target, eps=1e-8):
     return float((20.0 * (torch.log10(H_pred.abs() + eps)
                           - torch.log10(H_target.abs() + eps))).abs().mean())
+
+
+def _aug_requested(cfg) -> bool:
+    """P4-7 prep p4: augmentation is on iff some probability is > 0."""
+    return float(cfg.aug_d4_p) > 0.0 or float(cfg.aug_recip_p) > 0.0
 
 
 def _prune_ckpts(out_dir: Path, keep_last: int, keep_every: int = 0, keep_iters=()) -> list:
@@ -549,6 +566,7 @@ class P32Trainer:
 
         self.scalars: List[dict] = []
         self.start_iter = self._maybe_resume()
+        self._aug = self._init_augment() if _aug_requested(cfg) else None
 
     def _parse_curriculum(self, spec: str):
         """'0:100,15000:200,35000:300' -> [(0, hi_bin), (15000, hi_bin), ...], hi_bin in band
@@ -605,6 +623,114 @@ class P32Trainer:
                 tx = self.src.unsqueeze(0).expand(sub.numel(), -1)
                 z = self.cond[cfg_ids[sub]]
                 H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z)
+                out[sub] = H[:, self.band[0]:self.band[1]]
+        return out
+
+    # ---------------------------------------------------------------- augmentation (P4-7 prep p4)
+    def _init_augment(self) -> dict:
+        """D164: precompute the D4 tables (index 0 = identity) and refuse unsupported set-ups."""
+        from aaf.data.augment_2d import (D4_ELEMS, TRANSPOSING, canonical_ring, is_interior_node,
+                                         precompute_d4_tables, transpose_holdout_leaks)
+        cfg = self.cfg
+        if cfg.sigma_aux_weight > 0.0:
+            raise ValueError("augmentation with sigma_aux_weight > 0 is not supported: the sigma "
+                             "term hard-codes the NW notch and the global source")
+        elems = ["e"] + [g.strip() for g in str(cfg.aug_d4_elems).split(",")
+                         if g.strip() and g.strip() != "e"]
+        for g in elems:
+            if g not in D4_ELEMS:
+                raise ValueError("unknown D4 element {!r} in aug_d4_elems".format(g))
+        if cfg.aug_d4_p > 0.0:
+            if cfg.cond_source not in ("geom_token", "geom_token_m"):
+                raise ValueError("D4 augmentation needs a geometry-token cond_source, got {!r}".format(
+                    cfg.cond_source))
+            if len(elems) < 2:
+                raise ValueError("aug_d4_p > 0 but aug_d4_elems names no non-identity element")
+        for c in self.configs:
+            if getattr(c, "x0", None) is not None:
+                raise ValueError("augmentation does not support aperture configs ({})".format(c.label))
+            v = getattr(c, "verts", None)
+            if v is None:
+                raise ValueError("augmentation needs configs with verts ({})".format(c.label))
+            if canonical_ring(v, c.edge_alphas)[0] != [tuple(map(float, q)) for q in v]:
+                raise ValueError("native ring of {} is not canonical".format(c.label))
+        leaks = []
+        if cfg.aug_d4_p > 0.0 and any(g in TRANSPOSING for g in elems) and cfg.configs_manifest:
+            slab = json.loads(Path(cfg.configs_manifest).read_text()).get("d_hat_holdout")
+            if slab:
+                leaks = transpose_holdout_leaks(self.configs, tuple(slab))
+                if leaks:
+                    raise ValueError("{} training rooms would be carried into the held-out d_hat slab "
+                                     "{} by a transposing element; use the flips fx,fy,r180 (D164)".format(
+                                         len(leaks), slab))
+        src = self.src.detach().cpu().numpy().astype(np.float64)
+        rx = self.rx.detach().cpu().numpy().astype(np.float64)
+        n_wall = 0
+        for i, c in enumerate(self.configs):
+            with h5py.File(Path(cfg.data_dir) / c.filename) as f:
+                s_i = np.asarray(json.loads(f.attrs["source_pos"]), dtype=np.float64)
+                dxx = float(f.attrs.get("dx_x", f.attrs.get("dx", 0.02)))
+                dxy = float(f.attrs.get("dx_y", f.attrs.get("dx", 0.02)))
+            if np.abs(s_i - src).max() > 1e-6:
+                raise ValueError("{}: source {} differs from the global source {}; the trainer keeps "
+                                 "one".format(c.label, s_i.tolist(), src.tolist()))
+            if cfg.aug_recip_p > 0.0:
+                pts = np.concatenate([src[None], rx[i]], 0)
+                n_wall += int((~is_interior_node(c.verts, pts, dxx, dxy)).sum())
+        if n_wall:
+            raise ValueError("reciprocity swaps need interior (non-wall) source and receivers; {} wall "
+                             "nodes found".format(n_wall))
+        T = precompute_d4_tables(self.configs, rx, src, cfg.cond_source, elems)
+        dev = self.device
+        seed_eff = int(cfg.aug_seed) if int(cfg.aug_seed) >= 0 else 1_000_003 * int(cfg.seed) + 17
+        gen = torch.Generator(device="cpu")
+        gen.manual_seed(seed_eff + int(self.start_iter))
+        info = {"elems": elems, "aug_d4_p": float(cfg.aug_d4_p), "aug_recip_p": float(cfg.aug_recip_p),
+                "seed_eff": seed_eff, "transpose_leaks": len(leaks)}
+        print("[augment] {}".format(info), flush=True)
+        return {"rx": torch.as_tensor(T["rx"], device=dev), "src": torch.as_tensor(T["src"], device=dev),
+                "dims": torch.as_tensor(T["dims"], device=dev), "cond": torch.as_tensor(T["cond"], device=dev),
+                "elems": elems, "gen": gen, "info": info}
+
+    def _aug_draw(self, n_cfg: int, rows: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Per-config element index (0 = identity) and per-row swap flags, from the private generator
+        with a FIXED consumption per call; the global CPU / CUDA RNG streams are never touched."""
+        A, cfg = self._aug, self.cfg
+        G = len(A["elems"])
+        coin = torch.rand(n_cfg, generator=A["gen"]) < float(cfg.aug_d4_p)
+        el = torch.randint(1, G, (n_cfg,), generator=A["gen"]) if G > 1 else torch.zeros(n_cfg, dtype=torch.long)
+        g = torch.where(coin, el, torch.zeros_like(el))
+        swap = torch.rand(rows, generator=A["gen"]) < float(cfg.aug_recip_p)
+        return g, swap
+
+    def _aug_forward(self, ci: torch.Tensor, ri: torch.Tensor, agg: dict):
+        """Transformed rows -> (H_pred, H_tgt). D4 and the swap leave the target unchanged."""
+        cfg, A = self.cfg, self._aug
+        g, swap = self._aug_draw(ci.numel() // cfg.rx_per_config, ci.numel())
+        g = g.repeat_interleave(cfg.rx_per_config).to(self.device)
+        sw = swap.to(self.device)[:, None]
+        rx = A["rx"][ci, g, ri]
+        tx = A["src"][ci, g]
+        rx, tx = torch.where(sw, tx, rx), torch.where(sw, rx, tx)
+        k = float(cfg.grad_accum_steps)
+        agg["aug_d4_frac"] = agg.get("aug_d4_frac", 0.0) + float((g > 0).float().mean()) / k
+        agg["aug_recip_frac"] = agg.get("aug_recip_frac", 0.0) + float(sw.float().mean()) / k
+        return self._render_rows(rx, tx, A["cond"][ci, g], A["dims"][ci, g]), self.H[ci, ri]
+
+    def _render_rows(self, rx: torch.Tensor, tx: torch.Tensor, z: torch.Tensor,
+                     dims: torch.Tensor) -> torch.Tensor:
+        """`_render` for per-row receivers / sources / cond / room dims, grouped by room dims (the
+        renderer takes one AABB per call)."""
+        out = torch.zeros(rx.shape[0], self.n_band, dtype=torch.complex64, device=self.device)
+        uniq, inv = torch.unique(dims, dim=0, return_inverse=True)
+        step = max(1, int(self.cfg.max_rows_per_render))
+        for gi in range(uniq.shape[0]):
+            sel = torch.nonzero(inv == gi).squeeze(1)
+            room_min = torch.zeros(2, device=self.device)
+            room_max = uniq[gi].to(torch.float32)
+            for s0 in range(0, sel.numel(), step):
+                sub = sel[s0:s0 + step]
+                H = self.renderer(self.model, rx[sub], tx[sub], room_min, room_max, z_s=z[sub])
                 out[sub] = H[:, self.band[0]:self.band[1]]
         return out
 
@@ -685,8 +811,12 @@ class P32Trainer:
             ci = ci.repeat_interleave(cfg.rx_per_config)
             ri = self.train_rx_idx[
                 torch.randint(0, self.train_rx_idx.numel(), (ci.numel(),), device=self.device)]
-            H_pred = self._render(ci, ri)
-            H_tgt = self.H[ci, ri]
+            aug = getattr(self, "_aug", None)          # getattr: __new__ test stubs
+            if aug is None:
+                H_pred = self._render(ci, ri)
+                H_tgt = self.H[ci, ri]
+            else:
+                H_pred, H_tgt = self._aug_forward(ci, ri, agg)
             terms = _losses(H_pred, H_tgt, self.loss_lo_bin, w_spec=self.spec_w, hi_bin=hi_bin,
                             amp_eps=self.amp_eps)
             w_r, w_i, w_a, w_p = cfg.weights
@@ -835,7 +965,7 @@ class P32Trainer:
                       "loss_spec_bin_weights", "loss_curriculum", "c2f_levels",
                       "dc_head_bins", "signal_heads", "signal_band_only", "signal_n_neurons",
                       "signal_band_edges_hz", "signal_xfade_hz", "loss_amp_floor_frac",
-                      "loss_amp_floor_ref"):
+                      "loss_amp_floor_ref", "aug_d4_p", "aug_d4_elems", "aug_recip_p"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
@@ -884,6 +1014,7 @@ class P32Trainer:
             "spec_bin_weights": self.spec_w_info,
             "amp_floor": self.amp_floor_info,
             "curriculum_bins": self.curriculum, "c2f": self.c2f,
+            **({"augment": self._aug["info"]} if getattr(self, "_aug", None) is not None else {}),
         }, indent=1, default=str))
         t0 = time.time()
         for it in range(self.start_iter + 1, cfg.n_iters + 1):

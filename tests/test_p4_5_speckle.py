@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import math
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -48,6 +49,8 @@ def _render(level_cut=None, fan_offset=0.0):
     return P
 
 
+@pytest.mark.skipif(not Path(CACHE).exists(), reason="dense cache deleted in P4-6 housekeeping (D160(b)); "
+                    "regenerate with scripts/p4_5_gate2_dense.py to re-run")
 def test_unmodified_render_reproduces_cache():
     P = _render()
     ref = np.load(CACHE)["P0"][:N]
