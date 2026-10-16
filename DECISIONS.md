@@ -1472,3 +1472,51 @@ For reference, B5 @4K was 2.53. Dense Gate-2 off-lattice in-slab / gap at 4K: G1
 * **Phase A:** `aaf/data/augment_2d.py` + 24 CPU tests pass. Includes the manager's FDTD test over all 8 D4 elements (e / fx bit-exact, the rest <= 1e-11), with teeth; reciprocity is exact in a rectangle, bounded in a notched room (the D65 residual), and off by a factor of 2 at wall nodes.
 * **Phase B:** trainer wiring behind default-off flags (`aug_d4_p`, `aug_d4_elems` default "fx,fy,r180", `aug_recip_p`, `aug_seed`). Being tested in a worktree, including a frozen-copy check that the OFF path of `_step` is bit-identical. It merges only when the full suite passes.
 * **Phase C (scale): not implemented** (p2 failed).
+
+**D166 — p4 COMPLETE (phases A + B; scale dropped per D165) and the P4-6 30K interim.**
+
+(a) **p4 phase B, merged** (c9e49da). Trainer flags, all default-off:
+* `aug_d4_p`;
+* `aug_d4_elems`, default "fx,fy,r180";
+* `aug_recip_p`;
+* `aug_seed`.
+
+When every probability is 0, `_step` runs its original lines, nothing is imported or drawn, and the default train_meta is unchanged. The draws use a private CPU generator, and per-config transforms keep the AABB group count unchanged.
+
+**Refusals:**
+* sigma_aux;
+* aperture configs;
+* a non-token cond_source;
+* transposing elements that leak a corpus's held-out d_hat slab;
+* wall-node receivers with swaps on;
+* a per-file source that differs from the global one.
+
+The resume guard covers the new keys.
+
+**Tests:** 72/73 pass across the trainer, augmentation, P4-6 and P4-5 suites. The one skip is the dense cache deleted in D160(b). They include a **frozen verbatim copy of the pre-change `_step`**: with flags off, three steps on a CPU stub give identical losses, parameters and CPU / CUDA RNG states (teeth: one extra global draw is detected). Also tested:
+* identity draws reproduce `_render` bit-for-bit;
+* the swap exchanges rx / tx with an unchanged target;
+* transformed rows lie inside their transformed boxes (teeth: untransposed boxes fail);
+* the integration test: off and on trainers on the family corpus hold identical default tensors.
+
+The worktree was removed without touching corpora or checkpoints (verified).
+
+(b) **Pre-flights.**
+* **Smoke run** (G2's config, 200 its, aug_d4_p 0.5 with {fx, fy, r180}, aug_recip_p 0.25): runs at **0.76 s/it**, against 0.80 for the unaugmented G2, so there is no throughput cost. `outputs/p4_7/p4_smoke_aug_log.txt`.
+* **Reciprocity at corpus resolution** (one D111 room per family; source (0.5, 1.6) against 10 interior receivers each; `outputs/p4_7/p4_reciprocity.json`):
+  * rectangle exact (in-band relative L2 ~5e-13);
+  * notched rooms (L, T, DN, U): median 2e-4 to 5e-3 per band, max 1.0e-2.
+  * The swap's label error is therefore <= 1%, two orders below the model's error (LSD 4-5 dB). Swaps are usable.
+
+(c) **P4-6 interim @30K** (pre-registered scoring at 60K / 120K). Dense, off-lattice, 15 test shapes.
+
+| arm @30K | test r 25-100 / 100-200 / 200-300 | training-room r 200-300 | gap | Gate-2 in-slab |
+|---|---|---|---|---|
+| **G1** (PB3, 500 shapes) | 0.919 / 0.683 / **0.545** | 0.580 | +0.001 | **0.939** [0.934, 0.942] |
+| G4 (6-level cap) | 0.885 / 0.619 / 0.457 | 0.569 | -0.003 | 0.917 |
+| G2 (family, U held out; on the L test shapes) | 0.783 / 0.494 / 0.341 | 0.665 (family rooms) | -0.004 | 0.835 |
+| PB3 @30K (reference) | 0.897 / 0.642 / 0.500 | 0.639 | +0.002 | 0.937 |
+| B5 @30K (reference) | 0.887 / 0.628 / 0.455 | 0.567 | -0.002 | 0.920 |
+
+* **G1's test 200-300 Hz r (0.545) already exceeds D160(g)'s 0.53 threshold and PB3's final 0.496.** Its training-to-test gap at 200-300 Hz is ~0.04, against PB3's 0.14 at the same iteration (threshold 0.22).
+* **G4 is indistinguishable from B5 so far:** training-room fit 0.569 vs 0.567, test 0.457 vs 0.455. Its hypothesis requires the fit to fall, and it has not yet.

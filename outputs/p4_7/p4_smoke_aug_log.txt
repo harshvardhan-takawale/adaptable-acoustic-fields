@@ -1,0 +1,90 @@
+host=tron48.umiacs.umd.edu; job=7856283; config=logs/smoke/P4_7_SMOKE_AUG.yaml; out=logs/smoke/smoke_aug
+GPU 0: NVIDIA RTX A5000 (UUID: GPU-654537f4-0b82-65e2-4bfc-f111df50869b)
+{
+ "run_id": "p4_7_smoke_aug",
+ "rooms_yaml": "configs/sweeps_2d_mat/p3_2_train.yaml",
+ "data_dir": "data/track_p4_4_family",
+ "configs_manifest": "configs/sweeps_2d_mat/p4_6_family_holdU_manifest.json",
+ "config_kinds": [],
+ "n_iters": 200,
+ "batch_size": 8,
+ "rx_per_config": 2,
+ "grad_accum_steps": 2,
+ "lr_network": 0.0002,
+ "eta_min": 5e-05,
+ "grad_clip_max_norm": 1.0,
+ "weights": [
+  1.0,
+  1.0,
+  1.0,
+  0.1
+ ],
+ "n_azi": 64,
+ "n_pts_per_ray": 64,
+ "max_rows_per_render": 8,
+ "near": 0.001,
+ "fs": 4096,
+ "n_time_samples": 8192,
+ "c": 343.0,
+ "band_max_hz": 300,
+ "latent_dim": 16,
+ "cond_source": "geom_token",
+ "cond_dim": 324,
+ "conditioning_type": "film",
+ "log2_hashmap_size": 18,
+ "n_levels": 20,
+ "per_level_scale": 1.5,
+ "base_resolution": 80,
+ "world_scale": 10.0,
+ "token_pool": "attn_residual_extent",
+ "loss_band_lo_hz": 0.0,
+ "sigma_aux_weight": 0.0,
+ "sigma_aux_n_points": 512,
+ "sigma_aux_ratio_target": 3.0,
+ "loss_spec_bin_weights": "",
+ "loss_amp_floor_frac": 0.0,
+ "loss_amp_floor_ref": "",
+ "loss_curriculum": "",
+ "c2f_levels": "",
+ "ckpt_thin_old": true,
+ "dc_head_bins": 41,
+ "signal_heads": 3,
+ "signal_band_only": false,
+ "signal_n_neurons": 0,
+ "signal_band_edges_hz": "173.0,245.0",
+ "signal_xfade_hz": 10.0,
+ "val_every": 100,
+ "val_max_configs": 60,
+ "ckpt_every": 1000,
+ "ckpt_keep_last": 1,
+ "ckpt_keep_every": 10000,
+ "ckpt_keep_iters": "4000",
+ "log_every": 20,
+ "early_stop_warmup": 200,
+ "early_stop_patience": 10000,
+ "early_stop_min_rel_improvement": 0.003,
+ "seed": 0,
+ "aug_d4_p": 0.5,
+ "aug_d4_elems": "fx,fy,r180",
+ "aug_recip_p": 0.25,
+ "aug_seed": -1
+}
+[data] 240 configs | band bins 0:601 (601)
+[data] preloaded 923 MB in 12.2s | 236 geometries
+[val] 52 configs x 100 held-out receivers
+[signal] {'raw': 3086784, 'active_band_0_300': 3086784, 'heads': 3}
+[dc_head] 41 bins (0-20.0 Hz) | scale bin0 1187.3  bin40 0.54
+[augment] {'elems': ['e', 'fx', 'fy', 'r180'], 'aug_d4_p': 0.5, 'aug_recip_p': 0.25, 'seed_eff': 17, 'transpose_leaks': 0}
+[    20/200] loss=5.3335 amp=0.3349 phase=0.9196 lr=1.96e-04 (0.768s/it)
+[    40/200] loss=3.8694 amp=0.3516 phase=0.8749 lr=1.86e-04 (0.762s/it)
+[    60/200] loss=2.5231 amp=0.3652 phase=0.8674 lr=1.69e-04 (0.761s/it)
+[    80/200] loss=1.9742 amp=0.3390 phase=0.8500 lr=1.48e-04 (0.760s/it)
+[   100/200] loss=1.8538 amp=0.3383 phase=0.8678 lr=1.25e-04 (0.759s/it)
+  [val 100] band-limited LSD = 6.9763 dB
+[   120/200] loss=1.5615 amp=0.3333 phase=0.8528 lr=1.02e-04 (1.419s/it)
+[   140/200] loss=1.6533 amp=0.3283 phase=0.8684 lr=8.09e-05 (1.325s/it)
+[   160/200] loss=1.5464 amp=0.2997 phase=0.8479 lr=6.43e-05 (1.254s/it)
+[   180/200] loss=1.5997 amp=0.3474 phase=0.8639 lr=5.37e-05 (1.199s/it)
+[   200/200] loss=1.5343 amp=0.3141 phase=0.8695 lr=5.00e-05 (1.155s/it)
+  [val 200] band-limited LSD = 6.4542 dB
+[done] final band-limited val LSD = 6.4542 dB (best 6.4542)

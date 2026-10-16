@@ -1,6 +1,6 @@
 # P4-7 prep — physics priors for unseen geometry: RESULTS
 
-**Status (2026-10-16): p1, p2, p3 and p5 are done (D165). p2 FAILS as pre-registered, and its cause is diagnosed. p4 phase A (pure geometry + 24 tests) is done; phase B (trainer wiring) is in testing; phase C (scale) is dropped because p2 failed.** No training was launched. Pre-registration is D164; results are D165 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
+**Status (2026-10-16): p1, p2, p3 and p5 are done (D165). p2 FAILS as pre-registered, and its cause is diagnosed. p4 is complete (phases A + B merged, D166); phase C (scale) is dropped because p2 failed.** No training was launched. Pre-registration is D164; results are D165 in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
 
 ## p1 — orientation audit
 [p1_orientation.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_7/p1_orientation.md)
@@ -57,7 +57,12 @@
 - **`tests/test_augment_2d.py`, 24 / 24 pass, including the manager's test:**
   - **D4 exactness:** all 8 D4 images of an L-room with non-uniform walls reproduce its FDTD field (identity and fx bit-exact; the rest ≤ 1e-11). Teeth: unpermuted walls, or the wrong receiver map, fail.
   - **Reciprocity:** exact in a rectangle; bounded but nonzero (the D65 residual) in a notched room; a factor of 2 at wall nodes.
-- **Phase B (trainer wiring behind default-off flags) is in progress.**
+- **Phase B is merged (c9e49da, D166).**
+  - **Flags:** `aug_d4_p`, `aug_d4_elems` (default fx,fy,r180; transposes are refused on slab corpora), `aug_recip_p` and `aug_seed`, all default-off.
+  - **Tests:** 72 / 73 pass. They include a frozen-copy check that the OFF `_step` is bit-identical (losses, parameters, RNG states).
+  - **Smoke run:** 200 iterations with augmentation on, at 0.76 s/it (no throughput cost).
+  - **Reciprocity at corpus resolution:** exact in a rectangle; ≤ 1% in notched rooms ([p4_reciprocity.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_7/p4_reciprocity.json)).
+- **Phase C (scale augmentation): not implemented**, because p2 failed.
 
 ## p5 — wall impedance
 [p5_wall_impedance.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_7/p5_wall_impedance.md)

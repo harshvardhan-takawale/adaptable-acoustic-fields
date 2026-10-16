@@ -4,7 +4,17 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-6 IN PROGRESS (2026-10-15, 18:05) -- geometry transfer.** Write-up (live): [tasks/CHUNK_P4_6_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_6_RESULTS.md); decisions **D160-D162**. Step 0 done (keep-list applied, 40.3 GB freed, validate() fixed, projection default, retention rule; g2 = hold out U by user decision). Step 1: **t3** closes the two-region DC head (narrow-doorway error is 2% at 0-20 Hz, 47% at 200-300 Hz); **t1** = field SHAPE, not mode placement (inverse-span features not launched); **t2** = out of family the collapse is at 25-100 Hz (r 0.60 vs 0.90 in family; U at 100 Hz +0.11). Arms g1 / g2 / g4 training on tron; g3 queued (L40S). P4-5 is closed; its final status report is below.
+**Last updated**: **P4-6 IN PROGRESS + P4-7 PREP DONE (2026-10-16, 00:50).**
+
+* **P4-7 prep** ([CHUNK_P4_7_PREP_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_7_PREP_RESULTS.md), D164-D166):
+  * **p1:** the L corpora have 100% NW notches, and every room has the same SW source and lattice. Likely contributor to the out-of-family failure.
+  * **p2 FAILS:** a non-decaying compliance term breaks the time-stretch, so scale augmentation is not implemented.
+  * **p3:** not segment-count sensitive, but the model's change field is uncorrelated with the true one (field shape).
+  * **p4:** D4 (flips by default) and reciprocity loader merged behind default-off flags, tested bit-identical when off.
+  * **p5:** beta = tanh(m/4), frequency-independent.
+* **P4-6 interim @30K:** G1 (500 shapes) test 200-300 Hz r **0.545**, already above the 0.53 threshold, with a train-to-test gap of ~0.04. G4 equals B5. G3 is at 18K. Finals at 60K (~06:30) / 120K.
+
+Earlier: **P4-6 IN PROGRESS (2026-10-15, 18:05) -- geometry transfer.** Write-up (live): [tasks/CHUNK_P4_6_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_6_RESULTS.md); decisions **D160-D162**. Step 0 done (keep-list applied, 40.3 GB freed, validate() fixed, projection default, retention rule; g2 = hold out U by user decision). Step 1: **t3** closes the two-region DC head (narrow-doorway error is 2% at 0-20 Hz, 47% at 200-300 Hz); **t1** = field SHAPE, not mode placement (inverse-span features not launched); **t2** = out of family the collapse is at 25-100 Hz (r 0.60 vs 0.90 in family; U at 100 Hz +0.11). Arms g1 / g2 / g4 training on tron; g3 queued (L40S). P4-5 is closed; its final status report is below.
 
 Earlier status: **P4-5 (2026-10-15, 11:55) -- ALL arms have their final reads (D153-D159); nothing is training.** **Full status report (running / finished / scorecard / pending decisions, with links): [tasks/P4_5_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_5_STATUS_REPORT.md).** **a1 B5r final (D159):** accuracy = B5 within CI at every band (prediction holds as 'at'); the speckle is NOT reduced at 60K (2 cm d1 1.54 / 1.25 vs B5 1.45 / 1.27; the 30K ~10% loud-region reduction closed); fine-scale coherence +0.071. Helmholtz gate: condition 2 met, condition 1 still fails (|c| 0.46-0.53 >> 0.1), so it is NOT queued (manager's call). The prediction's premise (B6 excess -0.023) was B6 @20K; B6 @60K reads +0.030. The speckle's only measured remedy is the renderer-side physical projection (D152(f)). Decisions in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
 

@@ -50,6 +50,12 @@ The gate fails, so **the two-region DC head is closed**. The deficit is the aper
 | g3 | PB3 + 4× receivers, 120K cosine | test 200–300 Hz r >= 0.52 by 120K; reads at 30K / 60K / 120K | queued (L40S) |
 | g4 | B5 + hash grid capped at 6 levels, 60K | training-room fit falls, test r within CI of B5 or higher, so the gap shrinks; speckle d1 | training |
 
+**Interim @30K (D166):**
+- **G1 (500 shapes):** test r 0.919 / 0.683 / **0.545**. That is above the 0.53 threshold already, with a training-to-test gap of about 0.04 (PB3 @30K: 0.14).
+- **G4:** equal to B5 so far.
+- **G2:** 0.783 / 0.494 / 0.341 on the L test shapes; its out-of-family U read is at 60K.
+- **G3:** at 18K after two preemptions.
+
 **Gated, not launched:** the two-region DC head (t3 closed it) and inverse-span geometry features (t1 closed it).
 
 **Standard report per arm:**
