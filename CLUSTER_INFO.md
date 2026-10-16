@@ -72,6 +72,8 @@ GPU inventory per partition is not summarized here — see [Nexus/GPUs](https://
 | RTX A5000 | 24 GB | `--gres=gpu:rtxa5000:1` | tron46-58 |
 | RTX A6000 | 48 GB | `--gres=gpu:rtxa6000:1` | tron00-05 |
 
+**48 GB scarcity (P4-6, D163, 2026-10-15).** A6000 jobs can wait for days: on 2026-10-15 SLURM estimated a 3-day start on tron and 2.5 days on scavenger. 48 GB **L40S** cards (`--gres=gpu:l40s:1`; cml34, csd00, gammagpu18-21) and RTX 6000 Ada (cbcb28-29) were free on scavenger. tinycudann (built for sm52, falls back to CutlassMLP) runs on the L40S at 0.64-0.67 s/it for the 4x-receiver PB3 arm. Scavenger preempts: G3 was preempted twice in 4 h and resumed from its newest checkpoint each time (`--requeue`).
+
 Rule of thumb for this project: the 3D auto-decoder at `batch≥16` or `n_pts_per_ray=32` needs ≥ 24 GB (A5000) or ≥ 48 GB (A6000). The 3D single-room / multi-room at `batch=4, n_pts=16` fits the 2080 Ti (P2-1's memory cascade). When in doubt, name an A5000.
 
 ## sbatch template

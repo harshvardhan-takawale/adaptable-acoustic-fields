@@ -1398,3 +1398,17 @@ Per family (PB3 raw, 25-100 / 200-300): rect 0.888 / 0.400, L 0.916 / 0.509, T 0
 * (4) Together with t1: across the family boundary the field SHAPE is wrong, and conditioning on the new topology does not reach the low-order modes. This bears on g2 (U held out) and points to conditioning or representation, not data volume along the current families. g1 tests the data volume directly.
 
 (d) **Housekeeping.** The B5 / PB3 @60K dense caches kept for t1 (D160(b)) are now deleted.
+
+**D163 — P4-6 arms at 4K: all four pass D135's kill signal, with no gap. G3 moved to an L40S (cluster note).** (a) **4K reads** (D135: off-lattice training-room LSD 0-100 Hz; memorisers >= 4.68, non-memorisers <= 4.01):
+* G1 **2.62** (shape rooms);
+* G3 **2.56** (shape rooms);
+* G4 **2.52** (shape rooms);
+* G2 **3.03** on the 20 off-lattice FAMILY training rooms (D160(f)). Per family: rect 2.45, L 3.05, T 3.12, DN 3.50. D135's thresholds were calibrated on the shape corpus, so this is reported, not scored against them.
+
+For reference, B5 @4K was 2.53. Dense Gate-2 off-lattice in-slab / gap at 4K: G1 0.789 / -0.000, G2 0.705 / -0.010, G3 0.805 / +0.002, G4 0.807 / -0.007 (B5 @4K 0.824 / -0.004). G2 is a family-corpus model scored on the 15 L test shapes. No arm opens a gap. All run on. `outputs/p4_6/GAP_CI_4K.json`.
+
+(b) **G3 hardware.**
+* **The move.** P4_6_G3 (4x receivers) needs 48 GB (D103). The tron A6000 queue estimated a start on 2026-10-18; scavenger A6000 estimated 2026-10-18 05:00. G3 was moved to a scavenger **L40S** (48 GB, Ada). tinycudann's sm52 build JIT-runs there with CutlassMLP, as on the A5000 / A6000. Throughput is 0.64-0.67 s/it and the loss trajectory is normal (1.31 -> 1.02 by 800 its, as the other arms).
+* **Comparability.** G3 is the only P4-6 arm on Ada hardware. Run-to-run tcnn nondeterminism already exceeds any hardware effect (D151), so its numbers compare with the others as a new run would.
+* **Preemption.** G3 was preempted at 22:10 (and once before) and resumes from its newest checkpoint each time.
+* `CLUSTER_INFO.md` now records the 48 GB scarcity and the L40S alternative.
