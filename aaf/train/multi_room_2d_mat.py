@@ -209,6 +209,11 @@ class P32TrainCfg:
     aug_d4_elems: str = "fx,fy,r180"
     aug_recip_p: float = 0.0
     aug_seed: int = -1
+    #: P4-7 m4 (D169). Render every row with ITS OWN room's `source_pos` (the CX500 corpus draws one
+    #: source per room). Off (default): the single global source, exactly as before -- and a corpus
+    #: whose files disagree on the source is now REFUSED rather than silently trained against the
+    #: last file's source.
+    per_room_source: bool = False
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -414,7 +419,7 @@ class P32Trainer:
 
         # ---- preload: only the supervised bins ------------------------------------
         data_dir = Path(cfg.data_dir)
-        H_list, rx_list, geom_id, cfg_id, conds = [], [], [], [], []
+        H_list, rx_list, geom_id, cfg_id, conds, srcs = [], [], [], [], [], []
         geom_index: Dict[Tuple[float, float], int] = {}
         self.geom_dims: List[Tuple[float, float]] = []
         t0 = time.time()
@@ -435,6 +440,7 @@ class P32Trainer:
                 self.geom_dims.append(key)
             H_list.append(H)
             rx_list.append(rx)
+            srcs.append(src)
             geom_id.append(geom_index[key])
             cfg_id.append(ci)
             # x0 / a exist only on Track 2b's ApertureConfig; every other arm ignores them.
@@ -450,6 +456,21 @@ class P32Trainer:
                                      a=getattr(c, "a", None),
                                      verts=_verts).numpy())
         self.src = torch.tensor(src, device=self.device)
+        # P4-7 m4 (D169): one source per config when asked; otherwise every file must agree.
+        src_all = np.stack(srcs)
+        if cfg.per_room_source:
+            if cfg.sigma_aux_weight > 0.0:
+                raise ValueError("per_room_source with sigma_aux_weight > 0 is not supported: the "
+                                 "sigma term renders with the single global source")
+            self.src_per = torch.tensor(src_all, device=self.device)               # [C,2]
+        else:
+            spread = float(np.abs(src_all - src_all[-1]).max())
+            if spread > 1e-6:
+                raise ValueError(
+                    "the corpus has {} distinct source positions (max deviation {:.3f} m) but "
+                    "per_room_source is off: the trainer would render every room with the LAST "
+                    "file's source".format(len({tuple(x) for x in src_all.tolist()}), spread))
+            self.src_per = None
         self.H = torch.tensor(np.stack(H_list), device=self.device)          # [C,64,B]
         self.rx = torch.tensor(np.stack(rx_list), device=self.device)        # [C,64,2]
         self.geom_id = torch.tensor(geom_id, dtype=torch.long, device=self.device)
@@ -620,7 +641,11 @@ class P32Trainer:
             for s0 in range(0, sel.numel(), step):
                 sub = sel[s0:s0 + step]
                 rx = self.rx[cfg_ids[sub], rx_ids[sub]]
-                tx = self.src.unsqueeze(0).expand(sub.numel(), -1)
+                src_per = getattr(self, "src_per", None)
+                if src_per is None:
+                    tx = self.src.unsqueeze(0).expand(sub.numel(), -1)
+                else:
+                    tx = src_per[cfg_ids[sub]]
                 z = self.cond[cfg_ids[sub]]
                 H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z)
                 out[sub] = H[:, self.band[0]:self.band[1]]
@@ -635,6 +660,9 @@ class P32Trainer:
         if cfg.sigma_aux_weight > 0.0:
             raise ValueError("augmentation with sigma_aux_weight > 0 is not supported: the sigma "
                              "term hard-codes the NW notch and the global source")
+        if cfg.per_room_source:
+            raise ValueError("augmentation with per_room_source is not implemented yet: the D4 "
+                             "tables transform one global source (P4-7 m4, D169)")
         elems = ["e"] + [g.strip() for g in str(cfg.aug_d4_elems).split(",")
                          if g.strip() and g.strip() != "e"]
         for g in elems:
@@ -965,7 +993,8 @@ class P32Trainer:
                       "loss_spec_bin_weights", "loss_curriculum", "c2f_levels",
                       "dc_head_bins", "signal_heads", "signal_band_only", "signal_n_neurons",
                       "signal_band_edges_hz", "signal_xfade_hz", "loss_amp_floor_frac",
-                      "loss_amp_floor_ref", "aug_d4_p", "aug_d4_elems", "aug_recip_p"):
+                      "loss_amp_floor_ref", "aug_d4_p", "aug_d4_elems", "aug_recip_p",
+                      "per_room_source"):
                 if k in prev and prev[k] != getattr(self.cfg, k):
                     raise RuntimeError(
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
@@ -1015,6 +1044,9 @@ class P32Trainer:
             "amp_floor": self.amp_floor_info,
             "curriculum_bins": self.curriculum, "c2f": self.c2f,
             **({"augment": self._aug["info"]} if getattr(self, "_aug", None) is not None else {}),
+            **({"per_room_source": {"n_distinct": int(len({tuple(x) for x in
+                                                           self.src_per.tolist()}))}}
+               if getattr(self, "src_per", None) is not None else {}),
         }, indent=1, default=str))
         t0 = time.time()
         for it in range(self.start_iter + 1, cfg.n_iters + 1):
