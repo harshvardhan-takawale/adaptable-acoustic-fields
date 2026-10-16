@@ -1520,3 +1520,42 @@ The worktree was removed without touching corpora or checkpoints (verified).
 
 * **G1's test 200-300 Hz r (0.545) already exceeds D160(g)'s 0.53 threshold and PB3's final 0.496.** Its training-to-test gap at 200-300 Hz is ~0.04, against PB3's 0.14 at the same iteration (threshold 0.22).
 * **G4 is indistinguishable from B5 so far:** training-room fit 0.569 vs 0.567, test 0.457 vs 0.455. Its hypothesis requires the fit to fall, and it has not yet.
+
+**D167 — P4-6 arms g1 / g2 / g4 at 60K, scored against D160(g): g1 HOLDS (geometry transfer IS data-limited along the current families). g4 is REFUTED (the fine hash levels are not where transfer is lost). g2 shows the recipe does NOT transfer to an unseen family (held-out U), while within-family coverage helps strongly. g3 (120K) is pending.** Dense, off-lattice, 15 test shapes, shape-bootstrap CIs (paired where stated); projection reported beside raw (D160(e)). Files: `outputs/p4_6/GAP_CI_60K.json`, `RISK_METRICS_60K.json`, `family_oof/{G1,G2,G4}_60K.json`, `outputs/p4_5/speckle/{G1,G2,G4}_60K.json`, training-room fits.
+
+**Standard report @60K**
+
+| | Gate-2 OFF in-slab [CI] | gap | test r 25-100 / 100-200 / 200-300 | test LSD 200-300 | train r 200-300 | train-to-test gap 100-200 / 200-300 | out-of-family T,DN,U r (raw) | U @100 Hz | modal RIR off | speckle d1 raw / proj; abs c |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **G1** PB3, 500 shapes | **0.955** [0.950, 0.960] | +0.001 | **0.931 / 0.721 / 0.581** | **4.28** | 0.675 | **0.085 / 0.094** | 0.628 / 0.372 / 0.358 | **+0.42** | **0.956** | 0.942 / 0.910; 0.539 |
+| G4 6-level cap | 0.916 [0.897, 0.934] | +0.002 | 0.883 / 0.619 / 0.457 | 5.04 | 0.644 | 0.190 / 0.188 | 0.623 / 0.337 / 0.287 | +0.25 | 0.932 | 0.946 / 0.906; 0.468 |
+| G2 family, U out (on L test shapes) | 0.832 [0.810, 0.848] | +0.003 | 0.774 / 0.475 / 0.309 | 5.97 | 0.793 (family rooms) | 0.389 / 0.484 | U only: 0.554 / 0.257 / 0.294 | +0.16 | 0.876 | 0.927 / 0.875; 0.397 |
+| PB3 (ref) | 0.931 [0.921, 0.942] | -0.002 | 0.895 / 0.647 / 0.496 | 4.74 | 0.772 | 0.210 / 0.276 | 0.600 / 0.347 / 0.329 | +0.11 | 0.939 | 0.956 / --; 0.477 |
+| B5 (ref) | 0.924 [0.909, 0.939] | +0.001 | 0.887 / 0.631 / 0.467 | 5.00 | 0.648 | 0.181 / 0.181 | 0.624 / 0.367 / 0.314 | +0.24 | 0.935 | 0.968 / --; 0.455 |
+
+The render-time projection changes every out-of-family r by <= 0.002 (raw and projected in the JSONs).
+
+(a) **g1, pre-registered: "data-limited" if test 200-300 Hz r >= 0.53 AND the train-to-test gap < 0.22. BOTH HOLD:** 0.581 and 0.094.
+* Paired G1 - PB3: **+0.036 [+0.022, +0.055] / +0.074 [+0.050, +0.099] / +0.085 [+0.069, +0.100].**
+* Doubling the shape count (250 -> 500 L rooms, still all NW-notched) lowers the training-room fit (0.772 -> 0.675) and raises test transfer: the gap closes by two thirds.
+* g1 is the best model in the project: Gate-2 0.955, LSD < 100 Hz 1.17 dB, 200-300 Hz 4.28 dB, modal RIR 0.956.
+* **Out of family it moves only slightly:** T / DN / U 0.628 / 0.372 / 0.358 vs PB3 0.600 / 0.347 / 0.329 (+0.03 per band), though U at 100 Hz rises from +0.11 to +0.42. More shapes ALONG the family fix in-family transfer; they barely touch the cross-family deficit (25-100 Hz: in-family 0.922 vs out-of-family 0.628).
+
+(b) **g4, pre-registered: training-room fit falls, test r within CI of B5 or higher, gap shrinks. REFUTED.**
+* Training-room 200-300 r 0.644 vs B5 0.648: unchanged.
+* Test r is slightly LOWER: G4 - B5 -0.004 [-0.012, +0.003] / -0.013 [-0.021, -0.004] / -0.010 [-0.019, -0.002].
+* Gap 0.188 vs 0.181: unchanged.
+* Speckle d1 is unchanged too (0.946 vs 0.968 raw; loud-quintile excess 0.48 / 0.38 vs 0.51 / 0.39). A 6-level grid (finest cell 1.65 cm) can still carry the 2-4 cm speckle, and it neither cures it nor helps transfer.
+* The fine hash levels are not where geometry generalisation is lost. Together with D152(d), the 6-level cap is closed.
+
+(c) **g2, the roadmap test (does the fixed recipe transfer to a family it never saw?): NO.**
+* **Held-out U:** 0.554 / 0.257 / 0.294 at 25-100 / 100-200 / 200-300 Hz; U at 100 Hz +0.16.
+* **In-family held-out instances:** rect 0.961 / 0.846 / 0.701, L 0.789 / 0.441 / 0.257, T 0.808 / 0.596 / 0.508, DN 0.780 / 0.422 / 0.276; mean **0.835 / 0.576 / 0.436**.
+* U sits 0.28 / 0.32 / 0.14 below the in-family mean. It is WORSE than PB3, which never saw any two-notch room (U 0.631 / 0.320 / 0.336), despite G2 having trained on two-notch families (T, DN).
+* Within-family coverage helps strongly: G2 on T 0.808 vs PB3 0.591; rect 0.961 vs 0.888. Unseen-family transfer does not follow from seen two-notch families.
+* G2 on the 15 L test shapes (0.774 / 0.475 / 0.309; Gate-2 0.832) is below PB3, consistent with its 60 L rooms against C250's 242. Its train-to-test gap there (0.48) mixes family rooms with L-corpus test shapes, so it is reported, not interpreted.
+
+(d) **Reading for the chunk** (labelled inference, the manager's call).
+* Along a family, transfer is data-limited and doubling the corpus closes most of the 200-300 Hz gap (g1).
+* Across families it is not: neither more L shapes (g1) nor seen two-notch families (g2) transfer to U. This agrees with t1 / t2 / p3 (the field SHAPE is wrong out of family) and p1 (the corpora never place a notch outside a fixed set of positions relative to the fixed source).
+* The P4-7 lever this points to is orientation / configuration diversity (D4 flips, now in the loader, D166) and conditioning, not representation capacity (g4) or density (g3 at 30K = PB3; scored at 60K and 120K).
