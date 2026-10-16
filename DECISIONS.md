@@ -1435,3 +1435,40 @@ For reference, B5 @4K was 2.53. Dense Gate-2 off-lattice in-slab / gap at 4K: G1
   * **Scale.** Only if p2 passes.
   * **Test.** The manager's: a 90 deg rotation (and all 8 elements) of a room maps its FDTD field exactly.
 * **(p5)** Wall impedance beta per material, from the FDTD boundary model, recorded for a later wall-condition loss.
+
+**D165 — P4-7 PREP RESULTS, scored against D164.**
+* **p1:** every notch in the L corpora is NW, and every room has the same source and a SW-anchored receiver lattice. Recorded as a likely contributor to the out-of-family failure.
+* **p2: FAILS above 20 Hz**, because the FDTD record carries a non-decaying compliance term. Scale augmentation is NOT implemented.
+* **p3:** the encoder is NOT segment-count sensitive by the pre-registered rule, but its response to a geometry edit lands in the wrong places.
+* **p5:** the wall model is frequency-independent, with beta = tanh(m/4).
+
+(a) **p1 orientation audit** (`outputs/p4_7/p1_orientation.{json,md}`).
+* **C250, C500 and the 15 test shapes:** notch at **NW in 100%** of notched rooms (242 / 492 / 15; the rest are 8 rectangles).
+* **Family corpus:** NW 180 / NE 60 / midN 60 / SE 60 notch sides in train. There is no SW, W-mid, E-mid or S-mid (by construction, so the source stays in air; `multi_notch.py:16-28`).
+* **Every room, every corpus:**
+  * source at (0.5, 1.6), in the SW quadrant, never adjacent to a notch (nearest reflex corner >= 0.66 m, median 2.4-2.5 m);
+  * receivers 100% on the 0.12 + 0.06 k lattice anchored at the SW origin;
+  * every wall alpha 0.15; L > W in 94-100%.
+* **Recorded as a likely contributor to the out-of-family failure (D162):** an L-corpus model has never seen a reflex corner outside NW, nor any source-relative geometry other than "source SW, notch NW", and T, DN and U all place notches where it has not.
+
+(b) **p2 scale invariance: FAILS as pre-registered** (`outputs/p4_7/p2_scale.json`). Above 20 Hz, relative L2 is **1.22-2.01** (threshold <= 0.016-0.046) and dB r ~0.2-0.36, in all 3 rooms x 2 alphas. The alpha = 1 control is exactly 0, so the pipeline is correct. **Why** (`p2_scale_diagnostics.json`, labelled diagnostics; they do not change the verdict):
+* (1) The pulse-free FDTD response carries a **spatially uniform static (compliance) offset that never decays**: c0 x N ~ 920-1100, the D96/D97 near-DC term. It is 27-41% of the record's energy beyond alpha T. With it removed, only 0.1-0.6% remains, so the propagating field decays well inside the window. The zero-padded stretch truncates the offset into a step at alpha T, and the step's ~1/f leakage swamps the modal field at every frequency.
+* (2) Removing the offset (estimated from the last 0.25 s) leaves 25-36% error. Matching the windows (the direct record also cut at alpha T) leaves **16-18% at alpha = 0.9 (r 0.93-0.95) and 29-34% at alpha = 0.8 (r 0.85-0.88)**, a residual roughly proportional to the scale change.
+* **Labelled inference:** the static term's level is set by the room's compliance, not by the geometric law, so it cannot be stretched. The residual is consistent with that mismatch.
+* **Consequence (as pre-registered: "if it fails above 20 Hz, stop and report why"):** scale augmentation is NOT implemented and no scale flags are added. A future attempt would have to remove the compliance term first, e.g. on the field after the DC head's 0-20 Hz term, and re-verify on the propagating part only.
+
+(c) **p3 geometry sensitivity** (`outputs/p4_7/p3_sensitivity.json`). D111's U room against the same room minus its 14 cm NE notch (8 -> 6 tokens), at the U's 3680 receivers (3285 off-lattice). Ground-truth change: 0.54 / 1.58 / 2.67 dB at 50 / 100 / 200 Hz. Model change ratio dP/dT: PB3 **3.10** / 1.13 / 0.76; B5 1.73 / 1.56 / 1.22.
+* **Verdict: NOT segment-count sensitive** for either model (>= 3 at >= 2 of 3 frequencies is required; PB3 meets it only at 50 Hz). Arc-length boundary sampling is not indicated by this test.
+* **The finding: the spatial correlation between the model's change field and the true change field is ~0 (-0.10 to +0.18)** at every frequency, for both models, and unchanged far from the notch. The models change the field by about the right AMOUNT when a corner is removed, but not in the right PLACES. This is the same "field shape" signature as t1 and t2 (D162).
+* The ground truth itself is more sensitive than the notch's size suggests (1.6-2.7 dB at 100-200 Hz over the whole room).
+* Confound, reported: the L version is in C250's held-out slab and has L < W.
+
+(d) **p5 wall impedance** (`outputs/p4_7/p5_wall_impedance.{json,md}`).
+* The FDTD wall is locally reacting and **frequency-independent**: beta = xi = (1-R)/(1+R) = **tanh(m/4)**, with R = sqrt(1-alpha) and m = -ln(1-alpha).
+* Robin condition in the repo's rfft convention: **dp/dn_out = -i k beta p**.
+* beta = 0.0406 for every P4 wall (alpha 0.15); 0.0128 concrete; 0.172 curtain; 0.292 absorber; 0.58-0.63 window.
+
+(e) **p4 status.**
+* **Phase A:** `aaf/data/augment_2d.py` + 24 CPU tests pass. Includes the manager's FDTD test over all 8 D4 elements (e / fx bit-exact, the rest <= 1e-11), with teeth; reciprocity is exact in a rectangle, bounded in a notched room (the D65 residual), and off by a factor of 2 at wall nodes.
+* **Phase B:** trainer wiring behind default-off flags (`aug_d4_p`, `aug_d4_elems` default "fx,fy,r180", `aug_recip_p`, `aug_seed`). Being tested in a worktree, including a frozen-copy check that the OFF path of `_step` is bit-identical. It merges only when the full suite passes.
+* **Phase C (scale): not implemented** (p2 failed).

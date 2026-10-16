@@ -32,6 +32,7 @@ from aaf.sim.polygon_geom import notch_solid_mask, polygon_contains
 
 MANIFEST = "configs/sweeps_2d_mat/p4_4_shapes_250.json"
 OUT = Path("outputs/p4_7")
+OUTNAME = __import__("os").environ.get("P2_OUT", "p2_scale.json")   # diagnostics rerun -> separate file
 DX, FS, N, C = 0.02, 30720.0, 61440, 343.0
 ALPHAS = (0.8, 0.9)
 WALL_CLEAR, CORNER_CLEAR = 0.12, 0.15
@@ -151,19 +152,41 @@ def main():
             Ha = np.fft.rfft(stretch(h0[idx], a), axis=1)[:, :601]
             tail = float(np.mean(((h0[idx][:, int(a * N):] ** 2).sum(1)) / e_tot[idx]))
             m = band_metrics(Hs, Ha)
+            # DIAGNOSTICS (labelled; they do not change the pre-registered verdict):
+            # (i) remove each record's static offset (mean of its last 0.25 s) before stretching
+            hs = np.fft.irfft(res["H_deconv"], n=N, axis=1)
+            k = int(0.25 * FS)
+            c_o, c_s = h0[idx][:, -k:].mean(1, keepdims=True), hs[:, -k:].mean(1, keepdims=True)
+            Hs_i = np.fft.rfft(hs - c_s, axis=1)[:, :601]
+            Ha_i = np.fft.rfft(stretch(h0[idx] - c_o, a), axis=1)[:, :601]
+            # (ii) matched window: the direct record also cut at alpha T
+            hs_w = hs.copy(); hs_w[:, int(a * N):] = 0.0
+            Hs_ii = np.fft.rfft(hs_w, axis=1)[:, :601]
+            diag = {"static_offset": {"orig_c0_x_N_median": float(np.median(np.abs(c_o)) * N),
+                                       "orig_H0_median": float(np.median(np.abs(np.fft.rfft(h0[idx], axis=1)[:, 0]))),
+                                       "tail_energy_frac_after_offset_removal": float(np.mean(
+                                           (((h0[idx] - c_o)[:, int(a * N):]) ** 2).sum(1) / ((h0[idx] - c_o) ** 2).sum(1)))},
+                    "i_offset_removed": band_metrics(Hs_i, Ha_i), "ii_matched_window": band_metrics(Hs_ii, Ha)}
             ok = all(m[b]["rel_l2"] <= 2 * D94_FLOOR[b] and m[b]["r_db"] >= 0.99 for b in D94_FLOOR)
             allpass &= ok
             room["alphas"][str(a)] = {"n_rx": int(len(Pa)), "max_rx_snap_m": rx_err,
                                       "src_offset_m": np.asarray(res["meta"].get("src_offset_m", np.nan), float).tolist(),
                                       "scaled_mask_vs_polygon_bad_nodes": bad, "grid": [nx, ny, dxx, dxy],
-                                      "tail_energy_frac_last_(1-a)T": tail, "bands": m, "pass": ok}
+                                      "tail_energy_frac_last_(1-a)T": tail, "bands": m, "pass": ok,
+                                      "diagnostics": diag}
             print("{} a={} n_rx {} tail {:.2e} | ".format(c.label, a, len(Pa), tail) + " | ".join(
                 "{} L2 {:.4f} r {:.4f} lsd {:.3f}".format(b, v["rel_l2"], v["r_db"], v["lsd_db"]) for b, v in m.items())
                 + (" | PASS" if ok else " | FAIL"), flush=True)
+            for dn in ("i_offset_removed", "ii_matched_window"):
+                print("   diag {}: ".format(dn) + " | ".join("{} L2 {:.4f} r {:.4f}".format(b, v["rel_l2"], v["r_db"])
+                      for b, v in diag[dn].items()), flush=True)
+            print("   static offset: c0*N {:.1f} vs |H0| {:.1f}; tail energy after removal {:.2e}".format(
+                diag["static_offset"]["orig_c0_x_N_median"], diag["static_offset"]["orig_H0_median"],
+                diag["static_offset"]["tail_energy_frac_after_offset_removal"]), flush=True)
         rep["rooms"].append(room)
     rep["pass_all"] = bool(allpass)
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "p2_scale.json").write_text(json.dumps(rep, indent=1, default=float))
+    (OUT / OUTNAME).write_text(json.dumps(rep, indent=1, default=float))
     print("PASS_ALL", allpass, flush=True)
 
 
