@@ -4,7 +4,18 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-7 IN PROGRESS (2026-10-16, 14:40; D169-D170).** Write-up (live): [CHUNK_P4_7_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_7_RESULTS.md).
+**Last updated**: **P4-7 (2026-10-17, 10:50; D171-D172).** Manager report: [P4_7_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_7_STATUS_REPORT.md).
+
+* **m3 interim (M3-fam @20K):**
+  * Physics + residual network gives held-out U **0.977** (G2 0.554) and test shapes 0.989 / 0.976 / 0.961.
+  * The network adds **+0.001 r / <= 0.08 dB over H_modal alone**. Pre-registered reading (2) is NOT MET.
+  * **Q24 (what is the INR for, given physics) is now the decisive question.**
+* **m2 FAILS:** A-fam U +0.045 (needed +0.10); A-500 OOF -0.025, with an in-family cost of -0.07 to -0.10.
+* **GX** (diverse rooms + per-room source): OOF **+0.110** over G1 (0.738), in-family -0.02 to -0.08.
+* **G3 @120K FAILS:** 0.469 < 0.52, and the gap widens to 0.41.
+* M3-fam ran out of memory at 26.6K and is queued for a 48 GB L40S.
+
+Earlier: **P4-7 IN PROGRESS (2026-10-16, 14:40; D169-D170).** Write-up (live): [CHUNK_P4_7_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_7_RESULTS.md).
 
 * **m1 (physics-only modal baseline, D170): m3 LAUNCHES.**
   * Out-of-family 25-100 Hz r is **0.923** (threshold 0.85; the network reads 0.60-0.63), and 0.922 in family.

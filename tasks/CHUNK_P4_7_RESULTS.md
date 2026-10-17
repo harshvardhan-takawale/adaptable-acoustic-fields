@@ -1,11 +1,12 @@
 # Chunk P4-7 — Configuration diversity and a physics modal prior: RESULTS (live)
 
-**Status (2026-10-16, 14:40):**
-- m1 is done (D170): **physics carries the field shape, so m3 launches.**
-- m2 (A-fam, A-500) is training on tron and is due ~02:30.
-- m4: the CX500 corpus is built and its arm GX is queued on tron.
-- m3 is pre-registered (D170(g)) and being implemented.
-- G3 is preempted at 77K and waiting to requeue.
+**Status (2026-10-17, 10:50):** manager report: [P4_7_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_7_STATUS_REPORT.md).
+- m1 is done (D170): **physics carries the field, so m3 launched.**
+- m2 FAILS its pre-registration on both halves (D171(a)).
+- GX: out-of-family +0.110 over G1, with an in-family cost (D171(b)).
+- G3 FAILS at 120K (D171(c)).
+- m3 interim at 20K (D172): out-of-family repaired (U 0.977), but **the network adds ~0 over physics**.
+- M3-fam ran out of memory at 26.6K on an A5000 and is queued for a 48 GB L40S; its 60K read follows. Q24 is now decisive.
 
 Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both are in [DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md).
 
@@ -44,8 +45,8 @@ Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both 
 ## m2 — configuration diversity (D4 flips + reciprocity), two arms at 60K
 | arm | recipe | pre-registered | status |
 |---|---|---|---|
-| A-fam | G2 (family, U held out) + aug_d4_p 0.5 + aug_recip_p 0.25, flips fx/fy/r180 | held-out U at 25–100 Hz r ≥ 0.554 + 0.10 | training (tron, 0.76 s/it), due ~02:30 |
-| A-500 | G1 (C500) + the same augmentation | out-of-family mean (T, DN, U) at 25–100 Hz ≥ 0.628 + 0.10 | training (tron, 0.76 s/it), due ~02:30 |
+| A-fam | G2 (family, U held out) + aug_d4_p 0.5 + aug_recip_p 0.25, flips fx/fy/r180 | held-out U at 25–100 Hz r ≥ 0.554 + 0.10 | **FAILS**: U 0.599 (+0.045) (D171(a)) |
+| A-500 | G1 (C500) + the same augmentation | out-of-family mean (T, DN, U) at 25–100 Hz ≥ 0.628 + 0.10 | **FAILS**: 0.603 (−0.025); in-family −0.013 / −0.073 / −0.097 (D171(a)) |
 
 - **Leakage pre-flight** ([m2_leak_preflight.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_7/m2_leak_preflight.json)): topology is read from each image polygon.
   - **0 U-topology images under all 8 D4 elements in both corpora**, so 0 fall inside the U ranges.
@@ -64,7 +65,9 @@ Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both 
   - Off: `_render` equals the frozen pre-change copy. On, with a single-source corpus: renders are bit-identical. On, with a mixed corpus: each row is rendered with its own source, and the output changes.
   - C500's rows, re-expressed as polygon rows, condition bit-identically (500 / 500).
   - Tests: 119 trainer-related tests pass.
-- **Arm GX:** G1's recipe on C500 + CX500 (1000 rooms), 60K, `per_room_source: true`. **Training** on tron (0.76 s/it, due ~03:30): 1000 configs, 500 distinct sources, 35 validation rooms. Reported against G1, in family and out of family.
+- **Arm GX:** G1's recipe on C500 + CX500 (1000 rooms), 60K, `per_room_source: true`. **Final @60K (D171(b)):**
+  - Out of family 0.738 / 0.484 / 0.419, which is +0.110 [+0.049, +0.178] / +0.112 / +0.061 over G1 (n = 6). U 0.790.
+  - In family: test r 0.907 / 0.646 / 0.504, i.e. −0.024 / −0.076 / −0.078; Gate-2 0.935 [0.921, 0.948].
 
 ## m3 — modal hybrid (pre-registered D170(g)): implemented (a7c9833); M3-fam launched
 - **Residual:** H = H_modal + H_net. H_modal is m1's formula (frozen C, modes to 600 Hz) **with the exact zero-mode record**; H_net is PB3; the loss is applied to the sum.
@@ -80,7 +83,10 @@ Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both 
   - the zero-initialised map is bit-identical, and woken it changes the output;
   - the trainer's render is bit-identical to the prior-free render plus the prior;
   - the evaluator path (load_model → wrapper) reproduces the trainer path.
-- **M3-fam:** G2's config + `modal_prior_dir` + `modal_k: 48`. **Training** on tron (0.77 s/it, due ~03:40).
+- **M3-fam:** G2's config + `modal_prior_dir` + `modal_k: 48`.
+  - **Interim @20K (D172):** U 0.977 / 0.972 / 0.960; the 15 test shapes 0.989 / 0.976 / 0.961.
+  - M3 − H_modal alone is +0.001 r and −0.01 to −0.08 dB LSD. Reading (1) MET, (2) NOT MET, (3) no harm. Training-to-test gap 0.004.
+  - The run ran out of memory at 26.6K (A5000); a resume died in its first backward. It is queued for a 48 GB L40S (scavenger, `--requeue`).
   - Priors and 96 features loaded for all 240 rooms.
   - The DC head's residual scale is 30.5 at bin 0, against ~1190 for the full target: the prior carries ~97% of the DC level.
   - Loss at 200 iterations is 0.16 (A-fam: 1.4–1.5).
@@ -93,5 +99,5 @@ Pre-registration is D169; m1 results and the m3 pre-registration are D170. Both 
   3. Harm: any band more than 0.02 r below H_modal alone.
 
 ## Continuing
-- **G3:** to 120K (pre-registered 200–300 Hz r ≥ 0.52); preempted at 77K and requeued.
+- **G3 @120K (D171(c)): FAILS** (test 200–300 Hz 0.469 < 0.52). It falls −0.023 from 60K, and the training-room fit rises to 0.880 (gap 0.411).
 - **Parked:** the doorway aperture (revisit with the modal prior), scale augmentation (now possible with the exact zero mode, D170(c)), plane-wave / Helmholtz losses.

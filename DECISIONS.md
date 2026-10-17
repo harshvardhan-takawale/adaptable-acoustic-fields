@@ -1654,3 +1654,67 @@ Physics does not care which family a room is in: the out-of-family rooms score a
   2. **The network adds over physics:** M3-fam beats H_modal alone on held-out U AND on the in-family family rooms, by >= 0.01 r at 200-300 Hz or >= 0.2 dB LSD in any band. Otherwise the network contributes nothing measurable over the prior.
   3. **Harm:** any band where the hybrid is more than 0.02 r below H_modal alone is a failure of the residual design, whatever (1) says.
 * Standard report (D160) for both arms, including the 4K kill signal (its calibration does not transfer to a residual target; reported, not used to kill).
+
+**D171 — P4-7 finals at 60K (m2, GX) and G3 at 120K.**
+* **m2's pre-registered test FAILS on both halves**: D4 flips + reciprocity do not repair the out-of-family failure, and they cost in-family accuracy.
+* **GX (the CX500 configuration-diverse corpus) moves out-of-family 25-100 Hz r by +0.110 over G1**, at an in-family cost.
+* **G3 FAILS its 120K threshold** and loses accuracy from 60K to 120K.
+
+Off-lattice everywhere. Paired shape bootstrap over the 15 test shapes and a room bootstrap over the 6 out-of-family rooms (n = 6: weak, flagged); 10k resamples, seed 20261013. Files: `outputs/p4_7/report_tables.json` (`scripts/p4_7_report_tables.py`), plus per-arm `GAP_CI_*` / `RISK_METRICS_*` (outputs/p4_7), `family_oof/*`, `speckle/*` and the train-fit JSONs.
+
+| arm | Gate-2 off-lattice [CI] | test r 25-100 / 100-200 / 200-300 | LSD < 100 Hz | training-room fit r | gap 200-300 | OOF mean (T, DN, U) | U | speckle d1 200-300 raw / proj |
+|---|---|---|---|---|---|---|---|---|
+| A-fam @60K | 0.833 [0.815, 0.851] | 0.806 / 0.521 / 0.405 | 2.22 | 0.937 / 0.709 / 0.571 (family) | 0.166 | 0.745 / 0.479 / 0.411 | 0.599 / 0.353 / 0.364 | 0.892 / 0.841 |
+| G2 @60K (parent) | 0.832 [0.810, 0.848] | 0.774 / 0.475 / 0.309 | 2.35 | 0.965 / 0.864 / 0.793 (family) | 0.484 | 0.714 / 0.425 / 0.359 | 0.554 / 0.257 / 0.294 | 0.927 / 0.875 |
+| A-500 @60K | 0.945 [0.937, 0.955] | 0.918 / 0.648 / 0.485 | 1.34 | 0.937 / 0.680 / 0.492 (C250) | 0.008 | 0.603 / 0.375 / 0.389 | 0.726 / 0.384 / 0.392 | 0.859 / 0.816 |
+| GX @60K | 0.935 [0.921, 0.948] | 0.907 / 0.646 / 0.504 | 1.46 | 0.923 / 0.681 / 0.529 (C250) | 0.025 | **0.738 / 0.484 / 0.419** | 0.790 / 0.495 / 0.463 | 0.906 / 0.870 |
+| G1 @60K (parent) | 0.955 [0.950, 0.960] | 0.931 / 0.721 / 0.581 | 1.17 | 0.960 / 0.806 / 0.675 (C250) | 0.094 | 0.628 / 0.372 / 0.358 | 0.718 / 0.434 / 0.402 | 0.942 / 0.910 |
+| G3 @120K | 0.923 [0.910, 0.937] | 0.893 / 0.625 / **0.469** | 1.44 | 0.981 / 0.922 / 0.880 (C250) | **0.411** | 0.599 / 0.357 / 0.297 | 0.651 / 0.327 / 0.285 | 0.958 / 0.914 |
+| G3 @60K | 0.929 [0.919, 0.938] | 0.897 / 0.642 / 0.491 | 1.44 | 0.968 / 0.871 / 0.798 | 0.307 | 0.593 / 0.374 / 0.327 | 0.659 / 0.364 / 0.321 | 0.963 / 0.910 |
+
+The render-time projection changes every out-of-family r by <= 0.0013. Full-band RIR is 0.9996-0.9998 for every arm, and modal RIR off-lattice is 0.889-0.937. 4K kill signals (training-room LSD 0-100 Hz): A-fam 3.95, A-500 3.34, GX 3.40. All are <= 4.01, so all ran on.
+
+(a) **m2, pre-registered (D169(b)): "configuration bias is a main cause" if A-fam's held-out U at 25-100 Hz rises >= 0.10 over G2 AND A-500's out-of-family mean at 25-100 Hz rises >= 0.10 over G1. BOTH FAIL.**
+* **A-fam:** U 0.599 vs 0.554, i.e. **+0.045**. The other bands move more (+0.096 / +0.070), but the 25-100 Hz test is the pre-registered one.
+* **A-500:** out-of-family mean 0.603 vs 0.628: **-0.025 [-0.080, +0.038]** (n = 6). T falls (0.457 vs 0.552), DN and U are flat.
+* **Cost of dilution (pre-registered as reportable):**
+  * A-500 - G1 on the 15 test shapes: **-0.013 [-0.019, -0.008] / -0.073 [-0.082, -0.065] / -0.097 [-0.114, -0.080]**, all CIs excluding 0. Gate-2 0.945 vs 0.955.
+  * A-500's training-room fit falls just as far (0.960 / 0.806 / 0.675 -> 0.937 / 0.680 / 0.492; gap 0.008).
+  * Labelled inference: at matched iterations the augmented arm under-fits. It does not transfer worse for a given fit.
+* **A-fam against G2 is mixed in family.**
+  * On the 15 L test shapes A-fam GAINS: +0.032 [+0.023, +0.040] / +0.046 [+0.026, +0.064] / +0.096 [+0.061, +0.131]. The family corpus has only NW L rooms, and its flips add NE / SW / SE images.
+  * On the family rooms: rect falls at 100-300 Hz (0.770 / 0.592 vs 0.846 / 0.701); L and DN rise; T is flat.
+  * Training-room fit falls 0.793 -> 0.571 at 200-300 Hz, so the gap halves (0.484 -> 0.166).
+* **Reading:** D4 flips of the same rooms do not supply the out-of-family field shape. The fixed-source, fixed-position bias of p1 is real, but flipping it is not the cure.
+
+(b) **GX (m4: G1's recipe on C500 + CX500, per-room source; no threshold, reported against G1).**
+* **Out of family:** +0.110 [+0.049, +0.178] / +0.112 [+0.069, +0.148] / +0.061 [+0.031, +0.092] (n = 6). U +0.072 / +0.061 / +0.061. DN 0.819 vs 0.614; T 0.603 vs 0.552.
+* **In family it costs:** test r -0.024 [-0.029, -0.020] / -0.076 [-0.086, -0.064] / -0.078 [-0.091, -0.065]; Gate-2 0.935 vs 0.955; LSD < 100 Hz 1.46 vs 1.17 dB. Training-room fit falls (0.923 / 0.681 / 0.529; gap 0.025). Labelled: GX has 1000 rooms at G1's 60K iterations, so each room is seen half as often.
+* **Reading** (labelled inference): new geometries and new source positions move the out-of-family field where flipped copies of the same rooms do not. Over the same parent, A-500 reads -0.025 and GX +0.110. Even so, GX's out-of-family 0.738 is far below the physics baseline's 0.978 (D170).
+
+(c) **G3, pre-registered (D160): test 200-300 Hz r >= 0.52 by 120K. FAILS:** 0.469.
+* 120K - 60K: -0.004 [-0.007, -0.001] / -0.017 [-0.023, -0.011] / -0.023 [-0.029, -0.016].
+* Training-room fit climbs to 0.981 / 0.922 / 0.880, so the 200-300 Hz gap widens to 0.411.
+* 4x receivers plus a long schedule memorises the training rooms and transfers worse. This completes D168: density does not buy transfer.
+
+(d) **M3-fam crashed (out of memory) and was moved to a 48 GB card.**
+* CUDA OOM at 26.6K on an A5000: 20.9 GB reserved vs 16.3 GB allocated, i.e. fragmentation. The trainer job does not set the allocator option the evaluation jobs use.
+* A resume from the 26K checkpoint with `PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128` (allocation only) died in its FIRST backward: tinycudann's own allocator (cuMemCreate) ran out.
+* The arm sits at the 24 GB ceiling. G2 fits; M3-fam carries ~1 GB more for the per-(room, receiver) prior.
+* Moved to a 48 GB L40S on scavenger (`--requeue` resumes it on preemption), as G3 was (D166). It resumes from 26K; its 60K read follows the run, about 6 h once started.
+* M3-fam's 4K training-room LSD 0-100 Hz is 0.42 dB. D135's 4.01 threshold was calibrated on full-field arms and does not apply to a residual target; reported, not used.
+* An interim read at 20K follows in D172.
+
+**D172 — m3 INTERIM (M3-fam @20K of 60K): the hybrid reproduces physics and repairs out-of-family by construction (held-out U 25-100 Hz r 0.977 vs G2 0.554). But the residual network adds almost nothing measurable over H_modal alone (+0.001 r, -0.01 to -0.08 dB LSD), so reading (2) is NOT MET at 20K. No band is harmed.** Pre-registered readings are in D170(g); the final read comes at 60K. The numbers come from the standard report on `outputs/p4_7/arms/M3FAM/ckpt_iter0020000.pt`, rendered through `load_model`'s modal-prior wrapper. They are compared per room with m1's "+exact zero" numbers, i.e. H_modal alone on the same off-lattice receivers.
+
+| rooms | M3-fam @20K r (25-100 / 100-200 / 200-300) | LSD dB | H_modal alone r | LSD dB | M3 - H_modal |
+|---|---|---|---|---|---|
+| 15 test shapes | 0.989 / 0.976 / 0.961 | 0.55 / 0.79 / 1.04 | 0.988 / 0.976 / 0.960 | 0.59 / 0.80 / 1.05 | r +0.001 [+0.001, +0.002] / +0.000 [0.000, +0.001] / +0.001 [+0.001, +0.001]; LSD -0.042 [-0.053, -0.031] / -0.008 / -0.010 dB |
+| U (held out, 2 rooms) | **0.977** / 0.972 / 0.960 | 0.93 / 0.88 / 1.06 | 0.973 / 0.972 / 0.960 | 1.00 / 0.89 / 1.07 | r +0.004 / +0.000 / +0.001; LSD -0.08 / -0.01 / -0.01 |
+| rect / L / T / DN (in-family held-out) | 0.997-0.982 / 0.983-0.975 / 0.970-0.959 | 0.20-0.77 / 0.61-0.83 / 0.88-1.07 | (same within 0.002) | | r +0.001-0.002; LSD -0.03 to -0.05 at 25-100 Hz, -0.01 above |
+
+* **Reading (1), out-of-family repair (U at 25-100 Hz r >= 0.85): MET**, at 0.977. G2 reads 0.554 and A-fam 0.599. M3-fam - G2 on the 15 test shapes is +0.216 [+0.178, +0.253] / +0.502 [+0.467, +0.535] / +0.652 [+0.614, +0.692].
+* **Reading (2), the network adds over physics (>= +0.01 r at 200-300 Hz, or >= 0.2 dB LSD in any band, on U AND the in-family rooms): NOT MET at 20K.** The largest gain is -0.08 dB at 25-100 Hz on U. The residual network has learned a small low-frequency level correction and nothing else measurable.
+* **Reading (3), harm (any band more than 0.02 r below H_modal alone): none.** Every band is equal or slightly better.
+* **Training-room fit equals transfer:** fit r 0.991 / 0.977 / 0.965 against test 0.989 / 0.976 / 0.961, so the gap is 0.004. Held-out-receiver validation LSD went 0.835 -> 0.790 dB from 2K to 26K.
+* **Labelled inference:** the residual of H_modal against the FDTD is the diagonal-damping and operator-symmetrisation error (D170(c)), and this network does not find it from 240 rooms in 20K steps. Whether it does by 60K is the final read. Q24 is now the decisive question: on simulated data the INR's measured contribution over physics is about 0.
