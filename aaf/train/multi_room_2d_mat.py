@@ -1199,6 +1199,11 @@ class P32Trainer:
         if not bool(torch.isfinite(G.real).all() and torch.isfinite(G.imag).all()):
             raise FloatingPointError("LS2 gradient is not finite at iteration {}".format(it))
         self._ls2_steps += 1
+        # Return pass 1's freed renderer buffers to the driver before pass 2: tinycudann allocates from its OWN arena
+        # (cuMemCreate) and cannot use torch's cache. Without this, a job RESUMED from a checkpoint (its arena empty,
+        # Adam state already resident) died in pass 2's first forward (LS2A / LS2B, D176(g)). Numerically a no-op.
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         n = ri.numel()
         w_r, w_i, w_a, w_p = cfg.weights
         agg = {}
