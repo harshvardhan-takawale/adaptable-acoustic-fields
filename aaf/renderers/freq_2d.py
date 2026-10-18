@@ -67,11 +67,15 @@ class FreqRenderer2D(nn.Module):
     # Geometry helpers
     # ------------------------------------------------------------------
 
-    def _ray_directions_2d(self, device: torch.device) -> torch.Tensor:
+    def _ray_directions_2d(self, device: torch.device, jitter: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Returns (cos θ, sin θ) for n_azi rays, jittered per call.
 
         Out shape: [n_azi, 2].
+        P4-8 LS2: an explicit ``jitter`` (one scalar tensor) replaces the per-call draw, so two passes over
+        the same rows render bit-identically; no random number is drawn then. ``None`` is the old path.
         """
+        if jitter is not None:
+            return torch.stack([torch.cos(self.theta_grid + jitter), torch.sin(self.theta_grid + jitter)], dim=-1)
         # In training mode, jitter; in eval mode, use the deterministic grid.
         if self.training:
             jitter = torch.empty(1, device=device).uniform_(0.0, 2.0 * math.pi / self.n_azi)
@@ -127,6 +131,7 @@ class FreqRenderer2D(nn.Module):
         z_s: Optional[torch.Tensor] = None,
         modal_feat: Optional[torch.Tensor] = None,
         h_prior: Optional[torch.Tensor] = None,
+        jitter: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Render H(f) at each receiver via 2D volume integration.
 
@@ -162,7 +167,7 @@ class FreqRenderer2D(nn.Module):
         N_a = self.n_azi
         N_p = self.n_pts_per_ray
 
-        dirs = self._ray_directions_2d(device)  # [n_azi, 2]
+        dirs = self._ray_directions_2d(device, jitter)  # [n_azi, 2]
         t_far = self._ray_aabb_intersect_2d(rx_pos, dirs, room_min, room_max)  # [B, n_azi]
 
         # Sample N_p points uniformly in [near, t_far] per ray.

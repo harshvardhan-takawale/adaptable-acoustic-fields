@@ -170,6 +170,9 @@ def load_model(ckpt_path: Path, device: torch.device):
         fsz = int(c["n_time_samples"]) // 2 + 1
         lo, hi = band_indices(float(c["fs"]), fsz, 0.0, float(c.get("band_max_hz", 300)))
         return signal_kwargs(c, hi - lo)
+    def _mb_kwargs(c):
+        from aaf.train.multi_room_2d_mat import multiband_kwargs
+        return multiband_kwargs(c)
     meta_path = ckpt_path.parent / "train_meta.json"
     meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
     n_freq_bins = int(cfg["n_time_samples"]) // 2 + 1
@@ -213,6 +216,8 @@ def load_model(ckpt_path: Path, device: torch.device):
         # omitted; they are passed explicitly anyway.
         **({"modal_feat_dim": 2 * int(cfg.get("modal_k", 0) or 0), "modal_prior": True}
            if cfg.get("modal_prior_dir") else {}),
+        # P4-8 MB1 / MB2: the trainer's own helper (D73); the grid spec buffer is checked on load.
+        **_mb_kwargs(cfg),
     ).to(device)
     model.load_state_dict(st["model"])
     model.eval()

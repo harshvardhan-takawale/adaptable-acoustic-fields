@@ -274,6 +274,7 @@ class INR2D_AutoDecoder(nn.Module):
         signal_xfade_bins: int = 0,
         modal_feat_dim: int = 0,
         modal_prior: bool = False,
+        mb_grid_cfgs: Optional[Sequence[dict]] = None,
     ):
         super().__init__()
         if n_freq_bins <= 1:
@@ -732,11 +733,121 @@ class INR2D_AutoDecoder(nn.Module):
             self.modal_proj = None
         if modal_prior:
             self.register_buffer("requires_modal_prior", torch.ones((), dtype=torch.bool))
+        # P4-8 MB1 / MB2 (D174(e)): SEPARATE per-band models. Built LAST -- after every default module,
+        # which is built unchanged and then replaced -- so the shared modules (token encoder, pooling,
+        # DC head, direction encoders) draw the RNG exactly as in the default model, and a model without
+        # it is untouched.
+        self._mb_bands = None
+        if mb_grid_cfgs is not None:
+            self._build_multiband(list(mb_grid_cfgs), mlp_cfg, int(sigma_encoder_dim), signal_n_neurons)
+
+    def _build_multiband(self, grid_cfgs, mlp_cfg, sigma_encoder_dim: int, signal_n_neurons: int) -> None:
+        """Per band k (PB3's supports): its own four POSITION grids (sigma point / source, signal point / source;
+        tcnn seed 1337 + k), FiLM + sigma encoder + sigma decoder over the band's bins, FiLM + signal MLP over the
+        band's bins. The default per-model versions of those modules are released (they leave the state_dict)."""
+        if self.conditioning_type != "film" or not self._signal_alt or self.signal_heads != 3 or self.signal_band_bins <= 0:
+            raise ValueError("multi-band models need conditioning_type='film' and PB3's three band-only heads")
+        if len(grid_cfgs) != 3:
+            raise ValueError("need one grid config per band (3), got {}".format(len(grid_cfgs)))
+        if self.modal_feat_dim > 0 or getattr(self, "requires_modal_prior", None) is not None:
+            raise ValueError("multi-band models do not support the modal prior / features")
+        for name in ("_pos_encoding", "_tx_pos_encoding", "_pos_signal_encoding", "_tx_pos_signal_encoding",
+                     "film_sigma", "_model_encoder_sigma", "_model_decoder_sigma", "film_signal",
+                     "_signal_nets", "_signal_films"):
+            setattr(self, name, None)
+        net_cfg = dict(mlp_cfg["signal"])
+        if int(signal_n_neurons) > 0:
+            net_cfg["n_neurons"] = int(signal_n_neurons)
+        bands = nn.ModuleList()
+        spec = []
+        for k, g in enumerate(grid_cfgs):
+            g = dict(g)
+            lo, hi = (int(x) for x in self.signal_head_lohi[k])
+            n = hi - lo + 1
+            seed = 1337 + k
+            d = nn.ModuleDict()
+            d["pos"] = tcnn.Encoding(2, g, seed=seed, dtype=torch.float32)
+            d["tx"] = tcnn.Encoding(2, g, seed=seed, dtype=torch.float32)
+            d["pos_sig"] = tcnn.Encoding(2, g, seed=seed, dtype=torch.float32)
+            d["tx_sig"] = tcnn.Encoding(2, g, seed=seed, dtype=torch.float32)
+            sfd = d["pos"].n_output_dims + d["tx"].n_output_dims
+            d["film_sigma"] = self._identity_film(sfd)
+            d["enc_sigma"] = tcnn.Network(n_input_dims=sfd, n_output_dims=sigma_encoder_dim,
+                                          network_config=mlp_cfg["sigma_encoder"], seed=seed)
+            d["dec_sigma"] = tcnn.Network(n_input_dims=sigma_encoder_dim, n_output_dims=2 * n,
+                                          network_config=mlp_cfg["sigma_decoder"], seed=seed)
+            gfd = (sigma_encoder_dim + self._dir_encoding.n_output_dims + self._tx_dir_encoding.n_output_dims
+                   + d["pos_sig"].n_output_dims + d["tx_sig"].n_output_dims)
+            d["film_signal"] = self._identity_film(gfd)
+            d["net"] = tcnn.Network(n_input_dims=gfd, n_output_dims=2 * n, network_config=net_cfg, seed=seed)
+            bands.append(d)
+            spec.append([float(g["n_levels"]), float(g["base_resolution"]), float(g["per_level_scale"]),
+                         float(g.get("n_features_per_level", 2)), float(g["log2_hashmap_size"])])
+        self._mb_bands = bands
+        # The grid numbers travel in every checkpoint and are CHECKED on load: a per_level_scale off in the
+        # 4th decimal leaves every table size unchanged, so a strict load alone would accept it silently.
+        self.register_buffer("mb_grid_spec", torch.tensor(spec, dtype=torch.float64))
+        self.mb_sigma_fill = float(math.log(2.0) + 1e-6)                # softplus(0) + 1e-6 above the band
+
+    def _identity_film(self, width: int) -> nn.Linear:
+        f = nn.Linear(self.cond_dim, 2 * width)
+        nn.init.zeros_(f.weight)
+        with torch.no_grad():
+            f.bias[:width].fill_(1.0)
+            f.bias[width:].zero_()
+        return f
+
+    def _forward_mb(self, pts_flat, tx_flat, view_flat, tx_view_flat, z_s_flat, B: int, N: int):
+        """Per-band sigma and signal, stitched over bins with PB3's crossfade weights; bins above the band
+        are a constant sigma (softplus(0)) and zero signal -- the renderer is unchanged."""
+        view_emb = self._dir_encoding(view_flat)
+        tx_view_emb = self._tx_dir_encoding(tx_view_flat)
+        nb = self.signal_band_bins
+        BN = pts_flat.shape[0]
+        dev = pts_flat.device
+        a_re = torch.zeros(BN, nb, device=dev)
+        a_im = torch.zeros(BN, nb, device=dev)
+        s_re = torch.zeros(BN, nb, device=dev)
+        s_im = torch.zeros(BN, nb, device=dev)
+        out_dtype = None
+        for k, d in enumerate(self._mb_bands):
+            lo, hi = int(self.signal_head_lohi[k, 0]), int(self.signal_head_lohi[k, 1])
+            n = hi - lo + 1
+            wk = self.signal_xfade_w[k, lo:hi + 1]
+            sf = torch.cat([d["pos"](pts_flat), d["tx"](tx_flat)], dim=-1)
+            gs, bs = d["film_sigma"](z_s_flat).chunk(2, dim=-1)
+            sfe = d["enc_sigma"](gs * sf + bs)
+            raw = d["dec_sigma"](F.relu(sfe))
+            out_dtype = raw.dtype
+            raw = raw.float()
+            a_re[:, lo:hi + 1] = a_re[:, lo:hi + 1] + wk * (F.softplus(raw[:, :n]) + 1e-6)
+            a_im[:, lo:hi + 1] = a_im[:, lo:hi + 1] + wk * raw[:, n:]
+            gf = torch.cat([F.relu(sfe), view_emb, tx_view_emb, d["pos_sig"](pts_flat), d["tx_sig"](tx_flat)], dim=-1)
+            gg, bg = d["film_signal"](z_s_flat).chunk(2, dim=-1)
+            rs = d["net"](gg * gf + bg).float()
+            s_re[:, lo:hi + 1] = s_re[:, lo:hi + 1] + wk * rs[:, :n]
+            s_im[:, lo:hi + 1] = s_im[:, lo:hi + 1] + wk * rs[:, n:]
+        rest = self.n_freq_bins - nb
+        z = torch.zeros(BN, rest, device=dev)
+        attn_real = torch.cat([a_re, torch.full((BN, rest), self.mb_sigma_fill, device=dev)], dim=-1).to(out_dtype)
+        attn_imag = torch.cat([a_im, z], dim=-1).to(out_dtype)
+        signal_re = torch.cat([s_re, z], dim=-1).to(out_dtype)
+        signal_im = torch.cat([s_im, z], dim=-1).to(out_dtype)
+        signal_im[..., 0] = 0
+        if self._n_time_samples % 2 == 0:
+            signal_im[..., -1] = 0
+        attn = torch.complex(attn_real, attn_imag).view(B, N, self.n_freq_bins)
+        sig = torch.complex(signal_re, signal_im).view(B, N, self.n_freq_bins)
+        return attn, sig
 
     def signal_param_counts(self) -> dict:
         """D144: parameters in the signal pathway (MLP(s) + their FiLM layers), raw and ACTIVE.
         ACTIVE excludes output rows for bins above the supervised band, which never receive
         gradient; for the band-restricted pathways raw == active."""
+        if getattr(self, "_mb_bands", None) is not None:
+            per = [sum(p.numel() for p in d.parameters()) for d in self._mb_bands]
+            grids = [sum(d[k].params.numel() for k in ("pos", "tx", "pos_sig", "tx_sig")) for d in self._mb_bands]
+            return {"multiband_params_per_band": per, "multiband_grid_params_per_band": grids, "heads": 3}
         film = sum(p.numel() for p in self.film_signal.parameters())
         if self._model_signal is not None:
             raw = self._model_signal.params.numel()
@@ -798,6 +909,8 @@ class INR2D_AutoDecoder(nn.Module):
         Switched-off levels contribute exactly zero to the MLP input and therefore receive
         exactly zero gradient, so their hash entries stay at initialisation until activated.
         """
+        if getattr(self, "_mb_bands", None) is not None:
+            raise ValueError("coarse-to-fine levels are not defined for multi-band models (per-band grids)")
         n = max(1, min(int(n), self._n_levels))
         self.level_mask.zero_()
         self.level_mask[:n] = 1.0
@@ -811,6 +924,11 @@ class INR2D_AutoDecoder(nn.Module):
         key = prefix + "level_mask"
         if key not in state_dict:
             state_dict[key] = torch.ones_like(self.level_mask)
+        mb = prefix + "mb_grid_spec"
+        if getattr(self, "_mb_bands", None) is not None and mb in state_dict:
+            if not torch.equal(state_dict[mb].to(self.mb_grid_spec), self.mb_grid_spec):
+                raise RuntimeError("multi-band grid spec mismatch: checkpoint {} vs built {}".format(
+                    state_dict[mb].tolist(), self.mb_grid_spec.tolist()))
         super()._load_from_state_dict(state_dict, prefix, local_metadata, strict,
                                       missing_keys, unexpected_keys, error_msgs)
 
@@ -965,6 +1083,9 @@ class INR2D_AutoDecoder(nn.Module):
                 t = z_s_flat[:, self._tok_geom:].reshape(-1, self._tok_n, self._tok_d)
                 agg = self.segment_encoder(t).mean(dim=1)
             z_s_flat = torch.cat([g, agg], dim=-1)
+
+        if self._mb_bands is not None:                                   # P4-8 MB1 / MB2
+            return self._forward_mb(pts_flat, tx_flat, view_flat, tx_view_flat, z_s_flat, B, N)
 
         # Sigma branch.
         pos_emb = self._pos_encoding(pts_flat)

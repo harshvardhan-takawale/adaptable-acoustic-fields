@@ -77,6 +77,88 @@ def signal_kwargs(cfg, n_band: int) -> dict:
             "signal_xfade_bins": int(round(float(g("signal_xfade_hz", 10.0)) / df))}
 
 
+P48_KEYS = ("mb_grids", "mb_f_top_hz", "mb_base_cell_m", "mb_n_levels", "mb_cells_per_wavelength", "ls_mode",
+            "ls1_weight", "ls1_radius_m", "ls_band_hz", "ls2_weight", "ls2_rx_per_step", "ls2_floor_db")
+
+
+def multiband_kwargs(cfg) -> dict:
+    """P4-8 (D174(e)): the model kwargs for the per-band models, from a train cfg (dataclass or dict) -- the SAME
+    function builds the model in training and in `load_model` (D73). MB1 ("matched"): per band a 6-level grid
+    whose coarsest cell is mb_base_cell_m and finest is c / (mb_cells_per_wavelength f_top), on the positions /
+    world_scale domain (tcnn: cell = world_scale / (base_resolution * s^l - 1)). MB2 ("default"): the cfg grid."""
+    g = (lambda k, d: getattr(cfg, k, d)) if not isinstance(cfg, dict) else (lambda k, d: cfg.get(k, d))
+    mode = str(g("mb_grids", "") or "")
+    if not mode:
+        return {}
+    base = dict(otype="HashGrid", n_levels=int(g("n_levels", 20)), n_features_per_level=2,
+                log2_hashmap_size=int(g("log2_hashmap_size", 18)), base_resolution=int(g("base_resolution", 16)),
+                per_level_scale=float(g("per_level_scale", 1.5)))
+    if mode == "default":
+        return {"mb_grid_cfgs": [dict(base) for _ in range(3)]}
+    if mode != "matched":
+        raise ValueError("mb_grids must be '', 'matched' or 'default', got {!r}".format(mode))
+    ws = g("world_scale", None)
+    if ws is None:
+        raise ValueError("MB1 grids are defined on the positions / world_scale domain; world_scale is unset")
+    ws = float(ws)
+    br = ws / float(g("mb_base_cell_m", 1.0)) + 1.0
+    if abs(br - round(br)) > 1e-9:
+        raise ValueError("world_scale / mb_base_cell_m + 1 = {} must be an integer base resolution".format(br))
+    br = int(round(br))
+    nl = int(g("mb_n_levels", 6))
+    c = float(g("c", 343.0))
+    out = []
+    for f in [float(x) for x in str(g("mb_f_top_hz", "173,245,300")).split(",")]:
+        cell = c / (float(g("mb_cells_per_wavelength", 16.0)) * f)
+        s = ((ws / cell + 1.0) / br) ** (1.0 / (nl - 1))
+        out.append(dict(base, n_levels=nl, base_resolution=br, per_level_scale=float(s)))
+    if len(out) != 3:
+        raise ValueError("mb_f_top_hz needs three band tops, got {}".format(len(out)))
+    return {"mb_grid_cfgs": out}
+
+
+def mb_grid_table(grid_cfgs, world_scale: float) -> list:
+    """Per band: each level's resolution, cell size (m) and whether tcnn stores it densely (res^2 <= 2^log2)."""
+    import numpy as _np
+    rows = []
+    for g in grid_cfgs:
+        lv = []
+        for l in range(int(g["n_levels"])):
+            scale = _np.float32(_np.exp2(_np.float32(l) * _np.log2(_np.float32(g["per_level_scale"])))
+                                * _np.float32(g["base_resolution"]) - 1.0)
+            res = int(_np.ceil(scale)) + 1
+            lv.append({"level": l, "res": res, "cell_m": float(world_scale) / float(scale),
+                       "dense": bool(res * res <= 2 ** int(g["log2_hashmap_size"]))})
+        rows.append({"grid": dict(g), "levels": lv})
+    return rows
+
+
+def ls1_loss(P: torch.Tensor, T: torch.Tensor, lo: int, hi: int, m_b: torch.Tensor, scale: float) -> torch.Tensor:
+    """P4-8 LS1: rows come as interleaved (anchor, neighbour) pairs [a0, n0, a1, n1, ...]. Per pair and bin in
+    [lo, hi): |(P_a - P_n) - (T_a - T_n)| (complex modulus) / m_b, averaged, times `scale` (S_init)."""
+    dP = P[0::2, lo:hi] - P[1::2, lo:hi]
+    dT = T[0::2, lo:hi] - T[1::2, lo:hi]
+    return scale * ((dP - dT).abs() / m_b).mean()
+
+
+def ls2_loss(P: torch.Tensor, T: torch.Tensor, bands, floor_db: float = -60.0, eps: float = 1e-12) -> torch.Tensor:
+    """P4-8 LS2 for ONE room: P, T [n_rx, n_bins]. Per bin: 1 - Pearson over receivers of dB|.|, with dB floored
+    at floor_db relative to that bin's RMS over the same receivers (each array by its own RMS; the floor is
+    detached). Averaged over each band's bins, the bands weighted equally. bands: [(lo, hi), ...] bin ranges."""
+    def db(X):
+        pw = X.real ** 2 + X.imag ** 2
+        fl = (10.0 ** (floor_db / 10.0)) * pw.mean(0, keepdim=True).detach()
+        return 10.0 * torch.log10(pw + fl + eps)
+    out = 0.0
+    for lo, hi in bands:
+        a, b = db(P[:, lo:hi]), db(T[:, lo:hi])
+        a = a - a.mean(0, keepdim=True)
+        b = b - b.mean(0, keepdim=True)
+        r = (a * b).sum(0) / torch.sqrt((a * a).sum(0) * (b * b).sum(0) + eps)
+        out = out + (1.0 - r).mean() / len(bands)
+    return out
+
+
 def val_rx_indices(n_rx: int):
     """Held-out receiver indices for a grid of ``n_rx`` receivers.
 
@@ -221,6 +303,28 @@ class P32TrainCfg:
     #: loaded and every render is the pre-change one.
     modal_prior_dir: str = ""
     modal_k: int = 0
+    #: P4-8 (D174). mb_grids: "" (off) | "matched" (MB1: per-band wavelength-matched position grids) | "default"
+    #: (MB2: the cfg grid in every band) -- separate per-band models (`multiband_kwargs`). mb_f_top_hz: each
+    #: band's top frequency for MB1's finest cell = c / (mb_cells_per_wavelength f_top); mb_base_cell_m: the
+    #: coarsest cell; mb_n_levels: levels per band grid.
+    mb_grids: str = ""
+    mb_f_top_hz: str = "173,245,300"
+    mb_base_cell_m: float = 1.0
+    mb_n_levels: int = 6
+    mb_cells_per_wavelength: float = 16.0
+    #: P4-8 spatial losses. ls_mode: "" (off: the original `_step`) | "ls1" (neighbour-difference loss with the
+    #: pair sampler) | "ls2" (per-room correlation loss, one room x ls2_rx_per_step receivers per step, exact
+    #: two-pass step). ls1_weight / ls2_weight: lambda (LS1 is scaled so its value at init equals the spec terms'
+    #: value at init). ls_band_hz: the bins the losses see. ls2_floor_db: the dB floor relative to the bin's RMS.
+    #: ls2_det_check_steps: steps (after any start) on which pass 2 must reproduce pass 1 bit-for-bit.
+    ls_mode: str = ""
+    ls1_weight: float = 0.0
+    ls1_radius_m: float = 0.30
+    ls_band_hz: str = "20,300"
+    ls2_weight: float = 0.0
+    ls2_rx_per_step: int = 32
+    ls2_floor_db: float = -60.0
+    ls2_det_check_steps: int = 20
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -555,6 +659,7 @@ class P32Trainer:
             dc_head_bins=int(cfg.dc_head_bins),
             **signal_kwargs(cfg, self.n_band),
             **({"modal_feat_dim": 2 * int(cfg.modal_k), "modal_prior": True} if cfg.modal_prior_dir else {}),
+            **multiband_kwargs(cfg),
         ).to(self.device)
         if self.model._model_signal is None:
             print("[signal] {}".format(self.model.signal_param_counts()), flush=True)
@@ -625,6 +730,9 @@ class P32Trainer:
         self.scalars: List[dict] = []
         self.start_iter = self._maybe_resume()
         self._aug = self._init_augment() if _aug_requested(cfg) else None
+        self._p48_refusals()
+        self._ls = self._init_ls() if cfg.ls_mode else None
+        self._step_fn = {"": self._step, "ls1": self._step_ls1, "ls2": self._step_ls2}[cfg.ls_mode]
 
     def _parse_curriculum(self, spec: str):
         """'0:100,15000:200,35000:300' -> [(0, hi_bin), (15000, hi_bin), ...], hi_bin in band
@@ -919,6 +1027,208 @@ class P32Trainer:
         self.sched.step()
         return agg
 
+    # ---------------------------------------------------------------- P4-8 (D174): MB / LS1 / LS2
+    def _p48_refusals(self) -> None:
+        cfg = self.cfg
+        if cfg.ls_mode not in ("", "ls1", "ls2"):
+            raise ValueError("ls_mode must be '', 'ls1' or 'ls2', got {!r}".format(cfg.ls_mode))
+        if not (cfg.mb_grids or cfg.ls_mode):
+            return
+        bad = [k for k, on in (("modal_prior_dir", bool(cfg.modal_prior_dir)), ("augmentation", _aug_requested(cfg)),
+                               ("sigma_aux_weight", cfg.sigma_aux_weight > 0.0),
+                               ("loss_curriculum", bool(cfg.loss_curriculum)), ("c2f_levels", bool(cfg.c2f_levels)))
+               if on]
+        if bad:
+            raise ValueError("P4-8 options (mb_grids / ls_mode) do not support: {}".format(bad))
+        if cfg.ls_mode == "ls1" and (cfg.rx_per_config != 2 or cfg.batch_size % 2 or cfg.max_rows_per_render % 2):
+            raise ValueError("LS1 rows come as (anchor, neighbour) pairs: need rx_per_config 2 and an even batch_size "
+                             "and max_rows_per_render, so a pair never splits across renderer calls")
+        if cfg.ls_mode == "ls2" and cfg.ls2_rx_per_step < 3:
+            raise ValueError("LS2 needs >= 3 receivers per room for a Pearson correlation")
+
+    def _init_ls(self) -> dict:
+        """Precompute what the spatial losses need. No random number is drawn here."""
+        cfg = self.cfg
+        df = float(cfg.fs) / float(cfg.n_time_samples)
+        lo_hz, hi_hz = (float(x) for x in str(cfg.ls_band_hz).split(","))
+        lo, hi = int(round(lo_hz / df)), int(round(hi_hz / df)) + 1
+        if self.band[0] != 0 or hi > self.n_band:
+            raise ValueError("ls_band_hz {} does not fit the supervised band {}".format(cfg.ls_band_hz, self.band))
+        L = {"lo": lo, "hi": hi, "info": {"mode": cfg.ls_mode, "band_bins": [lo, hi]}}
+        tr = self.train_rx_idx
+        if cfg.ls_mode == "ls1":
+            r2 = float(cfg.ls1_radius_m) ** 2 + 1e-9
+            C, n = len(self.configs), int(tr.numel())
+            masks = []
+            for c in range(C):
+                P = self.rx[c, tr].double()
+                d2 = ((P[:, None, :] - P[None, :, :]) ** 2).sum(-1)
+                m = d2 <= r2
+                m.fill_diagonal_(False)
+                masks.append(m)
+            kmax = max(int(m.sum(1).max()) for m in masks)
+            nbr = torch.zeros(C, n, kmax, dtype=torch.long, device=self.device)
+            cnt = torch.zeros(C, n, dtype=torch.long, device=self.device)
+            valid = torch.zeros(C, n, dtype=torch.long, device=self.device)
+            n_valid = torch.zeros(C, dtype=torch.long, device=self.device)
+            for c, m in enumerate(masks):
+                cnt[c] = m.sum(1)
+                nbr[c] = torch.sort(m.to(torch.uint8), dim=1, descending=True, stable=True).indices[:, :kmax]
+                va = torch.nonzero(cnt[c] > 0).squeeze(1)
+                valid[c, :va.numel()] = va
+                n_valid[c] = va.numel()
+            # m_b: the sampler's own expectation of |T_a - T_n| per bin (config uniform, anchor uniform among valid
+            # anchors, neighbour uniform among its neighbours), so E[mean_b |dT_b| / m_b] = 1 exactly.
+            m_b = torch.zeros(hi - lo, device=self.device)
+            S = 0.0
+            for c in range(C):
+                T = self.H[c, tr]                                              # [n, B]
+                S += float(T.real.abs().mean() + T.imag.abs().mean()) / C
+                Tb = T[:, lo:hi]
+                k_ok = torch.arange(kmax, device=self.device)[None] < cnt[c][:, None]       # [n, kmax]
+                d = (Tb[:, None, :] - Tb[nbr[c]]).abs() * k_ok[..., None]                   # [n, kmax, B']
+                per_anchor = d.sum(1) / cnt[c].clamp(min=1)[:, None].float()
+                m_b += per_anchor[cnt[c] > 0].mean(0) / C
+            d_all = [float(((self.rx[c, tr][:, None] - self.rx[c, tr][nbr[c]]).norm(dim=-1) *
+                            (torch.arange(kmax, device=self.device)[None] < cnt[c][:, None])).sum()
+                           / cnt[c].sum().clamp(min=1)) for c in range(C)]
+            L.update(nbr=nbr, cnt=cnt, valid=valid, n_valid=n_valid, m_b=m_b, S=float(S))
+            L["info"].update({"radius_m": float(cfg.ls1_radius_m), "weight": float(cfg.ls1_weight),
+                              "anchors_with_neighbour": int((cnt > 0).sum()), "anchors_without": int((cnt == 0).sum()),
+                              "neighbours_min_median_max": [int(cnt.min()), float(cnt.float().median()), int(cnt.max())],
+                              "mean_pair_distance_m": float(np.mean(d_all)), "S_init_spec_terms": float(S),
+                              "m_b_min_max": [float(m_b.min()), float(m_b.max())],
+                              "m_b_sha256": hashlib.sha256(m_b.cpu().numpy().tobytes()).hexdigest()})
+            print("[ls1] {}".format(L["info"]), flush=True)
+        else:
+            edges = [int(round(float(e) / df)) for e in str(cfg.signal_band_edges_hz or "173,245").split(",") if e.strip()]
+            b = [lo] + [e for e in edges if lo < e < hi] + [hi]
+            L["bands"] = list(zip(b[:-1], b[1:]))
+            L["info"].update({"weight": float(cfg.ls2_weight), "rx_per_step": int(cfg.ls2_rx_per_step),
+                              "bands_bins": L["bands"], "floor_db": float(cfg.ls2_floor_db), "pass1": "grad-enabled, detached"})
+            self._ls2_steps = 0
+            print("[ls2] {}".format(L["info"]), flush=True)
+        return L
+
+    def _apply_grads(self) -> None:
+        cfg = self.cfg
+        for p in self.model.parameters():
+            if p.grad is not None:
+                torch.nan_to_num_(p.grad, nan=0.0, posinf=0.0, neginf=0.0)
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), cfg.grad_clip_max_norm)
+        self.opt.step()
+        self.sched.step()
+
+    def _ls1_draw(self):
+        """n_pairs configs (uniform); per config one anchor uniform among its training receivers that HAVE a
+        neighbour within the radius, and one neighbour uniform among them. Rows interleaved [a0, n0, a1, n1, ...]."""
+        L = self._ls
+        n_pairs = self.cfg.batch_size // 2
+        ci = torch.randint(0, len(self.configs), (n_pairs,), device=self.device)
+        a_pos = (torch.rand(n_pairs, device=self.device) * L["n_valid"][ci]).long()
+        a = L["valid"][ci, a_pos]
+        n_pos = (torch.rand(n_pairs, device=self.device) * L["cnt"][ci, a]).long()
+        nb = L["nbr"][ci, a, n_pos]
+        tr = self.train_rx_idx
+        ri = torch.stack([tr[a], tr[nb]], dim=1).reshape(-1)
+        rows = ci.repeat_interleave(2)
+        dist = (self.rx[ci, tr[a]] - self.rx[ci, tr[nb]]).norm(dim=-1)
+        return rows, ri, dist
+
+    def _step_ls1(self, it: int) -> dict:
+        cfg = self.cfg
+        L = self._ls
+        self.model.train()
+        self.opt.zero_grad(set_to_none=True)
+        agg = {}
+        w_r, w_i, w_a, w_p = cfg.weights
+        for _ in range(cfg.grad_accum_steps):
+            ci, ri, dist = self._ls1_draw()
+            H_pred = self._render(ci, ri)
+            H_tgt = self.H[ci, ri]
+            terms = _losses(H_pred, H_tgt, self.loss_lo_bin, w_spec=self.spec_w, amp_eps=self.amp_eps)
+            loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
+                    + w_a * terms["L_amp"] + w_p * terms["L_phase"])
+            l1 = ls1_loss(H_pred, H_tgt, L["lo"], L["hi"], L["m_b"], L["S"])
+            contrib = cfg.ls1_weight * l1
+            loss = loss + contrib
+            terms["L_ls1"] = l1.detach()
+            terms["ls1_frac"] = (contrib / loss.clamp(min=1e-12)).detach()
+            terms["ls1_pair_dist_m"] = dist.mean()
+            (loss / cfg.grad_accum_steps).backward()
+            for k, v in terms.items():
+                agg[k] = agg.get(k, 0.0) + float(v) / cfg.grad_accum_steps
+            agg["loss"] = agg.get("loss", 0.0) + float(loss) / cfg.grad_accum_steps
+        agg["ls1_pairs_per_step"] = float(cfg.batch_size // 2 * cfg.grad_accum_steps)
+        self._apply_grads()
+        return agg
+
+    def _render_room(self, c: int, ri: torch.Tensor, jitter: Optional[torch.Tensor]) -> torch.Tensor:
+        """One room's rows in one renderer call with an explicit jitter (LS2's two passes)."""
+        L_, W_ = self.geom_dims[int(self.geom_id[c])]
+        room_min = torch.zeros(2, device=self.device)
+        room_max = torch.tensor([L_, W_], device=self.device, dtype=torch.float32)
+        src_per = getattr(self, "src_per", None)
+        tx = (self.src if src_per is None else src_per[c]).unsqueeze(0).expand(ri.numel(), -1)
+        z = self.cond[c].unsqueeze(0).expand(ri.numel(), -1)
+        H = self.renderer(self.model, self.rx[c, ri], tx, room_min, room_max, z_s=z, jitter=jitter)
+        return H[:, self.band[0]:self.band[1]]
+
+    def _step_ls2(self, it: int) -> dict:
+        """One room x ls2_rx_per_step receivers, EXACT two-pass: pass 1 renders every chunk with one fixed jitter
+        (grad-enabled, detached -- tcnn's no-grad inference kernels are not guaranteed bit-identical), giving LS2
+        and dLS2/dP; pass 2 re-renders each chunk with the same jitter and back-propagates the PB3 loss (as a mean
+        over all the room's rows) plus the injected lambda * dLS2/dP. Pass 2 must reproduce pass 1."""
+        cfg = self.cfg
+        L = self._ls
+        self.model.train()
+        self.opt.zero_grad(set_to_none=True)
+        c = int(torch.randint(0, len(self.configs), (1,), device=self.device))
+        ri = self.train_rx_idx[torch.randperm(self.train_rx_idx.numel(), device=self.device)[:cfg.ls2_rx_per_step]]
+        jitter = torch.empty(1, device=self.device).uniform_(0.0, 2.0 * math.pi / self.renderer.n_azi)
+        ch = max(1, int(cfg.max_rows_per_render))
+        chunks = [ri[i:i + ch] for i in range(0, ri.numel(), ch)]
+        P1 = []
+        for r in chunks:
+            P1.append(self._render_room(c, r, jitter).detach())
+        P1 = torch.cat(P1)
+        T = self.H[c, ri]
+        Pl = P1.clone().requires_grad_(True)
+        l2 = ls2_loss(Pl, T, L["bands"], cfg.ls2_floor_db)
+        G, = torch.autograd.grad(l2, Pl)
+        if not bool(torch.isfinite(G.real).all() and torch.isfinite(G.imag).all()):
+            raise FloatingPointError("LS2 gradient is not finite at iteration {}".format(it))
+        self._ls2_steps += 1
+        n = ri.numel()
+        w_r, w_i, w_a, w_p = cfg.weights
+        agg = {}
+        off = 0
+        for r in chunks:
+            sl = slice(off, off + r.numel())
+            off += r.numel()
+            H2 = self._render_room(c, r, jitter)
+            if self._ls2_steps <= cfg.ls2_det_check_steps:
+                if not torch.equal(H2.detach(), P1[sl]):
+                    raise RuntimeError("LS2 pass 2 does not reproduce pass 1 (max |dH| {:.3e}) at iteration {}".format(
+                        float((H2.detach() - P1[sl]).abs().max()), it))
+            else:
+                rel = float((H2.detach() - P1[sl]).abs().max() / P1[sl].abs().max().clamp(min=1e-12))
+                if rel > 1e-4:
+                    raise RuntimeError("LS2 pass 2 drifted from pass 1 by {:.3e} at iteration {}".format(rel, it))
+            terms = _losses(H2, T[sl], self.loss_lo_bin, w_spec=self.spec_w, amp_eps=self.amp_eps)
+            loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
+                    + w_a * terms["L_amp"] + w_p * terms["L_phase"])
+            frac = r.numel() / n
+            torch.autograd.backward([loss * frac, H2], [torch.ones_like(loss), cfg.ls2_weight * G[sl]])
+            for k, v in terms.items():
+                agg[k] = agg.get(k, 0.0) + float(v) * frac
+            agg["loss"] = agg.get("loss", 0.0) + float(loss) * frac
+        agg["L_ls2"] = float(l2)
+        agg["loss"] = agg["loss"] + cfg.ls2_weight * float(l2)
+        agg["ls2_rx_per_room"] = float(n)
+        self._apply_grads()
+        return agg
+
     # ---------------------------------------------------------------- validation
     @torch.no_grad()
     def validate(self, it: int) -> dict:
@@ -1046,6 +1356,13 @@ class P32Trainer:
                         f"refusing to resume {c.name}: {k}={prev[k]!r} in the checkpoint but "
                         f"{getattr(self.cfg, k)!r} in this config. Point --output_dir at a "
                         f"fresh directory for a different arm.")
+            # P4-8: a key absent from an older checkpoint means its DEFAULT, so a GX checkpoint cannot be
+            # resumed silently under ls_mode / mb_grids.
+            for k in P48_KEYS:
+                was = prev.get(k, P32TrainCfg.__dataclass_fields__[k].default)
+                if was != getattr(self.cfg, k):
+                    raise RuntimeError(f"refusing to resume {c.name}: {k}={was!r} in the checkpoint but "
+                                       f"{getattr(self.cfg, k)!r} in this config.")
             if prev.get("configs_manifest") and self.manifest_sha and \
                     prev.get("_manifest_sha", self.manifest_sha) != self.manifest_sha:
                 raise RuntimeError(f"refusing to resume {c.name}: manifest sha mismatch")
@@ -1095,10 +1412,13 @@ class P32Trainer:
             **({"per_room_source": {"n_distinct": int(len({tuple(x) for x in
                                                            self.src_per.tolist()}))}}
                if getattr(self, "src_per", None) is not None else {}),
+            **({"multiband": {"grids": mb_grid_table(multiband_kwargs(cfg)["mb_grid_cfgs"], cfg.world_scale or 2.0),
+                              "params": self.model.signal_param_counts()}} if cfg.mb_grids else {}),
+            **({"spatial_loss": self._ls["info"]} if getattr(self, "_ls", None) is not None else {}),
         }, indent=1, default=str))
         t0 = time.time()
         for it in range(self.start_iter + 1, cfg.n_iters + 1):
-            m = self._step(it)
+            m = self._step_fn(it)
             if it % cfg.log_every == 0:
                 self.scalars.append({"phase": "train", "iter": it, **m})
                 print(f"[{it:6d}/{cfg.n_iters}] loss={m['loss']:.4f} "
@@ -1127,12 +1447,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
     ap.add_argument("--output_dir", default=None)
+    ap.add_argument("--allow_unknown_keys", action="store_true",
+                    help="P4-8: unknown config keys are FATAL by default (a misspelt option would silently train "
+                         "the baseline); this restores the old warning")
     a = ap.parse_args()
     d = yaml.safe_load(open(a.config))
     known = {f for f in P32TrainCfg.__dataclass_fields__}
     cfg = P32TrainCfg(**{k: v for k, v in d.items() if k in known})
     unknown = [k for k in d if k not in known]
     if unknown:
+        if not a.allow_unknown_keys:
+            raise SystemExit(f"unknown config keys {unknown} (pass --allow_unknown_keys to ignore them)")
         print(f"[warn] ignoring unknown config keys: {unknown}")
     out = a.output_dir or f"outputs/p3_2/{cfg.run_id}"
     print(json.dumps(asdict(cfg), indent=1, default=str))
