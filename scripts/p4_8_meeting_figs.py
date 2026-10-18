@@ -150,12 +150,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--best", default=None)
     ap.add_argument("--wave2", default=None)
+    ap.add_argument("--r0", default="R0_120K", help="D176(e): R0's latest checkpoint if figures are needed before 120K")
+    ap.add_argument("--s2", default=None, help="D176(e): S2_120K if it has landed, else S2_60K (labelled)")
     a = ap.parse_args()
     table = json.load(open("outputs/p4_8/primary_table.json"))
     best, passed = (a.best, True) if a.best else pick_best(table)
-    models = ["G1_60K", "GX_60K", "R0_120K", best] + ([a.wave2] if a.wave2 else [])
-    labels = {"G1_60K": "G1 @60K (500 L shapes)", "GX_60K": "GX @60K (C500 + CX500)", "R0_120K": "R0 @120K (GX, matched exposure)",
+    r0 = a.r0
+    models = ["G1_60K", "GX_60K", r0, best] + ([a.s2] if a.s2 else []) + ([a.wave2] if a.wave2 else [])
+    labels = {"G1_60K": "G1 @60K (500 L shapes)", "GX_60K": "GX @60K (C500 + CX500)",
+              r0: "R0 @{} (GX, matched exposure{})".format(r0.split("_")[1], "" if r0 == "R0_120K" else "; not its end point"),
               best: "{} (best wave-1{})".format(best, "" if passed else ", no arm passed")}
+    if a.s2:
+        labels[a.s2] = "S2 @{} (C500 + CX500 + CX1000{})".format(a.s2.split("_")[1], "" if a.s2 == "S2_120K" else "; interim read")
     if a.wave2:
         labels[a.wave2] = "{} (wave 2)".format(a.wave2)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -191,7 +197,7 @@ def main():
         rr = np.array([g1u[i]["raw"]["25-100"] for i in idx])
         j = idx[int(np.argsort(rr)[(len(idx) - 1) // 2])]
         picks.append((fam, "unseen", j, "lower-median {} room by G1 @60K 25-100 Hz r ({:.3f})".format(fam, g1u[j]["raw"]["25-100"])))
-    cols = ["G1_60K", "R0_120K", best]
+    cols = ["G1_60K", r0, best]
     note = "model panels: render-time physical projection applied (post-processing, D160(e)); FDTD unprojected"
     for tag, kind, i, rule in picks:
         if kind == "test":

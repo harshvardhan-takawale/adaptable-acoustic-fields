@@ -1847,3 +1847,53 @@ The render-time projection changes every out-of-family r by <= 0.0013. Full-band
 * **MB1 grid tables:** 24K / 44K / 62K parameters per encoder (bands low / mid / high), all levels dense. MB2: 8.44M per encoder (as the default).
 * **LS1:** S_init (the spec terms' init value) = 4.92. 0.15% of training receivers have no neighbour within 0.30 m and are never drawn as anchors; mean pair distance 0.198 m.
 * **Early observation** (4K, not a read): LS1's term stays at 4.3-5.2, i.e. at or above its "no spatial differences" value. The network's neighbour differences are no better than zero difference, and LS1 is 52-80% of the total loss. The 30K kill rule decides; nothing is changed.
+
+**D176 — P4-8 manager clarifications (2026-10-18): the LS2 read and its control, the jitter override, the LS1 band log, S2 FIRST (pre-registered), figure rules, and the U-number correction. Plus two incidents (LS2 resume OOM, fixed; MB1 / MB2 preempted).**
+
+(a) **LS2.** Its one pre-registered read is its **30K end point against GX @60K** (matched receiver exposure). The 30K kill rule does NOT apply to LS2. This replaces D174(e)'s "LS2: its 15K" kill check.
+* LS2 also changes batching (one room x 32 receivers per step: fewer, larger steps), so a gain could come from batching rather than the loss.
+* **If either LS2 arm passes its pre-registration, the control runs BEFORE any claim:** LS2C = LS2's batching and schedule with lambda = 0 (`configs/sweep_2d_mat/P4_8_LS2C.yaml`, written, not launched).
+
+(b) **Ray-jitter override, in one line:** `FreqRenderer2D.forward(jitter=...)` replaces the per-call random ray-azimuth offset with a given scalar and draws no random number. **Only LS2A / LS2B (and LS2C) pass it**, inside `_step_ls2`, so their two passes render identical rays.
+* **The default path is unchanged:** `jitter=None` runs the original code. Tested: exactly one CUDA draw and identical directions to an override with the drawn value.
+* **Every evaluation is unchanged:** evaluators run the renderer in eval mode, which applies no jitter at all, and none passes `jitter`. The pre-change render-reproduction tests (`test_p4_5_hf_arms`, `test_p4_5_speckle`, `test_modal_prior`) passed after the change.
+* So every reference checkpoint's numbers stand, whether computed before eced517 or after.
+
+(c) **LS1 band log** (`scripts/p4_8_ls1_bands.py`, `outputs/p4_8/ls1_bands/*.json`). Measured offline in eval mode on 1000 neighbour pairs (40 training rooms, the trainer's pair rule), because the arms were already running.
+* rel = mean |dP - dT| / mean |dT| per bin, band-averaged; 1.0 = no predicted differences. Shares = band contribution / total loss.
+
+| checkpoint | rel 25-100 / 100-200 / 200-300 | LS1 share of total, same bands | PB3 terms / LS1 / total |
+|---|---|---|---|
+| LS1A @10K | 0.619 / 0.887 / 0.918 | 0.114 / 0.218 / 0.226 | 0.940 / 4.02 / 2.15 |
+| LS1A @20K | 0.493 / 0.793 / 0.873 | 0.103 / 0.221 / 0.244 | 0.811 / 3.60 / 1.89 |
+| LS1A @30K | 0.432 / 0.726 / 0.816 | 0.100 / 0.224 / 0.254 | 0.714 / 3.30 / 1.70 |
+| LS1B @10K | 0.669 / 0.890 / 0.916 | 0.173 / 0.307 / 0.317 | 1.004 / 4.09 / 5.10 |
+| LS1B @20K | 0.525 / 0.811 / 0.889 | 0.151 / 0.312 / 0.343 | 0.863 / 3.71 / 4.57 |
+| LS1B @30K | 0.451 / 0.744 / 0.834 | 0.143 / 0.313 / 0.353 | 0.773 / 3.39 / 4.17 |
+
+* **The term falls in every band.** The training-scalar reading of D175(f) (at or above the no-difference value at 4K) was early.
+* **Where it is stiff (measured): the HIGH band** (neighbour phase), at 0.82-0.83 at 30K, while 25-100 Hz is at 0.43-0.45. The low band is not where it sticks, despite kd << 1 there.
+* No intervention. The 30K kill rule did not stop either arm (see (f)).
+
+(d) **S2 goes FIRST** (manager). GX's unseen score did not move from 30K to 60K, while diverse data moved it +0.076 over G1: the unseen-family lever is diversity, not training length.
+* **S2** = PB3 + DC head (GX's recipe) on C500 + CX500 + CX1000 (2000 rooms, per-room source), **120K cosine**, which matches GX @60K's per-room exposure. The comparison isolates "twice the diverse rooms". Reads at 60K and 120K.
+* **Pre-registered: UF at 25-100 Hz >= GX @60K + 0.05 (>= 0.510) AND in-family HF >= 0.504 - 0.02 (>= 0.484).**
+* Launched 2026-10-18 (job 7889758, L40S, 64 GB host RAM for the 7.7 GB of targets).
+* `scontrol top` is denied to users, and the preempted MB1 / MB2 jobs outranked S2 by age. MB1 / MB2 are therefore HELD until S2 is running, then released automatically (`scripts/p4_8_s2_first.sh`).
+* Wave 2 (best MB + best LS at 120K) takes the next free slot after S2, provided some wave-1 arm passes.
+
+(e) **Meeting figures.** S2 is included at 120K if that read lands before the figures are built, otherwise at its 60K read, labelled. If the figures are needed before R0 reaches 120K, they are built on R0's latest checkpoint, labelled with its iteration (`p4_8_meeting_figs.py --r0 / --s2`; `p4_8_finalize.sh` picks S2's latest).
+
+(f) **30K kill rule:** no arm stopped. Against GX @30K every arm's HF is higher (+0.019 to +0.051, CIs above 0), so "both primaries below with CIs excluding 0" holds for none.
+* UF @30K vs GX @30K: R0 +0.014, MB1 +0.013 (n.s.), MB2 -0.011 (n.s.), LS1A -0.022, LS1B -0.040, LS3 -0.009 (n.s.).
+* `outputs/p4_8/primary_table.md` (interim).
+
+(g) **Incident 1: LS2 resume OOM, fixed.**
+* LS2A (at 12K) and LS2B (at 10K) were preempted on scavenger. Both requeued jobs died within a minute with tinycudann `cuMemCreate ... OUT_OF_MEMORY`, the same failure as M3-fam's resume (D171(d)).
+* Cause: `_maybe_resume` loaded every inspected checkpoint (thinned ones included) straight onto the GPU, and torch's cache kept those blocks, which tinycudann's own allocator cannot use.
+* Fix: load to CPU and free the CUDA cache. `load_state_dict` copies onto the parameters' device, so the result is identical; tested (model, optimiser and scheduler state exact).
+* LS2A / LS2B were relaunched from their checkpoints (jobs 7889788 / 7889789); their only read is the 30K end point.
+
+(h) **Incident 2: MB1 / MB2 preempted** at 37.6K / 34.4K. They resume from their latest checkpoints once S2 runs (see (d)).
+
+(i) **Correction to the record (manager):** the two-room U numbers used in earlier rounds overstated U performance (e.g. G1 0.718 at 25-100 Hz, D167 / D171 / D172). On the frozen 8-room U set, G1 @60K reads **0.444**. Quote the eight-room value from now on.

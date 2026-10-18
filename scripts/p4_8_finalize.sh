@@ -11,8 +11,10 @@ job() {  # name, command
     --time=02:00:00 --job-name=$1 --output=logs/slurm/%x-%j.out --error=logs/slurm/%x-%j.err \
     --wrap="cd $PWD && source /fs/nexus-scratch/htakawal/miniconda3/etc/profile.d/conda.sh && conda activate aaf && export LD_LIBRARY_PATH=\${CONDA_PREFIX}/lib:\${LD_LIBRARY_PATH:-} && export PYTHONPATH=$PWD && $2"
 }
-W1="MB1_60K MB2_60K LS1A_60K LS1B_60K LS3_60K LS2A_30K LS2B_30K"
+W1="MB1_60K MB2_60K LS1A_60K LS1B_60K LS3_60K LS2A_30K LS2B_30K"   # LS2: end point 30K (D176)
 until have $W1; do sleep 300; done
 echo "$(date +%m-%d_%H:%M) wave-1 60K finals in -> table $(job aaf_p48_table 'python scripts/p4_8_primary_table.py')"
 until have R0_120K; do sleep 300; done
-echo "$(date +%m-%d_%H:%M) R0 @120K in -> table + figures $(job aaf_p48_figs 'python scripts/p4_8_primary_table.py && python scripts/p4_8_meeting_figs.py')"
+# D176(e): S2 at 120K if it has landed, else its 60K read (labelled); none if neither exists yet
+S2ARG=""; if have S2_120K; then S2ARG="--s2 S2_120K"; elif have S2_60K; then S2ARG="--s2 S2_60K"; fi
+echo "$(date +%m-%d_%H:%M) R0 @120K in -> table + figures ($S2ARG) $(job aaf_p48_figs "python scripts/p4_8_primary_table.py && python scripts/p4_8_meeting_figs.py $S2ARG")"

@@ -88,3 +88,28 @@ Pre-registration is [D174](https://raw.githubusercontent.com/harshvardhan-takawa
   - `scripts/p4_8_primary_table.py`: HF / UF paired against GX, the verdicts and the kill rule.
   - `scripts/p4_8_meeting_figs.py`: the four meeting figures.
   - `scripts/p4_8_finalize.sh`: builds the table and figures automatically once the finals exist.
+
+## Manager clarifications (D176, 2026-10-18)
+
+- **Correction to the record:** the two-room U numbers used in earlier rounds (e.g. G1 0.718 at 25–100 Hz) overstated U performance. On the frozen 8-room U set, G1 @60K reads **0.444**. Quote the eight-room value from now on.
+- **LS2:**
+  - Its one read is its 30K end point vs GX @60K; there is no kill rule for LS2.
+  - If an LS2 arm passes, the control LS2C (LS2's batching and schedule, λ = 0) runs before any claim.
+  - LS2A and LS2B were preempted and their resumes died out of memory (fixed: resume now loads checkpoints to CPU). Both are relaunched from 12K / 10K.
+- **Jitter override:** `FreqRenderer2D.forward(jitter=…)` uses a given ray-azimuth offset instead of drawing one. Only LS2A / LS2B / LS2C use it, inside the two-pass step. The default path and every evaluation (eval mode, no jitter) are unchanged.
+- **LS1 per band** (offline, relative to the no-difference value 1.0):
+
+  | arm | band | 10K | 20K | 30K |
+  |---|---|---|---|---|
+  | LS1A | 25–100 Hz | 0.62 | 0.49 | 0.43 |
+  | LS1A | 100–200 Hz | 0.89 | 0.79 | 0.73 |
+  | LS1A | 200–300 Hz | 0.92 | 0.87 | 0.82 |
+
+  LS1B is similar. The term falls in every band and is stiffest in the HIGH band (neighbour phase). LS1 is 10–35% of the total loss by band ([ls1_bands](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/ls1_bands/LS1A_30K.json)).
+- **30K kill rule:** no arm stopped; every arm's HF is above GX @30K ([interim primary table](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/primary_table.md)).
+- **S2 FIRST:**
+  - C500 + CX500 + CX1000 (2000 rooms), PB3 + DC head, 120K cosine (GX @60K's per-room exposure).
+  - Pre-registered: UF 25–100 ≥ 0.510 AND HF ≥ 0.484.
+  - Queued for the first free L40S. MB1 / MB2, preempted at 37.6K / 34.4K, are held until S2 runs.
+  - Wave 2 takes the next slot after S2, if a wave-1 arm passes.
+- **Figures:** S2 at 120K if landed, else 60K (labelled); R0's latest checkpoint (labelled) if the figures are needed before 120K.

@@ -4,7 +4,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-8 IN PROGRESS (2026-10-18; D173-D175).** Write-up (live): [CHUNK_P4_8_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_8_RESULTS.md).
+**Last updated**: **P4-8 IN PROGRESS (2026-10-18, evening; D173-D176).** Write-up (live): [CHUNK_P4_8_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_8_RESULTS.md).
 
 * **D173:** M3-fam final (for the next meeting).
 * **D174:** P4-8 pre-registration.
@@ -15,6 +15,12 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
   * **S1 gate fails** (network Helmholtz residual equal in and out of family), so S1 is not launched.
   * **CX1000** is built (S2 ready, gated).
 * **Wave 1 (8 arms) training:** R0 (120K), MB1, MB2, LS1A, LS1B, LS2A, LS2B, LS3. Watchers launch every standard report + UF; the table and meeting figures are generated automatically at the end.
+* **D176 (manager clarifications):**
+  * **U-number correction:** the two-room U values of earlier rounds overstated U (G1 0.718); the 8-room value is **0.444** and is the one to quote.
+  * **S2 is FIRST:** 2000 diverse rooms, 120K. Pre-registered: UF >= 0.510 AND HF >= 0.484. Queued for the first L40S; MB1 / MB2 are held until it runs.
+  * **LS2:** read at its 30K end point only; the control LS2C runs if it passes. Resume OOM fixed; relaunched.
+  * **LS1 per band:** the term falls in every band and is stiffest at 200-300 Hz (0.82 at 30K).
+  * **30K kill rule:** no arm stopped.
 
 Earlier: **P4-7 (2026-10-17, 10:50; D171-D172).** Manager report: [P4_7_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_7_STATUS_REPORT.md).
 
