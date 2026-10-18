@@ -1,5 +1,7 @@
 # P4-8 arm LS2B (D174(e)): per-room correlation loss, lambda 0.3; one room x 32 receivers per step, 30K steps (matched exposure).
 # GENERATED from P4_7_GX.yaml (C500 + CX500, per-room source) -- differs ONLY in run_id and: ls_mode, ls2_weight, ls2_rx_per_step, n_iters, early_stop_warmup, ckpt_keep_every, ckpt_keep_iters.
+# D177: max_rows_per_render 4 (was 8 for LS2A/B up to 12K/10K): renderer chunks of 4 -- memory only; resumed jobs
+# ran out of a 24 GB card in their first step (Adam state resident before tinycudann's arena grows).
 # Pre-registered: as LS1, plus band LSD no more than 0.2 dB worse in any band (it trains on the metric's shape: LSD, the gap and modal RIR are the guards).
 run_id: p4_8_LS2B
 rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
@@ -31,7 +33,7 @@ ckpt_keep_last: 1
 early_stop_warmup: 30000
 early_stop_patience: 10000
 early_stop_min_rel_improvement: 0.003
-max_rows_per_render: 8
+max_rows_per_render: 4
 ckpt_thin_old: true
 dc_head_bins: 41
 signal_heads: 3

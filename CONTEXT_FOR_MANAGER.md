@@ -18,7 +18,7 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 * **D176 (manager clarifications):**
   * **U-number correction:** the two-room U values of earlier rounds overstated U (G1 0.718); the 8-room value is **0.444** and is the one to quote.
   * **S2 is FIRST:** 2000 diverse rooms, 120K. Pre-registered: UF >= 0.510 AND HF >= 0.484. Queued for the first L40S; MB1 / MB2 are held until it runs.
-  * **LS2:** read at its 30K end point only; the control LS2C runs if it passes. Resume OOM fixed; relaunched.
+  * **LS2:** read at its 30K end point only; the control LS2C runs if it passes. The resume out-of-memory failure is fixed with renderer chunks of 4 (D177, memory only); both arms resumed and are running.
   * **LS1 per band:** the term falls in every band and is stiffest at 200-300 Hz (0.82 at 30K).
   * **30K kill rule:** no arm stopped.
 

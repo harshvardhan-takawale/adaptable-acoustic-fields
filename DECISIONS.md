@@ -1897,3 +1897,14 @@ The render-time projection changes every out-of-family r by <= 0.0013. Full-band
 (h) **Incident 2: MB1 / MB2 preempted** at 37.6K / 34.4K. They resume from their latest checkpoints once S2 runs (see (d)).
 
 (i) **Correction to the record (manager):** the two-room U numbers used in earlier rounds overstated U performance (e.g. G1 0.718 at 25-100 Hz, D167 / D171 / D172). On the frozen 8-room U set, G1 @60K reads **0.444**. Quote the eight-room value from now on.
+
+**D177 — LS2 resume incident, resolved; this amends D176(g).** The CPU-load resume fix (D176(g)) did NOT cure the LS2 resumes. Nor did freeing torch's CUDA cache between pass 1 and pass 2 (kept: a no-op numerically).
+* Both relaunched jobs again ran out of memory in pass 2 of their first step (tinycudann `cuMemCreate`).
+* Labelled inference: a RESUMED job has its Adam state resident before tinycudann's arena first grows, which leaves too little headroom on a 24 GB card. A fresh run grows the arena on step 1, before any Adam state exists. M3-fam's two A5000 resumes failed the same way.
+* **Fix: LS2A / LS2B (and LS2C) render in chunks of `max_rows_per_render: 4` instead of 8.**
+  * This is memory only. Both passes use the same chunks, so the bit-exact pass-1 / pass-2 check still applies; the loss, batching (one room x 32 receivers per step) and schedule are unchanged.
+  * The key is not in the resume guard.
+  * LS2A ran its first 12K steps and LS2B its first 10K with chunks of 8; float-level differences between chunkings are possible and are not a change of arm.
+* Resumed 2026-10-18 ~18:50 (jobs 7889820 / 7889821) at 2.04 s/it (was 1.93). The bit-exact check passed on the first 20 steps after the restart.
+* About 10 h to the 30K end points.
+* The CPU-load resume path stays (correct and tested; it removes GPU-cache pressure for every arm).

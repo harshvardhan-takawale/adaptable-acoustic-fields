@@ -32,7 +32,7 @@ ckpt_keep_last: 1
 early_stop_warmup: 30000
 early_stop_patience: 10000
 early_stop_min_rel_improvement: 0.003
-max_rows_per_render: 8
+max_rows_per_render: 4
 ckpt_thin_old: true
 dc_head_bins: 41
 signal_heads: 3

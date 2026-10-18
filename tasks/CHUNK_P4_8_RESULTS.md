@@ -95,7 +95,7 @@ Pre-registration is [D174](https://raw.githubusercontent.com/harshvardhan-takawa
 - **LS2:**
   - Its one read is its 30K end point vs GX @60K; there is no kill rule for LS2.
   - If an LS2 arm passes, the control LS2C (LS2's batching and schedule, λ = 0) runs before any claim.
-  - LS2A and LS2B were preempted and their resumes died out of memory (fixed: resume now loads checkpoints to CPU). Both are relaunched from 12K / 10K.
+  - LS2A and LS2B were preempted and their resumes died out of memory. The fix (D177) is renderer chunks of 4: memory only, both passes identical, loss and batching unchanged. Both resumed from 12K / 10K at 2.04 s/it.
 - **Jitter override:** `FreqRenderer2D.forward(jitter=…)` uses a given ray-azimuth offset instead of drawing one. Only LS2A / LS2B / LS2C use it, inside the two-pass step. The default path and every evaluation (eval mode, no jitter) are unchanged.
 - **LS1 per band** (offline, relative to the no-difference value 1.0):
 
