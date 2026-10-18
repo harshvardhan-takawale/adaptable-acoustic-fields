@@ -1327,7 +1327,11 @@ class P32Trainer:
         ckpts = sorted(self.out.glob("ckpt_iter*.pt"), reverse=True)
         for c in ckpts:
             try:
-                st = torch.load(c, map_location=self.device)
+                # P4-8: load to CPU. load_state_dict copies the values onto the model's / optimiser's device, so
+                # the result is identical; loading to the GPU left every inspected checkpoint (thinned ones too)
+                # in torch's cache, which tinycudann's own allocator cannot use -- requeued jobs (M3-fam, LS2A,
+                # LS2B) died with cuMemCreate OUT_OF_MEMORY in their first step after a resume.
+                st = torch.load(c, map_location="cpu")
             except Exception:
                 continue
             if st.get("thinned") or "optimizer" not in st:
@@ -1374,7 +1378,11 @@ class P32Trainer:
                 self.scalars = [r for r in json.loads(sp.read_text())
                                 if r.get("iter", 0) <= st["iter"]]
             print(f"[resume] from {c.name} at iter {st['iter']}")
-            return int(st["iter"])
+            it = int(st["iter"])
+            del st
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            return it
         return 0
 
     def _early_stop(self, it: int) -> bool:

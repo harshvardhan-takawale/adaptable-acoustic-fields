@@ -6,8 +6,10 @@ Per arm-checkpoint, from the JSONs the watchers wrote (no rendering):
         over rooms; U and C3 reported separately; T / DN (D111) labelled "present in GX training";
   training-room fit r per band and the train-to-test gap per band (C250 off-lattice rooms), test LSD per band,
   modal RIR off-lattice (risk metrics), speckle d1 200-300 Hz raw / projected.
-Paired bootstrap 10k, seed 20261013, against GX@60K (pre-registrations) and GX@30K (the 30K kill rule; LS2's 15K
-is compared with GX@30K, its exposure-matched point). Writes outputs/p4_8/primary_table.{json,md}.
+Paired bootstrap 10k, seed 20261013, against GX@60K (pre-registrations) and GX@30K (the 30K kill rule). D176: the
+kill rule does NOT apply to LS2 (its one pre-registered read is its 30K end point vs GX@60K); LS2C is LS2's batching and
+schedule with lambda = 0 (the control, run only if an LS2 arm passes); S2 is read at 60K and 120K (final) vs GX@60K.
+Writes outputs/p4_8/primary_table.{json,md}.
 """
 from __future__ import annotations
 
@@ -22,7 +24,8 @@ OUT = Path("outputs/p4_8")
 REFS = ["G1_60K", "GX_30K", "GX_60K", "PB3_60K", "B5_60K"]
 ARMS = (["R0_%dK" % k for k in (30, 60, 90, 120)]
         + ["%s_%dK" % (a, k) for a in ("MB1", "MB2", "LS1A", "LS1B", "LS3") for k in (30, 60)]
-        + ["%s_%dK" % (a, k) for a in ("LS2A", "LS2B") for k in (15, 30)])
+        + ["%s_%dK" % (a, k) for a in ("LS2A", "LS2B", "LS2C") for k in (15, 30)]
+        + ["S2_60K", "S2_120K"])
 
 
 def _j(p):
@@ -81,6 +84,9 @@ def verdict(arm, d, a):
     """The pre-registered tests of D174(e) against GX@60K (point estimates; CIs reported beside)."""
     hf, uf = d["HF"][0], d["UF_25-100"][0]
     kind = arm.split("_")[0]
+    if kind == "S2":
+        ok = uf >= 0.05 and a["test_r"]["200-300"] >= 0.504 - 0.02
+        return {"test": "UF >= GX@60K + 0.05 AND HF >= 0.504 - 0.02", "holds": bool(ok)}
     if kind == "R0":
         ok = a["test_r"]["200-300"] >= 0.56 and d["UF_25-100"][2] >= 0.0
         return {"test": "HF >= 0.56 AND UF not below GX@60K within CI", "holds": bool(ok)}
@@ -113,11 +119,11 @@ def main():
         it = int(n.split("_")[1][:-1])
         if "GX_60K" in rows:
             rep["pairs"][n + " - GX_60K"] = d = paired(a, rows["GX_60K"])
-            final = (n.startswith("LS2") and it == 30) or (n.startswith("R0") and it == 120) or \
-                    (not n.startswith(("LS2", "R0")) and it == 60)
-            if final:
-                rep["verdicts"][n] = verdict(n, d, a)
-        early = (n.startswith("LS2") and it == 15) or (not n.startswith("LS2") and it == 30)
+            final = (n.startswith("LS2") and it == 30) or (n.startswith(("R0", "S2")) and it == 120) or \
+                    (not n.startswith(("LS2", "R0", "S2")) and it == 60)
+            if final or (n.startswith("S2") and it == 60):
+                rep["verdicts"][n] = dict(verdict(n, d, a), **({} if final else {"read": "interim (60K of 120K)"}))
+        early = (not n.startswith(("LS2", "S2"))) and it == 30          # D176: no kill rule for LS2 (or S2)
         if early and "GX_30K" in rows:
             rep["pairs"][n + " - GX_30K"] = d = paired(a, rows["GX_30K"])
             rep["kill"][n] = {"stop": kill(d), "HF": d["HF"], "UF_25-100": d["UF_25-100"]}
