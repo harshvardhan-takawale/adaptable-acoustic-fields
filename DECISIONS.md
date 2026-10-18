@@ -1718,3 +1718,88 @@ The render-time projection changes every out-of-family r by <= 0.0013. Full-band
 * **Reading (3), harm (any band more than 0.02 r below H_modal alone): none.** Every band is equal or slightly better.
 * **Training-room fit equals transfer:** fit r 0.991 / 0.977 / 0.965 against test 0.989 / 0.976 / 0.961, so the gap is 0.004. Held-out-receiver validation LSD went 0.835 -> 0.790 dB from 2K to 26K.
 * **Labelled inference:** the residual of H_modal against the FDTD is the diagonal-damping and operator-symmetrisation error (D170(c)), and this network does not find it from 240 rooms in 20K steps. Whether it does by 60K is the final read. Q24 is now the decisive question: on simulated data the INR's measured contribution over physics is about 0.
+
+**D173 — m3 FINAL (M3-fam @60K; recorded for the NEXT meeting, kept out of P4-8's tables and figures by the manager's instruction).** The interim D172 stands. Reading (1) MET: held-out U 25-100 Hz r 0.971 (G2 0.554). Reading (2) NOT MET: the residual network adds at most +0.005 r (DN 25-100) and +0.003 at 200-300 Hz over H_modal alone, and at most -0.15 dB LSD (DN 25-100); on U it adds -0.002 / +0.001 / +0.002 r and -0.01 / -0.02 / -0.05 dB. Reading (3) MET: no band is more than 0.02 below the prior.
+* 15 test shapes: 0.991 / 0.977 / 0.963. M3 - H_modal: r +0.002 [+0.002, +0.003] / +0.001 [+0.001, +0.001] / +0.003 [+0.002, +0.003]; LSD -0.083 [-0.105, -0.064] / -0.020 / -0.055 dB.
+* Training-room fit 0.992 / 0.978 / 0.967 equals transfer (gap ~0.004). The 30K read is the same within 0.001-0.004.
+* Files: `outputs/p4_6/family_oof/M3FAM_{30K,60K}.json`, `outputs/p4_5/speckle/M3FAM_*.json`, `outputs/p4_5/gate2_dense/M3FAM_*`, `outputs/p4_6/train_fit/M3FAM_*.json`; scored against `outputs/p4_7/m1_modal.json`. M3-500 is not launched (D170(g) order; Q24 open).
+
+**D174 — P4-8 opens (manager, 2026-10-18): multi-band models and spatial losses, NETWORK-ONLY. PRE-REGISTRATION, written before any P4-8 number exists.**
+* **Scope:** no modal-prior or solver results in this round's tables or figures. M3-fam is recorded in D173 for the next meeting. Doorway work is out of scope.
+* **Not rerun:** capacity (W3), receiver density (G3), high-band loss tilt (D132), coarse-to-fine and curriculum (B2, B3), hash-level cap (G4), D4 flips (m2).
+
+(a) **Primary metrics.** Off-lattice; paired bootstrap, 10k, seed 20261013.
+* **HF:** in-family test r at 200-300 Hz on the 15 frozen shapes, paired over shapes.
+* **UF:** unseen-family r at 25-100 Hz (also 100-200 and 200-300) on the frozen unseen set of (b), paired over its 16 rooms, with U and C3 also reported separately.
+* T and DN (D111's dense rooms) keep being reported, labelled "present in GX training": CX500 contains T-like and DN rooms, (c).
+
+(b) **The unseen-family set (Step 0b), frozen before any score.** `data/track_p4_8_unseen` + `configs/sweeps_2d_mat/p4_8_unseen_manifest.json` (rows_sha256 recorded when built).
+* **U, 8 rooms.** D111's 2 (the median and second-median d_hat test U rooms of `p4_4_family_manifest.json`, D111 / D112). Plus 6 more by D111's rule extended: the FAM test-split U rooms next nearest to the median in d_hat order, alternating. Sorted indices 3, 6, 2, 7, 1, 8; indices 0 and 9 (the extremes) are left out. No reference or P4-8 arm has trained on any of them: the L corpora have no U, CX500 excludes U by redraw, and G2 held U out.
+* **C3, 8 rooms.** The three-corner topology NW + NE + SE: 10 vertices, 3 reflex corners. It is the record's only description of the Z-corridor target (D83 / D84: "10 tokens, three reflex corners"; user decision 2026-10-18). Every training corpus has at most 2 notches, so it is absent from all of them.
+  * Draws: family ranges, L in [5, 7] and W in [4, 5.5] on the 0.02 m grid; depth d = u x 0.45 W with u ~ U(0, 1); width w = v x 0.45 L with v ~ U(0.15, 1).
+  * Constraints: U stem L - w_NW - w_NE >= 0.8 m; east-wall passage W - d_NE - d_SE >= 0.8 m; diagonal pinch w_NW + w_SE <= L - 0.8 m; no notch with d / (0.45 W) in the slab [0.45, 0.60]; `geometry_ok`-style checks (bbox, connected, simple ring).
+  * The fixed source (0.5, 1.6) stays in air (SW corner free). The set is the first 8 valid draws of `default_rng([20261018, k])`.
+* **Dense build as D111.**
+  * 64 x 64 lattice clipped to the polygon, with 0.12 m wall and 0.15 m reflex-corner clearance; `lattice_keep` stored.
+  * dx 0.02, fs 30720, 2 s, alpha 0.15, source (0.5, 1.6).
+  * The solver's air mask must equal the polygon node-for-node.
+  * D111's 2 U rooms are reused from `data/track_p4_5_famdense` by symlink.
+
+(c) **Step 0a, topology audit** (the m2 classifier generalised to corner / side counts and a U-pair flag).
+* It is recorded before any P4-8 score.
+* The P4-7 "GX +0.110 out of family" (D171(b)) is restated per family, with the caveat that T and DN are in-distribution for GX-corpus arms.
+
+(d) **Step 0c:** re-score G1 @60K, GX @60K, PB3 @60K, B5 @60K and GX @30K (the kill-rule reference) on the unseen set.
+
+(e) **Wave 1.** All arms use the GX corpus (C500 + CX500, per-room source) and differ from GX in ONE thing. 60K schedule unless stated; reads at 30K and 60K.
+* **R0** = GX at 120K cosine (matched exposure: each room seen as often as in G1). Reads at 30, 60, 90 and 120K.
+  * Pre-registered: in-family HF >= 0.56 (G1 0.581, GX @60K 0.504) AND UF not below GX @60K within CI.
+  * If both hold, GX's in-family cost was exposure, not dilution, and R0 is the meeting's best model.
+* **MB1 / MB2:** separate per-band models.
+  * Bands: PB3's edges 173 / 245 Hz with its +-10 Hz raised-cosine crossfade.
+  * Per band: its own four POSITION hash grids (point and source, for sigma and for signal), sigma MLP and signal MLP, each with its own FiLM.
+  * Shared (user decision): the two view-direction grids, the token encoder and pooling, the DC head, and the renderer aggregation.
+  * MB1 grids: 6 levels; base cell 1.0 m (base_resolution 11 on the positions / 10 domain); finest cell = 343 / (16 f_top) at f_top = 173 / 245 / 300 Hz (12.4 / 8.75 / 7.15 cm), so per_level_scale = ((10 / cell + 1) / 11)^(1/5) = 1.493 / 1.600 / 1.666. All levels dense (table sizes reported).
+  * MB2: the default grid in every band. tcnn seed 1337 + k per band. 48 GB cards, default allocator.
+  * Mechanism under test (MB1): a coarse low-band encoder cannot store room-specific fine detail, so it must represent smooth, global low-frequency fields.
+  * Pre-registered, each arm: UF >= +0.05 over GX @60K with HF no worse than -0.02, OR HF >= +0.03 with UF no worse than -0.02.
+  * Readings: MB2 - GX = full separation beyond PB3's shared trunk; MB1 - MB2 = wavelength-matched resolution.
+* **LS1a / LS1b:** neighbour-difference loss added to the PB3 loss, lambda = 0.3 / 1.0.
+  * Pairs: receivers of the same room within 0.30 m. Penalty |(P_i - P_j) - (T_i - T_j)| (complex modulus) per bin, 20-300 Hz.
+  * Weighting: each bin by 1 / m_b, with m_b the corpus mean |T_i - T_j| over neighbour pairs. Then scaled so its value at init (error = target) equals the spec terms' init value. lambda is the ratio to the spec terms (user decision).
+  * Sampler: each sampled receiver brings one training-receiver neighbour within 0.30 m, in the same renderer call. Rows per backward stay 8 and rows per step 16, as GX. Pair counts are reported.
+  * Pre-registered: HF >= +0.03 or UF >= +0.05 over GX @60K, with no other primary or band more than 0.02 worse.
+* **LS2a / LS2b:** per-room correlation loss, lambda = 0.1 / 0.3.
+  * Per room in the batch and per bin in 20-300 Hz: 1 - Pearson(dB|P|, dB|T|) over that room's in-batch receivers. dB floored at -60 dB re the bin's RMS; each band weighted 1/3.
+  * Batching (user decision): ONE room x 32 training receivers per step, via an exact two-pass step (pass 1 renders with one fixed ray jitter and gives the Pearson gradients; pass 2 re-renders with grad and injects them; determinism is checked). **30K steps: matched exposure (32 x 30K = GX's 16 x 60K receiver renders).** Its 30K is compared with GX @60K.
+  * Pre-registered: as LS1, plus band LSD no more than 0.2 dB worse in any band.
+  * Caveat recorded: LS2 trains on the shape of the reported metric, so LSD, the gap and modal RIR are the guards. It also changes the batch from several rooms per step to one (labelled confound).
+* **LS3** (optional, lowest priority): floored log-amplitude (P4_5_B5F's keys) on the GX corpus. Same thresholds as LS1.
+* **Priority if slots are short:** R0, MB1, LS1a, LS2a; then MB2, LS1b, LS2b; LS3 last.
+* **Kill rule at 30K** (LS2: its 15K, i.e. half its schedule): compare with GX's own 30K checkpoint (for LS2, GX's exposure-matched point). Stop only if BOTH primaries are below it with paired CIs excluding 0.
+
+(f) **Wave 2** (after the 60K reads): the best multi-band variant (MB1 or MB2) combined with the best loss (LS1 or LS2 at its better weight), GX corpus, 120K, compared with R0 @120K.
+* Pre-registered: beats R0 on both primaries, with CIs excluding 0 on at least one.
+* If no wave-1 arm beats GX @60K on its pre-registered test, wave 2 is skipped and R0 is the meeting model.
+
+(g) **Stretch.**
+* **S1:** Helmholtz-residual regulariser on unlabeled random polygons. Launched only if its FREE gate holds, and the diagnostic is reported either way:
+  * (i) the finite-difference residual of the FDTD ground truth is near zero once the room-uniform component is removed (the complex spatial mean per bin; D170(c)'s uniform record artifact). Operationalised: relative residual ||lap_h p + k^2 p|| / ||k^2 p|| <= 0.10 band-mean over 25-300 Hz, interior stencils only.
+  * (ii) on G1 / GX predictions, the residual on unseen-topology rooms is >= 2x that on in-family rooms.
+* **S2:** CX1000 = 1000 more rooms under CX500's rules, excluding U and the C3 topology (CX draws at most 2 notches); `sample_cx_rooms(1500)[500:]`, prefix-stable. Generated now on CPU (~3.4 GB; 63 GB free). PB3 at 180K on C500 + CX500 + CX1000 only if slots free up after wave 1.
+
+(h) **Reporting.**
+* The standard report (D160) for every arm.
+* One primary table: HF, UF at all three bands, training-room fit and train-to-test gap per band, LSD per band, modal RIR, speckle d1 raw and projected.
+* Meeting figures, generated automatically when the last arm finishes, for G1 @60K, GX @60K, R0 @120K, the best wave-1 arm, and wave 2 if run:
+  * in-family off-lattice frequency curve to 300 Hz;
+  * unseen-family curve with U and C3 separately;
+  * S1-layout field maps: the lower-median in-family test shape + one U + one C3 room; rows 50 / 100 / 200 / 280 Hz; columns FDTD | G1 | R0 | best arm; render-time projection applied and labelled;
+  * per-room paired scatter on the unseen set, best arm vs G1.
+
+(i) **Engineering (all default-off, Rule-8 tested before launch).**
+* `ls_mode` selects the step function once, so the default `_step` stays byte-identical.
+* MB is built after every default module (RNG order kept), with a grid-spec buffer checked on load.
+* The renderer gets a `jitter=` override (default None = unchanged).
+* Unknown YAML keys become FATAL (a misspelt P4-8 flag would otherwise silently train GX), with an `--allow_unknown_keys` escape hatch.
+* New keys go in the resume guard, compared with their defaults when absent from a checkpoint.
