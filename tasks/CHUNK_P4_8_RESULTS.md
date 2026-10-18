@@ -1,7 +1,7 @@
 # Chunk P4-8 — Multi-band models and spatial losses (network-only): RESULTS (live)
 
 **Status (2026-10-18):**
-- Step 0 is done: the topology audit, the frozen unseen-family set, and the references re-scored on it.
+- Step 0 is done (D175): the topology audit, the frozen unseen-family set, and the references re-scored on it. The S1 gate fails, so S1 is not launched.
 - All eight wave-1 arms are training.
 - Wave 2 is decided after the 60K reads.
 - The S1 gate diagnostic and S2 (CX1000) are under way.
@@ -34,7 +34,18 @@ Pre-registration is [D174](https://raw.githubusercontent.com/harshvardhan-takawa
 - **8 C3 rooms:** NW + NE + SE, the three-corner, 10-vertex, Z-corridor-like topology. The first 8 valid draws of seed 20261018.
 - **Simulation:** dense as D111 (64×64 lattice clipped to the polygon, 3158–3850 receivers per room), source (0.5, 1.6).
 
-**0c. References on the unseen set:** see the primary table (filled as the reports land).
+**0c. References on the unseen set** (D175(c)). Off-lattice r at 25–100 / 100–200 / 200–300 Hz:
+
+| model | HF | UF (16) | U (8) | C3 (8) |
+|---|---|---|---|---|
+| G1 @60K | 0.581 | 0.384 / 0.300 / 0.298 | 0.444 / 0.347 / 0.349 | 0.323 / 0.253 / 0.246 |
+| **GX @60K** (reference) | 0.504 | **0.460 / 0.389 / 0.375** | 0.480 / 0.417 / 0.418 | 0.439 / 0.361 / 0.333 |
+| GX @30K (kill reference) | 0.413 | 0.466 / 0.390 / 0.365 | 0.493 / 0.411 / 0.388 | 0.440 / 0.370 / 0.342 |
+| PB3 @60K | 0.496 | 0.357 / 0.288 / 0.273 | 0.423 / 0.326 / 0.304 | 0.291 / 0.249 / 0.242 |
+| B5 @60K | 0.467 | 0.405 / 0.311 / 0.284 | 0.473 / 0.360 / 0.355 | 0.337 / 0.261 / 0.213 |
+
+- **GX vs G1:** GX − G1 is UF +0.076 [+0.044, +0.114] and HF −0.078. GX's UF is flat from 30K to 60K, while its HF still climbs.
+- **The expanded set is much harder than D111's two U rooms:** G1 scores 0.444 on the 8 U rooms vs 0.718 on the 2.
 
 ## Wave 1 (GX corpus; each arm differs from GX in one thing)
 
@@ -58,7 +69,9 @@ Pre-registration is [D174](https://raw.githubusercontent.com/harshvardhan-takawa
 
 ## Stretch
 
-- **S1 gate** (`scripts/p4_8_s1_gate.py`): the finite-difference Helmholtz residual of the FDTD truth and of G1 / GX on in-family vs unseen rooms. The result is recorded below.
+- **S1 gate** ([s1_gate.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/s1_gate.md), D175(d)): **FAILS, so S1 is not launched.**
+  - (i) holds: the FDTD residual is 0.057.
+  - (ii) fails: G1 / GX fields violate the Helmholtz equation massively (relative residual 4.2 / 5.4), but equally in family and out (ratio 1.05 / 1.02, needed ≥ 2).
 - **S2:** CX1000 (1000 rooms, 3.4 GB) is built. PB3 at 180K on C500 + CX500 + CX1000 runs only if slots free up after wave 1.
 
 ## Engineering (eced517; all default-off; 19 new Rule-8 tests, 129 existing pass)

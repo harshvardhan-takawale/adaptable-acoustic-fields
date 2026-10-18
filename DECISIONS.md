@@ -1803,3 +1803,47 @@ The render-time projection changes every out-of-family r by <= 0.0013. Full-band
 * The renderer gets a `jitter=` override (default None = unchanged).
 * Unknown YAML keys become FATAL (a misspelt P4-8 flag would otherwise silently train GX), with an `--allow_unknown_keys` escape hatch.
 * New keys go in the resume guard, compared with their defaults when absent from a checkpoint.
+
+**D175 — P4-8 Step 0 complete. The references are re-scored on the frozen unseen-family set, the S1 gate FAILS (S1 not launched), and S2's CX1000 corpus is built.** Wave 1 (all 8 arms) launched 2026-10-18 after D174; no wave-1 number exists yet.
+
+(a) **Topology audit (0a)** (`outputs/p4_8/topology_audit.md`, polygon-read classifier):
+* C250 / C500 training sets are rect 8 + L 242 / 492.
+* CX500 is T-like 174, L 143, LT 110, TT 54, DN 19. CX1000 is T-like 342, L 268, LT 230, TT 119, DN 41.
+* FAM is rect / L / T / DN / U, 60 each; holdU drops U.
+* **No corpus that any P4-8 arm or reference trained on contains U or any 3-notch room. T and DN are in-distribution for every GX-corpus arm.**
+* P4-7's "GX +0.110 out of family" (D171(b)) per family: T +0.051, DN +0.206 (both in GX's training distribution), U +0.072 (the only truly unseen family).
+
+(b) **Unseen set (0b), frozen before any score:**
+* 16 rooms, `configs/sweeps_2d_mat/p4_8_unseen_manifest.json`, rows_sha256 ba34b17c….
+* U: D111's 2 + FAM test indices 3, 6, 2, 7, 1, 8. C3: NW + NE + SE, 10 vertices, first 8 valid draws of seed 20261018.
+* Dense as D111: 3158-3850 receivers per room; the air mask equals the polygon node-for-node.
+
+(c) **References on the unseen set (0c).** Off-lattice r (25-100 / 100-200 / 200-300 Hz); HF from the 15 test shapes. The projection changes UF by <= 0.003.
+
+| model | HF | UF (16 rooms) | U (8) | C3 (8) | UF LSD dB |
+|---|---|---|---|---|---|
+| G1 @60K | 0.581 | 0.384 / 0.300 / 0.298 | 0.444 / 0.347 / 0.349 | 0.323 / 0.253 / 0.246 | 5.70 / 6.00 / 5.87 |
+| **GX @60K** (the reference) | 0.504 | **0.460 / 0.389 / 0.375** | 0.480 / 0.417 / 0.418 | 0.439 / 0.361 / 0.333 | 5.39 / 5.71 / 5.41 |
+| GX @30K (kill reference) | 0.413 | 0.466 / 0.390 / 0.365 | 0.493 / 0.411 / 0.388 | 0.440 / 0.370 / 0.342 | 5.35 / 5.69 / 5.39 |
+| PB3 @60K | 0.496 | 0.357 / 0.288 / 0.273 | 0.423 / 0.326 / 0.304 | 0.291 / 0.249 / 0.242 | 5.90 / 6.09 / 6.00 |
+| B5 @60K | 0.467 | 0.405 / 0.311 / 0.284 | 0.473 / 0.360 / 0.355 | 0.337 / 0.261 / 0.213 | 5.67 / 6.03 / 5.94 |
+
+* **GX - G1:** UF +0.076 [+0.044, +0.114] / +0.089 [+0.068, +0.113] / +0.078 [+0.048, +0.106]; HF -0.078 [-0.091, -0.065].
+* **GX - PB3:** UF +0.10 in every band (CIs exclude 0); HF +0.008 [-0.016, +0.030]. Diverse rooms buy unseen-family transfer at no in-family cost against PB3 (250 shapes), but at a cost against G1 (500 shapes).
+* **GX @30K - GX @60K:** UF +0.007 / +0.001 / -0.011 (n.s.); HF -0.091. GX's unseen-family r is flat from 30K to 60K, while its in-family HF still climbs.
+* **The expanded set is much harder than D111's two U rooms.** G1's U mean on the 8 U rooms is 0.444 at 25-100 Hz, against 0.718 on the 2 D111 rooms (D171). C3 is the hardest topology for every model.
+
+(d) **S1 gate, the free diagnostic** (`outputs/p4_8/s1_gate.md`). Relative finite-difference Helmholtz residual ||lap_h F + k^2 (F - <F>)|| / ||k^2 (F - <F>)|| over interior lattice stencils, 25-300 Hz. Unequal-spacing stencil on the snapped coordinates; stencils within 0.3 m of the source dropped.
+* **(i) holds:** the FDTD truth reads 0.057 (0.039-0.076 across 31 rooms; 0.08-0.18 at 25-100 Hz, where removing the spatial mean also removes part of the true low-mode field; 0.02-0.04 at 200-300 Hz).
+* **(ii) FAILS:**
+  * The network fields violate the Helmholtz equation massively: rel residual 4.2 (G1) and 5.4 (GX), i.e. the Laplacian of the predicted field is 4-5x the k^2 term. Labelled inference: the fine-scale supra-physical content of D152 dominates a second-difference operator.
+  * The violation is the same in family and out: unseen / in-family = 1.05 (G1) and 1.02 (GX), against the pre-registered >= 2.
+* **S1 is NOT launched.** Labelled reading: a Helmholtz regulariser on unseen polygons would act on a defect that is not specific to unseen topologies.
+
+(e) **S2:** CX1000 is built (1000 rooms, 3.4 GB; 125 CPU tasks). The 2000-room manifest (`p4_8_c500_cx1500_manifest.json`, symlink dir `data/track_p4_8_mix`) and `configs/sweep_2d_mat/P4_8_S2.yaml` (PB3 / GX recipe, 180K) are ready. Launched only if slots free up after wave 1. It needs a 48 GB card, since the targets alone are 7.7 GB.
+
+(f) **Wave-1 set-up facts (no accuracy read):**
+* **Speeds:** R0 / LS1 / LS3 0.76-0.79 s/it (A5000); MB1 0.53-0.54 and MB2 0.57-0.58 s/it (L40S: the per-band sigma decoders output 1366 values instead of 8194); LS2 1.93 s/it (A5000; 30K steps, about 16 h).
+* **MB1 grid tables:** 24K / 44K / 62K parameters per encoder (bands low / mid / high), all levels dense. MB2: 8.44M per encoder (as the default).
+* **LS1:** S_init (the spec terms' init value) = 4.92. 0.15% of training receivers have no neighbour within 0.30 m and are never drawn as anchors; mean pair distance 0.198 m.
+* **Early observation** (4K, not a read): LS1's term stays at 4.3-5.2, i.e. at or above its "no spatial differences" value. The network's neighbour differences are no better than zero difference, and LS1 is 52-80% of the total loss. The 30K kill rule decides; nothing is changed.

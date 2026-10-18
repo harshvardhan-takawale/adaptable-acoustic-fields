@@ -4,7 +4,19 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-7 (2026-10-17, 10:50; D171-D172).** Manager report: [P4_7_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_7_STATUS_REPORT.md).
+**Last updated**: **P4-8 IN PROGRESS (2026-10-18; D173-D175).** Write-up (live): [CHUNK_P4_8_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_8_RESULTS.md).
+
+* **D173:** M3-fam final (for the next meeting).
+* **D174:** P4-8 pre-registration.
+* **D175, Step 0:**
+  * **Topology audit:** CX500 contains T-like and DN rooms, so they are in-distribution for GX arms. GX's +0.110 splits into T +0.05 / DN +0.21 / U +0.07.
+  * **Frozen unseen set:** 8 U + 8 three-corner C3 rooms.
+  * **References on it:** GX @60K UF 0.460 / 0.389 / 0.375 and HF 0.504; G1 0.384 / 0.300 / 0.298 and HF 0.581.
+  * **S1 gate fails** (network Helmholtz residual equal in and out of family), so S1 is not launched.
+  * **CX1000** is built (S2 ready, gated).
+* **Wave 1 (8 arms) training:** R0 (120K), MB1, MB2, LS1A, LS1B, LS2A, LS2B, LS3. Watchers launch every standard report + UF; the table and meeting figures are generated automatically at the end.
+
+Earlier: **P4-7 (2026-10-17, 10:50; D171-D172).** Manager report: [P4_7_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_7_STATUS_REPORT.md).
 
 * **m3 interim (M3-fam @20K):**
   * Physics + residual network gives held-out U **0.977** (G2 0.554) and test shapes 0.989 / 0.976 / 0.961.
