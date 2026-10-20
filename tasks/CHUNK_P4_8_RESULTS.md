@@ -1,10 +1,10 @@
 # Chunk P4-8 — Multi-band models and spatial losses (network-only): RESULTS (live)
 
-**Status (2026-10-18):**
-- Step 0 is done (D175): the topology audit, the frozen unseen-family set, and the references re-scored on it. The S1 gate fails, so S1 is not launched.
-- All eight wave-1 arms are training.
-- Wave 2 is decided after the 60K reads.
-- The S1 gate diagnostic and S2 (CX1000) are under way.
+**Status (2026-10-19, 22:45): wave 1 FINAL (D178); S2 at its 60K interim read (its 120K report lands automatically).** Manager report: [P4_8_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_8_STATUS_REPORT.md).
+- **R0 HOLDS and is the meeting model:** HF 0.582 (= G1), and UF +0.084 over G1.
+- **No MB or LS arm passes,** so wave 2 is skipped. MB1 is closest: UF +0.033, HF −0.024.
+- **S2 @60K** has the largest UF gain of any arm (+0.042), with HF 0.448 at mid-schedule.
+- **Meeting figures:** [outputs/p4_8/meeting](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/meeting/FIGURE_MANIFEST.md).
 
 Pre-registration is [D174](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md), recorded before any P4-8 number. M3-fam's final read is D173, recorded for the next meeting; per the manager it is kept out of this round's tables and figures.
 

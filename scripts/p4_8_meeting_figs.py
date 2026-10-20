@@ -90,10 +90,16 @@ def curves(cache_fmt, names, idx=None):
 def curve_panel(ax, cv, labels, title):
     f = np.arange(601) * DF
     sel = slice(50, 591)
+    ends = []
     for k, (n, r) in enumerate(cv.items()):
         ax.plot(f[sel], r[sel], color=SLOTS[k], lw=2, label=labels[n])
-        ax.annotate(labels[n].split(" ")[0], (f[sel][-1], r[sel][-1]), xytext=(4, 0), textcoords="offset points",
-                    color=INK2, fontsize=8, va="center")
+        ends.append([float(r[sel][-1]), labels[n].split(" ")[0]])
+    ends.sort(key=lambda e: e[0])                         # spread the end labels so none overlaps (min gap 0.035)
+    for i in range(1, len(ends)):
+        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 0.035)
+    for y, lab in ends:
+        ax.annotate(lab, (f[sel][-1], y), xytext=(4, 0), textcoords="offset points", color=INK2, fontsize=8,
+                    va="center", annotation_clip=False)
     ax.axvspan(295, 300, color=GRID, lw=0)
     ax.set_xlim(25, 315); ax.set_ylim(0, 1)
     ax.set_xlabel("frequency (Hz)", color=INK2); ax.set_ylabel("off-lattice spatial r (dB)", color=INK2)
@@ -104,14 +110,23 @@ def curve_panel(ax, cv, labels, title):
 def field_fig(path, title, h5path, verts, L, W, T, Ps, rx, proj_note):
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap
-    from aaf.eval.physical_projection import project_field
+    from aaf.eval.physical_projection import CUT, C, k_grid, project_lowpass
     cmap = LinearSegmentedColormap.from_list("blues", BLUES)
     with h5py.File(h5path) as f:
         keep = np.asarray(json.loads(f.attrs["lattice_keep"]), bool)
     xs = 0.12 + np.arange(64) * (L - 0.24) / 63
     ys = 0.12 + np.arange(64) * (W - 0.24) / 63
     off = ~onlat(rx)
-    Pp = [(lab, project_field(P, keep.reshape(64, 64), (L - 0.24) / 63, (W - 0.24) / 63)) for lab, P in Ps]
+    # the render-time projection (project_field's per-bin least squares) on the four displayed bins only: each bin is an
+    # independent problem, so this equals project_field's result at those bins
+    K = k_grid(64, 64, (L - 0.24) / 63, (W - 0.24) / 63, 4)
+    fb = np.array([int(round(hz / DF)) for hz in FREQS])
+    kc = CUT * 2 * np.pi * fb * DF / C
+    Pp = []
+    for lab, P in Ps:
+        Q = np.array(P, dtype=np.complex64, copy=True)
+        Q[:, fb] = project_lowpass(P[:, fb].T, keep.reshape(64, 64), K, kc).T.astype(np.complex64)
+        Pp.append((lab, Q))
     fig, axes = plt.subplots(len(FREQS), 1 + len(Pp), figsize=(3.1 * (1 + len(Pp)) + 1.2, 2.9 * len(FREQS)),
                              constrained_layout=True, facecolor="white")
     for i, hz in enumerate(FREQS):

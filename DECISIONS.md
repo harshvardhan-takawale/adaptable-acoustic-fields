@@ -1908,3 +1908,65 @@ The render-time projection changes every out-of-family r by <= 0.0013. Full-band
 * Resumed 2026-10-18 ~18:50 (jobs 7889820 / 7889821) at 2.04 s/it (was 1.93). The bit-exact check passed on the first 20 steps after the restart.
 * About 10 h to the 30K end points.
 * The CPU-load resume path stays (correct and tested; it removes GPU-cache pressure for every arm).
+
+**D178 — P4-8 wave-1 FINAL reads (S2 at its 60K interim; its 120K read is pending).**
+* **R0 HOLDS and is the meeting model:** GX at matched exposure reaches G1's in-family accuracy and keeps GX's unseen-family gain.
+* **No multi-band or loss arm passes its pre-registered test, so wave 2 is SKIPPED** (pre-registered) and the LS2 control is not needed.
+* **S2 has the largest unseen-family gain of any arm at its 60K midpoint.** Its decisive read is at 120K.
+
+Off-lattice; paired bootstrap 10k, seed 20261013, against GX @60K. Files: `outputs/p4_8/primary_table.{md,json}` and the per-arm standard reports.
+
+| model | HF | UF 25-100 / 100-200 / 200-300 | U | C3 | test LSD dB | fit r | gap | modal RIR | d1 raw / proj |
+|---|---|---|---|---|---|---|---|---|---|
+| G1 @60K | 0.581 | 0.384 / 0.300 / 0.298 | 0.444 | 0.323 | 1.53 / 3.67 / 4.28 | 0.960 / 0.806 / 0.675 | 0.029 / 0.085 / 0.094 | 0.956 | 0.942 / 0.910 |
+| GX @60K (reference) | 0.504 | 0.460 / 0.389 / 0.375 | 0.480 | 0.439 | 1.91 / 4.22 / 4.67 | 0.923 / 0.681 / 0.529 | 0.016 / 0.035 / 0.025 | 0.936 | 0.906 / 0.870 |
+| **R0 @120K** | **0.582** | **0.468 / 0.380 / 0.371** | 0.481 | 0.454 | 1.72 / 3.83 / 4.25 | 0.947 / 0.762 / 0.645 | 0.028 / 0.061 / 0.063 | 0.951 | 0.945 / 0.912 |
+| MB1 @60K | 0.480 | 0.492 / 0.405 / 0.390 | 0.518 | 0.467 | 1.99 / 4.32 / 4.81 | 0.916 / 0.661 / 0.494 | 0.015 / 0.031 / 0.015 | 0.930 | 0.887 / 0.862 |
+| MB2 @60K | 0.503 | 0.457 / 0.389 / 0.391 | 0.487 | 0.427 | 1.85 / 4.22 / 4.69 | 0.928 / 0.681 / 0.528 | 0.016 / 0.035 / 0.026 | 0.937 | 1.009 / 0.874 |
+| LS1A @60K | 0.524 | 0.443 / 0.354 / 0.347 | 0.465 | 0.420 | 1.89 / 4.20 / 4.79 | 0.924 / 0.710 / 0.561 | 0.012 / 0.041 / 0.037 | 0.939 | 0.888 / 0.880 |
+| LS1B @60K | 0.527 | 0.391 / 0.362 / 0.367 | 0.439 | 0.343 | 2.01 / 4.29 / 4.93 | 0.915 / 0.705 / 0.558 | 0.013 / 0.042 / 0.031 | 0.937 | 0.900 / 0.893 |
+| LS3 @60K | 0.519 | 0.458 / 0.379 / 0.367 | 0.483 | 0.433 | 1.87 / 4.16 / 4.66 | 0.928 / 0.704 / 0.552 | 0.017 / 0.045 / 0.033 | 0.939 | 0.911 / 0.873 |
+| LS2A @30K (end) | 0.368 | 0.452 / 0.384 / 0.336 | 0.452 | 0.451 | 2.64 / 5.05 / 5.32 | 0.855 / 0.521 / 0.365 | 0.004 / 0.013 / -0.003 | 0.883 | 0.687 / 0.500 |
+| LS2B @30K (end) | 0.295 | 0.460 / 0.379 / 0.272 | 0.473 | 0.447 | 2.74 / 5.13 / 5.55 | 0.849 / 0.501 / 0.284 | 0.009 / 0.006 / -0.011 | 0.856 | 1.135 / 0.347 |
+| S2 @60K (interim) | 0.448 | **0.502 / 0.419 / 0.400** | 0.518 | **0.485** | 2.20 / 4.52 / 4.94 | 0.893 / 0.612 / 0.448 | 0.008 / 0.019 / 0.000 | 0.922 | 0.826 / 0.742 |
+
+(a) **R0, pre-registered: HF >= 0.56 AND UF not below GX @60K within CI. HOLDS.**
+* HF 0.582. UF vs GX @60K: +0.008 [+0.001, +0.015] / -0.009 [-0.019, +0.001] / -0.004 [-0.025, +0.015].
+* **R0 vs G1:** HF +0.001 [-0.005, +0.006]; UF +0.084 [+0.049, +0.123] / +0.080 [+0.055, +0.105] / +0.073 [+0.049, +0.097]. **R0 matches G1 in family and beats it on unseen families in every band.**
+* **GX's in-family cost (D171(b)) was exposure, not dilution.**
+* R0's trajectory over 30 / 60 / 90 / 120K: HF 0.440 / 0.528 / 0.567 / 0.582; UF 0.480 / 0.477 / 0.468 / 0.468 (flat to slightly down); gap at 200-300 Hz 0.003 / 0.028 / 0.046 / 0.063.
+* **Labelled inference:** longer training buys in-family fit and transfer but not unseen-family transfer, consistent with the manager's "diversity, not training length".
+
+(b) **MB1 / MB2, pre-registered: UF >= +0.05 with HF >= -0.02, or HF >= +0.03 with UF >= -0.02. BOTH FAIL.**
+* MB1 is the closest: UF +0.033 [+0.013, +0.055] / +0.016 / +0.015, HF -0.024 [-0.029, -0.019]. It has the best U of any 60K arm (0.518).
+* MB2 equals GX (HF -0.001, UF -0.002).
+* **Reading, MB2 - GX:** full per-band separation beyond PB3's shared trunk buys nothing.
+* **Reading, MB1 - MB2 (wavelength-matched resolution):** UF +0.035 [+0.013, +0.060] at 25-100 Hz, +0.016 [-0.001, +0.033] at 100-200, -0.001 at 200-300; HF -0.023 [-0.029, -0.016].
+* The pre-registered mechanism is supported in direction and band: a coarse low-band encoder transfers the 25-100 Hz field better to unseen families. Its size (+0.035) is below the +0.05 threshold, and it costs 0.02 in family.
+
+(c) **LS1A / LS1B, pre-registered: HF >= +0.03 or UF >= +0.05, no primary or band more than 0.02 worse. BOTH FAIL.**
+* HF +0.020 [+0.016, +0.024] / +0.023 [+0.017, +0.029]: below +0.03, but CIs above 0.
+* UF falls: LS1A -0.017 / -0.035 / -0.028; LS1B -0.069 [-0.111, -0.027] / -0.028 / -0.009. LS1B's C3 drops to 0.343.
+* **LS1 trades unseen-family transfer for in-family accuracy.**
+* Per-band log (D176(c)): the term fell in every band, and is stiffest at 200-300 Hz (neighbour phase).
+
+(d) **LS3: FAILS.** It equals GX (HF +0.015, UF -0.002 / -0.010 / -0.008).
+
+(e) **LS2A / LS2B, pre-registered (read at the 30K end point vs GX @60K): as LS1, plus band LSD <= +0.2 dB. BOTH FAIL, badly.**
+* HF -0.136 [-0.144, -0.127] / -0.209 [-0.225, -0.195].
+* UF at 200-300 Hz -0.040 / -0.103; test LSD +0.65 to +0.91 dB in every band; modal RIR 0.883 / 0.856.
+* Training-room fit falls as far as test (gap ~0), so the arms UNDER-fit.
+* The pre-registered caveat (LS2 trains on the metric's shape) is borne out: LSD and modal RIR, the guards, both degrade.
+* The control (LS2's batching with lambda = 0) was to run only if an LS2 arm passed; neither did, so it is not run. **Whether the damage comes from the loss or from LS2's one-room-per-step batching is therefore UNRESOLVED** (labelled).
+
+(f) **S2 @60K (interim; pre-registered at 120K: UF >= 0.510 AND HF >= 0.484).**
+* UF 0.502 [GX +0.042, CI +0.024 to +0.058] / 0.419 / 0.400: **the largest unseen-family gain of any arm**, and the best C3 (0.485).
+* HF 0.448, below 0.484 at mid-schedule.
+* **S2 - R0 @60K** (same step count, twice the diverse rooms): UF +0.025 [+0.010, +0.040] / +0.024 [+0.005, +0.047] / +0.017; HF -0.080.
+* S2 reached 85.4K before being preempted; it is requeued (scavenger) and its 120K standard report launches automatically. R0's HF rose +0.054 from 60K to 120K, so S2's HF threshold is reachable (labelled; not a prediction of the pre-registered outcome).
+
+(g) **Wave 2: SKIPPED** (pre-registered: run only if a wave-1 arm passes; no MB or LS arm did). R0 @120K is the meeting model.
+
+(h) **Meeting figures** (`outputs/p4_8/meeting/`): G1 @60K, GX @60K, R0 @120K, the best wave-1 arm by the fixed rule and S2.
+* Best arm: no arm passed, so by the largest dHF + dUF(25-100) it is LS3 (+0.013, MB1 +0.009). It is labelled "no arm passed".
+* S2 is at 60K, labelled "interim read" (D176(e)), because the figures could not wait for 120K.
