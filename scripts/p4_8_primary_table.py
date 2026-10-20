@@ -21,7 +21,7 @@ import numpy as np
 B = ["25-100", "100-200", "200-300"]
 SEED, NB = 20261013, 10000
 OUT = Path("outputs/p4_8")
-REFS = ["G1_60K", "GX_30K", "GX_60K", "PB3_60K", "B5_60K"]
+REFS = ["C250_60K", "G1_60K", "GX_30K", "GX_60K", "PB3_60K", "B5_60K"]          # C250: start-of-phase reference (deck)
 ARMS = (["R0_%dK" % k for k in (30, 60, 90, 120)]
         + ["%s_%dK" % (a, k) for a in ("MB1", "MB2", "LS1A", "LS1B", "LS3") for k in (30, 60)]
         + ["%s_%dK" % (a, k) for a in ("LS2A", "LS2B", "LS2C") for k in (15, 30)]

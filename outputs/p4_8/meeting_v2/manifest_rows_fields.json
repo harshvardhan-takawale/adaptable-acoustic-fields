@@ -1,0 +1,17 @@
+[
+ [
+  "fields_a_shape1000.png",
+  "S1-layout field maps, rows 50/100/200/280 Hz (single 0.5 Hz bins), columns FDTD / C250 @60K / B5 @60K / R0 @120K; RAW (no projection); per-row limits FDTD 2-98th pct; corner r / LSD off-lattice, frozen metric functions",
+  "shape id 1000 (15-shape test index 0), the room of last meeting's S1_a (L_L5.54_W5.28_d1.42_w1.52)"
+ ],
+ [
+  "fields_b_U.png",
+  "S1-layout field maps, rows 50/100/200/280 Hz (single 0.5 Hz bins), columns FDTD / C250 @60K / B5 @60K / R0 @120K; RAW (no projection); per-row limits FDTD 2-98th pct; corner r / LSD off-lattice, frozen metric functions",
+  "U room at R0 @120K's lower median of 25-100 Hz off-lattice r within the frozen U set: rank 4 of 8 ascending (r = 0.378); unseen-manifest index 7 (UL6.36_W5.44_NEd2.18w2.16x0.00_NWd1.72w1.42x0.00)"
+ ],
+ [
+  "fields_c_C3.png",
+  "S1-layout field maps, rows 50/100/200/280 Hz (single 0.5 Hz bins), columns FDTD / C250 @60K / B5 @60K / R0 @120K; RAW (no projection); per-row limits FDTD 2-98th pct; corner r / LSD off-lattice, frozen metric functions",
+  "C3 room at R0 @120K's lower median of 25-100 Hz off-lattice r within the frozen C3 set: rank 4 of 8 ascending (r = 0.372); unseen-manifest index 8 (C3L6.74_W4.58_NWd0.08w2.34_NEd1.78w2.44_SEd1.38w0.50)"
+ ]
+]

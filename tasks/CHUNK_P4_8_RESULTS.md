@@ -5,6 +5,7 @@
 - **No MB or LS arm passes,** so wave 2 is skipped. MB1 is closest: UF +0.033, HF −0.024.
 - **S2 @60K** has the largest UF gain of any arm (+0.042), with HF 0.448 at mid-schedule.
 - **Meeting figures:** [outputs/p4_8/meeting](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/meeting/FIGURE_MANIFEST.md).
+- **Meeting-deck inputs v2 (D179, 2026-10-19):** C250 @60K reference row in the [primary table](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/primary_table.md); per-bin curves; C250 → B5 → R0 field maps; 2 cm speckle close-up plus fine-scale energy. See [meeting_v2/FIGURE_MANIFEST.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/meeting_v2/FIGURE_MANIFEST.md). S2's 120K row lands in the table automatically.
 
 Pre-registration is [D174](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md), recorded before any P4-8 number. M3-fam's final read is D173, recorded for the next meeting; per the manager it is kept out of this round's tables and figures.
 

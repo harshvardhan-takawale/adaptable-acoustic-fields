@@ -4,7 +4,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-8 wave 1 FINAL (2026-10-19, 22:45; D177-D178).** Manager report: [P4_8_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_8_STATUS_REPORT.md).
+**Last updated**: **P4-8 wave 1 FINAL + meeting-deck inputs v2 (2026-10-19; D177-D179).** Manager report: [P4_8_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_8_STATUS_REPORT.md).
 
 * **R0 (GX, 120K) HOLDS and is the meeting model:** HF 0.582 (= G1 0.581), UF 0.468 / 0.380 / 0.371 (G1 +0.084 / +0.080 / +0.073, CIs above 0). GX's in-family cost was exposure.
 * **No MB / LS arm passes,** so wave 2 is SKIPPED:
@@ -13,6 +13,13 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
   * LS2 is harmful: HF -0.14 / -0.21, LSD +0.7-0.9 dB. Loss vs batching is unresolved, because the control runs only on a pass.
 * **S2 @60K (interim):** UF +0.042 [+0.024, +0.058] (largest) and best C3, HF 0.448 (< 0.484 mid-schedule). The 120K read is pending (preempted at 85.4K, requeued).
 * **Meeting figures** are built (S2 at 60K, labelled; best arm by rule = LS3, no arm passed).
+* **Meeting-deck inputs v2 (D179):** [meeting_v2/FIGURE_MANIFEST.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/meeting_v2/FIGURE_MANIFEST.md).
+  * C250 @60K reference row: HF 0.118, UF 0.238.
+  * Per-bin curves for C250 / B5 / R0.
+  * Field maps (shape 1000, lower-median U and C3 by R0's 25-100 Hz r).
+  * 2 cm speckle close-up at 200 and 280 Hz.
+  * Fine-scale LS ratio at 200-300 Hz: B5 2.55, R0 raw 1.77, R0 projected ≈ 0 by construction (NC 0.79 / 0.79 / 0.70).
+  * No modal or solver results. S2's 120K row is added to the table automatically.
 
 Earlier: **P4-8 IN PROGRESS (2026-10-18, evening; D173-D176).** Write-up (live): [CHUNK_P4_8_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_8_RESULTS.md).
 

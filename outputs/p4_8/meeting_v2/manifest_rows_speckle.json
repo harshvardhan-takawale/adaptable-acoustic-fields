@@ -1,0 +1,12 @@
+[
+ [
+  "speckle_2cm_280Hz.png",
+  "speckle close-up at 280 Hz on shape 1000's 2 cm grid (61,874 nodes): FDTD | B5 raw | R0 raw | R0 + render-time band-limit; top full room, bottom 1.5 m inset; per-panel 2 cm d1 and dB r (inset row: over the window)",
+  "inset = argmax over 1.5 m windows inside the bounding box of the summed |hp(B5 - FDTD)|^2, hp = minus the least-squares low-pass at 1.5 k0; origin (0.12, 0.46) m"
+ ],
+ [
+  "speckle_2cm_200Hz.png",
+  "speckle close-up at 200 Hz on shape 1000's 2 cm grid (61,874 nodes): FDTD | B5 raw | R0 raw | R0 + render-time band-limit; top full room, bottom 1.5 m inset; per-panel 2 cm d1 and dB r (inset row: over the window)",
+  "inset = argmax over 1.5 m windows inside the bounding box of the summed |hp(B5 - FDTD)|^2, hp = minus the least-squares low-pass at 1.5 k0; origin (0.12, 0.36) m"
+ ]
+]

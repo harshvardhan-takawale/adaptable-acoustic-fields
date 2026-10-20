@@ -1970,3 +1970,33 @@ Off-lattice; paired bootstrap 10k, seed 20261013, against GX @60K. Files: `outpu
 (h) **Meeting figures** (`outputs/p4_8/meeting/`): G1 @60K, GX @60K, R0 @120K, the best wave-1 arm by the fixed rule and S2.
 * Best arm: no arm passed, so by the largest dHF + dUF(25-100) it is LS3 (+0.013, MB1 +0.009). It is labelled "no arm passed".
 * S2 is at 60K, labelled "interim read" (D176(e)), because the figures could not wait for 120K.
+
+**D179 — P4-8 meeting-deck inputs (manager, 2026-10-19): the C250 reference row, per-bin curves, field maps and the 2 cm speckle close-up. No training; no modal-prior or solver results.** Files: `outputs/p4_8/meeting_v2/` (FIGURE_MANIFEST.md lists every rule).
+
+(a) **Figures load on raw GitHub.** `.gitignore` gains `!/outputs/p4_8/**/*.png`, the same allowlist gap as p4_4 (1825168). `/outputs/p4_8/arms/` (telemetry) stays local.
+
+(b) **C250 @60K is a reference row in `primary_table.md`.** It is scored on the identical P4-8 protocol: 15 frozen shapes dense; the frozen 16 unseen rooms; 200-300 Hz d1 raw and projected.
+* HF 0.118; test r 0.512 / 0.149 / 0.118; test LSD 4.70 / 7.03 / 6.98 dB.
+* U 0.282 / 0.153 / 0.119; C3 0.195 / 0.117 / 0.112; d1 2.113 / 0.490.
+* Its in-family dense Gate-2 re-score reproduces D99's C250 off-lattice value (0.611).
+* B5 @60K's in-family cache was regenerated (deleted earlier); its numbers are unchanged.
+
+(c) **Per-bin curves (`FREQ_CURVES.json`)** for C250 @60K, B5 @60K and R0 @120K, in FREQ_CURVE_60K.json's structure.
+* Room sets: G15 / UNSEEN16 / U8 / C3_8.
+* Check: each G15 LSD 200-300 equals the table's.
+
+(d) **Field-map rooms are fixed by rule before rendering:**
+* (a) shape 1000 (manager).
+* (b) and (c): the U / C3 room at R0 @120K's lower median of 25-100 Hz off-lattice r within its 8 frozen rooms, i.e. index (8-1)//2 of the ascending order.
+* Result: U = manifest 7 (r 0.378), C3 = manifest 8 (r 0.372).
+* Raw output (no projection); per-row limits = FDTD 2-98th percentile.
+
+(e) **Speckle-inset rule:** the 1.5 m window in the bounding box maximising Σ|hp(B5 - FDTD)|², with hp = minus the LS low-pass at 1.5 k0.
+* It lands on the source corner at both 200 and 280 Hz (origin (0.12, 0.36) / (0.12, 0.46) m; source (0.5, 1.6)), so the inset shows near-source behaviour. Stated in the manifest.
+* B5's 2 cm full-room d1 / r reproduce the previous meeting's d6 exactly.
+
+(f) **Fine-scale energy ratio (D152(c), LS primary, 15 shapes, 200-300 Hz):** B5 2.546 [2.229, 2.978]; R0 raw 1.772 [1.550, 2.027]; R0 projected 0.017.
+* **R0 projected is ≈ 0 BY CONSTRUCTION under LS**, so it is reported beside the NC companion: B5 0.793, R0 raw 0.785, R0 projected 0.698.
+* **Labelled reading:** under LS, R0 raw carries 30% less fine-scale energy than B5, so its excess over FDTD halves (1.55 -> 0.77). The projection removes the rest, and under NC the projected field is smoother than FDTD (0.70).
+
+(g) **S2 @120K** enters `primary_table.md` only, automatically via `scripts/p4_8_s2_row.sh`, with its D176 verdict. It is not in any figure.
