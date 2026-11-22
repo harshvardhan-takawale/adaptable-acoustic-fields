@@ -28,6 +28,21 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (evening) — I4: Robin boundary residual + gate G-BC -> PL1 NOT launched; NMF / NMF-P launched
+
+**Headline:** The network's fields break the wall boundary condition badly (~1,700x the simulator's error), but equally badly in familiar and unseen rooms. So a physics penalty at the walls would not target what goes wrong in unseen rooms, and the pre-registered physics-loss arm is not run. The learned-modes route (NMF) passed its feasibility check and is now training.
+
+- **Gate G-BC (R0 @120K, D180):**
+  - (1) FDTD truth residual 0.004 <= 0.15: holds.
+  - (2) projected residual unseen / in-family 1.25 < 1.5: **fails** (raw: 0.92).
+  - (3) Spearman(per-room residual, 25-100 Hz r) = -0.81 <= -0.4: holds.
+  - **PL1 is not launched.**
+- **Absolute levels (25-100 / 100-200 / 200-300 Hz):** FDTD 0.004 / 0.003 / 0.002; R0 raw 6.95 / 7.49 / 4.49; S2 raw 9.00 / 9.00 / 6.70.
+  - The projection's extension to the wall fails its validity check (projected truth 0.61 > 0.15), so the projected values are not trusted. The gate fails on raw values anyway.
+- **Q-D:** neither residual separates unseen from in-family rooms (interior ~1.1x, Robin 0.9-1.25x). The free gates are closed.
+- **NMF and NMF-P launched** (D184; 2 scavenger A5000s): eigen-labels for 1031 rooms, S-a verified (the formula with the true modes reproduces m1 to 1e-6), 6 tests pass. The kill read at 10K is in the trainer.
+- [physics_gates.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/physics_gates.md)
+
 ## 2026-11-22 (evening) — I9: NMF feasibility (physics only) -> GO
 
 **Headline:** A modal model with just 24 room modes is accurate enough below 100 Hz (r 0.98), so learning room modes is a viable route. To clear the bar on unseen rooms it can afford sizeable errors. To stay strong on familiar rooms it must place each mode's frequency within about 2%.

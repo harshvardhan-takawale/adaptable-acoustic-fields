@@ -8,6 +8,7 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
 
 * **P4-8 closed:** S2 @120K FAILS its UF test by 0.009 (UF 0.501, HF 0.502; under-exposed, fit 0.523 vs R0 0.645). R0 @120K remains the meeting model until S2X's 240K read.
 * **P4-9 (D180 spec + D181 amendments A1-A15, edits E1-E8, clarifications c1-c6):** Q-A network vs physics with matched information; Q-B NMF (staged behind feasibility gates); Q-C directional output (omni-field gradient primary; arms CTL / DIR / DIR-G); Q-D physics gates. A result is reported about every half-day.
+* **I4 (G-BC): FAILS on (2)** -> PL1 not launched; R0's wall residual is ~1,700x FDTD's but equal in and out of family. **I9 (NMF feasibility): GO**; NMF / NMF-P training (D184).
 * **I2 (0b(i)):** the pre-registered reading DOES NOT HOLD (projected R0 ~23x FDTD's raw residual); confound flagged (D182(f)): the projection raises truth's own residual 21x, and against projected truth projected R0 is ~1.1x.
 
 Earlier: **P4-8 wave 1 FINAL + meeting-deck inputs v2 (2026-10-19; D177-D179).** Manager report: [P4_8_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_8_STATUS_REPORT.md).

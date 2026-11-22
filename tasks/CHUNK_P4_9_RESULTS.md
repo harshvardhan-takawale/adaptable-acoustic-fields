@@ -12,6 +12,8 @@ Sections below are filled as each step lands.
 
 **0b(i) interior Helmholtz (I2):** the pre-registered reading DOES NOT HOLD (projected R0 ~23x FDTD's raw residual in every band). Confound flagged (D182(f)): the projection raises TRUTH's residual 21x; against projected truth, projected R0 is 1.08x / 1.13x / 1.11x. [physics_gates.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/physics_gates.md).
 
+**0b(ii) Robin + gate G-BC (I4): FAILS on (2)** (unseen / in-family 1.25 projected, 0.92 raw; truth 0.004; R0 raw 6.95 = ~1,700x) -> PL1 not launched. Q-D: neither residual targets the unseen-family failure.
+
 **0c unit test (E3):** passes ([unit.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/dirzs/unit.json)).
 ## Step 1 — sparse-measurement grounding
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
