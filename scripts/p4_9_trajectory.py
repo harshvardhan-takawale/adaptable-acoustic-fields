@@ -55,6 +55,7 @@ def main():
         ax.axhline(bar, color="#888888", linestyle=(0, (5, 4)), linewidth=1.5,
                    label="S2X pre-registered bar (HF 0.56 / UF 0.49)")
         ax.axvspan(120, 180, color="#f2f2f2", zorder=0)
+        ends = []
         for s, P in pts.items():
             if len(P) < 2:                     # a branch arm is drawn once it has a read of its own
                 continue
@@ -62,13 +63,24 @@ def main():
             y = [p[key] for p in P]
             ax.plot(x, y, color=COL[s], linewidth=2, marker="o", markersize=8, markeredgecolor="white",
                     markeredgewidth=2, label=s, zorder=3)
-            ax.text(x[-1] + 3, y[-1], s, color="#333333", fontsize=12, va="center")
+            ends.append([y[-1], x[-1], s])
+        ax.ends_ = ends
         ax.set_xlabel("training step (thousands)")
         ax.set_title(title, fontsize=16, color="#222222", loc="left")
         ax.set_xlim(20, 265)
     lo = min(p[k] for P in pts.values() for p in P for k in ("HF",)) if any(pts.values()) else 0.3
     axes[0].set_ylim(min(0.40, lo - 0.02), 0.65)
     axes[1].set_ylim(0.40, 0.56)
+    for ax in axes:                            # end labels, pushed apart so arms that end together stay legible
+        lo_, hi_ = ax.get_ylim()
+        gap = 0.03 * (hi_ - lo_)
+        ends = sorted(ax.ends_, key=lambda e: (e[0], e[2]))
+        ys = [e[0] for e in ends]
+        for i in range(1, len(ys)):
+            if ends[i][1] == ends[i - 1][1] or abs(ends[i][1] - ends[i - 1][1]) < 15:
+                ys[i] = max(ys[i], ys[i - 1] + gap)
+        for (y0, x0, s), yl in zip(ends, ys):
+            ax.text(x0 + 3, yl, s, color="#333333", fontsize=12, va="center")
     for ax in axes:
         ax.text(150, ax.get_ylim()[0] + 0.004, "restart dip (interim)", ha="center", color="#777777", fontsize=11)
     axes[1].legend(loc="upper left", frameon=False, fontsize=13)

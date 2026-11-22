@@ -28,6 +28,27 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (night) — I13 (kill read): NMF passes its 10K kill rule after the NaN fix; CTL / DIR @130K interim
+
+**Headline:** The learned-modes model (NMF) works after a bug fix. It passes its pre-registered 10K check: on familiar room shapes it reproduces the sound field below 100 Hz with r 0.80 (bar 0.70), still climbing (0.84 at 20K). The main network scores 0.92 on the same rooms. Whether NMF transfers to unseen room shapes, its reason for existing, is being scored now. The two fine-tunes from the main network are unchanged 10K steps in, as expected.
+
+- **NaN fix (D186):** the first NMF / NMF-P runs were void. The subspace loss took `sqrt` of a cutoff weight that float32 rounds to exactly 0 just below the cutoff. The forward pass was finite; the gradient was inf, then NaN. Fixed with an identical loss value and regression-tested (8 / 8 NMF tests pass on a GPU). The kill rule is now NaN-proof and the trainer stops on any non-finite value. Both arms were relaunched from step 0.
+- **NMF kill read (D180), in-family 15 shapes, off-lattice r at 25-100 Hz:** 2K 0.598, 4K 0.683, 6K 0.735, 8K 0.761, **10K 0.796 >= 0.70: passes**. 20K 0.840.
+  - Reference (Rule 12): R0 @120K reads 0.918 on the same rooms, and N1's in-family bar is 0.90.
+  - Training losses at 21.6K: field 0.80, subspace 0.13, relative k error 4.6%, orthonormality 0.11. I9's error budget needs eigenfrequency error <= ~2% for in-family >= 0.90.
+- **NMF-P:** 6K 0.735; its kill read is due in ~15 min.
+- **Next for NMF:** unseen r (N1: >= 0.60, where R0 reads 0.468) at 10K / 20K is being scored now, and at 30K for both arms when they land (`p4_9_nmf_eval.py`: r and LSD, eigenfrequency MAE, subspace overlap).
+- **CTL @130K / DIR @130K (interim, 10K after the restart, D181 A8):**
+
+  | arm | HF (200-300 Hz) | UF 25-100 / 100-200 / 200-300 |
+  |---|---|---|
+  | R0 @120K (start) | 0.582 | 0.468 / 0.380 / 0.371 |
+  | CTL @130K | 0.575 | 0.464 / 0.385 / 0.380 |
+  | DIR @130K | 0.576 | 0.471 / 0.378 / 0.376 |
+
+  The directional loss has not cost omni accuracy so far. E2's directional pass rule is read at 150K.
+- [F0_trajectory.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F0_trajectory.png)
+
 ## 2026-11-22 (night) — I1: latency by edit type (E5) -> F2; NMF / NMF-P runs went NaN (engineering, no NMF number)
 
 **Headline:** For moving the listener, moving the source or changing a wall material, physics with precomputed room modes is faster than the network (2 ms vs 10 ms per listener position). The network's speed case is the geometry edit: 12 ms per listener position, against about a minute for physics or the simulator to recompute. A full 64x64 map of the room takes the network 32 s, only ~1.5x faster than re-running the simulator on a CPU, and a GPU simulator would likely be faster still (estimate, not measured).
