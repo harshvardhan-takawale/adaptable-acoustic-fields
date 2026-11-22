@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill read), I3 in; I5/I7 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill reads), I3, I7 in; I5, S-1, S-3, S-4 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -20,6 +20,8 @@ Sections below are filled as each step lands.
 
 **0c unit test (E3):** passes ([unit.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/dirzs/unit.json)).
 ## Step 1 — sparse-measurement grounding
+
+**I7 (D183 readings):** P1 FAILS (M1 at K = 32: unseen 0.597 R0 / 0.635 S2 < 0.65; M2 0.807 / 0.839). P2 HOLDS (R0 given only the bounding box beats physics given it: M2-iii - M4-iii +0.392 / +0.274 / +0.203, CIs > 0). P3 FAILS (M1 - M5 at 200-300 Hz: +0.142 at K = 8, -0.008 at 16, -0.313 at 32). Geometry-free Helmholtz kernel ridge (M5) at K = 32: 0.952 / 0.868 / 0.796, above every network method; physics with exact geometry 0.977 / 0.971 / 0.959 at any K. Realism (20 dB + 2 cm) leaves the network fits unchanged and costs M5 0.07 at 200-300 Hz. [grounding.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/step1/grounding.md) · [F1](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F1_grounding.png).
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
 
 **2c NMF kill read (I13): passes** after the NaN fix (D186): in-family off-lattice r at 25-100 Hz 0.796 at 10K (>= 0.70), 0.840 at 20K; R0 0.918 on the same rooms. Unseen r pending.

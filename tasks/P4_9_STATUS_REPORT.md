@@ -28,6 +28,45 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (night) — I7: sparse-measurement grounding (Step 1) -> F1; P1 fails, P2 holds, P3 fails; NMF-P passes its kill read
+
+**Headline:** With 32 microphone measurements in an unseen room, briefly fine-tuning part of the network lifts its accuracy from 0.49 to 0.81 below 100 Hz. Even when the network only knows the room's bounding box it reaches 0.80, where physics given the same box gets 0.41. But a simple geometry-free method, wave-equation interpolation between the measurements, does better still once it has 16 or more measurements (0.95 at 32). The network's edge over it exists only with very few measurements (8) and above 100 Hz.
+
+- **Pre-registered readings (D183(e); unseen 16, clean):**
+  - **P1 does not hold.** M1 (fit the room code) at K = 32 reaches **0.597** (R0) and **0.635** (S2), below the 0.65 bar. M2 (code + FiLM heads), the method P1 did not name, reaches **0.807** / **0.839**.
+  - **P2 holds.** Given only the bounding box, R0 with 32 measurements beats physics fitted to the same box.
+    - M2-iii minus M4-iii: +0.392 [+0.356, +0.428] / +0.274 [+0.241, +0.307] / +0.203 [+0.174, +0.232].
+    - M1-iii minus M4-iii: +0.158 / +0.109 / +0.086. All CIs are above 0.
+  - **P3 does not hold.** M1 minus M5 at 200-300 Hz:
+
+    | K | R0 | S2 |
+    |---|---|---|
+    | 8 | **+0.142** [+0.113, +0.169] | +0.112 [+0.091, +0.131] |
+    | 16 | -0.008 [-0.044, +0.026] | -0.036 [-0.066, -0.010] |
+    | 32 | **-0.313** [-0.345, -0.284] | -0.344 [-0.368, -0.322] |
+
+    Absolute levels at 200-300 Hz (Rule 12): M1 0.453 / 0.482 / 0.492 and M5 0.311 / 0.490 / 0.805 at K = 8 / 16 / 32.
+- **Headline table (K = 32, all non-drawn off-lattice receivers, 25-100 / 100-200 / 200-300 Hz; median fit time per room):**
+
+  | method | R0 | S2 | fit time |
+  |---|---|---|---|
+  | M0 zero-shot | 0.468 / 0.380 / 0.371 | 0.501 / 0.419 / 0.404 | -- |
+  | M1 fit room code | 0.597 / 0.468 / 0.459 | 0.635 / 0.455 / 0.426 | 57 s (GPU) |
+  | M2 fit code + FiLM heads | **0.807 / 0.588 / 0.552** | **0.839 / 0.566 / 0.490** | 58 s (GPU) |
+  | M2-iii (bounding-box tokens) | 0.792 / 0.575 / 0.548 | -- | 58 s |
+  | M3 physics, exact geometry + beta fit | 0.977 / 0.971 / 0.959 | | 2.1 s (CPU) |
+  | M4-ii physics, snapped geometry | 0.967 / 0.923 / 0.834 | | 2.1 s |
+  | M4-iii physics, bounding box | 0.400 / 0.301 / 0.345 | | 2.2 s |
+  | M5 wave-equation kernel ridge + source term, no geometry | **0.952 / 0.868 / 0.796** | | 0.7 s |
+
+- **M5's K-curve (pooled strata):** 0.753 / 0.910 / 0.951 / 0.963 at K = 8 / 16 / 32 / 64 (25-100 Hz) and 0.311 / 0.490 / 0.805 / 0.917 (200-300 Hz). R0's M2 at 200-300 Hz: 0.439 / 0.519 / 0.578 / 0.605.
+- **Strata (E1; K = 32, 25-100 Hz; near < 0.3 m from the source / far):** R0 zero-shot 0.661 / 0.465; R0 M2 0.846 / 0.806; physics M3 0.909 / 0.977; M5 0.904 / 0.952. Near the source every method is lower except the network.
+- **Realism (S-2; 20 dB SNR + 2 cm position error):** the network fits do not move (M1 0.610, M2 0.809 vs 0.608 / 0.811 clean). M5 degrades, most at 200-300 Hz: 0.805 clean, 0.738 real2, 0.619 real5. Physics M3 does not move. M1 / M2 real5 was not run (E8: GPU budget).
+- **Calibration (E7, T + DN dense rooms):** M2 lr 1e-3, 400 steps; settings frozen before any reported fit (D183(c)). Complete: 3,844 / 3,844 fits.
+- **Reading (Q-A):** the network's measurement-grounding case is narrow. It wins when geometry is unknown AND measurements are very few (K <= 8, above 100 Hz), or against physics given a wrong geometry. With 16+ measurements a geometry-free wave interpolator is better, and with good geometry physics is better at any K.
+- **NMF-P passes its kill read:** 0.780 at 10K (>= 0.70). NMF 30K read pending.
+- [grounding.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/step1/grounding.md) · [F1_grounding.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F1_grounding.png)
+
 ## 2026-11-22 (night) — I3: physics vs network under the same wrong inputs (0d, A1) -> F3; NMF unseen interim
 
 **Headline:** Given the same imperfect room description, physics stays far ahead when the errors are small. With wall corners off by up to 5 cm, it scores 0.97 on unseen rooms against the network's 0.47. With a small alcove missing it scores 0.76, and with the wall absorption wrong by 2x it scores 0.90. Only when physics gets nothing but the room's bounding box does it fall to the network's level (0.40 vs 0.41). On unseen rooms the network barely uses fine geometry: snapping corners or deleting an alcove leaves its score unchanged.

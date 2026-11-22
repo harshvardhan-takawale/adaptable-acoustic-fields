@@ -596,13 +596,22 @@ def aggregate():
 
 
 def figure_f1(table):
+    """F1. Composite encoding (dataviz): colour = family, line style / marker = method. Network R0 blue (the deck's R0
+    colour), physics WITH geometry green (the deck's physics colour), the geometry-free kernel ridge amber: slots 1 / 3 /
+    4 (worst CVD pair green-amber dE 9.1, OKLab x100, computed). CI bands (95%, over rooms) only on the two contenders
+    (M2, M5); physics is K-independent. S2's rows are in grounding.md."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    series = [("R0_120K", "M0", "M0 zero-shot (R0)"), ("R0_120K", "M1", "M1 z-fit (R0)"), ("S2_120K", "M1", "M1 z-fit (S2)"),
-              ("R0_120K", "M2", "M2 z+FiLM (R0)"), ("physics", "M3", "M3 physics, exact geometry"),
-              ("physics", "M4-iii", "M4-iii physics, bounding box"), ("physics", "M5", "M5 kernel ridge (no geometry)")]
-    col = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6"]
+    B, G, A = "#2a78d6", "#1baf7a", "#eda100"
+    series = [("R0_120K", "M0", "network, zero-shot (M0)", B, (0, (5, 3)), "o", False),
+              ("R0_120K", "M1", "network, fit room code (M1)", B, (0, (1, 1.5)), "s", False),
+              ("R0_120K", "M2", "network, fit code + FiLM heads (M2)", B, "-", "o", True),
+              ("physics", "M3", "physics, exact geometry (M3)", G, "-", "D", False),
+              ("physics", "M4-iii", "physics, bounding box only (M4-iii)", G, (0, (5, 3)), "D", False),
+              ("physics", "M5", "wave-equation interpolation, no geometry (M5)", A, "-", "^", True)]
+    plt.rcParams.update({"font.size": 13, "axes.edgecolor": "#888888", "xtick.color": "#555555",
+                         "ytick.color": "#555555"})
     fig, axes = plt.subplots(1, 3, figsize=(16, 9), dpi=160, facecolor="white", sharey=True)
     for ax, b in zip(axes, BANDS):
         ax.set_facecolor("white")
@@ -610,7 +619,7 @@ def figure_f1(table):
         ax.set_axisbelow(True)
         for sp_ in ("top", "right"):
             ax.spines[sp_].set_visible(False)
-        for (model, meth, lab), c in zip(series, col):
+        for model, meth, lab, c, ls, mk, band in series:
             xs, ys, lo, hi = [], [], [], []
             for K in KS:
                 Kk = 32 if meth == "M0" else K
@@ -620,20 +629,28 @@ def figure_f1(table):
                     ys.append(e["mean_ci"][0])
                     lo.append(e["mean_ci"][1])
                     hi.append(e["mean_ci"][2])
-            if xs:
-                ax.plot(xs, ys, color=c, linewidth=2, marker="o", markersize=8, markeredgecolor="white",
-                        markeredgewidth=2, label=lab, linestyle=(0, (5, 3)) if meth == "M0" else "-")
-                ax.fill_between(xs, lo, hi, color=c, alpha=0.10, linewidth=0)
+            if not xs:
+                continue
+            ax.plot(xs, ys, color=c, linewidth=2.2 if band else 1.8, linestyle=ls, marker=mk, markersize=8,
+                    markeredgecolor="white", markeredgewidth=1.5, label=lab, zorder=3 if band else 2)
+            if band:
+                ax.fill_between(xs, lo, hi, color=c, alpha=0.14, linewidth=0, zorder=1)
         ax.set_xscale("log", base=2)
         ax.set_xticks(KS)
         ax.set_xticklabels([str(K) for K in KS])
-        ax.set_xlabel("measurements K")
-        ax.set_title("{} Hz".format(b), loc="left", fontsize=15)
-    axes[0].set_ylabel("r, unseen 16 rooms (off-lattice, both strata)")
-    axes[0].legend(loc="lower right", frameon=False, fontsize=11)
-    fig.suptitle("F1 -- sparse-measurement grounding on unseen rooms: r vs K (95% CI bands over rooms)", x=0.01,
-                 ha="left", fontsize=16)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+        ax.set_xlim(7, 72)
+        ax.set_ylim(0.28, 1.0)
+        ax.set_xlabel("measured positions in the room (K)")
+        ax.set_title("{} Hz".format(b), loc="left", fontsize=15, color="#222222")
+    axes[0].set_ylabel("r on the unseen 16 rooms (off-lattice, unmeasured positions)")
+    h, l_ = axes[0].get_legend_handles_labels()
+    fig.legend(h, l_, loc="upper left", bbox_to_anchor=(0.05, 0.905), ncol=3, frameon=False, fontsize=12)
+    fig.text(0.01, 0.975, "F1 -- K measurements in an unseen room: fine-tuning lifts the network 0.49 -> 0.81; "
+             "a geometry-free wave interpolator overtakes it from K = 16", fontsize=14.5, color="#222222", va="top")
+    fig.text(0.01, 0.938, "Given only the bounding box the network still reaches 0.80 at 25-100 Hz (physics: 0.41). "
+             "It beats the interpolator only at K = 8, above 100 Hz. Bands: 95% CI over rooms.", fontsize=12.5,
+             color="#555555", va="top")
+    fig.subplots_adjust(left=0.065, right=0.985, top=0.79, bottom=0.09, wspace=0.06)
     Path("outputs/p4_9/meeting").mkdir(parents=True, exist_ok=True)
     fig.savefig("outputs/p4_9/meeting/F1_grounding.png", facecolor="white")
 
@@ -645,9 +662,12 @@ def main():
     ap.add_argument("--phys", action="store_true")
     ap.add_argument("--room", type=int, default=None)
     ap.add_argument("--aggregate", action="store_true")
+    ap.add_argument("--figure", action="store_true", help="redraw F1 from grounding.json")
     a = ap.parse_args()
     if a.aggregate:
         aggregate()
+    if a.figure:
+        figure_f1(json.loads((OUT / "grounding.json").read_text())["table"])
     if a.calibrate:
         calibrate()
     if a.net:
