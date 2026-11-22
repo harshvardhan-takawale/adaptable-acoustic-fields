@@ -1,5 +1,8 @@
 # P4-8 status report for the manager — 2026-10-19, 22:45 EDT
 
+> **Update 2026-11-22 (P4-8 closed): S2 @120K FINAL — FAILS on UF** (pre-registered UF >= 0.510 AND HF >= 0.484). UF 0.501 / 0.419 / 0.404 (paired vs GX @60K +0.041 [+0.028, +0.055]), HF 0.502 (passes). Its 200-300 Hz training fit is 0.523 (R0 @120K: 0.645): each room was seen half as often as in R0. Recorded in D180; P4-9 (D180-D181) continues S2 to 240K. Row: [primary_table.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/primary_table.md).
+
+
 **State.**
 - **Wave 1 is complete:** all eight arms have their final reads (D178).
 - **S2 has its 60K interim read.** It reached 85.4K before being preempted and is requeued on scavenger. Its 120K standard report launches automatically when it finishes; this report does not wait for it.
@@ -44,6 +47,7 @@
 | LS2A @30K end | 0.368 | 0.452 / 0.384 / 0.336 | 0.452 | 0.451 | 2.64 / 5.05 / 5.32 | −0.003 | 0.883 | fails |
 | LS2B @30K end | 0.295 | 0.460 / 0.379 / 0.272 | 0.473 | 0.447 | 2.74 / 5.13 / 5.55 | −0.011 | 0.856 | fails |
 | S2 @60K (interim) | 0.448 | **0.502 / 0.419 / 0.400** | **0.518** | **0.485** | 2.20 / 4.52 / 4.94 | 0.000 | 0.922 | 120K pending |
+| S2 @120K (final, added 2026-11-22) | 0.502 | 0.501 / 0.419 / 0.404 | 0.510 | 0.491 | 1.86 / 4.18 / 4.73 | 0.020 | 0.939 | **fails** (UF < 0.510 by 0.009) |
 
 **Paired differences vs GX @60K** (mean [95% CI]):
 

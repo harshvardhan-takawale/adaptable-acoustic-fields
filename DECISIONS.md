@@ -2000,3 +2000,336 @@ Off-lattice; paired bootstrap 10k, seed 20261013, against GX @60K. Files: `outpu
 * **Labelled reading:** under LS, R0 raw carries 30% less fine-scale energy than B5, so its excess over FDTD halves (1.55 -> 0.77). The projection removes the rest, and under NC the projected field is smoother than FDTD (0.70).
 
 (g) **S2 @120K** enters `primary_table.md` only, automatically via `scripts/p4_8_s2_row.sh`, with its D176 verdict. It is not in any figure.
+
+**D180 — P4-9 pre-registration: the manager's spec, verbatim (2026-11-21; received 2026-11-22). Recorded before any P4-9 number.** Amended by D181 (A1-A15 + the manager's edits E1-E8, approved 2026-11-22).
+
+P4-8 close-out recorded with it: **S2 @120K FINAL (pre-registered UF 25-100 >= 0.510 AND HF >= 0.484): FAILS on UF.** HF 0.502 (passes); UF 0.501 / 0.419 / 0.404 (U 0.510 / 0.426 / 0.432, C3 0.491 / 0.412 / 0.376); paired vs GX @60K: UF +0.041 [+0.028, +0.055] / +0.030 [+0.012, +0.053] / +0.029 [+0.013, +0.046], HF -0.001 [-0.007, +0.004]. Training fit at 200-300 Hz 0.523 (R0 @120K 0.645): each room was seen half as often as in R0. Row: `outputs/p4_8/primary_table.md` (b977ec8).
+
+```text
+# P4-9: physics as structure, directional output, sparse grounding (PRE-REGISTRATION)
+
+Commit this spec as D180 before computing any P4-9 number.
+
+## Context
+
+P4-8 is closed.
+* R0 @120K (GX recipe, 1,000 rooms) is the in-family best: HF 0.582, UF 0.468 / 0.380 / 0.371. Training-room fit at 200-300 Hz is 0.645, so in-family HF is now fit-limited (gap 0.063).
+* S2 @120K (2,000 rooms) is the unseen-family best: UF 0.501 / 0.419 / 0.404, HF 0.502. It missed its pre-registered UF test by 0.009. Each room was seen half as often as in R0.
+* m1 (D170) reads 0.97-0.99 / 0.97-0.98 / 0.96 in and out of family with exact geometry and beta. m3 adds at most +0.005 over it (D173). Q24 is open.
+
+This round answers four questions.
+* **Q-A.** Where does the network beat physics: update speed, approximate inputs, sparse measurements?
+* **Q-B.** Does physics help when it enters as structure (learned room modes) rather than as a penalty on the full field? Do physics losses help when they act on modes?
+* **Q-C.** Can the renderer output direction (first-order ambisonics), and does directional supervision change omni accuracy?
+* **Q-D.** Does any field-level physics residual target the unseen-family failure? Free gates only, unless a gate passes.
+
+## Conventions (unchanged)
+
+* Off-lattice everywhere.
+* Frozen sets: the 15 in-family test shapes and the 16 unseen rooms (`p4_8_unseen_manifest.json`).
+* Paired bootstrap, 10k resamples, seed 20261013.
+* The D160 standard report for every trained arm.
+* New code is default-off and Rule-8 tested. New YAML keys go in the resume guard.
+* Name the GPU type in `--gres`. Keep a checkpoint every 2K steps.
+* Add every new PNG path to the `.gitignore` allowlist. Check that each raw link returns HTTP 200 before you report it.
+* Report each step as it lands. Do not wait for the round to finish.
+
+## Closed, do not rerun
+
+* The interior Helmholtz regulariser on unlabelled polygons (S1, D175(d)).
+* D4 flips and reciprocity augmentation (m2, D171).
+* Wall sigma-contrast injection (P4-3 Arm S).
+* LS1 / LS2 / LS3 (P4-8).
+* The hash-level cap (g4) and receiver density (G3).
+
+---
+
+## Step 0: free diagnostics (no training)
+
+### 0a. Latency
+
+Time R0 @120K on one named GPU. Take the median of 20 runs after 3 warm-ups, in fp32 and in the inference dtype you would ship. Time four cases:
+* one receiver, full 601-bin spectrum;
+* a 64x64 grid of one room;
+* the largest of the 31 dense rooms;
+* an edit: re-encode the tokens after moving one notch vertex by 0.3 m, then render the 64x64 grid.
+
+Report the render-time projection cost separately. Compare with the FDTD (58 s median per dense room) and the modal solve (102 s). If you re-time those, use the same CPU node type.
+
+File: `outputs/p4_9/latency.md`.
+
+### 0b. Physics residual gates
+
+Models: R0 @120K and S2 @120K, raw and projected. Reference: FDTD truth. Rooms: 15 in-family + 16 unseen dense rooms. Report per band.
+
+**(i) Interior Helmholtz.** Use the S1 relative residual (D175(d) stencil, room-uniform component removed, stencils within 0.3 m of the source dropped).
+* Pre-registered reading: if projected R0 is at most 2x the FDTD value in every band, projection already removes the interior term's target. The interior Helmholtz loss is then closed for good.
+
+**(ii) Robin boundary residual.**
+* Wall points: every 5 cm along each segment, excluding 0.15 m from corners and 0.3 m from the source.
+* Normal derivative: one-sided, second order, from samples at 0, h and 2h along the inward normal. Use h = 2 cm or the FDTD dx.
+* Operator: m1's boundary convention (first-order Robin, beta = tanh(m/4), the sign confirmed in D170).
+* Metric: relative residual ||d_n p - B(beta, k) p|| / ||k p||, band means.
+* Truth: re-run the FDTD for the 31 rooms. Store only the wall stencils and receiver stencils you need, not full grids.
+
+**Gate G-BC.** All three conditions must hold to launch PL1 (2d):
+* (1) the FDTD truth residual is at most 0.15 at 25-100 Hz;
+* (2) the network's projected residual, unseen / in-family, is at least 1.5 at 25-100 Hz;
+* (3) Spearman(per-room residual, per-room 25-100 Hz r) is at most -0.4 over the 31 rooms.
+
+File: `outputs/p4_9/physics_gates.md`.
+
+### 0c. Directional zero-shot check
+
+* **Prediction.** Take the first-order directional channels from R0's per-ray decomposition, before the ray sum: D(f) = sum_j u_j s_j(f). Here u_j is ray j's unit direction and s_j its rendered complex signal. The DC head contributes to omni only.
+* **Plane-wave reading.** grad p ≈ j k D under the renderer's delay convention exp(-j 2 pi f d / c).
+* **Unit test first.** Before any score, verify sign and scale on the analytic 2D free-field Green's function: error below 5% in the far field (kr > 3).
+* **Truth.** FDTD grad p at the dense receivers. Re-run with the four axis-neighbour nodes per receiver and take central differences at the solver dx.
+* **Score.** Complex correlation between j k D and grad p, per band, in-family and unseen, on receivers at least 0.5 m from the source.
+* **Expected (labelled).** Below 0.3, because omni supervision leaves the per-ray split unconstrained.
+
+File: `outputs/p4_9/directional_zero_shot.md`.
+
+### 0d. Physics-input sensitivity (extends m1, eval only)
+
+Run the modal solve with wrong inputs:
+* (i) beta x 0.5 and beta x 2;
+* (ii) polygon vertices snapped to a 10 cm grid;
+* (iii) the bounding rectangle only;
+* (iv) the smallest notch removed.
+
+Score the 31 dense rooms: per-band r and LSD against m1 exact.
+
+File: `outputs/p4_9/physics_sensitivity.md`.
+
+---
+
+## Step 1: sparse-measurement grounding benchmark (eval only, network weights frozen)
+
+* **Rooms:** 16 unseen + 15 in-family dense rooms.
+* **Measurements:** K in {8, 16, 32, 64} receivers, drawn uniformly from the dense receivers at least 0.3 m from the source. Three draws, seeds 0 / 1 / 2.
+* **Scoring:** on the dense receivers that were not drawn.
+
+**Methods**
+* **M0.** R0 and S2 zero-shot (K = 0).
+* **M1. z-fit.** Freeze the weights. Optimize the room code (the token-encoder output, initialized at its zero-shot value) on the K receivers with the training loss.
+  * Use Adam with a fixed step budget plus an L2 pull toward the initial z.
+  * Choose the step budget and pull weight once, on in-family rooms at K = 32, then freeze them.
+  * Log steps, LR and wall time.
+* **M2. z + FiLM fit.** As M1, also adapting the FiLM parameters of the three signal heads and the DC head.
+* **M3. Physics beta-fit, exact geometry.** m1's modal model with beta fitted to the K receivers: one scalar per material class present in the tokens.
+* **M4. Physics beta-fit, approximate geometry.** As M3, with 0d's geometries (ii) and (iii).
+* **M5. Helmholtz-kernel ridge regression (no geometry).** Per frequency, kernel J0(k |x - x'|). Choose the regularization once, on in-family rooms.
+
+**Pre-registered readings**
+* **P1.** M1 at K = 32 reaches unseen 25-100 Hz r >= 0.65. Zero-shot is R0 0.468, S2 0.501.
+* **P2.** With the bounding rectangle (M4-iii), M1 or M2 beats physics at K = 32 in at least 2 of 3 bands, with paired CIs excluding 0.
+* **P3.** M1 beats M5 at 200-300 Hz for every K <= 32.
+
+Report every method x K x band, with fit time.
+
+Figure F1: r vs K on the unseen set, one panel per band, lines M0-M5.
+
+---
+
+## Step 2: training arms
+
+### 2a. S2 to 240K (meeting-model candidate)
+
+Continue S2 so each room is seen as often as in R0 @120K.
+* If the LR schedule is tied to the 120K horizon, re-warm to R0's mid-schedule LR and run a new cosine to 240K. Log the choice.
+* Reads at 180K and 240K.
+* Pre-registered: HF >= 0.56 AND UF 25-100 Hz >= 0.49.
+* If the test holds, S2-240K is the meeting model.
+
+### 2b. DIR and CTL (directional supervision)
+
+Both fine-tune R0 @120K for 30K steps on the GX corpus.
+* **Labels.** Re-run the FDTD for the GX corpus with four-neighbour stencils at each training receiver. Store only the two gradient components (complex, 601 bins).
+* **DIR** adds a first-order directional loss: the omni spectral loss applied to (j k D_x, j k D_y) against the FDTD (dp/dx, dp/dy), on training receivers at least 0.5 m from the source. Set the weight so the term is about 30% of the total loss at step 0.
+* **CTL** runs the same 30K steps with no directional loss.
+
+Pre-registered:
+* **C1 (capability).** DIR's in-family directional correlation is at least its own omni r minus 0.15, in each band.
+* **C2 (no harm).** DIR - CTL >= -0.02 on HF and on each UF band, and no CI lies entirely below -0.02.
+* **C3 (exploratory).** DIR - CTL on UF 25-100 Hz >= +0.03, with the CI excluding 0.
+
+Figure F4: first-order maps (|grad p| and the direction field) for FDTD, DIR and CTL. Rooms: shape 1000 and the meeting_v2 `fields_b` U room. Frequencies: 50 and 200 Hz.
+
+### 2c. NMF-LB: neural modal field, low-band pilot
+
+**Labels.** Use m1's code to compute the first 24 nonzero Neumann eigenpairs (k_n, phi_n) for every GX-corpus training room and for the 31 dense rooms. Run it as a scavenger CPU array.
+
+**Model**
+* Token encoder: initialized from R0 @120K, outputs z.
+* A hash-grid + MLP decoder phi(x; z) in R^24.
+* An MLP k(z) in R^24. Sort it by construction: k_1 = softplus(a_1), k_n = k_(n-1) + softplus(a_n).
+* Normalize each phi_n per room on fixed interior quadrature points, so that the integral of phi_n^2 over the room equals 1.
+
+**Field.** m1's modal formula with the predicted (k_n, phi_n):
+* the same calibration C and the same exact zero-mode term;
+* phi_n evaluated at the receiver x and the source x0;
+* eta_n from beta by m1's first-order Robin rule, using phi_n on the walls.
+
+This path does not use the ray renderer.
+
+**Sanity tests, before training**
+* (S-a) The true eigenpairs with all of m1's modes must reproduce m1's r on the 31 dense rooms within 0.002.
+* (S-b) The true eigenpairs truncated to 24 modes must reach at least 0.95 at 25-100 Hz on in-family rooms.
+  * If S-b fails, raise N, or add a frequency-independent correction term conditioned on (z, x, x0).
+  * Log the choice.
+
+**Losses**
+* The field loss at 25-100 Hz on training receivers.
+* A subspace loss ||P_hat - P||_F / ||P||_F, with P = Phi Phi^T on the quadrature points.
+* A loss on the sorted k_n.
+
+**Arms**
+* **NMF:** as above.
+* **NMF-P:** adds per-mode physics losses: interior lap(phi_n) + k_n^2 phi_n = 0, and Neumann d phi_n / dn = 0 on the walls. FD stencils at 2 cm, relative residuals, weight 0.1.
+
+**Kill rule.** At 10K steps, if in-family 25-100 Hz r < 0.70, stop and report.
+
+**Scoring**
+* Field r and LSD at 25-100 Hz, in-family and unseen, against R0, S2 and m1.
+* Eigenfrequency MAE for the first 10 modes, Hungarian-matched.
+* Subspace overlap of the first 10 modes.
+
+**Pre-registered**
+* **N1.** NMF or NMF-P reaches unseen 25-100 Hz r >= 0.60 AND in-family >= 0.90.
+* **N2.** NMF-P - NMF >= +0.03 on unseen 25-100 Hz, with the CI excluding 0. This tests whether physics losses help when they act on modes.
+
+Figure F5: the first 6 predicted vs true modes, plus field maps at 50 and 80 Hz, for one unseen U room and one C3 room.
+
+### 2d. PL1, field-level physics loss (only if G-BC passes)
+
+* Fine-tune R0 @120K for 30K steps with the Robin residual plus the interior Helmholtz residual at 25-100 Hz.
+* Apply both to the training rooms, and to the CX1000 polygons as unlabelled collocation rooms. Do not use the CX1000 labels.
+* Pre-registered: PL1 - CTL >= +0.03 on UF 25-100 Hz with the CI excluding 0, and HF >= -0.02.
+* Also report PL1 against S2, which used the same polygons with labels.
+
+---
+
+## Scheduling
+
+* **L40S:** 2a first.
+* **tron:** 2b DIR and CTL, then 2c.
+* **Scavenger:** the FDTD stencil reruns (0b, 0c, 2b), the modal solves (0d, M3, M4) and the eigen-labels (2c).
+* Step 0 and Step 1 run while 2a trains. If Step 1's fits need a GPU, use tron between arms.
+
+## Reporting
+
+* Decisions from D180 on, plus `P4_9_STATUS_REPORT.md` and `CONTEXT_FOR_MANAGER.md`.
+* **Primary table:**
+  * Add rows for S2-240K, DIR, CTL, NMF, NMF-P, and PL1 if it runs.
+  * Keep the P4-8 columns and add directional r columns.
+  * NMF rows report 25-100 Hz only.
+* **Meeting figures** in `outputs/p4_9/meeting/`, with a FIGURE_MANIFEST.md:
+  * F1: grounding curves.
+  * F2: a latency bar chart on a log scale (network vs FDTD vs modal solve).
+  * F3: physics-input sensitivity.
+  * F4: directional maps.
+  * F5: NMF modes.
+  * F6: frequency curves for C250 / B5 / R0 / S2-240K, in the meeting_v2 style.
+```
+
+**D181 — P4-9 amendments to D180, approved by the manager 2026-11-22: A1-A15 (agent-proposed, approved as written), the manager's edits E1-E8 (verbatim), and six agent clarifications (c1-c6, flagged to the manager). Recorded before any number they affect.** Plan: three code explorations plus an independent review, which caught four errors in the agent's first draft (the Step 1 cost, the restart trap A8, the unit-test threshold A14, the 601-bin slice location).
+
+(a) **Amendments A1-A15** ((T) = changes a pre-registered test or arm definition).
+* **A1 (T). Information-matched Q-A.** 0d and P2 gave physics the wrong geometry while the network kept the exact geometry. Add eval-only network rows (R0, S2) with tokens built from the *same* perturbed polygons; P2 compares methods given the same geometry; score against FDTD (primary) and against m1-exact (as D180 says).
+* **A2. One material.** Every P4 corpus uses alpha 0.15 on every face (beta 0.0406) and the network's material feature is constant: M3 / M4 fit one scalar; the beta x0.5 / x2 rows are physics-only (the network's beta is fixed by its corpus). D170 already found eta x0.5 / x2 costs 0.02-0.09 r.
+* **A3. Latency baselines.** "102 s" is m1's solve to 800 Hz; to 600 Hz (what the prior uses) the median is 17 s on the test rooms, 44-68 s on other sets. Same-room queries with cached eigenpairs are a matrix product. FDTD time depends on the node (median 16 s on the unseen rooms, 63 s on testdense). Time everything on one named CPU node type; include the cached-mode and 600 Hz rows; give a GPU-FDTD figure for 2D as a labelled estimate only.
+* **A4. Shipped dtype fp32.** The env's tinycudann is the sm_52 build (CutlassMLP fallback, fp16 compiled out) and CLAUDE.md forbids rebuilding it; any fp16 figure is a labelled projection.
+* **A5. M1's room code.** z is not one vector per room (`attn_residual_extent` pooling recomputes the code at every ray sample). M1 fits the 12 x 64 per-token embeddings (the `segment_encoder` output; they feed the keys, values and extent base; extents and the mask stay from the real tokens). M2 also adapts `film_signal`, `_signal_films.0/.1` and the DC MLP. Fit loss = the training loss on bins 0-600.
+* **A6. Step 1 split** (Rule 11): per room, a fixed scoring set of off-lattice receivers and a disjoint draw pool of off-lattice receivers >= 0.3 m from the source; every method, K and seed scores on the same set (fully paired). The headline K = 32 fits are also scored on all non-drawn off-lattice receivers (D180's definition). Strata: c3.
+* **A7.** For the 15 L-shaped rooms "smallest notch removed" equals the bounding rectangle: 0d (iv) is reported on the 16 unseen rooms only.
+* **A8. Restart for 2a / 2b.** torch 2.0.1's `CosineAnnealingLR` works from the loaded LR, so loading S2's optimizer (LR 5e-5 = eta_min) would silently never restart. Load the Adam moments only, set `lr` and `initial_lr` explicitly, use a closed-form `LambdaLR`: 1K linear warm-up 5e-5 -> 1.25e-4 (R0's LR at 60K), then cosine -> 5e-5 at the new horizon. `start_iter` continues the step count (S2: 120000); the run gets a NEW directory (writing into S2's would strip S2 @120K's Adam state); a resume takes priority over `init_ckpt`; `early_stop_warmup` is set to the new horizon. Reads before 180K are labelled interim (restart dip). DIR / DIR-G / CTL use the same rule over 30K.
+* **A9. G-BC.** The gate is computed on R0 (the model PL1 would fine-tune); S2 reported beside it. D180's 3-point one-sided difference is necessary (a 2-point one errs by 0.30|p| at 300 Hz, more than the admittance term 0.22|p|). At beta 0.04 the Robin term is <= 4% of k|p|, so the residual effectively tests near-Neumann behaviour (fine for the gate; stated). Projected fields at the walls use the least-squares band-limited field extended 12 cm past the dense lattice, validated on FDTD truth (must stay <= 0.15).
+* **A10. NMF.** Soft roll-off weights on the projector near the 24-mode cutoff (a hard cutoff is discontinuous when modes 24/25 cross between rooms); a soft orthonormality term (Phi^T W Phi ~ I); MB1's wavelength-matched low-band grid (finest cell 12.4 cm); the evaluator writes the dense render-cache format so the existing scorers are reused. N1 / N2 unchanged.
+* **A11. DIR labels** (7.7 GB complex64) are memory-mapped (tron's default QoS gives 32 GB host RAM; R0 runs near the A5000's 24 GB). CTL needs no labels: it launches first, with batch draws identical to DIR's (tested).
+* **A12 (T). Step 1 budget** (D180 as written costs ~18 GPU-h at K = 32 and ~72 for the sweep): 3 draws at every K for M1, M3, M4, M5; M2 3 draws at K = 32 and 1 elsewhere; the step budget comes from calibration (<= 400 steps); a requeue-safe scavenger GPU array writing one JSON per fit. ~15-20 GPU-h.
+* **A13. Omni-field gradient readout.** 0c adds the gradient of the omni field (spectral gradient of the projected field; finite differences of the raw field). 2b reports CTL's omni-gradient directional r as the bar DIR must beat. (Made primary by E2.)
+* **A14 (T). Unit test.** The plane-wave reading of a point source carries a structural error ~ 1/(2kr) (0.16 at kr = 3, 0.05 at kr = 10), so D180's "< 5% for kr > 3" fails a perfect implementation. (Replaced by E3.)
+* **A15 (T). DIR loss.** D = sum_j u_j s_j against grad p / (jk) (pressure units; raw grad p would weight 300 Hz 12x more than 25 Hz); bins >= 50 only for this term (the DC head carries bins 0-40 and has no ray split); the omni loss stays unmasked (Rule 9 untouched); receivers within 0.5 m of the source are excluded from this term, as in D180.
+
+(b) **The manager's edits E1-E8, verbatim:**
+
+```text
+E1. M5 must include the source. A J0 kernel spans only source-free fields,
+and the source is inside every room. Fit
+p(x) = a(f) G0(x, x0; f) + KRR residual,
+where G0 is the 2D free-field Green's function at the known source
+position and a(f) is one complex amplitude per bin, fitted jointly.
+Report every Step 1 method on the scoring set's < 0.3 m and >= 0.3 m
+subsets, as well as pooled.
+
+E2. Directional readouts. A13 and A14 together make the omni-field
+gradient the primary readout, because the per-ray readout carries 10-40%
+structural error at 25-100 Hz.
+- Add DIR-G. It is the same 30K fine-tune as DIR, with the loss on the
+  finite-difference gradient of the rendered omni field:
+  - 4 neighbours at h = 4 cm, with one shared ray jitter for the 5
+    renders;
+  - 8 of the 32 receivers per batch;
+  - bins >= 50;
+  - target grad p / (jk) from the FDTD at the same h.
+- If tron fits only one directional arm, run DIR-G instead of DIR.
+- New pass rule for DIR or DIR-G, replacing C1: its best readout beats
+  CTL's omni-gradient readout by >= +0.05 in at least 2 of 3 bands, with
+  CIs excluding 0. C2 and C3 stand.
+- If neither arm passes, record that first-order direction comes from the
+  field without directional supervision.
+
+E3. Unit test (A14). Test agreement with the analytic 1/(2kr) error curve
+over kr from 1 to 30, within 10% of the curve. A hard 5% cut at kr = 10
+sits exactly on the structural error (4.99%).
+
+E4. NMF-P physics residuals must be computed where the decoder is smooth:
+- either finite differences with h at least the finest hash cell (12.4
+  cm; truncation error below 1% at 130 Hz),
+- or a plain smooth decoder (Fourier features, smooth activation) with
+  autograd derivatives.
+A 2 cm stencil on linearly interpolated hash features measures
+interpolation kinks (D152 again).
+
+E5. F2 (latency): give rows by edit type: listener move, source move,
+material change, geometry change.
+- For each, report: network per receiver and per 64x64 grid; physics with
+  cached modes; physics re-solve to 600 Hz; FDTD.
+- Add NMF rows once NMF exists.
+- Also report the single-listener update rate in Hz.
+
+E6. Wording, for the status report and every figure: the network's
+Helmholtz residual is 4.2-5.4 against FDTD's 0.057, about 75-95x. It is
+not "4-5x FDTD's". The Laplacian is 4-5x the k^2 term.
+
+E7. Calibrate Step 1's step budget and pull weight on the T and DN dense
+rooms (present in training, in neither reported set), not on the 15
+in-family test shapes. If that is impractical, label the in-family Step 1
+rows "calibration rooms".
+
+E8. Suggestions.
+- S-1: approved.
+- S-2: approved. Add M3 (free), and a 5 cm position-error row if it costs
+  nothing extra.
+- S-3: approved for this round. Run R0 and m1 first, then S2X at its
+  final.
+- S-4: build the sm_86/89 environment and run the parity check, but no
+  P4-9 arm changes environment mid-round. Adopt it from P4-10 if parity
+  holds, and test the 601-bin path for training then too.
+- S-5: next round. Exception: build the 16-room confirmation set now (8 U
+  + 8 C3, new instances, same generator). Use it once, for the S2X @240K
+  vs R0 meeting-model read.
+```
+
+The suggestions E8 refers to: **S-1** a single-room 200-300 Hz ceiling test (is the high band capped by the renderer or by the conditioning?); **S-2** a realism condition in Step 1 at K = 32 (20 dB SNR noise plus 2 cm receiver-position error); **S-3** a second source position for the 16 unseen rooms (descriptive); **S-4** a separate tinycudann build for sm_86/89 with a parity check; **S-5** (next round) a materials-and-shape corpus and a 16-room confirmation unseen set.
+
+(c) **Agent clarifications (flagged to the manager; recorded here because they fix how a test is computed):**
+* **c1. DIR-G batch share.** R0's optimizer step has 16 receiver rows (batch 8 x gradient accumulation 2; `configs/sweep_2d_mat/P4_8_R0.yaml`), not 32. DIR-G applies the gradient loss to 4 of the 16 (E2's 25%): +16 renders per step, ~2x CTL's step cost (~13 h for 30K on an A5000). "8 of 16" would cost ~3x (~20 h). If tron space runs short, DIR-G has priority over DIR (E2).
+* **c2. E2's pass rule** is evaluated on the 15 in-family test shapes (C1's set); the unseen rooms are reported beside it. "Best readout" ranges over three readouts fixed now: per-ray D; the central finite-difference gradient of the omni field at h = 4 cm; the spectral gradient of the projected field. Directional r = complex correlation between the readout and grad p / (jk), per bin over receivers >= 0.5 m from the source and both components, then band-averaged.
+* **c3. Step 1 scoring strata (E1).** The "< 0.3 m" stratum holds every off-lattice dense receiver within 0.3 m of the source (~30-40 per room; a 500-receiver random set would hold ~5). The ">= 0.3 m" stratum holds 500 off-lattice receivers reserved at random (seed 20261013) from those >= 0.3 m. Draws come from the remaining off-lattice receivers >= 0.3 m. Pooled = both strata.
+* **c4. The 601-bin inference path** (bins 0-600 computed; parity-tested on outputs and gradients at 1e-6) is used for evaluation renders and for Step 1's per-room fits (eval-time adaptation). Every training arm (S2X, CTL, DIR, DIR-G, S-1) keeps the standard 4097-bin path, consistent with E8 / S-4.
+* **c5. S-4's expected gain is smaller than first stated.** Only one of R0's tcnn MLPs is configured as FullyFusedMLP (2 x 128); the others are CutlassMLP by configuration (3 x 128, 3 x 512; `aaf/models/inr_2d.py:74-91`). The parity check reports measured throughput, and accuracy parity as dense off-lattice r within +-0.003 per band. The build is a separate env (`aaf_sm89`, cloned from `aaf`); `aaf` and `environment.yml` are untouched.
+* **c6. Confirmation set.** Its manifest sha is frozen in a D-entry before its first score. It is scored once: S2X @240K and R0 @120K, at the 2a final read, reported beside the frozen-set verdict (which stays the pre-registered decision).
+
+(d) **E7 is practical:** `data/track_p4_5_famdense` holds 2 T and 2 DN dense rooms (in neither reported set; T and DN topologies are in-distribution via CX500). They calibrate M1 / M2's step budget and pull weight and M5's regularisation; the 15 in-family shapes are reported, not used for calibration.

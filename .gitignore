@@ -205,6 +205,9 @@ slurm-*.out
 !/outputs/p4_8/**/*.png
 # P4-8 arm telemetry (scalars / train_meta, ~40-140 KB each) stays local, as in p4_5 / p4_6.
 /outputs/p4_8/arms/
+# P4-9 (D180): figures are published (allowlist added before the first figure); arm telemetry stays local.
+!/outputs/p4_9/**/*.png
+/outputs/p4_9/arms/
 
 # Arm C demo pack: 440 MB of cached dense field dumps stay local; figures+JSON are pushed.
 outputs/armC_demo/fields/

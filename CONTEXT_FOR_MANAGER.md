@@ -4,7 +4,12 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-8 wave 1 FINAL + meeting-deck inputs v2 (2026-10-19; D177-D179).** Manager report: [P4_8_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_8_STATUS_REPORT.md).
+**Last updated**: **P4-9 pre-registered (2026-11-22; D180-D181).** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+
+* **P4-8 closed:** S2 @120K FAILS its UF test by 0.009 (UF 0.501, HF 0.502; under-exposed, fit 0.523 vs R0 0.645). R0 @120K remains the meeting model until S2X's 240K read.
+* **P4-9 (D180 spec + D181 amendments A1-A15, edits E1-E8, clarifications c1-c6):** Q-A network vs physics with matched information; Q-B NMF (staged behind feasibility gates); Q-C directional output (omni-field gradient primary; arms CTL / DIR / DIR-G); Q-D physics gates. A result is reported about every half-day.
+
+Earlier: **P4-8 wave 1 FINAL + meeting-deck inputs v2 (2026-10-19; D177-D179).** Manager report: [P4_8_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_8_STATUS_REPORT.md).
 
 * **R0 (GX, 120K) HOLDS and is the meeting model:** HF 0.582 (= G1 0.581), UF 0.468 / 0.380 / 0.371 (G1 +0.084 / +0.080 / +0.073, CIs above 0). GX's in-family cost was exposure.
 * **No MB / LS arm passes,** so wave 2 is SKIPPED:
