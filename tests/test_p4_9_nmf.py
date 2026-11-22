@@ -51,7 +51,7 @@ def test_s_a_true_eigenpairs_reproduce_m1(stem):
 
 
 def test_subspace_loss_invariances_and_soft_cutoff():
-    from aaf.models.nmf_2d import soft_weights, subspace_loss
+    from aaf.models.nmf_2d import soft_sqrt_weights, subspace_loss
     g = torch.Generator().manual_seed(0)
     n_q, n = 400, 8
     wq = torch.rand(n_q, generator=g) + 0.5
@@ -68,8 +68,8 @@ def test_subspace_loss_invariances_and_soft_cutoff():
     ka, kb = 1.6, 1.9
     k2 = k.clone()
     k2[[5, 6]] = k[[6, 5]] + torch.tensor([1e-4, -1e-4])                   # two modes cross near the cutoff
-    l1 = float(subspace_loss(psi, soft_weights(k, ka, kb), psi, soft_weights(k, ka, kb), wq))
-    l2 = float(subspace_loss(psi, soft_weights(k2, ka, kb), psi, soft_weights(k, ka, kb), wq))
+    l1 = float(subspace_loss(psi, soft_sqrt_weights(k, ka, kb), psi, soft_sqrt_weights(k, ka, kb), wq))
+    l2 = float(subspace_loss(psi, soft_sqrt_weights(k2, ka, kb), psi, soft_sqrt_weights(k, ka, kb), wq))
     assert l1 < 1e-5 and l2 < 0.2                                          # a small k change -> a bounded change
 
 
@@ -102,3 +102,41 @@ def test_training_smoke(tmp_path, monkeypatch):
     T.train(cfg, str(tmp_path / "run"))
     sc = json.loads((tmp_path / "run" / "scalars.json").read_text())
     assert all(np.isfinite(v) for r in sc for k, v in r.items() if k != "phase")
+
+
+def test_kill_rule_treats_nan_as_failing():
+    """The first NMF / NMF-P runs went NaN at step ~300 and ran to 30K: `nan < 0.70` is False, so the D180 kill rule
+    never fired. The rule must kill anything that is not a finite r >= the bar."""
+    import math
+    from aaf.train.nmf_2d import kill_fires
+    assert kill_fires(float("nan"), 0.70)
+    assert kill_fires(-math.inf, 0.70)
+    assert kill_fires(0.69, 0.70)
+    assert not kill_fires(0.70, 0.70)
+    assert not kill_fires(0.95, 0.70)
+
+
+def test_soft_cutoff_gradient_finite_just_below_kb():
+    """D186 regression: the first NMF / NMF-P runs took torch.sqrt of the soft weights. Just below k_b float32 rounds
+    cos(pi t) to -1, the weight is exactly 0 while t < 1, sqrt's backward is g / 0 = inf, and one step later every
+    parameter upstream of k (k_head, segment_encoder) is NaN -- at step ~265 of the GPU run, from a FINITE loss. The
+    sqrt weights are now computed directly; they must square to the soft weights, and the gradient must stay finite
+    and bounded at every distance from the cutoff."""
+    from aaf.models.nmf_2d import soft_sqrt_weights, soft_weights, subspace_loss
+    g = torch.Generator().manual_seed(0)
+    k = torch.linspace(0.5, 3.5, 400)
+    ka, kb = 2.6, 3.0
+    assert torch.allclose(soft_sqrt_weights(k, ka, kb) ** 2, soft_weights(k, ka, kb), atol=1e-6)
+    wq = torch.rand(200, generator=g) + 0.5
+    psi = torch.randn(200, 24, generator=g)
+    kt = torch.linspace(0.5, 3.0, 24)
+    for eps in (1e-2, 1e-4, 1e-5, 1e-6, 1e-7, 0.0):
+        kk = torch.linspace(0.5, 2.9, 24)
+        kk[-1] = kb * (1 - eps)
+        kk.requires_grad_(True)
+        phi = torch.randn(200, 24, generator=g, requires_grad=True)
+        L = subspace_loss(phi, soft_sqrt_weights(kk, ka, kb), psi, soft_sqrt_weights(kt, ka, kb), wq)
+        L.backward()
+        assert torch.isfinite(L)
+        assert torch.isfinite(kk.grad).all() and torch.isfinite(phi.grad).all(), eps
+        assert float(kk.grad.abs().max()) < 1e3, (eps, float(kk.grad.abs().max()))

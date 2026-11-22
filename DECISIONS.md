@@ -2395,3 +2395,17 @@ The suggestions E8 refers to: **S-1** a single-room 200-300 Hz ceiling test (is 
 * S1 <= R0 + 0.03 on BOTH rooms -> the renderer (this architecture) caps a single room near R0's level.
 * Otherwise -> partial (reported as measured).
 * If S1 is still rising by > 0.03 between 4K and 10K on a room whose reading is not "not capped", that room's verdict is "not converged". It is extended to 20K (+2.2 GPU-h, logged) before any reading is made.
+
+**D186 — P4-9 NMF / NMF-P: the first runs are VOID (a NaN bug); fixed and relaunched from step 0** (engineering; D184's design, losses, weights and kill rule are unchanged).
+
+(a) **What happened:** both runs (jobs 8520547 / 8520548) went NaN between steps 200 and 400. NMF ran on NaN weights to 30K; NMF-P was cancelled at 21K. The D180 kill rule did not fire at 10K, because `nan < 0.70` is False. No NMF number was reported. The run directories are kept as `outputs/p4_9/arms/{NMF,NMFP}_void_nan_v1`.
+
+(b) **Cause (found on a GPU with per-step finiteness checks, `nmf_nan_debug.py`; reproduced on CPU):** the subspace loss took `torch.sqrt` of the soft cutoff weights w = (1 + cos(pi t)) / 2. Just below the cutoff k_b (k > k_b (1 - 1e-5)), float32 rounds cos(pi t) to -1. The weight is then exactly 0 while t < 1, so the clamp does not mask the gradient, and sqrt's backward is g / 0 = inf. The loss stays finite; the gradient of every parameter upstream of k (k_head, segment_encoder) becomes NaN (first at step 265 in the debug run), and clipping spreads it to all parameters. Close to the cutoff the 1 / sqrt(w) factor also produced gradient-norm spikes (147 at step 160).
+
+(c) **Fix:** the square-root weights are computed directly, s = cos(pi t / 2) (s^2 = w exactly, so the loss VALUE is unchanged), with a bounded derivative everywhere (`soft_sqrt_weights`). Plus:
+* the kill rule is NaN-proof: it kills anything that is not a finite r >= 0.70 (`kill_fires`);
+* a non-finite loss, gradient norm or validation r stops the run at once (NONFINITE.json, no checkpoint).
+
+Regression tests: `test_soft_cutoff_gradient_finite_just_below_kb` (finite, bounded gradient at k_b (1 - eps) for eps down to 0; s^2 = w within 1e-6) and `test_kill_rule_treats_nan_as_failing`.
+
+(d) **Relaunch:** NMF and NMF-P from step 0, same configs, gated on the NMF test file passing on a GPU. I13 / I14 slip by the lost time (~3 h).

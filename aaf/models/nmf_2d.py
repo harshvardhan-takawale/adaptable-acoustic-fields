@@ -117,13 +117,22 @@ def soft_weights(k: torch.Tensor, k_a: float, k_b: float) -> torch.Tensor:
     return 0.5 * (1.0 + torch.cos(math.pi * t))
 
 
-def subspace_loss(phi_hat: torch.Tensor, w_hat: torch.Tensor, psi: torch.Tensor, w_true: torch.Tensor,
+def soft_sqrt_weights(k: torch.Tensor, k_a: float, k_b: float) -> torch.Tensor:
+    """sqrt of `soft_weights`, computed DIRECTLY: cos(pi t / 2), whose square is (1 + cos(pi t)) / 2 exactly. Taking
+    torch.sqrt of the weights instead is a NaN trap (D186): just below k_b float32 rounds cos(pi t) to -1, the weight is
+    exactly 0 while t < 1 (so the clamp does not mask the gradient), and sqrt's backward is g / 0 = inf."""
+    t = ((k - k_a) / max(k_b - k_a, 1e-9)).clamp(0.0, 1.0)
+    return torch.cos(0.5 * math.pi * t)
+
+
+def subspace_loss(phi_hat: torch.Tensor, s_hat: torch.Tensor, psi: torch.Tensor, s_true: torch.Tensor,
                   wq: torch.Tensor) -> torch.Tensor:
     """||P_hat - P||_F^2 / ||P||_F^2 with P = sum_n w_n psi_n psi_n^T in the quadrature inner product:
-    ||A A^T - B B^T||^2 = ||A^T A||^2 + ||B^T B||^2 - 2 ||A^T B||^2, A = sqrt(wq) phi_hat sqrt(w_hat)."""
+    ||A A^T - B B^T||^2 = ||A^T A||^2 + ||B^T B||^2 - 2 ||A^T B||^2, A = sqrt(wq) phi_hat s_hat.
+    s_hat, s_true are the SQRT weights (`soft_sqrt_weights`), never torch.sqrt of `soft_weights` (D186)."""
     s = torch.sqrt(wq)[:, None]
-    A = s * phi_hat * torch.sqrt(w_hat)[None]
-    B = s * psi * torch.sqrt(w_true)[None]
+    A = s * phi_hat * s_hat[None]
+    B = s * psi * s_true[None]
     AA, BB, AB = A.T @ A, B.T @ B, A.T @ B
     return ((AA ** 2).sum() + (BB ** 2).sum() - 2 * (AB ** 2).sum()) / (BB ** 2).sum().clamp(min=1e-12)
 

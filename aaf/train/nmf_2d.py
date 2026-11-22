@@ -2,7 +2,7 @@
 
 Losses (per room, mean over the step's rooms):
   field     the 4-term spectral loss (`multi_room_2d_mat._losses`) on bins 50-199 at rx_per_room sampled receivers
-  subspace  ||P_hat - P||^2 / ||P||^2 with soft weights (cosine roll-off between the TRUE k_20 and k_24, applied to each
+  subspace  ||P_hat - P||^2 / ||P||^2 with soft weights (as their square roots, computed directly: D186) (cosine roll-off between the TRUE k_20 and k_24, applied to each
             set's own wavenumbers -- continuous when modes cross, A10), quadrature inner product
   k         mean |k_hat_n - k_n| / k_n over the 24 sorted modes
   ortho     ||Phi^T W Phi - I||^2 / 24 (soft orthonormality, A10)
@@ -10,6 +10,7 @@ Losses (per room, mean over the step's rooms):
             collocation points and of d phi / dn = 0 (3-point one-sided) at wall nodes > 0.15 m from vertices, both by
             finite differences at h = 12.4 cm = the grid's finest cell (E4)
 Kill rule (D180): at 10K, if the in-family (15 test shapes) off-lattice r at 25-100 Hz < 0.70, the run stops and says so.
+A non-finite loss, gradient norm or validation r stops the run at once (NONFINITE.json; the kill rule treats NaN as failing).
   python -m aaf.train.nmf_2d --config configs/sweep_2d_mat/P4_9_NMF.yaml --output_dir outputs/p4_9/arms/NMF
 """
 from __future__ import annotations
@@ -27,7 +28,7 @@ import torch
 import yaml
 
 from aaf.eval.modal_prior import C_FIT, DT
-from aaf.models.nmf_2d import NMF2D, orthonormality_loss, soft_weights, subspace_loss
+from aaf.models.nmf_2d import NMF2D, orthonormality_loss, soft_sqrt_weights, subspace_loss
 
 C0 = 343.0
 LO, HI = 50, 200                               # 25-100 Hz (bins of 0.5 Hz)
@@ -158,6 +159,17 @@ def phys_residuals(model, room, c, k, nq, h, n_colloc, gen):
     return r_int, r_wall
 
 
+def kill_fires(r: float, kill_r: float) -> bool:
+    """D180's kill rule, NaN-proof: anything that is not a finite r >= kill_r fails (a NaN run is killed, not spared)."""
+    return not (math.isfinite(r) and r >= kill_r)
+
+
+def _stop_nonfinite(out, it, what, agg):
+    (out / "NONFINITE.json").write_text(json.dumps({"iter": it, "what": what,
+                                                    "terms": {k: float(v) for k, v in agg.items()}}, indent=1))
+    print("[stop] non-finite {} at iter {}: {} (no checkpoint written)".format(what, it, agg), flush=True)
+
+
 def load_rooms(cfg, dev):
     rows = json.load(open(cfg.manifest))["configs"]
     rooms = []
@@ -246,8 +258,8 @@ def train(cfg: NMFCfg, out_dir: str):
             kt = room.k_true[1:25]
             phi_q = model.phi_raw(room.q_pos, c) / nq
             ka, kb = float(room.k_true[20]), float(room.k_true[24])
-            l_sub = subspace_loss(phi_q, soft_weights(k, ka, kb), room.psi_q[:, 1:25],
-                                  soft_weights(kt, ka, kb), room.w_q)
+            l_sub = subspace_loss(phi_q, soft_sqrt_weights(k, ka, kb), room.psi_q[:, 1:25],
+                                  soft_sqrt_weights(kt, ka, kb), room.w_q)
             l_k = ((k - kt).abs() / kt).mean()
             l_orth = orthonormality_loss(phi_q, room.w_q)
             loss = cfg.w_field * l_field + cfg.w_sub * l_sub + cfg.w_k * l_k + cfg.w_orth * l_orth
@@ -256,11 +268,15 @@ def train(cfg: NMFCfg, out_dir: str):
                 r_int, r_wall = phys_residuals(model, room, c, k, nq, cfg.h_fd, cfg.n_colloc, gen)
                 loss = loss + cfg.phys_weight * (r_int + r_wall)
                 terms.update({"R_int": r_int, "R_wall": r_wall})
-            (loss / len(ids)).backward()
             for kk_, v in terms.items():
                 agg[kk_] = agg.get(kk_, 0.0) + float(v) / len(ids)
             agg["loss"] = agg.get("loss", 0.0) + float(loss) / len(ids)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            if not torch.isfinite(loss):
+                return _stop_nonfinite(out, it, "loss (room {})".format(i), agg)
+            (loss / len(ids)).backward()
+        gn = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        if not torch.isfinite(gn):
+            return _stop_nonfinite(out, it, "gradient norm", {**agg, "grad_norm": float(gn)})
         opt.step()
         sched.step()
         if it % cfg.log_every == 0:
@@ -272,7 +288,9 @@ def train(cfg: NMFCfg, out_dir: str):
             r = float(np.mean([e["r_25_100"] for e in ev]))
             scal.append({"iter": it, "phase": "val", "in_family_r_25_100": r})
             print("  [val {}] in-family off-lattice r 25-100 Hz = {:.4f}".format(it, r), flush=True)
-            if it == cfg.kill_iter and r < cfg.kill_r:
+            if not math.isfinite(r):
+                return _stop_nonfinite(out, it, "validation r", {**agg, "val_r": r})
+            if it == cfg.kill_iter and kill_fires(r, cfg.kill_r):
                 (out / "KILLED.json").write_text(json.dumps({"iter": it, "in_family_r_25_100": r,
                                                              "rule": "D180: < {} at {}".format(cfg.kill_r, it)}))
                 save(out, it, model, opt, sched, gen, cfg, scal)
