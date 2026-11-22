@@ -4,11 +4,12 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-9 Day 0 (2026-11-22; D180-D182): I2 in; CTL training; S2X / DIR / DIR-G pooled.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Last updated**: **P4-9 Day 0-1 (2026-11-22; D180-D184): I2, I9, I4, I1 in; CTL / S2X / DIR / DIR-G training; NMF / NMF-P relaunching after a NaN bug.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 * **P4-8 closed:** S2 @120K FAILS its UF test by 0.009 (UF 0.501, HF 0.502; under-exposed, fit 0.523 vs R0 0.645). R0 @120K remains the meeting model until S2X's 240K read.
 * **P4-9 (D180 spec + D181 amendments A1-A15, edits E1-E8, clarifications c1-c6):** Q-A network vs physics with matched information; Q-B NMF (staged behind feasibility gates); Q-C directional output (omni-field gradient primary; arms CTL / DIR / DIR-G); Q-D physics gates. A result is reported about every half-day.
-* **I4 (G-BC): FAILS on (2)** -> PL1 not launched; R0's wall residual is ~1,700x FDTD's but equal in and out of family. **I9 (NMF feasibility): GO**; NMF / NMF-P training (D184).
+* **I1 (latency, F2):** cached-mode physics beats the network for listener / source / material edits (2 ms vs 10 ms per listener); the network's case is the geometry edit (12 ms vs ~55 s re-solve / 49 s CPU FDTD). A 64x64 grid takes the network 32 s, ~1.5x faster than CPU FDTD. **NMF / NMF-P went NaN at step ~300 (engineering; the 10K kill rule did not fire on NaN): no NMF number yet; relaunch after the fix.**
+* **I4 (G-BC): FAILS on (2)** -> PL1 not launched; R0's wall residual is ~1,700x FDTD's but equal in and out of family. **I9 (NMF feasibility): GO** (D184).
 * **I2 (0b(i)):** the pre-registered reading DOES NOT HOLD (projected R0 ~23x FDTD's raw residual); confound flagged (D182(f)): the projection raises truth's own residual 21x, and against projected truth projected R0 is ~1.1x.
 
 Earlier: **P4-8 wave 1 FINAL + meeting-deck inputs v2 (2026-10-19; D177-D179).** Manager report: [P4_8_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_8_STATUS_REPORT.md).

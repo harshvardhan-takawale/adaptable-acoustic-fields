@@ -28,6 +28,26 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (night) — I1: latency by edit type (E5) -> F2; NMF / NMF-P runs went NaN (engineering, no NMF number)
+
+**Headline:** For moving the listener, moving the source or changing a wall material, physics with precomputed room modes is faster than the network (2 ms vs 10 ms per listener position). The network's speed case is the geometry edit: 12 ms per listener position, against about a minute for physics or the simulator to recompute. A full 64x64 map of the room takes the network 32 s, only ~1.5x faster than re-running the simulator on a CPU, and a GPU simulator would likely be faster still (estimate, not measured).
+
+- **Per edit type** (one room, 3753 grid points; network R0 @120K fp32 on an RTX A5000; physics and FDTD on one CPU node, Xeon E5-2680 v4; medians of 20 runs):
+
+  | edit | network, 1 listener | network, 64x64 grid | physics, cached modes (1 listener / grid) | physics, re-solve to 600 Hz | FDTD re-run |
+  |---|---|---|---|---|---|
+  | listener move | 9.9 ms | 32.4 s | 2 ms / 49 ms | 55.6 s | 49.4 s |
+  | source move | 9.9 ms | 32.4 s | 2 ms / 49 ms | 55.6 s | 49.4 s |
+  | material change | 12 ms (accuracy UNTESTED) | 32.4 s | 2 ms / 49 ms | 55.6 s | 49.4 s |
+  | geometry change | 12 ms | 32.1 s | n/a (modes change) | 55.6 s | 49.4 s |
+
+- **Single-listener update rate:** network 101 Hz on the 601-bin path (61 Hz on the current 4097-bin path); cached-mode physics 496 Hz.
+- The 601-bin path cuts the network's grid render from 57 s to 32 s. Largest dense room (4056 points): network 35 s, FDTD 60 s, modal re-solve 111 s.
+- **A 2D FDTD on a GPU** would take ~0.1-0.3 s per run. This is an ESTIMATE (4.5e9 node updates at 15-50 G/s), not measured. If it holds, the network's whole-room latency case rests on the geometry edit at a single listener position and on 3D, where FDTD cost grows by orders of magnitude.
+- The reading stated in advance (D181 E5) holds as written. This is weakness W3, now quantified.
+- **NMF / NMF-P: no number yet.** Both runs went NaN between steps 200 and 400. The 10K kill rule did not fire because `nan < 0.70` is False. NMF-P is cancelled. NMF ran to 30K on NaN weights; that run is void. I am debugging on a GPU, and both will relaunch from step 0 once fixed, with a NaN-proof kill rule and a stop on any non-finite loss. I13-I14 slip by the relaunch time (~1 h for NMF to 10K, ~0.5 h more for NMF-P).
+- [latency.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/latency.md) · [F2_latency.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F2_latency.png)
+
 ## 2026-11-22 (evening) — I4: Robin boundary residual + gate G-BC -> PL1 NOT launched; NMF / NMF-P launched
 
 **Headline:** The network's fields break the wall boundary condition badly (~1,700x the simulator's error), but equally badly in familiar and unseen rooms. So a physics penalty at the walls would not target what goes wrong in unseen rooms, and the pre-registered physics-loss arm is not run. The learned-modes route (NMF) passed its feasibility check and is now training.

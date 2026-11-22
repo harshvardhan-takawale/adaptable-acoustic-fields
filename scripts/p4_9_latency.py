@@ -299,45 +299,69 @@ def report():
     figure_f2(out)
 
 
+def _fmt_s(v):
+    return "{:.0f} ms".format(v * 1e3) if v < 0.1 else ("{:.1f} s".format(v) if v < 10 else "{:.0f} s".format(v))
+
+
 def figure_f2(out):
+    """E5's figure: one panel per query size, bars per edit type, value labels (log axis), the legend above the plots,
+    'n/a' where a method has no such path, the network's material-change bar hatched (accuracy untested)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     edits = [r["edit"] for r in out["rows"]]
-    meth = [("network (601-bin)", "#2a78d6"), ("physics, cached modes", "#eb6834"),
-            ("physics, re-solve to 600 Hz", "#1baf7a"), ("FDTD re-run", "#eda100")]
+    meth = [("network (601-bin path, GPU)", "#2a78d6"), ("physics, cached modes (CPU)", "#eb6834"),
+            ("physics, re-solve modes to 600 Hz (CPU)", "#1baf7a"), ("FDTD re-run (CPU)", "#eda100")]
+    plt.rcParams.update({"font.size": 13, "axes.edgecolor": "#888888", "xtick.color": "#444444",
+                         "ytick.color": "#555555", "hatch.color": "white", "hatch.linewidth": 1.5})
     fig, axes = plt.subplots(1, 2, figsize=(16, 9), dpi=160, facecolor="white", sharey=True)
-    for ax, which, title in ((axes[0], "1rx", "one listener position"), (axes[1], "grid", "a 64x64 grid of the room")):
+    w = 0.2
+    for ax, which, title in ((axes[0], "1rx", "Update ONE listener position"),
+                             (axes[1], "grid", "Re-render a 64x64 grid of the room")):
         ax.set_facecolor("white")
         ax.grid(True, axis="y", color="#e6e6e6")
         ax.set_axisbelow(True)
         for sp_ in ("top", "right"):
             ax.spines[sp_].set_visible(False)
         x = np.arange(len(edits))
-        w = 0.2
         for j, (lab, col) in enumerate(meth):
-            vals = []
-            for r in out["rows"]:
+            for e, r in enumerate(out["rows"]):
                 if j == 0:
-                    vals.append(r["net_1rx_601"] if which == "1rx" else r["net_grid_601"])
+                    v = r["net_1rx_601"] if which == "1rx" else r["net_grid_601"]
                 elif j == 1:
-                    vals.append(r["phys_cached_1rx"] if r["edit"] != "geometry change" else np.nan)
-                    if which == "grid":
-                        vals[-1] = r["phys_cached_grid"] if r["edit"] != "geometry change" else np.nan
+                    v = np.nan if r["edit"] == "geometry change" else (
+                        r["phys_cached_1rx"] if which == "1rx" else r["phys_cached_grid"])
                 elif j == 2:
-                    vals.append(out["modal_resolve_600Hz_s"])
+                    v = out["modal_resolve_600Hz_s"]
                 else:
-                    vals.append(out["fdtd_full_room_s"])
-            ax.bar(x + (j - 1.5) * w, vals, width=w * 0.92, color=col, label=lab, zorder=3)
+                    v = out["fdtd_full_room_s"]
+                xb = x[e] + (j - 1.5) * w
+                if not np.isfinite(v):
+                    ax.text(xb, 1.3e-3, "n/a\n(re-\nsolve)", ha="center", va="bottom", fontsize=8.5, color="#777777")
+                    continue
+                hatch = "//" if (j == 0 and r["edit"] == "material change") else None
+                ax.bar(xb, v, width=w * 0.9, color=col, hatch=hatch, edgecolor="white", linewidth=0,
+                       label=lab if e == 0 else None, zorder=3)
+                ax.text(xb, v * 1.12, _fmt_s(v), ha="center", va="bottom", fontsize=9, color="#333333")
         ax.set_yscale("log")
+        ax.set_ylim(1e-3, 300)
         ax.set_xticks(x)
-        ax.set_xticklabels(edits)
-        ax.set_title(title, loc="left", fontsize=15)
-    axes[0].set_ylabel("seconds (log scale)")
-    axes[0].legend(loc="upper left", frameon=False, fontsize=12)
-    fig.suptitle("F2 -- latency by edit type ({}; network on {}, physics on one CPU node)".format(out["room"], out["gpu"]),
-                 x=0.01, ha="left", fontsize=16)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+        ax.set_xticklabels([e.replace(" ", "\n") for e in edits], fontsize=13)
+        ax.set_title(title, loc="left", fontsize=15, color="#222222")
+    axes[0].set_ylabel("wall-clock seconds (log scale)")
+    ur = out["update_rate_hz"]
+    fig.text(0.06, 0.035, "Single-listener update rate: network {:.0f} Hz, cached-mode physics {:.0f} Hz.  "
+                 "Hatched = network never trained on materials (latency only, accuracy UNTESTED)."
+                 .format(ur["network_601"], ur["physics_cached"]), fontsize=11.5,
+                 color="#444444")
+    h, l_ = axes[0].get_legend_handles_labels()
+    fig.legend(h, l_, loc="upper left", bbox_to_anchor=(0.055, 0.895), ncol=4, frameon=False, fontsize=12)
+    fig.text(0.01, 0.965, "F2 -- latency by edit type: cached-mode physics wins listener / source / material edits; "
+             "the network's case is the geometry edit", ha="left", va="top", fontsize=16, color="#222222")
+    fig.text(0.01, 0.925, "Room {} ({} grid points). Network: R0 @120K, fp32, {}. Physics and FDTD: one CPU node "
+             "(Xeon E5-2680 v4). Medians of 20 runs.".format(out["room"], out["n_grid"], out["gpu"]),
+             va="top", fontsize=11.5, color="#555555")
+    fig.subplots_adjust(left=0.06, right=0.985, top=0.80, bottom=0.14, wspace=0.08)
     Path("outputs/p4_9/meeting").mkdir(parents=True, exist_ok=True)
     fig.savefig("outputs/p4_9/meeting/F2_latency.png", facecolor="white")
 

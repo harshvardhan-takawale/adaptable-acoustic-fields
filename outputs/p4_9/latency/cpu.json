@@ -1,0 +1,115 @@
+{
+ "node": "legacy42.umiacs.umd.edu",
+ "cpu": "Model name:                              Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz",
+ "threads": "OMP/MKL/OPENBLAS = 4",
+ "rooms": {
+  "shape1000": {
+   "room": "L5.54_W5.28_d1.42_w1.52.h5",
+   "n_rx": 3753,
+   "fdtd_full_room": {
+    "median_s": 49.43808699797955,
+    "min_s": 49.38962550100405,
+    "max_s": 49.46688089397503,
+    "runs": 5,
+    "warmups": 1
+   },
+   "modal_resolve_600Hz": {
+    "median_s": 55.55548426898895,
+    "min_s": 55.23752169200452,
+    "max_s": 55.74747108499287,
+    "runs": 5,
+    "warmups": 1
+   },
+   "n_modes_600": 282,
+   "cached_listener_1rx": {
+    "median_s": 0.002016332495259121,
+    "min_s": 0.001981605979381129,
+    "max_s": 0.002067284018266946,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_listener_grid": {
+    "median_s": 0.0492626014893176,
+    "min_s": 0.04875888000242412,
+    "max_s": 0.04949613299686462,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_source_grid": {
+    "median_s": 0.04918494200683199,
+    "min_s": 0.04875031401752494,
+    "max_s": 0.05003233900060877,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_material_grid": {
+    "median_s": 0.04898784949909896,
+    "min_s": 0.04872723500011489,
+    "max_s": 0.04927019102615304,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_material_1rx": {
+    "median_s": 0.002029166993452236,
+    "min_s": 0.002002932014875114,
+    "max_s": 0.0020513109921012074,
+    "runs": 20,
+    "warmups": 3
+   }
+  },
+  "largest": {
+   "room": "L6.70_W5.38_d0.36_w0.72.h5",
+   "n_rx": 4056,
+   "fdtd_full_room": {
+    "median_s": 59.55605271100649,
+    "min_s": 59.177287136000814,
+    "max_s": 59.63558650901541,
+    "runs": 5,
+    "warmups": 1
+   },
+   "modal_resolve_600Hz": {
+    "median_s": 110.7877541219932,
+    "min_s": 110.27818937398843,
+    "max_s": 111.4927317769907,
+    "runs": 5,
+    "warmups": 1
+   },
+   "n_modes_600": 367,
+   "cached_listener_1rx": {
+    "median_s": 0.0026754335121950135,
+    "min_s": 0.002641047991346568,
+    "max_s": 0.002734216977842152,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_listener_grid": {
+    "median_s": 0.06728177750483155,
+    "min_s": 0.06679130101110786,
+    "max_s": 0.0678108159918338,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_source_grid": {
+    "median_s": 0.06736166901828256,
+    "min_s": 0.06696088399621658,
+    "max_s": 0.06805638299556449,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_material_grid": {
+    "median_s": 0.0673813174944371,
+    "min_s": 0.06667894098791294,
+    "max_s": 0.06770935299573466,
+    "runs": 20,
+    "warmups": 3
+   },
+   "cached_material_1rx": {
+    "median_s": 0.002695224990020506,
+    "min_s": 0.0026562080020084977,
+    "max_s": 0.0027299969806335866,
+    "runs": 20,
+    "warmups": 3
+   }
+  }
+ }
+}

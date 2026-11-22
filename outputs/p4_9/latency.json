@@ -1,0 +1,64 @@
+{
+ "gpu": "NVIDIA RTX A5000",
+ "cpu": "Model name:                              Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz",
+ "node": "legacy42.umiacs.umd.edu",
+ "room": "L5.54_W5.28_d1.42_w1.52.h5",
+ "n_grid": 3753,
+ "rows": [
+  {
+   "edit": "listener move",
+   "net_1rx_601": 0.00990321500285063,
+   "net_grid_601": 32.352913715003524,
+   "net_grid_4097": 57.06012382300105,
+   "phys_cached_1rx": 0.002016332495259121,
+   "phys_cached_grid": 0.0492626014893176,
+   "note": "modes unchanged: lookup + sum"
+  },
+  {
+   "edit": "source move",
+   "net_1rx_601": 0.009852570001385175,
+   "net_grid_601": 32.352913715003524,
+   "net_grid_4097": 57.06012382300105,
+   "phys_cached_1rx": 0.002016332495259121,
+   "phys_cached_grid": 0.04918494200683199,
+   "note": "modes unchanged: lookup + sum"
+  },
+  {
+   "edit": "material change",
+   "net_1rx_601": 0.011520131010911427,
+   "net_grid_601": 32.35582741201506,
+   "net_grid_4097": 57.08505169101409,
+   "phys_cached_1rx": 0.002029166993452236,
+   "phys_cached_grid": 0.04898784949909896,
+   "note": "eta rescales (beta linear); network accuracy UNTESTED (never trained on materials)"
+  },
+  {
+   "edit": "geometry change",
+   "net_1rx_601": 0.011538898485014215,
+   "net_grid_601": 32.064374647976365,
+   "net_grid_4097": 56.54077247300302,
+   "phys_cached_1rx": 55.55548426898895,
+   "phys_cached_grid": 55.604746870478266,
+   "note": "modes change: re-solve (no cache)"
+  }
+ ],
+ "modal_resolve_600Hz_s": 55.55548426898895,
+ "fdtd_full_room_s": 49.43808699797955,
+ "n_modes_600": 282,
+ "projection_64x64_s": 23.186834658990847,
+ "token_build_s": 0.0017618214915273711,
+ "update_rate_hz": {
+  "network_601": 100.97730885496792,
+  "network_4097": 61.19686817726699,
+  "physics_cached": 495.94994989727076
+ },
+ "largest_room": {
+  "room": "L6.70_W5.38_d0.36_w0.72.h5",
+  "n_grid": 4056,
+  "net_grid_601": 34.96813528198982,
+  "net_grid_4097": 61.7231266979943,
+  "fdtd": 59.55605271100649,
+  "modal_resolve": 110.7877541219932
+ },
+ "gpu_fdtd_2d_estimate": "~0.1-0.3 s (ESTIMATE, not measured: ~7e4 air nodes x 61440 steps = 4.5e9 node updates at 15-50 G updates/s on one GPU)"
+}
