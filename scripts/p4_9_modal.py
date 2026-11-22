@@ -29,6 +29,8 @@ import numpy as np
 from scripts.p4_7_m1_modal import F_PRIMARY, eigen, operator, pulse, td_synthesis
 
 OUT = Path("outputs/p4_9/modal")
+GOUT = Path("data/track_p4_9_modal_grid")      # large: mode shapes on every air node (gitignored data/)
+GRID = False
 UNSEEN_MAN = "configs/sweeps_2d_mat/p4_8_unseen_manifest.json"
 VARIANTS = ("exact", "snap10", "bbox", "notch_rm")
 
@@ -129,6 +131,17 @@ def run(idx):
             "dxx": op["dxx"], "dxy": op["dxy"], "dA": op["dA"], "area": op["area_q"], "perimeter": op["perimeter"],
             "beta": op["beta"], "asymmetry": op["asym"], "max_rx_snap_m": snap_r, "src_snap_m": snap_s,
             "solved": time.strftime("%Y-%m-%d %H:%M")}
+    if GRID:
+        # Step 1 realism (D181 E8 / S-2): mode shapes on the full air grid (float32) for measurement positions that
+        # are off the dense receivers; air node q sits at (I[q] dxx, J[q] dxy).
+        I, J = np.nonzero(op["idx"] >= 0)
+        assert (op["idx"][I, J] == np.arange(len(I))).all()
+        GOUT.mkdir(parents=True, exist_ok=True)
+        np.save(GOUT / "{}__{}__psi.npy".format(path.stem, v), psi.astype(np.float32))
+        np.savez_compressed(GOUT / "{}__{}__grid.npz".format(path.stem, v), idx=op["idx"], dxx=op["dxx"],
+                            dxy=op["dxy"], k2=vals, eta=eta)
+        print("grid", psi.shape, flush=True)
+        return
     np.savez_compressed(OUT / "{}__{}.npz".format(path.stem, v), k2=vals, f_n=f_n, eta=eta,
                         psi_r=psi[jr].astype(np.float64), psi_s=psi[js[0]], td0=td0, S=S, rx=rx, src=src,
                         meta=json.dumps(meta), **extra)
@@ -139,7 +152,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--idx", type=int, default=None)
+    ap.add_argument("--grid", action="store_true", help="store psi on the full air grid (exact/snap10/bbox only)")
     a = ap.parse_args()
+    global GRID
+    GRID = a.grid
     if a.list:
         t = tasks()
         for i, (k, g, fam, p, v) in enumerate(t):

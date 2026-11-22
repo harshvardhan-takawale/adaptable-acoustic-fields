@@ -132,7 +132,12 @@ def run_gpu():
                                     z_s=z.unsqueeze(0).expand(len(r), -1), **kw))
         return out
 
+    part = OUT / "gpu_partial.json"                    # preemption-safe: finished rooms are kept and skipped
+    if part.exists():
+        rep["rooms"] = json.loads(part.read_text())["rooms"]
     for tag, path in rooms().items():
+        if tag in rep["rooms"]:
+            continue
         ri = room_info(path)
         z = build_cond_vector_2d("geom_token", ri["L"], ri["W"], [0.15] * len(ri["verts"]), verts=ri["verts"],
                                  device=dev)
@@ -174,6 +179,8 @@ def run_gpu():
         res["projection_64x64"] = timeit(lambda: project_field(P, ri["keep"], (ri["L"] - 0.24) / 63,
                                                                (ri["W"] - 0.24) / 63), sync)
         rep["rooms"][tag] = res
+        OUT.mkdir(parents=True, exist_ok=True)
+        part.write_text(json.dumps(rep, indent=1))
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "gpu.json").write_text(json.dumps(rep, indent=1))
     print("wrote", OUT / "gpu.json")
@@ -229,11 +236,120 @@ def run_cpu():
     print("wrote", OUT / "cpu.json")
 
 
+def report():
+    g = json.loads((OUT / "gpu.json").read_text())
+    c = json.loads((OUT / "cpu.json").read_text())
+    tag = "shape1000"
+    G, Cc = g["rooms"][tag], c["rooms"][tag]
+    N6, N4 = G["bins_601"], G["current_4097"]
+    m = lambda d: d["median_s"]  # noqa
+    resolve = m(Cc["modal_resolve_600Hz"])
+    fdtd = m(Cc["fdtd_full_room"])
+    rows = [
+        ("listener move", m(N6["listener_1rx"]), m(N6["listener_grid"]), m(N4["listener_grid"]),
+         m(Cc["cached_listener_1rx"]), m(Cc["cached_listener_grid"]), "modes unchanged: lookup + sum"),
+        ("source move", m(N6["source_1rx"]), m(N6["source_grid"]), m(N4["source_grid"]),
+         m(Cc["cached_listener_1rx"]), m(Cc["cached_source_grid"]), "modes unchanged: lookup + sum"),
+        ("material change", m(N6["material_1rx"]), m(N6["material_grid"]), m(N4["material_grid"]),
+         m(Cc["cached_material_1rx"]), m(Cc["cached_material_grid"]),
+         "eta rescales (beta linear); network accuracy UNTESTED (never trained on materials)"),
+        ("geometry change", m(N6["geometry_1rx"]), m(N6["geometry_grid"]), m(N4["geometry_grid"]),
+         resolve, resolve + m(Cc["cached_listener_grid"]), "modes change: re-solve (no cache)"),
+    ]
+    out = {"gpu": g["gpu"], "cpu": c["cpu"], "node": c["node"], "room": G["room"], "n_grid": G["n_grid"],
+           "rows": [dict(zip(("edit", "net_1rx_601", "net_grid_601", "net_grid_4097", "phys_cached_1rx",
+                              "phys_cached_grid", "note"), r)) for r in rows],
+           "modal_resolve_600Hz_s": resolve, "fdtd_full_room_s": fdtd, "n_modes_600": Cc["n_modes_600"],
+           "projection_64x64_s": m(G["projection_64x64"]), "token_build_s": m(G["token_build"]),
+           "update_rate_hz": {"network_601": 1.0 / m(N6["listener_1rx"]), "network_4097": 1.0 / m(N4["listener_1rx"]),
+                              "physics_cached": 1.0 / m(Cc["cached_listener_1rx"])},
+           "largest_room": {"room": g["rooms"]["largest"]["room"], "n_grid": g["rooms"]["largest"]["n_grid"],
+                            "net_grid_601": m(g["rooms"]["largest"]["bins_601"]["listener_grid"]),
+                            "net_grid_4097": m(g["rooms"]["largest"]["current_4097"]["listener_grid"]),
+                            "fdtd": m(c["rooms"]["largest"]["fdtd_full_room"]),
+                            "modal_resolve": m(c["rooms"]["largest"]["modal_resolve_600Hz"])},
+           "gpu_fdtd_2d_estimate": ("~0.1-0.3 s (ESTIMATE, not measured: ~7e4 air nodes x 61440 steps = 4.5e9 node "
+                                    "updates at 15-50 G updates/s on one GPU)")}
+    (Path("outputs/p4_9") / "latency.json").write_text(json.dumps(out, indent=1))
+    f = lambda x: ("{:.2g} ms".format(1e3 * x) if x < 1 else "{:.3g} s".format(x))  # noqa
+    L = ["# P4-9 0a: latency by edit type (D180; D181 A3, A4, E5)", "",
+         "Room: {} ({} grid points). Network = R0 @120K on {}, fp32 ({}); physics and FDTD on one CPU node ({}, {}). "
+         "Medians of 20 runs (5 above 5 s, D182(c)).".format(G["room"], G["n_grid"], g["gpu"], "the shipped dtype, A4",
+                                                             c["node"], c["cpu"].replace("Model name:", "").strip()), "",
+         "| edit | network, 1 listener (601-bin) | network, 64x64 grid (601-bin / current 4097-bin path) | physics, "
+         "cached modes (1 listener / grid) | physics re-solve to 600 Hz | FDTD re-run | note |",
+         "|---|---|---|---|---|---|---|"]
+    for r in rows:
+        L.append("| {} | {} | {} / {} | {} / {} | {} | {} | {} |".format(r[0], f(r[1]), f(r[2]), f(r[3]), f(r[4]),
+                                                                       f(r[5]), f(resolve), f(fdtd), r[6]))
+    u = out["update_rate_hz"]
+    L += ["", "**Single-listener update rate:** network {:.0f} Hz (601-bin path; {:.0f} Hz on the current path); "
+          "physics with cached modes {:.0f} Hz.".format(u["network_601"], u["network_4097"], u["physics_cached"]),
+          "**Render-time projection** (64x64 lattice, 551 bins): {}; token build {}.".format(
+              f(out["projection_64x64_s"]), f(out["token_build_s"])),
+          "**Largest dense room** ({}, {} points): network grid {} (601-bin) / {} (4097-bin); FDTD {}; modal re-solve "
+          "{}.".format(out["largest_room"]["room"], out["largest_room"]["n_grid"], f(out["largest_room"]["net_grid_601"]),
+                       f(out["largest_room"]["net_grid_4097"]), f(out["largest_room"]["fdtd"]),
+                       f(out["largest_room"]["modal_resolve"])),
+          "**A 2D FDTD on a GPU:** {}.".format(out["gpu_fdtd_2d_estimate"]), "",
+          "Reading (labelled, D181 E5): with cached modes, physics answers listener, source and material edits faster "
+          "than the network; the network's latency case is the GEOMETRY edit, where physics must re-solve."]
+    (Path("outputs/p4_9") / "latency.md").write_text("\n".join(L) + "\n")
+    print("\n".join(L))
+    figure_f2(out)
+
+
+def figure_f2(out):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    edits = [r["edit"] for r in out["rows"]]
+    meth = [("network (601-bin)", "#2a78d6"), ("physics, cached modes", "#eb6834"),
+            ("physics, re-solve to 600 Hz", "#1baf7a"), ("FDTD re-run", "#eda100")]
+    fig, axes = plt.subplots(1, 2, figsize=(16, 9), dpi=160, facecolor="white", sharey=True)
+    for ax, which, title in ((axes[0], "1rx", "one listener position"), (axes[1], "grid", "a 64x64 grid of the room")):
+        ax.set_facecolor("white")
+        ax.grid(True, axis="y", color="#e6e6e6")
+        ax.set_axisbelow(True)
+        for sp_ in ("top", "right"):
+            ax.spines[sp_].set_visible(False)
+        x = np.arange(len(edits))
+        w = 0.2
+        for j, (lab, col) in enumerate(meth):
+            vals = []
+            for r in out["rows"]:
+                if j == 0:
+                    vals.append(r["net_1rx_601"] if which == "1rx" else r["net_grid_601"])
+                elif j == 1:
+                    vals.append(r["phys_cached_1rx"] if r["edit"] != "geometry change" else np.nan)
+                    if which == "grid":
+                        vals[-1] = r["phys_cached_grid"] if r["edit"] != "geometry change" else np.nan
+                elif j == 2:
+                    vals.append(out["modal_resolve_600Hz_s"])
+                else:
+                    vals.append(out["fdtd_full_room_s"])
+            ax.bar(x + (j - 1.5) * w, vals, width=w * 0.92, color=col, label=lab, zorder=3)
+        ax.set_yscale("log")
+        ax.set_xticks(x)
+        ax.set_xticklabels(edits)
+        ax.set_title(title, loc="left", fontsize=15)
+    axes[0].set_ylabel("seconds (log scale)")
+    axes[0].legend(loc="upper left", frameon=False, fontsize=12)
+    fig.suptitle("F2 -- latency by edit type ({}; network on {}, physics on one CPU node)".format(out["room"], out["gpu"]),
+                 x=0.01, ha="left", fontsize=16)
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    Path("outputs/p4_9/meeting").mkdir(parents=True, exist_ok=True)
+    fig.savefig("outputs/p4_9/meeting/F2_latency.png", facecolor="white")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--gpu", action="store_true")
     ap.add_argument("--cpu", action="store_true")
+    ap.add_argument("--report", action="store_true")
     a = ap.parse_args()
+    if a.report:
+        report()
     if a.gpu:
         run_gpu()
     if a.cpu:

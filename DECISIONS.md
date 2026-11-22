@@ -2353,3 +2353,19 @@ The suggestions E8 refers to: **S-1** a single-room 200-300 Hz ceiling test (is 
 * Robin operator sign confirmed on FDTD truth: residual 0.004 with d_n,out p = -j k beta p, against 0.040 (Neumann) and 0.081 (the opposite sign).
 
 (f) **0b(i) interior Helmholtz (I2): the pre-registered reading DOES NOT HOLD** -- projected R0 is 23.0x / 26.0x / 20.6x FDTD's raw residual (2.618 / 1.135 / 0.593 against 0.114 / 0.044 / 0.029), not <= 2x. **Flagged confound (labelled; the manager decides):** the same projection applied to FDTD TRUTH raises truth's residual 21x (2.427 / 1.005 / 0.535): at 25 Hz the |k| <= 1.5 k0 band (0.69 rad/m) is far narrower than a 5 m room's spectral footprint (~1.3 rad/m), so the projection itself distorts a true room field's second derivatives. Against projected truth, projected R0 is 1.08x / 1.13x / 1.11x (S2 1.09x / 1.19x / 1.17x). The reading's reference (raw truth) cannot separate the projection's residual from the network's; the interior loss is NOT closed by the reading as written. Raw: R0 89x / 89x / 58x FDTD's; S2 150x / 150x / 100x.
+
+**D183 — P4-9 Step 1 protocol, recorded before any reported Step 1 number** (implements D180 Step 1 with D181 A1, A5, A6, A12, E1, E7, E8 / S-2, c3, c4; `scripts/p4_9_grounding.py`).
+
+(a) **Strata and draws (c3):** per room, "< 0.3 m" = every off-lattice dense receiver within 0.3 m of the source; ">= 0.3 m" = 500 off-lattice receivers >= 0.3 m, reserved by `default_rng([20261013, room hash])`; the draw pool = the remaining off-lattice receivers >= 0.3 m; draw (K, seed) = `default_rng([20261122, K, seed, room hash])`. K in {8, 16, 32, 64}, seeds 0 / 1 / 2.
+
+(b) **Every fitting method minimises the training loss** (the 4-term spectral loss on bins 0-600) on its K measurements; scoring = the frozen band r (`p4_7_m1_modal.scores`). M1 fits the per-token embeddings (A5), M2 also `film_signal`, `_signal_films.0/.1` and the DC head (lr / 10), each with a relative L2 pull toward the zero-shot value; 8 measurements per step; eval-mode renderer; 601-bin path. M3 / M4 fit ONE beta scale (A2) by a log-grid + golden search; M4-ii = the 10 cm-snapped polygon, M4-iii = the bounding rectangle. M5 = a(f) G0 + J0 kernel ridge (E1), G0 = -(j/4) H0^(2)(k r).
+
+(c) **Calibration (E7)** on the 2 T + 2 DN family dense rooms, K = 32, seed 0, R0 @120K: M1 / M2 over lr {1e-3, 3e-3} x pull {0, 1e-2, 1e-1} x steps {50, 100, 200, 400}; chosen = the highest mean pooled r over the three bands (ties -> fewer steps); M5's ridge over {1e-4 ... 1}. Frozen, then applied to every reported fit and to both models.
+
+(d) **Realism (S-2):** "real2" = 20 dB SNR complex Gaussian noise (per bin, relative to the measured receivers' mean power) + N(0, 2 cm) per-axis error on the positions GIVEN to the method (data from the true positions); "real5" = the same with 5 cm. At K = 32: M1 / M2 (R0) real2; M3 / M4 / M5 real2 and real5 (CPU, free). Physics at perturbed positions uses bilinear interpolation of the mode shapes on the 2 cm grid.
+
+(e) **The pre-registered readings, made exact:**
+* **P1:** M1 at K = 32, clean, scored on ALL non-drawn off-lattice receivers (D180's definition, the set R0's 0.468 / S2's 0.501 come from), unseen 16, 25-100 Hz, seed-mean per room then room-mean: >= 0.65. Read for R0 and for S2 separately.
+* **P2 (A1: same geometry):** R0's M1-iii or M2-iii (bounding-rectangle tokens) beats M4-iii at K = 32, clean, all non-drawn off-lattice receivers, unseen 16, in >= 2 of 3 bands, with paired (over rooms) 95% CIs excluding 0. The exact-geometry M1 vs M4-iii is reported beside it.
+* **P3:** M1 beats M5 at 200-300 Hz at EVERY K in {8, 16, 32}: paired over the unseen 16 rooms on the pooled strata, 95% CI of M1 - M5 above 0 at each K. Read for R0 and S2 separately.
+* Paired bootstrap over rooms, 10k, seed 20261013; every table also shows each reference method's absolute level (Rule 12).

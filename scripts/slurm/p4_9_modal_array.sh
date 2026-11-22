@@ -20,4 +20,4 @@ export LD_LIBRARY_PATH="${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}"
 export PYTHONPATH="${PWD}"
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4
 echo "host=$(hostname); job=${SLURM_JOB_ID}; task=${SLURM_ARRAY_TASK_ID}"
-python scripts/p4_9_modal.py --idx "${SLURM_ARRAY_TASK_ID}"
+python scripts/p4_9_modal.py --idx "${SLURM_ARRAY_TASK_ID}" ${MODAL_EXTRA:-}

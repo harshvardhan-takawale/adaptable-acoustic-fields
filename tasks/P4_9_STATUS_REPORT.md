@@ -28,6 +28,24 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (evening) — I9: NMF feasibility (physics only) -> GO
+
+**Headline:** A modal model with just 24 room modes is accurate enough below 100 Hz (r 0.98), so learning room modes is a viable route. To clear the bar on unseen rooms it can afford sizeable errors. To stay strong on familiar rooms it must place each mode's frequency within about 2%.
+
+- **S-b (pre-registered): HOLDS.** The zero mode + 24 modes reach **0.984** in family at 25-100 Hz (unseen 0.974; every mode to 600 Hz: 0.988 / 0.978). The 24th mode lies at ~165 Hz. D180's fallback (a static correction for the omitted modes) is not needed: with the true higher modes it would only recover 24 -> 0.988.
+- **Error budget** (24 modes, r at 25-100 Hz, in family / unseen):
+
+  | eigenfrequency error | 0.5% | 1% | 2% | 5% |
+  |---|---|---|---|---|
+  | r | 0.978 / 0.970 | 0.965 / 0.956 | 0.920 / 0.923 | 0.768 / 0.786 |
+
+  | mode-shape mixing delta | 0.05 | 0.1 | 0.2 | 0.4 |
+  |---|---|---|---|---|
+  | r | 0.969 / 0.962 | 0.934 / 0.933 | 0.836 / 0.841 | 0.617 / 0.641 |
+
+- **Reading against N1's bars** (unseen >= 0.60, in-family >= 0.90): the unseen bar tolerates 5% eigenfrequency error or delta 0.4 (each alone); the in-family bar needs <= ~2% and delta <= ~0.1. Errors compound when combined.
+- [feasibility.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/feasibility.md)
+
 ## 2026-11-22 (evening) — I2: interior Helmholtz gate; Day-0 launches
 
 **Headline:** A projection that makes the network's fields physically smooth also distorts the TRUE field by about the same amount. So "projected network vs raw truth" cannot tell us whether the network still breaks the wave equation. The fair comparison says the projected network is within ~10% of projected truth.

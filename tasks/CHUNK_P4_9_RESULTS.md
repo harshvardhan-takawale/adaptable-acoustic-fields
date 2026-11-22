@@ -15,6 +15,8 @@ Sections below are filled as each step lands.
 **0c unit test (E3):** passes ([unit.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/dirzs/unit.json)).
 ## Step 1 — sparse-measurement grounding
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
+
+**2c feasibility (I9): GO.** S-b holds (24 modes: 0.984 in family at 25-100 Hz). Error budget: in-family >= 0.90 needs eigenfrequencies within ~2% and mode shapes within delta ~0.1; unseen >= 0.60 tolerates 5% / delta 0.4. [feasibility.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/feasibility.md).
 ## Suggestions S-1 to S-4
 ## Engineering
 
