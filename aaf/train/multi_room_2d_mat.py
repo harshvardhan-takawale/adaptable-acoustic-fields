@@ -79,6 +79,30 @@ def signal_kwargs(cfg, n_band: int) -> dict:
 
 P48_KEYS = ("mb_grids", "mb_f_top_hz", "mb_base_cell_m", "mb_n_levels", "mb_cells_per_wavelength", "ls_mode",
             "ls1_weight", "ls1_radius_m", "ls_band_hz", "ls2_weight", "ls2_rx_per_step", "ls2_floor_db")
+P49_KEYS = ("init_ckpt", "lr_restart_peak", "lr_warmup_iters", "lr_restart_from_iter", "p49_mode", "dir_labels",
+            "dir_frac_init", "dir_lo_bin", "dir_min_src_m", "dirg_rows_per_micro", "dirg_h_nodes")
+
+#: P4-9 (D181 A8): the keys a warm start may change against its init checkpoint -- run control, the schedule and
+#: the P4-9 options. EVERY other key must match the init checkpoint's (absent there = the default), so a warm
+#: start cannot silently splice two architectures or objectives (D73: per_level_scale, token_pool and world_scale
+#: load into same-shaped weights).
+INIT_FREE_KEYS = frozenset(("run_id", "n_iters", "lr_network", "eta_min", "seed", "val_every", "val_max_configs",
+                            "ckpt_every", "ckpt_keep_last", "ckpt_keep_every", "ckpt_keep_iters", "ckpt_thin_old",
+                            "log_every", "early_stop_warmup", "early_stop_patience",
+                            "early_stop_min_rel_improvement", "max_rows_per_render", "ls2_det_check_steps")
+                           + P49_KEYS)
+
+
+def restart_lr(e: int, peak: float, eta_min: float, warmup: int, horizon: int) -> float:
+    """P4-9 (D181 A8): the learning rate `e` optimizer steps after a restart -- linear warm-up eta_min -> peak over
+    `warmup` steps, then cosine peak -> eta_min, reaching eta_min at e = horizon. Closed form: a resumed run
+    recomputes it from the step count alone, never from the optimizer's loaded lr."""
+    e = max(0, int(e))
+    if warmup > 0 and e < warmup:
+        return eta_min + (peak - eta_min) * e / warmup
+    span = max(1, int(horizon) - int(warmup))
+    t = min(e - int(warmup), span) / span
+    return eta_min + 0.5 * (peak - eta_min) * (1.0 + math.cos(math.pi * t))
 
 
 def multiband_kwargs(cfg) -> dict:
@@ -325,6 +349,36 @@ class P32TrainCfg:
     ls2_rx_per_step: int = 32
     ls2_floor_db: float = -60.0
     ls2_det_check_steps: int = 20
+    #: P4-9 (D180 / D181 A8, A11). All default off; off, `__init__`, the schedule and `_step` are the original ones.
+    #: init_ckpt: when the output dir holds no checkpoint of its own (a resume ALWAYS wins), initialise the model
+    #: weights AND the Adam moments from this full checkpoint. The run must write to a NEW directory: thinning would
+    #: strip the source checkpoint's Adam state. Every key outside INIT_FREE_KEYS must match the checkpoint's.
+    #: lr_restart_peak (required with init_ckpt): a closed-form restart counted from lr_restart_from_iter (= the
+    #: init checkpoint's iteration) -- linear warm-up eta_min -> lr_restart_peak over lr_warmup_iters, then cosine
+    #: -> eta_min at n_iters. torch's CosineAnnealingLR steps from the LOADED lr, which at the end of a finished run
+    #: is eta_min, so a plain cosine would silently never restart.
+    #: p49_mode: "" (the original `_step`) | "ctl" (the P4-9 step: batch indices from a DEDICATED generator saved in
+    #: every checkpoint, so CTL / DIR / DIR-G draw identical batches whatever else they render; omni loss only).
+    init_ckpt: str = ""
+    lr_restart_peak: float = 0.0
+    lr_warmup_iters: int = 0
+    lr_restart_from_iter: int = 0
+    p49_mode: str = ""
+    #: P4-9 2b (D181 A11, A13, A15, E2, c1): p49_mode "dir" / "dirg" add a first-order directional term to CTL's step
+    #: (same batches, same omni loss, same ray jitters). "dir": the per-ray readout D = sum_j u_j s_j against the FDTD
+    #: grad p / (jk) at h = 1 node. "dirg": the central finite-difference gradient of the RENDERED omni field (neighbours
+    #: at +-dirg_h_nodes FDTD nodes, rendered with the centre's ray jitter) against the FDTD's at the same h, on
+    #: dirg_rows_per_micro rows per micro-batch (2 of 8 = 4 of 16 per step, c1). dir_labels: the memory-mapped FDTD
+    #: gradients (scripts/p4_9_fdtd_stencils.py --assemble-gx). dir_frac_init: the term's share of the total loss at
+    #: step 0 -- its weight is set ONCE at init from calibration batches and stored in every checkpoint. dir_lo_bin:
+    #: the first bin the term sees (50 = 25 Hz; the DC head carries bins 0-40 and has no ray split -- the omni loss
+    #: stays unmasked, Rule 9). dir_min_src_m: rows nearer the source than this are excluded from the term.
+    dir_labels: str = ""
+    dir_frac_init: float = 0.30
+    dir_lo_bin: int = 50
+    dir_min_src_m: float = 0.5
+    dirg_rows_per_micro: int = 2
+    dirg_h_nodes: int = 2
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -684,8 +738,8 @@ class P32Trainer:
         self.opt = torch.optim.Adam(
             [{"params": list(self.model.parameters()), "lr": cfg.lr_network,
               "name": "network"}])
-        self.sched = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.opt, T_max=cfg.n_iters, eta_min=cfg.eta_min)
+        self._p49_refusals()
+        self.sched = self._make_sched()
 
         # ---- P4-5 loss/encoder options, all off by default ------------------------
         self.spec_w, self.spec_w_info = None, None
@@ -728,11 +782,19 @@ class P32Trainer:
                   f"it {(cfg.n_levels - start) * every}")
 
         self.scalars: List[dict] = []
+        if cfg.p49_mode:
+            # Created BEFORE the resume, which restores its state; seeded from cfg.seed otherwise.
+            self._p49_gen = torch.Generator(device=self.device)
+            self._p49_gen.manual_seed(int(cfg.seed))
         self.start_iter = self._maybe_resume()
+        if cfg.p49_mode in ("dir", "dirg"):
+            self._init_dir()
         self._aug = self._init_augment() if _aug_requested(cfg) else None
         self._p48_refusals()
         self._ls = self._init_ls() if cfg.ls_mode else None
         self._step_fn = {"": self._step, "ls1": self._step_ls1, "ls2": self._step_ls2}[cfg.ls_mode]
+        if cfg.p49_mode:
+            self._step_fn = self._step_p49
 
     def _parse_curriculum(self, spec: str):
         """'0:100,15000:200,35000:300' -> [(0, hi_bin), (15000, hi_bin), ...], hi_bin in band
@@ -765,10 +827,20 @@ class P32Trainer:
         return hi, lv
 
     # ---------------------------------------------------------------- rendering
-    def _render(self, cfg_ids: torch.Tensor, rx_ids: torch.Tensor) -> torch.Tensor:
-        """Render the given (config, receiver) pairs, grouped by geometry for the AABB."""
+    def _render(self, cfg_ids: torch.Tensor, rx_ids: torch.Tensor, per_ray: bool = False,
+                explicit_jitter: bool = False):
+        """Render the given (config, receiver) pairs, grouped by geometry for the AABB.
+
+        P4-9 (D181 E2), both default off (then the return is the [B, n_band] tensor, exactly as before):
+        per_ray: also the per-ray readout D = sum_j u_j s_j per row ([B, 2, n_band]) from the SAME renderer calls.
+        explicit_jitter: draw each call's ray jitter here, by the renderer's own draw (same RNG consumption), pass it
+        in, and return it per row -- so DIR-G can render a row's neighbours with its jitter.
+        With either, returns (out, {"D": ... or None, "jitter_row": [B] or None})."""
         out = torch.zeros(cfg_ids.numel(), self.n_band,
                           dtype=torch.complex64, device=self.device)
+        D = (torch.zeros(cfg_ids.numel(), 2, self.n_band, dtype=torch.complex64, device=self.device)
+             if per_ray else None)
+        jrow = torch.zeros(cfg_ids.numel(), device=self.device) if explicit_jitter else None
         g = self.geom_id[cfg_ids]
         for gid in torch.unique(g):
             sel = torch.nonzero(g == gid).squeeze(1)
@@ -793,7 +865,19 @@ class P32Trainer:
                     tx = src_per[cfg_ids[sub]]
                 z = self.cond[cfg_ids[sub]]
                 h_prior = getattr(self, "H_prior", None)
-                if h_prior is None:
+                if (per_ray or explicit_jitter) and h_prior is None:
+                    kw = {}
+                    if explicit_jitter:
+                        j = torch.empty(1, device=self.device).uniform_(0.0, 2.0 * math.pi / self.renderer.n_azi)
+                        kw["jitter"] = j
+                        jrow[sub] = j
+                    if per_ray:
+                        H, pr, dirs = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z,
+                                                    return_per_ray=True, **kw)
+                        D[sub] = torch.einsum("baf,ad->bdf", pr[..., self.band[0]:self.band[1]], dirs.to(pr.dtype))
+                    else:
+                        H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z, **kw)
+                elif h_prior is None:
                     H = self.renderer(self.model, rx, tx, room_min, room_max, z_s=z)
                 else:
                     mf = self.modal_feat
@@ -801,6 +885,8 @@ class P32Trainer:
                                       h_prior=h_prior[cfg_ids[sub], rx_ids[sub]],
                                       modal_feat=None if mf is None else mf[cfg_ids[sub], rx_ids[sub]])
                 out[sub] = H[:, self.band[0]:self.band[1]]
+        if per_ray or explicit_jitter:
+            return out, {"D": D, "jitter_row": jrow}
         return out
 
     # ---------------------------------------------------------------- augmentation (P4-7 prep p4)
@@ -1028,6 +1114,288 @@ class P32Trainer:
         return agg
 
     # ---------------------------------------------------------------- P4-8 (D174): MB / LS1 / LS2
+    # ---------------------------------------------------------------- P4-9 (D180 / D181): warm start, CTL step
+    def _p49_refusals(self) -> None:
+        """Config-only checks, run before the scheduler is built."""
+        cfg = self.cfg
+        if cfg.p49_mode not in ("", "ctl", "dir", "dirg"):
+            raise ValueError("p49_mode must be '', 'ctl', 'dir' or 'dirg', got {!r}".format(cfg.p49_mode))
+        if cfg.p49_mode in ("dir", "dirg") and not cfg.dir_labels:
+            raise ValueError("p49_mode {!r} needs dir_labels".format(cfg.p49_mode))
+        if cfg.p49_mode in ("dir", "dirg") and not 0.0 <= cfg.dir_frac_init < 1.0:
+            raise ValueError("dir_frac_init must lie in [0, 1)")
+        if cfg.p49_mode:
+            bad = [k for k, on in (("ls_mode", bool(cfg.ls_mode)), ("modal_prior_dir", bool(cfg.modal_prior_dir)),
+                                   ("augmentation", _aug_requested(cfg)), ("sigma_aux_weight", cfg.sigma_aux_weight > 0.0),
+                                   ("loss_curriculum", bool(cfg.loss_curriculum)), ("c2f_levels", bool(cfg.c2f_levels)))
+                   if on]
+            if bad:
+                raise ValueError("p49_mode does not support: {}".format(bad))
+        if bool(cfg.init_ckpt) != (cfg.lr_restart_peak > 0.0):
+            raise ValueError("init_ckpt and lr_restart_peak > 0 go together (D181 A8): a warm start under the plain "
+                             "cosine would continue from the loaded lr (eta_min at the end of a finished run)")
+        if not cfg.init_ckpt:
+            return
+        k0, n = int(cfg.lr_restart_from_iter), int(cfg.n_iters)
+        if not 0 < k0 < n:
+            raise ValueError("need 0 < lr_restart_from_iter ({}) < n_iters ({})".format(k0, n))
+        if not 0 <= int(cfg.lr_warmup_iters) < n - k0:
+            raise ValueError("lr_warmup_iters {} must lie in [0, {})".format(cfg.lr_warmup_iters, n - k0))
+        if cfg.lr_restart_peak < cfg.eta_min:
+            raise ValueError("lr_restart_peak {} < eta_min {}".format(cfg.lr_restart_peak, cfg.eta_min))
+        if cfg.early_stop_warmup < n:
+            raise ValueError("a restarted run must set early_stop_warmup >= n_iters ({}): the restart dip would "
+                             "otherwise trigger the early stop".format(n))
+
+    def _make_sched(self):
+        """The original cosine, or (lr_restart_peak > 0) the closed-form restart `restart_lr` as a LambdaLR whose
+        base lr is the peak: every value comes from the step count, never from the optimizer's loaded lr."""
+        cfg = self.cfg
+        if cfg.lr_restart_peak <= 0.0:
+            return torch.optim.lr_scheduler.CosineAnnealingLR(self.opt, T_max=cfg.n_iters, eta_min=cfg.eta_min)
+        peak, lo, warm = float(cfg.lr_restart_peak), float(cfg.eta_min), int(cfg.lr_warmup_iters)
+        horizon = int(cfg.n_iters) - int(cfg.lr_restart_from_iter)
+        for g in self.opt.param_groups:
+            g["lr"] = peak
+            g["initial_lr"] = peak
+
+        def factor(e):            # a plain function: LambdaLR stores None for it, so state_dicts stay picklable
+            return restart_lr(e, peak, lo, warm, horizon) / peak
+
+        return torch.optim.lr_scheduler.LambdaLR(self.opt, factor)
+
+    def _init_from(self, path: str) -> int:
+        """D181 A8: model weights + Adam moments from a FULL checkpoint of the same architecture and corpus; the lr
+        is then set explicitly by a fresh restart schedule. Returns the checkpoint's iteration (= start_iter)."""
+        cfg = self.cfg
+        src = Path(path).resolve()
+        if src.parent == self.out.resolve():
+            raise RuntimeError("init_ckpt {} is in this run's own output dir: write the warm start to a NEW directory "
+                               "(checkpoint thinning would strip the source's Adam state)".format(src))
+        st = torch.load(src, map_location="cpu")
+        if st.get("thinned") or "optimizer" not in st:
+            raise RuntimeError("init_ckpt {} has no optimizer state (thinned): a warm start needs a full "
+                               "checkpoint".format(src))
+        prev = st.get("cfg", {})
+        for k, fld in P32TrainCfg.__dataclass_fields__.items():
+            if k in INIT_FREE_KEYS:
+                continue
+            was = prev.get(k, fld.default)
+            now = getattr(cfg, k)
+            if isinstance(was, list):
+                was = tuple(was)
+            if isinstance(now, list):
+                now = tuple(now)
+            if was != now:
+                raise RuntimeError("refusing to initialise from {}: {}={!r} there but {!r} here".format(
+                    src.name, k, was, now))
+        if self.manifest_sha and prev.get("_manifest_sha", self.manifest_sha) != self.manifest_sha:
+            raise RuntimeError("refusing to initialise from {}: manifest sha mismatch".format(src.name))
+        it0 = int(st["iter"])
+        if it0 != int(cfg.lr_restart_from_iter):
+            raise RuntimeError("init_ckpt is at iteration {} but lr_restart_from_iter = {}".format(
+                it0, cfg.lr_restart_from_iter))
+        self.model.load_state_dict(st["model"])
+        self.opt.load_state_dict(st["optimizer"])
+        self.sched = self._make_sched()          # explicit lr AFTER the load (A8)
+        print("[init] weights + Adam moments from {} (iter {}); lr restart: {:.2e} -> {:.2e} over {} steps, cosine "
+              "-> {:.2e} at {}".format(src, it0, cfg.eta_min, cfg.lr_restart_peak, cfg.lr_warmup_iters,
+                                        cfg.eta_min, cfg.n_iters), flush=True)
+        del st
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        return it0
+
+    def _p49_batch(self, gen=None):
+        """The (config, receiver) index pairs of one optimizer step, per micro-batch, from the DEDICATED generator:
+        the same draw pattern as `_step` (n_cfg configs x rx_per_config receivers), independent of the global RNG."""
+        cfg = self.cfg
+        n_cfg = max(1, cfg.batch_size // cfg.rx_per_config)
+        g = self._p49_gen if gen is None else gen
+        out = []
+        for _ in range(cfg.grad_accum_steps):
+            ci = torch.randint(0, len(self.configs), (n_cfg,), device=self.device, generator=g)
+            ci = ci.repeat_interleave(cfg.rx_per_config)
+            ri = self.train_rx_idx[
+                torch.randint(0, self.train_rx_idx.numel(), (ci.numel(),), device=self.device, generator=g)]
+            out.append((ci, ri))
+        return out
+
+    def _init_dir(self) -> None:
+        """D181 A11: memory-mapped FDTD gradient labels, checked against this run's rooms and receivers; the term's
+        weight from calibration batches unless a resume restored it."""
+        cfg = self.cfg
+        d = Path(cfg.dir_labels)
+        idx = json.loads((d / "index.json").read_text())
+        names = [getattr(c, "filename", None) for c in self.configs]
+        if idx["filenames"] != names:
+            raise RuntimeError("dir_labels {} were built for other rooms / another order".format(d))
+        rx = np.load(d / "rx.npy")
+        if rx.shape[:2] != tuple(self.rx.shape[:2]) or not np.allclose(rx, self.rx.cpu().numpy(), atol=1e-6):
+            raise RuntimeError("dir_labels receivers differ from this run's")
+        keys = ("g1x", "g1y") if cfg.p49_mode == "dir" else ("g2x", "g2y")
+        self._lab = [np.load(d / (k + ".npy"), mmap_mode="r") for k in keys]
+        self._dx = torch.tensor(idx["dx_xy"], dtype=torch.float32, device=self.device)          # [C, 2]
+        df = float(cfg.fs) / float(cfg.n_time_samples)
+        f = torch.arange(self.band[0], self.band[1], device=self.device, dtype=torch.float32) * df
+        self._jk = (1j * 2.0 * math.pi * f / float(cfg.c)).to(torch.complex64)                  # [n_band]
+        self._dir_info = {"labels": str(d), "keys": list(keys), "label_index_sha256":
+                          hashlib.sha256((d / "index.json").read_bytes()).hexdigest()}
+        if getattr(self, "_dir_w", None) is None:
+            self._dir_w = self._calibrate_dir_weight()
+        self._dir_info["weight"] = float(self._dir_w)
+        print("[dir] mode {} labels {} weight {:.4g}".format(cfg.p49_mode, d, self._dir_w), flush=True)
+
+    def _dir_target(self, ci, ri):
+        """[B, 2, n_band] FDTD grad p / (jk) at the rows (bins below dir_lo_bin are never read)."""
+        c, r = ci.cpu().numpy(), ri.cpu().numpy()
+        g = np.stack([self._lab[0][c, r], self._lab[1][c, r]], axis=1)                         # [B, 2, n_band]
+        t = torch.from_numpy(np.ascontiguousarray(g)).to(self.device)
+        jk = self._jk.clone()
+        jk[:self.cfg.dir_lo_bin] = 1.0
+        return t / jk
+
+    def _src_dist(self, ci, ri):
+        src = self.src_per[ci] if getattr(self, "src_per", None) is not None else self.src.view(1, 2).expand(len(ci), 2)
+        return (self.rx[ci, ri] - src).norm(dim=-1)
+
+    def _term(self, pred, tgt):
+        """The 4-term spectral loss on [rows, 2, n_band] predictions, bins >= dir_lo_bin, x and y stacked."""
+        lo = int(self.cfg.dir_lo_bin)
+        P = pred[..., lo:].reshape(-1, pred.shape[-1] - lo)
+        T = tgt[..., lo:].reshape(-1, tgt.shape[-1] - lo)
+        t = _losses(P, T)
+        w_r, w_i, w_a, w_p = self.cfg.weights
+        return w_r * t["L_spec_real"] + w_i * t["L_spec_imag"] + w_a * t["L_amp"] + w_p * t["L_phase"]
+
+    def _dir_loss(self, ci, ri, D):
+        """DIR: the per-ray readout against the FDTD grad p / (jk), rows >= dir_min_src_m from the source."""
+        ok = self._src_dist(ci, ri) >= self.cfg.dir_min_src_m
+        if not bool(ok.any()):
+            return None
+        return self._term(D[ok], self._dir_target(ci[ok], ri[ok]))
+
+    def _dirg_rows(self, ci, ri):
+        """DIR-G centres: per micro-batch, the first eligible row of each of dirg_rows_per_micro equal slices."""
+        ok = (self._src_dist(ci, ri) >= self.cfg.dir_min_src_m).cpu().numpy()
+        n, k = len(ok), int(self.cfg.dirg_rows_per_micro)
+        out = []
+        for q in range(k):
+            sl = range(q * n // k, (q + 1) * n // k)
+            hit = [i for i in sl if ok[i]]
+            if hit:
+                out.append(hit[0])
+        return out
+
+    def _dirg_loss(self, ci, ri, jrow):
+        """DIR-G: central differences of the RENDERED omni field at +-dirg_h_nodes FDTD nodes, each row's four
+        neighbours in ONE renderer call with that row's ray jitter, against the FDTD's at the same h."""
+        rows = self._dirg_rows(ci, ri)
+        if not rows:
+            return None
+        G = []
+        for i in rows:
+            c, r = int(ci[i]), int(ri[i])
+            hx, hy = (self.cfg.dirg_h_nodes * self._dx[c]).unbind()
+            p0 = self.rx[c, r]
+            off = torch.stack([torch.stack([hx, 0 * hx]), torch.stack([-hx, 0 * hx]),
+                               torch.stack([0 * hy, hy]), torch.stack([0 * hy, -hy])])
+            pts = p0.view(1, 2) + off                                                            # [4, 2]
+            L, W = self.geom_dims[int(self.geom_id[c])]
+            room_min = torch.zeros(2, device=self.device)
+            room_max = torch.tensor([L, W], device=self.device, dtype=torch.float32)
+            src = self.src_per[c] if getattr(self, "src_per", None) is not None else self.src
+            tx = src.view(1, 2).expand(4, 2)
+            z = self.cond[c].view(1, -1).expand(4, -1)
+            H = self.renderer(self.model, pts, tx, room_min, room_max, z_s=z, jitter=jrow[i:i + 1])
+            H = H[:, self.band[0]:self.band[1]]
+            gx = (H[0] - H[1]) / (2.0 * hx)
+            gy = (H[2] - H[3]) / (2.0 * hy)
+            G.append(torch.stack([gx, gy]))
+        idx = torch.tensor(rows, device=self.device)
+        jk = self._jk.clone()
+        jk[:self.cfg.dir_lo_bin] = 1.0
+        return self._term(torch.stack(G) / jk, self._dir_target(ci[idx], ri[idx])), len(rows)
+
+    def _calibrate_dir_weight(self) -> float:
+        """dir_frac_init of the total at step 0: w = f / (1 - f) * L_omni / L_term over 8 micro-batches from a
+        SEPARATE generator, with every RNG state restored -- the training batches and jitters are untouched."""
+        cfg = self.cfg
+        if cfg.dir_frac_init <= 0.0:
+            return 0.0
+        cpu_state, cuda_state = torch.get_rng_state(), torch.cuda.get_rng_state() if torch.cuda.is_available() else None
+        g = torch.Generator(device=self.device)
+        g.manual_seed(int(cfg.seed) + 7919)
+        w_r, w_i, w_a, w_p = cfg.weights
+        lo_, lt_ = [], []
+        self.model.train()
+        with torch.no_grad():
+            while len(lo_) < 8:
+                for ci, ri in self._p49_batch(gen=g):
+                    if cfg.p49_mode == "dir":
+                        H, ex = self._render(ci, ri, per_ray=True)
+                        lt = self._dir_loss(ci, ri, ex["D"])
+                    else:
+                        H, ex = self._render(ci, ri, explicit_jitter=True)
+                        res = self._dirg_loss(ci, ri, ex["jitter_row"])
+                        lt = None if res is None else res[0]
+                    t = _losses(H, self.H[ci, ri], self.loss_lo_bin, w_spec=self.spec_w, amp_eps=self.amp_eps)
+                    lo_.append(float(w_r * t["L_spec_real"] + w_i * t["L_spec_imag"] + w_a * t["L_amp"]
+                                     + w_p * t["L_phase"]))
+                    if lt is not None:
+                        lt_.append(float(lt))
+        torch.set_rng_state(cpu_state)
+        if cuda_state is not None:
+            torch.cuda.set_rng_state(cuda_state)
+        f = float(cfg.dir_frac_init)
+        w = f / (1.0 - f) * float(np.mean(lo_)) / max(float(np.mean(lt_)), 1e-12)
+        self._dir_calib = {"L_omni_init": float(np.mean(lo_)), "L_term_init": float(np.mean(lt_)), "n": len(lo_)}
+        print("[dir] calibration: L_omni {:.4g}, L_term {:.4g} -> weight {:.4g} ({:.0%} of the total at init)".format(
+            np.mean(lo_), np.mean(lt_), w, f), flush=True)
+        return w
+
+    def _step_p49(self, it: int) -> dict:
+        """D181 (A11, A15, E2): CTL = `_step`'s omni loss on batches from `_p49_batch`. DIR adds w x the per-ray term
+        (same renderer calls); DIR-G draws each call's jitter here (the renderer's own draw), then, after the
+        micro-batch's backward, renders the chosen rows' neighbours with those jitters and backpropagates w x its
+        term separately (<= 8 rows per backward)."""
+        cfg = self.cfg
+        mode = cfg.p49_mode
+        self.model.train()
+        self.opt.zero_grad(set_to_none=True)
+        agg = {}
+        w_r, w_i, w_a, w_p = cfg.weights
+        for ci, ri in self._p49_batch():
+            if mode == "dir":
+                H_pred, ex = self._render(ci, ri, per_ray=True)
+            elif mode == "dirg":
+                H_pred, ex = self._render(ci, ri, explicit_jitter=True)
+            else:
+                H_pred, ex = self._render(ci, ri), None
+            terms = _losses(H_pred, self.H[ci, ri], self.loss_lo_bin, w_spec=self.spec_w, amp_eps=self.amp_eps)
+            loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
+                    + w_a * terms["L_amp"] + w_p * terms["L_phase"])
+            total = loss
+            if mode == "dir":
+                ld = self._dir_loss(ci, ri, ex["D"])
+                if ld is not None:
+                    total = total + self._dir_w * ld
+                    agg["L_dir"] = agg.get("L_dir", 0.0) + float(ld) / cfg.grad_accum_steps
+            (total / cfg.grad_accum_steps).backward()
+            if mode == "dirg":
+                del H_pred
+                res = self._dirg_loss(ci, ri, ex["jitter_row"])
+                if res is not None:
+                    lg, n = res
+                    (self._dir_w * lg / cfg.grad_accum_steps).backward()
+                    agg["L_dirg"] = agg.get("L_dirg", 0.0) + float(lg) / cfg.grad_accum_steps
+                    agg["dirg_rows"] = agg.get("dirg_rows", 0.0) + float(n)
+            for k, v in terms.items():
+                agg[k] = agg.get(k, 0.0) + float(v) / cfg.grad_accum_steps
+            agg["loss"] = agg.get("loss", 0.0) + float(loss) / cfg.grad_accum_steps
+        self._apply_grads()
+        return agg
+
     def _p48_refusals(self) -> None:
         cfg = self.cfg
         if cfg.ls_mode not in ("", "ls1", "ls2"):
@@ -1286,10 +1654,15 @@ class P32Trainer:
         tmp = path.with_suffix(".pt.tmp")
         meta_cfg = asdict(self.cfg)
         meta_cfg["_manifest_sha"] = self.manifest_sha
-        torch.save({"iter": it, "model": self.model.state_dict(),
-                    "optimizer": self.opt.state_dict(),
-                    "scheduler": self.sched.state_dict(),
-                    "cfg": meta_cfg}, tmp)
+        st = {"iter": it, "model": self.model.state_dict(),
+              "optimizer": self.opt.state_dict(),
+              "scheduler": self.sched.state_dict(),
+              "cfg": meta_cfg}
+        if self.cfg.p49_mode:
+            st["p49_gen_state"] = self._p49_gen.get_state()     # a resumed arm keeps drawing the same batches
+        if self.cfg.p49_mode in ("dir", "dirg"):
+            st["p49_dir_weight"] = float(self._dir_w)            # set once at init; a resume must not re-calibrate
+        torch.save(st, tmp)
         tmp.replace(path)
         (self.out / "scalars.json").write_text(json.dumps(self.scalars, indent=1))
         keep_iters = {int(x) for x in str(self.cfg.ckpt_keep_iters).split(",") if x.strip()}
@@ -1367,17 +1740,23 @@ class P32Trainer:
                         f"fresh directory for a different arm.")
             # P4-8: a key absent from an older checkpoint means its DEFAULT, so a GX checkpoint cannot be
             # resumed silently under ls_mode / mb_grids.
-            for k in P48_KEYS:
+            for k in P48_KEYS + P49_KEYS:
                 was = prev.get(k, P32TrainCfg.__dataclass_fields__[k].default)
                 if was != getattr(self.cfg, k):
                     raise RuntimeError(f"refusing to resume {c.name}: {k}={was!r} in the checkpoint but "
                                        f"{getattr(self.cfg, k)!r} in this config.")
+            if self.cfg.p49_mode and "p49_gen_state" not in st:
+                raise RuntimeError(f"refusing to resume {c.name}: no P4-9 batch-generator state")
             if prev.get("configs_manifest") and self.manifest_sha and \
                     prev.get("_manifest_sha", self.manifest_sha) != self.manifest_sha:
                 raise RuntimeError(f"refusing to resume {c.name}: manifest sha mismatch")
             self.model.load_state_dict(st["model"])
             self.opt.load_state_dict(st["optimizer"])
             self.sched.load_state_dict(st["scheduler"])
+            if self.cfg.p49_mode:
+                self._p49_gen.set_state(st["p49_gen_state"])
+            if self.cfg.p49_mode in ("dir", "dirg"):
+                self._dir_w = float(st["p49_dir_weight"])
             sp = self.out / "scalars.json"
             if sp.exists():
                 self.scalars = [r for r in json.loads(sp.read_text())
@@ -1388,6 +1767,9 @@ class P32Trainer:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             return it
+        cfg = getattr(self, "cfg", None)          # (test stubs call this unbound, without a cfg)
+        if cfg is not None and cfg.init_ckpt:     # P4-9 (D181 A8): a resume above always wins over the warm start
+            return self._init_from(cfg.init_ckpt)
         return 0
 
     def _early_stop(self, it: int) -> bool:
@@ -1428,6 +1810,8 @@ class P32Trainer:
             **({"multiband": {"grids": mb_grid_table(multiband_kwargs(cfg)["mb_grid_cfgs"], cfg.world_scale or 2.0),
                               "params": self.model.signal_param_counts()}} if cfg.mb_grids else {}),
             **({"spatial_loss": self._ls["info"]} if getattr(self, "_ls", None) is not None else {}),
+            **({"p49_dir": dict(self._dir_info, calibration=getattr(self, "_dir_calib", None))}
+               if getattr(self, "_dir_info", None) is not None else {}),
         }, indent=1, default=str))
         t0 = time.time()
         for it in range(self.start_iter + 1, cfg.n_iters + 1):

@@ -2333,3 +2333,23 @@ The suggestions E8 refers to: **S-1** a single-room 200-300 Hz ceiling test (is 
 * **c6. Confirmation set.** Its manifest sha is frozen in a D-entry before its first score. It is scored once: S2X @240K and R0 @120K, at the 2a final read, reported beside the frozen-set verdict (which stays the pre-registered decision).
 
 (d) **E7 is practical:** `data/track_p4_5_famdense` holds 2 T and 2 DN dense rooms (in neither reported set; T and DN topologies are in-distribution via CX500). They calibrate M1 / M2's step budget and pull weight and M5's regularisation; the 15 in-family shapes are reported, not used for calibration.
+
+**D182 — P4-9 Day 0: protocol details recorded before their numbers; engineering verified; launches; 0b(i) read (the pre-registered reading DOES NOT HOLD, with a flagged confound).**
+
+(a) **Confirmation set FROZEN** (D181 c6, E8 / S-5 exception) before its first score: `configs/sweeps_2d_mat/p4_9_confirm_manifest.json`, rows_sha256 `688e319f18f6dd32...` (full value in the file). 8 U = `sample_family_shapes(10, "test", seed=20261122, n_in_slab=N_FAM_TEST_IN_SLAB)` excluding every FAM / frozen-unseen filename, U sorted by (d_hat, filename), picks (4, 5, 3, 6, 2, 7, 1, 8); 8 C3 = `draw_c3(8, seed=20261122)`. Built dense exactly as the frozen set (`data/track_p4_9_confirm`). Scored ONCE: S2X @240K and R0 @120K at the 2a final read.
+
+(b) **S-3 second source rule:** per frozen unseen room, the first of (L - 0.5, 1.6), (L / 2, 1.0), (L / 2, W / 2) on an air node >= 0.3 m from every wall; same dense receivers (`data/track_p4_9_unseen_src2`). The geometry of every rerun is proven first (50 stored receivers reproduce, <= 1e-6).
+
+(c) **Latency repeats (0a):** the median of 20 runs after 3 warm-ups for every case under 5 s per run, 5 runs after 1 warm-up above that (a 57 s render repeated 20 times adds 20 min for no information). One named GPU (RTX A5000) and one CPU node for FDTD and the modal solve.
+
+(d) **Pooled launches:** S2X, DIR and DIR-G are each submitted to several GPU pools (`scripts/slurm/p4_9_pool_train.sh`); an atomic lock in the arm's output directory lets exactly one copy train, and a later copy resumes from the newest full checkpoint. S2X runs on any 48 GB card (L40S or RTX A6000; the single L40S queue estimated 6 days); the GPU type is logged per job. The single-pool S2X submission was cancelled before it started.
+
+(e) **Engineering verified** (all default-off; 49 + 6 tests pass on an A5000):
+* Warm start + restart (A8): CTL's log shows lr 6.50e-5 at step 120200 = the closed form (5e-5 + 0.2 x 7.5e-5).
+* FDTD stencil reruns reproduce the stored H: worst 6.8e-9 (GX, 1000 rooms), <= 1.4e-12 (dense, 31 rooms).
+* 601-bin path: renders and gradients equal the full path (<= 1e-6 / 1e-5); bin 600's imaginary signal part is kept.
+* DIR / DIR-G: the explicit jitter draw leaves the CUDA RNG exactly where the renderer's own draw does, so their omni pass draws CTL's batches AND jitters; the directional terms move FiLM and attention parameters (tested on R0's weights; a fresh model's FiLM gradient is exactly zero, the Rule-8 vacuity).
+* E3 unit test passes: the per-ray readout's error equals the closed form |H1/(jH0) - 1| at every kr, which tracks 1/(2kr) within 8.6% over kr 1-30; the omni-FD readout reproduces the analytic gradient to 9e-4.
+* Robin operator sign confirmed on FDTD truth: residual 0.004 with d_n,out p = -j k beta p, against 0.040 (Neumann) and 0.081 (the opposite sign).
+
+(f) **0b(i) interior Helmholtz (I2): the pre-registered reading DOES NOT HOLD** -- projected R0 is 23.0x / 26.0x / 20.6x FDTD's raw residual (2.618 / 1.135 / 0.593 against 0.114 / 0.044 / 0.029), not <= 2x. **Flagged confound (labelled; the manager decides):** the same projection applied to FDTD TRUTH raises truth's residual 21x (2.427 / 1.005 / 0.535): at 25 Hz the |k| <= 1.5 k0 band (0.69 rad/m) is far narrower than a 5 m room's spectral footprint (~1.3 rad/m), so the projection itself distorts a true room field's second derivatives. Against projected truth, projected R0 is 1.08x / 1.13x / 1.11x (S2 1.09x / 1.19x / 1.17x). The reading's reference (raw truth) cannot separate the projection's residual from the network's; the interior loss is NOT closed by the reading as written. Raw: R0 89x / 89x / 58x FDTD's; S2 150x / 150x / 100x.

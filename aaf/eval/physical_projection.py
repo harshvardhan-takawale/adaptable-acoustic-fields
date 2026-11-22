@@ -45,12 +45,13 @@ def _embed(vals, keep, n):
     return g
 
 
-def project_lowpass(vals, keep, K, kc, iters=CG_ITERS):
+def project_lowpass(vals, keep, K, kc, iters=CG_ITERS, return_grid=False):
     """Least-squares projection of in-room samples onto fields band-limited to |k| <= kc.
 
     Solves min_g ||M g - f||^2 over g with FFT support in |K| <= kc (one kc per row), by CG on the
     normal equations P M P g = P M f (P = band-limit projector, M = in-room mask), from g = 0.
-    Returns the fitted field at the keep nodes, [B, n_in]."""
+    Returns the fitted field at the keep nodes, [B, n_in]. P4-9 (D181 A9): return_grid=True returns the
+    whole band-limited padded-grid field [B, n, n] (torch, complex128) instead -- the fit is unchanged."""
     torch, dev = _torch()
     n = K.shape[0]
     band = torch.as_tensor(K[None] <= np.asarray(kc)[:, None, None], device=dev)
@@ -83,7 +84,26 @@ def project_lowpass(vals, keep, K, kc, iters=CG_ITERS):
         beta = torch.where(ok, rs_new / torch.where(ok, rs, torch.ones_like(rs)), torch.zeros_like(rs))
         p = torch.where(ok[:, None, None], r + beta[:, None, None] * p, p)
         rs = torch.where(ok, rs_new, rs)
+    if return_grid:
+        return x
     return x[:, ix, iy].cpu().numpy()
+
+
+def bandlimited_at(grid, K, kc_max, uv):
+    """P4-9 (D181 A9): evaluate band-limited padded-grid fields [B, n, n] (from project_lowpass(return_grid=True))
+    at fractional grid coordinates uv [P, 2] (u = (x - x0) / dx; periodic in n) by their exact Fourier series over
+    the support |K| <= kc_max (outside it the fields' spectra are zero by construction). Returns [B, P] (torch)."""
+    torch, dev = _torch()
+    n = grid.shape[-1]
+    Cf = torch.fft.fft2(grid) / float(n * n)
+    sup = np.nonzero(K <= kc_max)
+    fx = torch.as_tensor(np.fft.fftfreq(n)[sup[0]] * n, device=dev, dtype=torch.float64)
+    fy = torch.as_tensor(np.fft.fftfreq(n)[sup[1]] * n, device=dev, dtype=torch.float64)
+    c = Cf[:, sup[0], sup[1]]                                                        # [B, S]
+    u = torch.as_tensor(np.asarray(uv), device=dev, dtype=torch.float64)
+    ph = 2 * np.pi / n * (u[:, :1] * fx[None] + u[:, 1:] * fy[None])                # [P, S]
+    E = torch.exp(1j * ph)
+    return c @ E.T                                                                   # [B, P]
 
 
 

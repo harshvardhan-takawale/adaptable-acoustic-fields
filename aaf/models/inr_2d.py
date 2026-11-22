@@ -981,7 +981,19 @@ class INR2D_AutoDecoder(nn.Module):
         tx_view: Optional[torch.Tensor] = None,
         z_s: Optional[torch.Tensor] = None,
         modal_feat: Optional[torch.Tensor] = None,
+        n_out: Optional[int] = None,
+        tok_override: Optional[torch.Tensor] = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        # P4-9 (D181 c4, A5), both forward ARGUMENTS so no evaluator can inherit them silently (D73):
+        #   n_out: return only bins [0, n_out) -- the decoder still runs in full; its columns are sliced before any
+        #     per-bin work. Every op downstream is per-bin, so bins < n_out are those of the full path.
+        #   tok_override [B, n_tok, 64]: per-token embeddings used IN PLACE of segment_encoder(tokens) in the
+        #     attention pooling (keys, values, extent base); extents and the validity mask stay the real tokens'.
+        if n_out is not None and not (1 <= int(n_out) <= self.n_freq_bins):
+            raise ValueError("n_out must lie in [1, {}], got {}".format(self.n_freq_bins, n_out))
+        if tok_override is not None and (self.segment_encoder is None or self.token_pool not in ATTN_TOKEN_POOLS):
+            raise ValueError("tok_override is implemented for the attention-pooled token encoders only "
+                             "(token_pool {!r})".format(self.token_pool))
         if self.modal_feat_dim > 0 and modal_feat is None:
             raise ValueError("this model was built with modal-kernel inputs (modal_feat_dim={}); pass "
                              "modal_feat [B, {}]".format(self.modal_feat_dim, self.modal_feat_dim))
@@ -1033,7 +1045,14 @@ class INR2D_AutoDecoder(nn.Module):
                     # them, so query and key live in one coordinate space by construction.
                     # Encoding the query with the token centres' own band layout is what makes
                     # the dot product meaningful rather than merely learnable.
-                    e = self.segment_encoder(t)                          # [B*N, n_tok, 64]
+                    if tok_override is None:
+                        e = self.segment_encoder(t)                      # [B*N, n_tok, 64]
+                    else:
+                        if tok_override.shape[0] != B or tok_override.shape[1] != self._tok_n:
+                            raise ValueError("tok_override must be [B={}, {}, d], got {}".format(
+                                B, self._tok_n, tuple(tok_override.shape)))
+                        e = tok_override.to(pts_flat.dtype).unsqueeze(1).expand(
+                            B, N, *tok_override.shape[1:]).reshape(B * N, *tok_override.shape[1:])
                     q = self.q_proj(_fourier_pos_batched(pts_flat, self._attn_n_k))
                     s = torch.einsum("bnd,bd->bn", self.k_proj(e), q)
                     s = s / math.sqrt(float(self._attn_dim))             # [B*N, n_tok]
@@ -1085,6 +1104,8 @@ class INR2D_AutoDecoder(nn.Module):
             z_s_flat = torch.cat([g, agg], dim=-1)
 
         if self._mb_bands is not None:                                   # P4-8 MB1 / MB2
+            if n_out is not None:
+                raise NotImplementedError("n_out is not implemented for the P4-8 multi-band models")
             return self._forward_mb(pts_flat, tx_flat, view_flat, tx_view_flat, z_s_flat, B, N)
 
         # Sigma branch.
@@ -1112,8 +1133,13 @@ class INR2D_AutoDecoder(nn.Module):
                 self.A_sigma(z_s_flat) * self.B_sigma(F.relu(sigma_feature))
             )
         one_sided = self.n_freq_bins
-        attn_real = F.softplus(attn_raw[..., :one_sided]) + 1e-6
-        attn_imag = attn_raw[..., one_sided:]
+        nb_out = one_sided if n_out is None else int(n_out)               # P4-9: the bins actually returned
+        if n_out is None:
+            attn_real = F.softplus(attn_raw[..., :one_sided]) + 1e-6
+            attn_imag = attn_raw[..., one_sided:]
+        else:
+            attn_real = F.softplus(attn_raw[..., :nb_out]) + 1e-6
+            attn_imag = attn_raw[..., one_sided:one_sided + nb_out]
         attn_complex = torch.complex(attn_real, attn_imag)
 
         # Signal branch.
@@ -1149,8 +1175,11 @@ class INR2D_AutoDecoder(nn.Module):
 
         if self._model_signal is None:
             # PB3 / W3 (D144): per-band heads, each with its own FiLM, crossfaded; zero above band
-            signal_re = torch.zeros(feature_all.shape[0], one_sided, device=feature_all.device)
+            signal_re = torch.zeros(feature_all.shape[0], nb_out, device=feature_all.device)
             signal_im = torch.zeros_like(signal_re)
+            if n_out is not None and int(self.signal_head_lohi[:, 1].max()) >= nb_out:
+                raise ValueError("n_out={} cuts a PB3 head (top bin {})".format(
+                    nb_out, int(self.signal_head_lohi[:, 1].max())))
             for k, net in enumerate(self._signal_nets):
                 if k == 0:
                     feat_k = feature_all
@@ -1172,14 +1201,30 @@ class INR2D_AutoDecoder(nn.Module):
                 signal_raw = signal_raw + self.proj_signal(
                     self.A_signal(z_s_flat) * self.B_signal(feature_all)
                 )
-            signal_re = signal_raw[..., :one_sided]
-            signal_im = signal_raw[..., one_sided:].clone()
+            if n_out is None:
+                signal_re = signal_raw[..., :one_sided]
+                signal_im = signal_raw[..., one_sided:].clone()
+            else:
+                signal_re = signal_raw[..., :nb_out]
+                signal_im = signal_raw[..., one_sided:one_sided + nb_out].clone()
         # RFFT symmetry: zero the imaginary part of DC (and Nyquist if even-length).
         signal_im[..., 0] = 0
-        if self._n_time_samples % 2 == 0:
+        # The Nyquist bin is the LAST bin of the FULL spectrum only: on an n_out buffer, index -1 is bin n_out - 1
+        # (300 Hz for n_out = 601), which must keep its imaginary part (D181 c4; the full path never zeroed it).
+        if self._n_time_samples % 2 == 0 and n_out is None:
             signal_im[..., -1] = 0
         signal_complex = torch.complex(signal_re, signal_im)
 
-        attn_complex = attn_complex.view(B, N, one_sided)
-        signal_complex = signal_complex.view(B, N, one_sided)
+        attn_complex = attn_complex.view(B, N, nb_out)
+        signal_complex = signal_complex.view(B, N, nb_out)
         return attn_complex, signal_complex
+
+    def token_embeddings(self, z_s: torch.Tensor) -> torch.Tensor:
+        """P4-9 (D181 A5): the per-token embeddings segment_encoder(tokens) of each row of z_s -> [B, n_tok, 64]: the
+        zero-shot value of M1's room code (what `tok_override` replaces)."""
+        if self.segment_encoder is None or self.token_pool not in ATTN_TOKEN_POOLS:
+            raise ValueError("token_embeddings needs an attention-pooled token encoder")
+        z = z_s if z_s.dim() == 2 else z_s.unsqueeze(0)
+        n_tok = self._tok_n * self._tok_d
+        t = z[:, :n_tok].reshape(-1, self._tok_n, self._tok_d)
+        return self.segment_encoder(t)

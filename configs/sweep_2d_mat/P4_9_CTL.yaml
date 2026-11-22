@@ -1,0 +1,49 @@
+# P4-9 2b CTL (D180 / D181 A8, A11, E2): R0 @120K fine-tuned 30K more steps on the GX corpus with NO directional loss --
+# the control for DIR and DIR-G, which differ from it ONLY in their directional term (same batches: p49_mode draws
+# batch indices from a dedicated generator). GENERATED from P4_8_R0.yaml -- differs ONLY in run_id, n_iters,
+# early_stop_warmup, the warm-start keys and p49_mode. Warm start from R0 @120K; lr restart 5e-5 -> 1.25e-4 over 1K
+# steps, cosine -> 5e-5 at 150K. Reads at 130K / 140K / 150K. Output: outputs/p4_9/arms/CTL.
+run_id: p4_9_CTL
+rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
+data_dir: data/track_p4_7_mix
+configs_manifest: configs/sweeps_2d_mat/p4_7_c500_cx500_manifest.json
+band_max_hz: 300
+cond_source: geom_token
+cond_dim: 324
+conditioning_type: film
+latent_dim: 16
+log2_hashmap_size: 18
+n_levels: 20
+per_level_scale: 1.5
+n_azi: 64
+n_pts_per_ray: 64
+world_scale: 10.0
+base_resolution: 80
+token_pool: attn_residual_extent
+loss_band_lo_hz: 0.0
+n_iters: 150000
+batch_size: 8
+rx_per_config: 2
+grad_accum_steps: 2
+lr_network: 0.0002
+val_every: 2000
+val_max_configs: 40
+ckpt_every: 2000
+ckpt_keep_last: 1
+early_stop_warmup: 150000
+early_stop_patience: 10000
+early_stop_min_rel_improvement: 0.003
+max_rows_per_render: 8
+ckpt_thin_old: true
+dc_head_bins: 41
+signal_heads: 3
+signal_band_edges_hz: "173.0,245.0"
+signal_xfade_hz: 10.0
+ckpt_keep_every: 10000
+ckpt_keep_iters: "4000"
+per_room_source: true
+init_ckpt: outputs/p4_8/arms/R0/ckpt_iter0120000.pt
+lr_restart_peak: 0.000125
+lr_warmup_iters: 1000
+lr_restart_from_iter: 120000
+p49_mode: ctl

@@ -132,7 +132,10 @@ class FreqRenderer2D(nn.Module):
         modal_feat: Optional[torch.Tensor] = None,
         h_prior: Optional[torch.Tensor] = None,
         jitter: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
+        n_out: Optional[int] = None,
+        tok_override: Optional[torch.Tensor] = None,
+        return_per_ray: bool = False,
+    ):
         """Render H(f) at each receiver via 2D volume integration.
 
         P4-7 m3 (D170(g)): ``modal_feat`` [B, F] is forwarded to the model (only when given, so
@@ -153,7 +156,8 @@ class FreqRenderer2D(nn.Module):
             z_s:       [B, latent_dim] latent codes or None. Forwarded to the model.
 
         Returns:
-            H_pred: [B, n_freq_bins] complex.
+            H_pred: [B, n_freq_bins] complex (n_out bins if given); with return_per_ray, also the per-ray
+            signals [B, n_azi, n_freq] and the ray directions [n_azi, 2].
         """
         if rx_pos.dim() != 2 or rx_pos.shape[-1] != 2:
             raise ValueError(f"rx_pos must be [B, 2], got {tuple(rx_pos.shape)}")
@@ -189,11 +193,17 @@ class FreqRenderer2D(nn.Module):
         pts_flat = pts.reshape(B, N, 2)
         view_flat = view.reshape(B, N, 2)
         tx_flat = tx.reshape(B, N, 2)
+        # P4-9 (D181 c4, A5): n_out / tok_override reach the model only when given, so every model keeps its call.
+        extra = {}
+        if n_out is not None:
+            extra["n_out"] = int(n_out)
+        if tok_override is not None:
+            extra["tok_override"] = tok_override
         if modal_feat is not None:
             attn, signal = model(pts_flat, view_flat, tx_flat, tx_view=tx_view, z_s=z_s,
-                                 modal_feat=modal_feat)
+                                 modal_feat=modal_feat, **extra)
         else:
-            attn, signal = model(pts_flat, view_flat, tx_flat, tx_view=tx_view, z_s=z_s)
+            attn, signal = model(pts_flat, view_flat, tx_flat, tx_view=tx_view, z_s=z_s, **extra)
         # attn, signal: [B, N, n_freq_bins] complex
         n_freq = attn.size(-1)
         attn = attn.view(B, N_a, N_p, n_freq)
@@ -232,7 +242,7 @@ class FreqRenderer2D(nn.Module):
         # Geometric phase: exp(-j 2π f d / c) per (sample, freq)
         geom_phase = torch.exp(
             -1j * 2.0 * math.pi
-            * self.f_axis.view(1, 1, 1, -1)
+            * self.f_axis[:n_freq].view(1, 1, 1, -1)
             * (d_vals.unsqueeze(-1) / self.c)
         )
 
@@ -265,4 +275,8 @@ class FreqRenderer2D(nn.Module):
             H_pred = torch.cat([H_pred[:, :nb] + h_prior.to(H_pred.dtype), H_pred[:, nb:]], dim=-1)
         elif h_prior is not None:
             raise ValueError("h_prior given, but this model was not trained with a modal prior")
+        if return_per_ray:
+            # P4-9 (D180 0c): the per-ray signals BEFORE the ray sum [B, n_azi, n_freq] and the ray directions
+            # [n_azi, 2] (u_j points from the receiver to the samples). The DC head and any prior are omni only.
+            return H_pred, rendered_per_ray, dirs
         return H_pred
