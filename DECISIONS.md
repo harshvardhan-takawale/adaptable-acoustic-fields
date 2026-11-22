@@ -2381,3 +2381,17 @@ The suggestions E8 refers to: **S-1** a single-room 200-300 Hz ceiling test (is 
 (d) **Losses** (weights fixed now): field (the 4-term spectral loss, bins 50-199) 1.0; subspace 1.0 (soft weights: cosine roll-off between the room's TRUE k_20 and k_24, applied to each set's own wavenumbers -- continuous under crossings, A10); sorted-k (mean relative |k_hat - k|) 1.0; soft orthonormality 0.1. NMF-P adds 0.1 x (interior relative residual of lap phi + k^2 phi at 256 collocation points whose +-h neighbours are inside + wall relative residual of d phi / dn by a 3-point one-sided difference at wall nodes > 0.15 m from vertices), h = 12.4 cm = the finest cell (E4).
 
 (e) **Training:** GX corpus (1000 rooms), 8 rooms x 32 receivers per step, Adam lr 1e-3 (decoder, heads) / 1e-4 (encoder), cosine to 1e-5 over 30K. **Kill rule (D180)** evaluated in the trainer at 10K on the 15 in-family dense rooms (off-lattice r at 25-100 Hz < 0.70 -> stop, KILLED.json). Evaluation (`scripts/p4_9_nmf_eval.py`): r / LSD at 25-100 Hz, eigenfrequency MAE of the first 10 modes (Hungarian), subspace overlap of the first 10; N1 / N2 as D180. NMF and NMF-P run on scavenger A5000s (tron's 4-GPU cap is taken by S2X / CTL / DIR / DIR-G); the trainer resumes from its checkpoints after a pre-emption.
+
+**D185 — P4-9 S-1 (the single-room 200-300 Hz ceiling), recorded before any S-1 number** (D181 E8; `scripts/p4_9_s1_build.py`).
+
+(a) **Question:** R0 @120K fits its own training rooms OFF-lattice at 200-300 Hz with r 0.58-0.73 (D125's 23 fit rooms; mean 0.65; LSD 3.3-4.6 dB, D145). Is that the renderer's ceiling for one room, or the cost of sharing one model across 1000 rooms (W5)?
+
+(b) **Arms S1lo / S1med:** R0's yaml VERBATIM (architecture, 4-term loss, 0-300 Hz band, batch 8 x 2 rows x accumulation 2, lr 2e-4 cosine, geom_token conditioning) on ONE GX training room, from scratch, 10K steps. That is ~83x R0's per-room exposure (160K rows vs ~1,900). Only run_id, configs_manifest (a one-row manifest, the row copied verbatim), n_iters, early_stop_warmup (= n_iters) and val_max_configs (1) differ. Rooms: R0's LOWEST 200-300 Hz fit among the 23 (L6.16_W4.56_d0.34_w0.48, 0.581) and its MEDIAN (L5.74_W4.78_d0.62_w2.32, 0.645). Scavenger A5000 pool, ~2.2 GPU-h each (4.4 total, logged against E8's 2-4 GPU-h).
+
+(c) **Measurement:** D125's protocol (`scripts/p4_5_train_offlat_fit.py`): the room's B6 re-simulation, ~700 receivers OFF the 0.12 + 0.06 k lattice (Rule 11); band r and LSD at 25-100 / 100-200 / 200-300 Hz. Reference = R0 @120K on the same room, with both absolute levels printed (Rule 12). Reads at 4K (trajectory) and 10K (final).
+
+(d) **Reading (pre-registered), at 10K, 200-300 Hz:**
+* S1 >= R0 + 0.10 on BOTH rooms -> the renderer does NOT cap the band; R0's deficit is the cost of sharing (capacity / exposure per room).
+* S1 <= R0 + 0.03 on BOTH rooms -> the renderer (this architecture) caps a single room near R0's level.
+* Otherwise -> partial (reported as measured).
+* If S1 is still rising by > 0.03 between 4K and 10K on a room whose reading is not "not capped", that room's verdict is "not converged". It is extended to 20K (+2.2 GPU-h, logged) before any reading is made.

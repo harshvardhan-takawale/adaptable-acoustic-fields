@@ -1,0 +1,75 @@
+{
+ "schema": "p4_1.poly/1",
+ "corpus": "S-1 single room L6.16_W4.56_d0.34_w0.48.h5 (row copied from configs/sweeps_2d_mat/p4_7_c500_cx500_manifest.json, D185)",
+ "per_room_source": true,
+ "data_dir": "data/track_p4_7_mix",
+ "derived_from": [
+  "configs/sweeps_2d_mat/p4_4_shapes_500.json",
+  "configs/sweeps_2d_mat/p4_7_cx500_manifest.json"
+ ],
+ "derived_from_sha256": [
+  "43c332d4b13b1da5c7160eb40ac3596e7a7443880183b072a4a64a07f585f132",
+  "5828d987ca879b2d1a55c0ce39c5c4c4372767e9d31240da51a938b85802db8b"
+ ],
+ "d_hat_holdout": [
+  0.45,
+  0.6
+ ],
+ "n_train": 1,
+ "rows_sha256": "45022782c7b092f662e21096fa6ffa297fce89aae1b01138ef10c5e218d4b24f",
+ "configs": [
+  {
+   "i": 88,
+   "split": "train",
+   "kind": "L",
+   "shape": "L",
+   "strata": "L_d0",
+   "verts": [
+    [
+     0.0,
+     0.0
+    ],
+    [
+     6.16,
+     0.0
+    ],
+    [
+     6.16,
+     4.56
+    ],
+    [
+     0.48,
+     4.56
+    ],
+    [
+     0.48,
+     4.22
+    ],
+    [
+     0.0,
+     4.22
+    ]
+   ],
+   "edge_alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "alphas": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "filename": "L6.16_W4.56_d0.34_w0.48.h5",
+   "src": [
+    0.5,
+    1.6
+   ],
+   "origin": "C500"
+  }
+ ]
+}
