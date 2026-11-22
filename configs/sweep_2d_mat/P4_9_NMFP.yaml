@@ -1,0 +1,6 @@
+# P4-9 2c NMF-P (D180; D181 E4): NMF + the per-mode physics losses (interior lap phi + k^2 phi = 0 and Neumann d phi/dn = 0),
+# relative residuals by finite differences at h = 12.4 cm (the grid's finest cell, E4), weight 0.1. Differs from NMF ONLY in
+# run_id and phys_weight. Output: outputs/p4_9/arms/NMFP.
+run_id: p4_9_NMFP
+n_iters: 30000
+phys_weight: 0.1

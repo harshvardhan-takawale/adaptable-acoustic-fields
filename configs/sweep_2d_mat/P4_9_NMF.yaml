@@ -1,0 +1,6 @@
+# P4-9 2c NMF (D180 NMF-LB; D181 A10, E4): the neural modal field, 25-100 Hz, GX corpus (1000 rooms), encoder initialised
+# from R0 @120K, 24 modes, MB1's low-band grid; losses: field + soft subspace + sorted k + soft orthonormality.
+# Kill rule (D180): in-family 25-100 Hz r < 0.70 at 10K stops the run. Output: outputs/p4_9/arms/NMF.
+run_id: p4_9_NMF
+n_iters: 30000
+phys_weight: 0.0
