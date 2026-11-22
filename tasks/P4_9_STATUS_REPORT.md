@@ -28,6 +28,28 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (night) — I3: physics vs network under the same wrong inputs (0d, A1) -> F3; NMF unseen interim
+
+**Headline:** Given the same imperfect room description, physics stays far ahead when the errors are small. With wall corners off by up to 5 cm, it scores 0.97 on unseen rooms against the network's 0.47. With a small alcove missing it scores 0.76, and with the wall absorption wrong by 2x it scores 0.90. Only when physics gets nothing but the room's bounding box does it fall to the network's level (0.40 vs 0.41). On unseen rooms the network barely uses fine geometry: snapping corners or deleting an alcove leaves its score unchanged.
+
+- **Off-lattice r against FDTD truth (A1, primary), 25-100 / 200-300 Hz:**
+
+  | input | physics, unseen 16 | R0 @120K, unseen 16 | S2 @120K, unseen 16 | physics, in-family 15 | R0 @120K, in-family 15 |
+  |---|---|---|---|---|---|
+  | exact geometry | 0.978 / 0.960 | 0.468 / 0.371 | 0.501 / 0.404 | 0.988 / 0.960 | 0.918 / 0.582 |
+  | vertices snapped to 10 cm | 0.968 / 0.836 | 0.465 / 0.365 | 0.495 / 0.400 | 0.974 / 0.838 | 0.910 / 0.561 |
+  | smallest notch removed (A7) | 0.760 / 0.636 | 0.469 / 0.335 | 0.495 / 0.369 | n/a | n/a |
+  | bounding rectangle only | 0.400 / 0.345 | 0.408 / 0.358 | 0.414 / 0.371 | 0.533 / 0.507 | 0.526 / 0.438 |
+  | wall absorption x0.5 (physics only, A2) | 0.813 / 0.821 | -- | -- | 0.774 / 0.805 | -- |
+  | wall absorption x2 (physics only, A2) | 0.899 / 0.845 | -- | -- | 0.898 / 0.853 | -- |
+
+- **Reading (0d is descriptive; Q-A):** the approximate-input case for the network does not exist at these error sizes. Physics degrades gracefully: snapping costs 0.01 at 25-100 Hz and 0.12 at 200-300 Hz, and a 2x absorption error costs 0.08-0.17. It ties the network only when the geometry is gone (bounding box). In family, the network does use geometry: the bounding box costs R0 0.39 at 25-100 Hz, the same as physics. On unseen rooms, R0's 0.468 is already close to its own bounding-box score (0.408), so it extracts little from unseen geometry (W2).
+- **NMF interim (unseen, 25-100 Hz):** 10K **0.424**, 20K **0.450**; in-family 0.796, 0.840.
+  - Reference: R0 0.468 / 0.918. N1 needs unseen >= 0.60 and in-family >= 0.90.
+  - Eigenfrequency MAE (first 10 modes, Hungarian-matched) is ~5.5 Hz in family and ~6.0 Hz unseen; subspace overlap is 0.91 / 0.85. The eigenfrequencies are the bottleneck: I9's budget needs ~2%.
+  - 30K reads for NMF and NMF-P are pending.
+- [physics_sensitivity.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/physics_sensitivity.md) · [F3_sensitivity.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F3_sensitivity.png)
+
 ## 2026-11-22 (night) — I13 (kill read): NMF passes its 10K kill rule after the NaN fix; CTL / DIR @130K interim
 
 **Headline:** The learned-modes model (NMF) works after a bug fix. It passes its pre-registered 10K check: on familiar room shapes it reproduces the sound field below 100 Hz with r 0.80 (bar 0.70), still climbing (0.84 at 20K). The main network scores 0.92 on the same rooms. Whether NMF transfers to unseen room shapes, its reason for existing, is being scored now. The two fine-tunes from the main network are unchanged 10K steps in, as expected.

@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill read) in; I3/I5/I7 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill read), I3 in; I5/I7 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -15,6 +15,8 @@ Sections below are filled as each step lands.
 **0b(ii) Robin + gate G-BC (I4): FAILS on (2)** (unseen / in-family 1.25 projected, 0.92 raw; truth 0.004; R0 raw 6.95 = ~1,700x) -> PL1 not launched. Q-D: neither residual targets the unseen-family failure.
 
 **0a latency by edit type (I1, F2):** cached-mode physics answers listener / source / material edits faster than the network (2 ms / 49 ms vs 10 ms / 32 s per listener / 64x64 grid); the network's case is the geometry edit (12 ms per listener vs 55.6 s modal re-solve, 49.4 s CPU FDTD). Update rate: network 101 Hz (601-bin path), cached physics 496 Hz. GPU FDTD ~0.1-0.3 s is an estimate. [latency.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/latency.md) · [F2](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F2_latency.png).
+
+**0d physics-input sensitivity (I3, F3):** under the same wrong inputs physics stays far ahead for small errors (unseen 25-100 Hz: exact 0.978, snapped 0.968, notch removed 0.760, beta x0.5 / x2 0.813 / 0.899 vs R0 0.465-0.469, S2 0.495-0.501); bounding box only: physics 0.400 = R0 0.408. [physics_sensitivity.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/physics_sensitivity.md) · [F3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F3_sensitivity.png).
 
 **0c unit test (E3):** passes ([unit.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/dirzs/unit.json)).
 ## Step 1 — sparse-measurement grounding

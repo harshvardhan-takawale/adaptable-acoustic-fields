@@ -14,6 +14,8 @@ the frozen metric (`scripts/p4_7_m1_modal.scores` = p4_6's bands and colr: band-
 rooms and the 16 unseen (U 8, C3 8).
   --render   GPU: network renders of the variants -> outputs/p4_9/sensitivity/cache/
   --score    CPU: outputs/p4_9/physics_sensitivity.{json,md}
+  --figure   F3 (outputs/p4_9/meeting/F3_sensitivity.png): a dot plot per band (25-100, 200-300 Hz) x set (in-family 15,
+             unseen 16); rows = input condition; physics (m1) / R0 @120K / S2 @120K; r against FDTD truth.
 """
 from __future__ import annotations
 
@@ -181,15 +183,82 @@ def score():
     print("\n".join(L))
 
 
+def figure_f3():
+    """F3. Colours follow the entity across the deck: R0 blue, S2 orange (as F0), physics (m1) green; slots 1-3 of the
+    reference palette (adjacent-pair CVD dE >= 9.2, OKLab x100, computed). Rows dodge vertically so equal values stay
+    visible; the network has no beta input it was trained on (A2), so those rows say so instead of plotting."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    summ = json.load(open(OUT / "physics_sensitivity.json"))["summary"]["vs_fdtd"]
+    rows = [("exact", "exact geometry"), ("snap10", "vertices snapped to 10 cm"),
+            ("notch_rm", "smallest notch removed"), ("bbox", "bounding rectangle only"),
+            ("beta x0.5", "wall absorption x0.5"), ("beta x2", "wall absorption x2")]
+    ser = [("physics", "physics (m1 modal solve)", "#1baf7a"), ("R0_120K", "network R0 @120K", "#2a78d6"),
+           ("S2_120K", "network S2 @120K", "#eb6834")]
+    plt.rcParams.update({"font.size": 13, "axes.edgecolor": "#888888", "xtick.color": "#555555",
+                         "ytick.color": "#333333"})
+    fig, axes = plt.subplots(2, 2, figsize=(16, 9), dpi=160, facecolor="white", sharey=True)
+    for i, band in enumerate(("25-100", "200-300")):
+        for j, (grp, title) in enumerate((("in_family15", "In-family (15 test shapes)"),
+                                          ("unseen16", "Unseen families (16 rooms)"))):
+            ax = axes[i, j]
+            ax.set_facecolor("white")
+            ax.grid(True, axis="x", color="#e6e6e6")
+            ax.set_axisbelow(True)
+            for sp_ in ("top", "right", "left"):
+                ax.spines[sp_].set_visible(False)
+            ax.tick_params(axis="y", length=0)
+            for r, (key, _lab) in enumerate(rows):
+                y0 = len(rows) - 1 - r
+                ax.axhline(y0, color="#f0f0f0", linewidth=1, zorder=0)
+                for k, (sk, slab, col) in enumerate(ser):
+                    name = "{} {}".format(sk, key)
+                    yy = y0 + (1 - k) * 0.22
+                    if name not in summ[grp]:
+                        if key.startswith("beta") and sk != "physics" and k == 1:
+                            ax.text(0.305, y0 - 0.05, "network: never trained on materials", fontsize=10,
+                                    color="#888888", va="center")
+                        elif key == "notch_rm" and grp == "in_family15" and k == 0:
+                            ax.text(0.305, y0, "n/a in family (an L-room minus its notch = its bounding box)",
+                                    fontsize=10, color="#888888", va="center")
+                        continue
+                    v = summ[grp][name][band]
+                    ax.plot([v], [yy], "o", color=col, markersize=9, markeredgecolor="white", markeredgewidth=1.5,
+                            zorder=3, label=slab if (i == 0 and j == 0 and r == 0) else None)
+                    ax.text(v + 0.012, yy, "{:.2f}".format(v), fontsize=9, color="#444444", va="center")
+            ax.set_xlim(0.3, 1.04)
+            ax.set_yticks(range(len(rows)))
+            ax.set_yticklabels([lab for _k, lab in rows][::-1])
+            ax.set_title("{} -- r at {} Hz".format(title, band), loc="left", fontsize=14, color="#222222")
+            if i == 1:
+                ax.set_xlabel("off-lattice r against FDTD truth (band-mean per-bin dB Pearson)")
+    h, l_ = axes[0, 0].get_legend_handles_labels()
+    fig.legend(h, l_, loc="upper left", bbox_to_anchor=(0.18, 0.925), ncol=3, frameon=False, fontsize=12.5)
+    fig.text(0.01, 0.975, "F3 -- given the same WRONG inputs: physics still wins on small errors; "
+             "with only the bounding box, physics and the network are equally bad", fontsize=16, color="#222222",
+             va="top")
+    fig.text(0.01, 0.94, "Each method gets the same perturbed polygon (D181 A1). Physics = m1 on the perturbed polygon; "
+             "network = tokens of the perturbed polygon. Unseen = 8 U + 8 three-corner rooms.", fontsize=11.5,
+             color="#555555", va="top")
+    fig.subplots_adjust(left=0.18, right=0.985, top=0.86, bottom=0.08, hspace=0.32, wspace=0.06)
+    (OUT / "meeting").mkdir(parents=True, exist_ok=True)
+    fig.savefig(OUT / "meeting" / "F3_sensitivity.png", facecolor="white")
+    print("wrote", OUT / "meeting" / "F3_sensitivity.png")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--score", action="store_true")
+    ap.add_argument("--figure", action="store_true")
     a = ap.parse_args()
     if a.render:
         render_variants()
     if a.score:
         score()
+    if a.figure:
+        figure_f3()
 
 
 if __name__ == "__main__":
