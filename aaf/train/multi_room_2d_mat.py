@@ -1363,8 +1363,8 @@ class P32Trainer:
         V = idx["n_variants"]
         if V != (2 if kind == "str" else 1) * len(names):
             raise RuntimeError("{}: {} variants".format(d, V))
-        mm = np.load(d / "H.npy", mmap_mode=None if self.cfg.p410_in_ram else "r")
-        if list(mm.shape) != idx["shape"]:
+        mm = np.load(d / "H.npy", mmap_mode="r")             # variants stay memory-mapped (p410_in_ram covers the MS corpus
+        if list(mm.shape) != idx["shape"]:                     # only): they are read for a small fraction of the rows
             raise RuntimeError("{} shape {} vs index {}".format(d, mm.shape, idx["shape"]))
         conds, dims = [], []
         for v in idx["variants"]:
