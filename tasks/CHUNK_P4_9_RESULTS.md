@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill reads), I3, I7, S-3, S-4, S-1, I14 (NMF N1 / N2), I5 in; 150K reads (E2 / C2 / C3, S2X interim) next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-23, 00:50): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14, I5, 150K reads (S2X interim, CTL final) in; extensions X1 (D189) in, X1b / X2 / X3 (D190-D193) running; DIR E2 / C2 / C3 next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -24,6 +24,14 @@ Sections below are filled as each step lands.
 ## Step 1 — sparse-measurement grounding
 
 **I7 (D183 readings):** P1 FAILS (M1 at K = 32: unseen 0.597 R0 / 0.635 S2 < 0.65; M2 0.807 / 0.839). P2 HOLDS (R0 given only the bounding box beats physics given it: M2-iii - M4-iii +0.392 / +0.274 / +0.203, CIs > 0). P3 FAILS (M1 - M5 at 200-300 Hz: +0.142 at K = 8, -0.008 at 16, -0.313 at 32). Geometry-free Helmholtz kernel ridge (M5) at K = 32: 0.952 / 0.868 / 0.796, above every network method; physics with exact geometry 0.977 / 0.971 / 0.959 at any K. Realism (20 dB + 2 cm) leaves the network fits unchanged and costs M5 0.07 at 200-300 Hz. [grounding.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/step1/grounding.md) · [F1](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F1_grounding.png).
+**X1 (extension, D189): the network as a PRIOR for few-microphone reconstruction.** M6s = zero-shot network field as the mean of Step 1's Helmholtz KRR, with its scale fitted (0.8 s CPU). Unseen 16, pooled, R0:
+* K = 8: 0.806 / 0.527 / 0.443, against KRR alone 0.753 / 0.389 / 0.311 and the network fine-tuned on the mics (M2, 58 s GPU) 0.735 / 0.452 / 0.439.
+* K = 32: 0.967 / 0.903 / 0.826 (KRR 0.951 / 0.872 / 0.805).
+* R1 HOLDS. R2 (beats both parts at every K) HOLDS on unseen, every band. In-family it ties the network alone at K = 8 (does not hold) and leads from K = 16.
+* The prior is worth 10-14 microphones at K = 8 unseen, 20-25 in-family.
+* Physics with the exact shape needs no microphones (0.977 / 0.970 / 0.959); the partial-geometry comparison is X1b (D192).
+
+[netprior.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/netprior.md).
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
 
 **2a S2X @150K (interim):** HF 0.510, UF 0.496 / 0.417 / 0.402 (S2 @120K 0.502 / 0.501; HF +0.007 [+0.002, +0.012], UF -0.005 [-0.009, -0.000]). The 240K test needs HF >= 0.56 AND UF >= 0.49; UF holds now, HF is 0.050 short. **2b CTL @150K (final):** HF 0.583, UF 0.467 / 0.376 / 0.373, flat vs R0 (HF +0.002 [-0.003, +0.006]); train-room fit 0.670 (R0 0.645).

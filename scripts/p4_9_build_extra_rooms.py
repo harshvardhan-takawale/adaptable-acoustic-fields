@@ -15,6 +15,9 @@
     fixed rule: the first of (L - 0.5, 1.6), (L / 2, 1.0), (L / 2, W / 2) that is an air node >= 0.3 m from every wall.
     The geometry is proven first: the rerun with the ORIGINAL source reproduces 50 stored receivers (<= 1e-6).
       python scripts/p4_9_build_extra_rooms.py --src2 --idx I           (one room per index, 0-15)
+(3) SECOND SOURCE for the 15 in-family test shapes (X3, D191(b)(ii)): the same rule and proof on
+    `data/track_p4_5_testdense` (the dense in-family test rooms) -> `data/track_p4_9_test_src2`.
+      python scripts/p4_9_build_extra_rooms.py --src2-test --idx I      (one room per index, 0-14)
 """
 from __future__ import annotations
 
@@ -32,6 +35,7 @@ CONFIRM_SEED = 20261122
 CONFIRM_MAN = Path("configs/sweeps_2d_mat/p4_9_confirm_manifest.json")
 CONFIRM_OUT = Path("data/track_p4_9_confirm")
 SRC2_OUT = Path("data/track_p4_9_unseen_src2")
+SRC2_TEST_OUT = Path("data/track_p4_9_test_src2")
 UNSEEN_MAN = "configs/sweeps_2d_mat/p4_8_unseen_manifest.json"
 UNSEEN_DIR = Path("data/track_p4_8_unseen")
 
@@ -103,12 +107,17 @@ def _seg_dist(p, a, b):
     return float(np.hypot(*(p - (a + t * (b - a)))))
 
 
-def build_src2(idx):
+def build_src2(idx, test=False):
     import aaf.sim.fdtd_2d as F
     from aaf.sim.polygon_geom import line_of_sight
     from scripts.p4_9_fdtd_stencils import ALPHA, C, DX, NB, geometry, load_room, simulate
-    row = json.load(open(UNSEEN_MAN))["configs"][idx]
-    path = UNSEEN_DIR / row["filename"]
+    if test:
+        from scripts.p4_8_s1_gate import rooms_test
+        path = rooms_test()[idx][1]
+        out_dir = SRC2_TEST_OUT
+    else:
+        path = UNSEEN_DIR / json.load(open(UNSEEN_MAN))["configs"][idx]["filename"]
+        out_dir = SRC2_OUT
     r = load_room(path)
     geom, extra, dxx, dxy = geometry(r)
     # proves the geometry: one chunk (one node + the 50 check receivers) must reproduce the stored H
@@ -124,8 +133,8 @@ def build_src2(idx):
         assert np.abs(np.asarray(res["meta"]["rx_pos_snapped"]) - r["rx"][s:s + per]).max() < 1e-9
         assert np.abs(np.asarray(res["meta"]["src_pos_snapped"]) - np.asarray(s2)).max() < 1e-9
     los = line_of_sight(r["verts"], s2, r["rx"])
-    SRC2_OUT.mkdir(parents=True, exist_ok=True)
-    dst = SRC2_OUT / row["filename"]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    dst = out_dir / path.name
     tmp = dst.with_suffix(".h5.tmp")
     with h5py.File(path) as f0, h5py.File(tmp, "w") as f:
         f.create_dataset("ism/H_complex", data=H, compression="gzip", compression_opts=4)
@@ -145,6 +154,7 @@ def main():
     ap.add_argument("--confirm-manifest", action="store_true")
     ap.add_argument("--confirm", action="store_true")
     ap.add_argument("--src2", action="store_true")
+    ap.add_argument("--src2-test", action="store_true")
     ap.add_argument("--idx", type=int, default=0)
     a = ap.parse_args()
     if a.confirm_manifest:
@@ -153,6 +163,8 @@ def main():
         build_confirm(a.idx)
     elif a.src2:
         build_src2(a.idx)
+    elif a.src2_test:
+        build_src2(a.idx, test=True)
 
 
 if __name__ == "__main__":

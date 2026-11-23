@@ -11,6 +11,9 @@ and after the render-time projection, POST-PROCESSING; band-mean r over 25-100 /
 Paired per-room delta (second - original source), paired bootstrap over the 16 rooms (10k, seed 20261013).
   python scripts/p4_9_src2_eval.py --items "R0_120K=outputs/p4_8/arms/R0/ckpt_iter0120000.pt,m1=m1"
   -> outputs/p4_9/src2/<name>.json ; python scripts/p4_9_src2_eval.py --report -> outputs/p4_9/src2.md
+X3 (D191): `--set test` scores the 15 in-family test shapes at their second source (`data/track_p4_9_test_src2`)
+-> outputs/p4_9/src2_test/<name>.json, report outputs/p4_9/src2_test.md. A network item with no standard-report cache
+for the original source is rendered at it here (same function, same receivers).
 """
 from __future__ import annotations
 
@@ -31,6 +34,27 @@ from scripts.p4_8_unseen_eval import rooms
 SRC2_DATA = Path("data/track_p4_9_unseen_src2")
 MODAL = Path("outputs/p4_9/modal")
 OUT = Path("outputs/p4_9/src2")
+SETS = {"unseen": {"src1": SRC1_DATA, "src2": SRC2_DATA, "out": OUT, "md": Path("outputs/p4_9/src2.md"),
+                   "cache": "outputs/p4_8/cache/unseen_{}.npz", "fams": ("U", "C3")},
+        "test": {"src1": Path("data/track_p4_5_testdense"), "src2": Path("data/track_p4_9_test_src2"),
+                 "out": Path("outputs/p4_9/src2_test"), "md": Path("outputs/p4_9/src2_test.md"),
+                 "cache": "outputs/p4_5/gate2_dense/cache/{}__track_p4_5_testdense.npz", "fams": ()}}
+
+
+def set_rooms(which):
+    """(configs, manifest sha) for a set; test configs carry what `render_at` and `_score` read."""
+    if which == "unseen":
+        return rooms()
+    from types import SimpleNamespace
+
+    from scripts.p4_8_s1_gate import rooms_test
+    out = []
+    for _, p in rooms_test():
+        with h5py.File(p) as f:
+            verts = [tuple(map(float, v)) for v in json.loads(f.attrs["verts"])]
+            out.append(SimpleNamespace(L=float(f.attrs["L"]), W=float(f.attrs["W"]), verts=verts, filename=p.name,
+                                       label=p.stem, family="test"))
+    return out, None
 SEED, NBOOT = 20261013, 10000
 
 
@@ -73,9 +97,10 @@ def _score(P, T, los, keep, c, off):
     return {"raw": scores(P[off], T[off], los[off], modes), "projected": scores(Pp[off], T[off], los[off], modes)}
 
 
-def evaluate(name, ck):
-    rs, sha = rooms()
-    rep = {"name": name, "checkpoint": ck, "manifest_sha": sha, "rooms": []}
+def evaluate(name, ck, which="unseen"):
+    S = SETS[which]
+    rs, sha = set_rooms(which)
+    rep = {"name": name, "checkpoint": ck, "manifest_sha": sha, "set": which, "rooms": []}
     if ck != "m1":
         import torch
 
@@ -84,23 +109,29 @@ def evaluate(name, ck):
         model, renderer, *_ = load_model(Path(ck), dev)
         model.eval()
         renderer.eval()
-        cache = np.load("outputs/p4_8/cache/unseen_{}.npz".format(name))
+        cp = Path(S["cache"].format(name))
+        cache = np.load(cp) if cp.exists() else None
+        rep["src1_from"] = str(cp) if cache is not None else "rendered here"
     else:
         from scripts.p4_9_sensitivity import modal_field
     for j, c in enumerate(rs):
-        T1, rx1, los1, keep1, s1 = _load(SRC1_DATA / c.filename)
-        T2, rx2, los2, keep2, s2 = _load(SRC2_DATA / c.filename)
+        T1, rx1, los1, keep1, s1 = _load(S["src1"] / c.filename)
+        T2, rx2, los2, keep2, s2 = _load(S["src2"] / c.filename)
         assert np.allclose(rx1, rx2) and (keep1 == keep2).all(), c.filename
         off = ~on_lattice(rx1)
         if ck == "m1":
             z = dict(np.load(MODAL / "{}__exact.npz".format(Path(c.filename).stem), allow_pickle=True))
             P1, P2 = modal_field(z), modal_field(z, second_source=True)
-        else:
+        elif cache is not None:
             assert np.allclose(cache["rx%d" % j], rx1)
-            P1 = cache["P%d" % j].astype(np.complex128)
+            P1 = cache["P%d" % j][:, :601].astype(np.complex128)
+            P2 = render_at(model, renderer, c, rx1, s2, dev)
+        else:
+            P1 = render_at(model, renderer, c, rx1, s1, dev)
             P2 = render_at(model, renderer, c, rx1, s2, dev)
         row = {"family": c.family, "room": c.label, "src1": s1.tolist(), "src2": s2.tolist(), "n_off": int(off.sum()),
-               "s1": _score(P1, T1, los1, keep1, c, off), "s2": _score(P2, T2, los2, keep2, c, off)}
+               "s1": _score(P1, T1, los1, keep1, c, off), "s2": _score(P2, T2, los2, keep2, c, off),
+               "ignore_move": _score(T1, T2, los2, keep2, c, off)}
         rep["rooms"].append(row)
         print("{:8s} {:3s} {:56s} src1 {} src2 {} raw r src1 {:.3f}/{:.3f}/{:.3f} src2 {:.3f}/{:.3f}/{:.3f}".format(
             name, c.family, c.label, s1.tolist(), s2.tolist(), *[row["s1"]["raw"][b] for b in BANDS],
@@ -118,16 +149,22 @@ def evaluate(name, ck):
                          "ci95": [float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))],
                          "lsd_src1": float(np.mean([r["s1"][v]["lsd_" + b] for r in rep["rooms"]])),
                          "lsd_src2": float(np.mean([r["s2"][v]["lsd_" + b] for r in rep["rooms"]]))}
-            for fam in ("U", "C3"):
+            rep[v][b]["ignore_move_vs_src2"] = float(np.mean([r["ignore_move"][v][b] for r in rep["rooms"]]))
+            for fam in S["fams"]:
                 rep[v][b][fam] = {s: float(np.mean([r[s][v][b] for r in rep["rooms"] if r["family"] == fam]))
                                   for s in ("s1", "s2")}
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "{}.json".format(name)).write_text(json.dumps(rep, indent=1))
+    S["out"].mkdir(parents=True, exist_ok=True)
+    (S["out"] / "{}.json".format(name)).write_text(json.dumps(rep, indent=1))
     print(name, {b: (round(rep["raw"][b]["src1"], 3), round(rep["raw"][b]["src2"], 3)) for b in BANDS}, flush=True)
 
 
-def report():
-    lines = ["# P4-9 S-3: a second source position on the 16 frozen unseen rooms (D181 E8, D182(b); descriptive)", "",
+def report(which="unseen"):
+    S = SETS[which]
+    OUT = S["out"]
+    title = ("# P4-9 S-3: a second source position on the 16 frozen unseen rooms (D181 E8, D182(b); descriptive)"
+             if which == "unseen" else
+             "# P4-9 X3 (D191(b)(ii)): a second source position on the 15 in-family test shapes (descriptive)")
+    lines = [title, "",
              "Every corpus so far uses ONE source, (0.5, 1.6). Here each frozen unseen room is re-simulated with a second "
              "source (D182(b)) on the same dense receivers; off-lattice r (Rule 11), mean over 16 rooms, band-mean per-bin "
              "Pearson of dB. Delta = second - original source, paired bootstrap over rooms (10k, seed 20261013).", ""]
@@ -151,8 +188,13 @@ def report():
                   "{} (25-100 / 100-200 / 200-300 Hz).".format(
                       " / ".join("{:.3f}".format(m["R0src1_vs_T2"][b]) for b in BANDS),
                       " / ".join("{:.3f}".format(m["T1_vs_T2"][b]) for b in BANDS)), ""]
-    lines += ["Per room (sources, families, both variants): `outputs/p4_9/src2/<name>.json`."]
-    Path("outputs/p4_9/src2.md").write_text("\n".join(lines) + "\n")
+    ign = [json.load(open(p)) for p in sorted(OUT.glob("*.json")) if not p.stem.startswith("diag")]
+    ign = [d for d in ign if "ignore_move_vs_src2" in d["raw"][BANDS[0]]]
+    if ign:
+        lines += ["**'Ignore the move'** (the original-source truth scored against the second-source truth, raw): " +
+                  " / ".join("{:.3f}".format(ign[0]["raw"][b]["ignore_move_vs_src2"]) for b in BANDS), ""]
+    lines += ["Per room (sources, families, both variants): `{}/<name>.json`.".format(OUT)]
+    S["md"].write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
 
@@ -160,12 +202,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--items", default="")
     ap.add_argument("--report", action="store_true")
+    ap.add_argument("--set", default="unseen", choices=sorted(SETS))
     a = ap.parse_args()
     for item in [s for s in a.items.replace("+", ",").split(",") if s]:
         name, ck = item.split("=", 1)
-        evaluate(name, ck)
+        evaluate(name, ck, a.set)
     if a.report:
-        report()
+        report(a.set)
 
 
 if __name__ == "__main__":

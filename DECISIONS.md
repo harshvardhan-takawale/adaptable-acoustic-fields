@@ -2439,3 +2439,91 @@ Pairing by sort order is a fixed choice: the k head is sorted, and modes that sw
 (d) **The literal reading is reported beside the primary** in the 150K read, labelled.
 
 (e) **Flagged to the manager** (CONTEXT), who may override before the 150K read.
+
+**D189 — P4-9 X1 (extension; user-requested "more experiments"): the network as a PRIOR for sparse-measurement reconstruction (M6 / M6s). Recorded before any M6 number exists** (`scripts/p4_9_netprior.py`).
+
+(a) **Why.** Q24 asks what the INR is for. Step 1 (I7) set the network's own adaptation (M1 / M2) AGAINST a geometry-free Helmholtz kernel ridge regression (M5): KRR wins from K = 16 up; the network wins only at K <= 8 above 100 Hz. Those were alternatives. The standard way to combine a learned prior with measurements is to make it the MEAN of the kernel regression. If that combination beats both parts at every K, the INR has a defined role -- a prior that cuts the microphones a room needs. If it does not, "prior for reconstruction" is not Q24's answer either.
+
+(b) **Methods.** Same rooms, strata, draws (seeds 0-2), K in {8, 16, 32, 64}, clean condition and scorer as Step 1 (`p4_9_grounding.py`).
+* **M6:** p(x) = m(x) + M5 fitted to the residual y - m(x_i), i.e. a G0 unpenalised plus ridge-penalised J0 terms. m = the frozen network's zero-shot field (R0 @120K; S2 @120K) from the standard caches (in-family: gate2_dense; unseen: p4_8 unseen; calibration: p4_6 famdense). The receivers are asserted identical, and the cached field must reproduce Step 1's M0 pooled score within 2e-3 per room.
+* **M6s:** p(x) = c(f) m(x) + a(f) G0 + sum alpha J0, with c and a unpenalised (generalised least squares under the ridge) and alpha ridge-penalised. It nests M5 (c = 0) and M6 (c = 1).
+* **lam:** E7's procedure, separately for M6 and M6s. The 4 T / DN calibration rooms, K = 32, seed 0, R0, M5's grid {1e-4, 1e-3, 1e-2, 1e-1, 1}, maximising the pooled mean r over the 3 bands. Frozen, then applied to both models.
+* **Not run:** the realism conditions (real2 / real5). The network would have to be evaluated at the perturbed GIVEN positions, which the caches do not hold.
+
+(c) **Readings (fixed now). Primary: M6s with R0. S2 and M6 are reported beside.**
+* **R1 (the prior adds to KRR):** M6s - M5 on the unseen 16, pooled strata, at K = 8 and K = 16. Holds if the paired per-room CI is > 0 in >= 2 of 3 bands at both K.
+* **R2 (the combination beats both parts):** at every K in {8, 16, 32, 64}, M6s minus the better of M0 and M5 per band (chosen by group mean). Holds if CI > 0 in >= 2 of 3 bands at every K. Read on the unseen 16 and the in-family 15 separately.
+* **Descriptive:**
+  * "microphones the prior is worth": the K at which M5's pooled r (interpolated in log K) equals M6s's r at K = 8, per band;
+  * M6s against M2 (the network's own 58 s GPU fit) at each K;
+  * fit times.
+
+(d) **Prediction (stated before computing):**
+* R1 holds at 100-300 Hz on unseen (at K = 8: M0 0.41 / 0.41 vs M5 0.39 / 0.31).
+* R2 holds in-family at K <= 16. It fails on unseen at K >= 32 at 200-300 Hz, where a prior with r ~0.4 adds little to a KRR at 0.80.
+* M6 (fixed mean) is BELOW M5 on unseen at K = 64: the residual of an r ~0.4 prior carries more energy than the field itself, which is why M6s is primary.
+
+**D190 — P4-9 X2 (extension): a fast-physics baseline for the GEOMETRY edit, the network's one latency case (I1 / F2). Recorded before any coarse-grid number exists** (`scripts/p4_9_fast_physics.py`).
+
+(a) **Why.** F2 puts the network's case on the geometry edit: 12 ms per listener against a ~55 s modal re-solve or a 49 s CPU FDTD. But that re-solve is m1 at FDTD resolution (2 cm grid, every mode to 600 Hz), built to reproduce the FDTD exactly, not to be fast. A collaborator will ask what a solve sized for the 0-300 Hz band costs. If a coarse solve is both faster than the network's full-grid render (32 s) and more accurate than the network, the 2-D latency case shrinks to "one listener, faster than the coarse solve". Better to measure that than to be told it.
+
+(b) **Grid (fixed now):**
+* m1's operator and formula (same Robin damping, exact zero-mode treatment, constant C scaled to the FDTD's own dA), on a coarser grid h in {2 (= m1), 4, 6, 8, 10} cm;
+* modes to f_max in {350, 450, 600} Hz;
+* the polygon snapped by the operator's own grid fit (that geometry error is part of the cost of being coarse; the exact beta is used);
+* mode shapes at the dense receivers by bilinear interpolation of the coarse-grid eigenvectors.
+
+Scored on the 31 dense rooms (15 in-family, 16 unseen), off-lattice receivers, the frozen scorer (`p4_7_m1_modal.scores`). Timing on one named CPU node, 4 threads, the I1 protocol: operator build + eigen-solve + field evaluation, for one listener and for the full dense grid.
+
+(c) **Reading (descriptive; fixed now).** For two use cases, single listener and full grid, report whether any (h, f_max) configuration DOMINATES the network (R0 @120K, I1's timings): faster AND higher r in all 3 bands, on the unseen 16 and on the in-family 15 separately. If one does, F2's sentence "the network's case is the geometry edit" is amended to the measured remaining region. If none does, the sentence stands, with the frontier shown.
+
+(d) **Prediction:** at h = 8-10 cm and f_max = 450 Hz, the solve takes ~0.1-1 s and scores above the network on the unseen rooms in every band. It therefore dominates the network for the full grid (32 s) but not for one listener (12 ms).
+
+(e) **Descriptive scaling (timing only, one room):** solve time against f_max in {300, 600, 1000, 2000} Hz at h = lambda_min / 10. The project's stated band is 0-2 kHz, where the mode count grows as f^2 in 2-D (f^3 in 3-D); this places where a per-edit solve stops being cheap.
+
+**D191 — P4-9 X3 (extension): can the network learn to MOVE the source without new simulation? Reciprocity swaps, pre-check and arm RCP. Recorded before any X3 number exists.**
+
+(a) **Why.** S-3: at a second source R0 collapses (unseen 25-100 Hz r 0.468 -> 0.172), while physics is invariant (0.978). Every training room has ONE source. "Editable" has to include moving the source, and S-5 (a multi-source corpus, next round) needs new simulation. A free alternative is acoustic reciprocity, H(s -> r) = H(r -> s): each room's ~800 receivers are also ~800 source positions, each with one receiver at the original source. The trainer has this swap (D164, P4-7 m2), verified at corpus resolution (label error <= 1% in notched rooms, exact in rectangles; D171(b)). AFAM (= G2 + D4 flips p 0.5 + swaps p 0.25) was read only out of family, never at a moved source.
+
+(b) **Sets.**
+* (i) The unseen 16 at their second source (S-3, existing).
+* (ii) NEW: the 15 in-family test shapes re-simulated at a second source by S-3's rule (D182(b): the first of (L - 0.5, 1.6), (L / 2, 1.0), (L / 2, W / 2) on an air node >= 0.3 m from every wall). Same dense receivers; geometry proven by the same rerun check (`p4_9_build_extra_rooms.py --src2-test`).
+* Scorer: S-3's (off-lattice, raw r per band; projected beside).
+
+(c) **X3a, zero-training pre-check (descriptive).** G2 @60K against AFAM @60K (identical configs except the augmentation) at both sources on both sets. R0 @120K and CTL @150K beside.
+
+(d) **X3b, arm RCP.**
+* CTL's config exactly: R0 @120K warm start, the same restart schedule, the same p49 batch generator, hence identical batch indices.
+* Plus `p49_recip_p = 0.25` (AFAM's value): each row's receiver and source swap with probability 0.25. The swap is drawn from a SECOND dedicated generator, saved in every checkpoint, so CTL's batches are untouched.
+* Rule-8 tests: p = 0 is byte-identical to CTL's step; p > 0 changes the output; batch indices are identical to CTL's; the swap draws are reproducible across a resume.
+* Init refuses swaps if any training receiver or source is an FDTD wall node (as D164).
+* 30K steps -> 150K on tron; reads at 130K / 140K / 150K.
+
+(e) **Readings (fixed now), RCP @150K vs CTL @150K, paired per room, bootstrap 10k, seed 20261013:**
+* **S1 (primary):** in-family 15, second-source r at 25-100 Hz: RCP - CTL >= +0.10, CI lo > 0.
+* **S2:** unseen 16, second-source r at 25-100 Hz: RCP - CTL >= +0.05, CI lo > 0.
+* **C2 (no harm at the original source, standard report):** RCP - CTL >= -0.02 on HF and on each UF band, with no CI entirely below -0.02 (D180's C2).
+* **Reported beside:** all bands, projected, the "ignore the move" reference (original-source truth scored against second-source truth), m1.
+
+(f) **Prediction:**
+* X3a: AFAM's drop from original to moved source is at most half of G2's.
+* S1 and S2 hold; C2 holds (a swapped row has the same target).
+* RCP's moved-source r stays below its original-source r. A swap supervises a source anywhere but a receiver only at the original source; it does not show the model a moved source heard at a moved receiver.
+
+**D192 — P4-9 X1b: the prior under PARTIAL geometry, network against physics given the same bounding rectangle (A1-matched). Recorded before any X1 or X1b number exists.**
+
+(a) **Why.** X1 (D189) gives the network the EXACT polygon. With the exact polygon, physics needs no microphones at all (M3 0.977 / 0.971 / 0.959 unseen). So X1 can show only that the network is a better prior than nothing. That is not Q24's answer. The comparison that decides whether "learned prior" is a role physics cannot fill is Step 1's P2 setting (A1): both priors get the same wrong geometry, the bounding rectangle.
+
+(b) **Methods.** Same rooms, strata, draws (seeds 0-2), K in {8, 16, 32, 64}, clean condition, as X1. Both use M6s's form (prior scale c and a G0 unpenalised, J0 ridge) with M6s's calibrated lam. The same lam serves both priors, so the contrast is the prior alone; it is not re-calibrated per prior.
+* **M6-iii:** the prior = R0 @120K's zero-shot field given bounding-rectangle tokens (M0-iii). Rendered once per room and checked against Step 1's M0-iii fits within 2e-3 pooled.
+* **M7-iii:** the prior = m1's field on the bounding rectangle with one beta scale fitted to the K measurements (Step 1's M4-iii exactly, `beta_fit`), then the same KRR.
+
+(c) **Reading (fixed now).** **Q (the network is the better partial-geometry prior):** M6-iii - M7-iii on the unseen 16, pooled strata, at K = 8 and K = 16. Holds if CI > 0 in >= 2 of 3 bands at both K. Reported beside it: both against M5 (no prior), the in-family 15, and K = 32 / 64.
+
+(d) **Prediction:** zero-shot, the network beats the rectangle's physics (Step 1 P2 holds for M1-iii / M2-iii). So Q holds at K = 8 at 100-300 Hz. By K = 32 the two priors converge on M5's level and Q's contrast falls inside noise.
+
+**D193 — P4-9 X3 diagnostic (descriptive; recorded before it is computed): the network's RECIPROCITY GAP.** Exchanging source and receiver leaves the truth unchanged, H(s -> r) = H(r -> s) (exact between interior nodes, D171(b)). On the 31 dense rooms, off-lattice receivers that are interior FDTD nodes, the network is rendered twice:
+* normal: receiver at r_i, source at s (the standard cache);
+* swapped: receiver at s, source at r_i.
+
+Both are scored against the SAME truth with the frozen scorer (`p4_7_m1_modal.scores`), and the swapped render is also correlated with the normal one. A reciprocal model scores the same both ways. RCP's swaps train exactly this property, so the gap is read for R0 @120K, CTL @150K and RCP @150K. It separates "RCP became reciprocal" from "RCP can move the source": a swap supervises a source anywhere, but always with its receiver at the original source (D191(f)). (`scripts/p4_9_recip_gap.py`)

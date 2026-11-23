@@ -28,6 +28,41 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-23 (00:50) — X1 (extension, D189): the network as a PRIOR for few-microphone reconstruction — it cuts the microphones needed, and beats fine-tuning the network
+
+**Headline:** We tested a new use for the network. Some microphones are measured in a room, and the sound field everywhere else is reconstructed from them. The network's prediction serves as the starting guess and the measurements correct it with a standard physics-based interpolation (kernel ridge regression with Helmholtz kernels). In unseen rooms, 8 microphones with the network's guess are worth about 10-14 microphones without it; in known room shapes about 20-25. With 32 microphones, unseen-room accuracy reaches r 0.97 / 0.90 / 0.83 (25-100 / 100-200 / 200-300 Hz). It takes 0.8 s on a CPU, and it beats fine-tuning the network on the same microphones (58 s on a GPU) at every microphone count. **Caveat:** if the exact room shape is known, a physics solve needs no microphones at all (0.98 / 0.97 / 0.96). The fair test gives physics and the network the same partial information (only the bounding box); it is running (X1b, D192).
+
+Unseen 16 rooms, off-lattice, mean over rooms (seeds 0-2), pooled strata. M0 = network alone; M5 = microphones only (Step 1's Helmholtz KRR); M2 = network fine-tuned on the microphones (Step 1); **M6s = network prior + KRR** (primary). r 25-100 / 100-200 / 200-300 Hz:
+
+| method | K = 8 | K = 16 | K = 32 | K = 64 |
+|---|---|---|---|---|
+| R0 alone (M0) | 0.485 / 0.408 / 0.408 | same | same | same |
+| mics only (M5) | 0.753 / 0.389 / 0.311 | 0.910 / 0.688 / 0.490 | 0.951 / 0.872 / 0.805 | 0.963 / 0.924 / 0.917 |
+| R0 fine-tuned on mics (M2, 58 s GPU) | 0.735 / 0.452 / 0.439 | 0.782 / 0.559 / 0.519 | 0.811 / 0.605 / 0.578 | 0.829 / 0.630 / 0.605 |
+| **R0 prior + mics (M6s, 0.8 s CPU)** | **0.806 / 0.527 / 0.443** | **0.933 / 0.763 / 0.600** | **0.967 / 0.903 / 0.826** | **0.977 / 0.943 / 0.924** |
+| physics, exact shape, no mics (M3) | 0.977 / 0.970 / 0.959 | same | same | same |
+
+- **R1 (the prior adds to KRR), M6s - M5: HOLDS.** K = 8: +0.053 [+0.030, +0.079] / +0.138 [+0.107, +0.171] / +0.132 [+0.109, +0.158]. K = 16: +0.023 [+0.015, +0.030] / +0.074 [+0.064, +0.086] / +0.111 [+0.093, +0.129].
+- **R2 (beats BOTH the network alone and KRR alone at every K): HOLDS on unseen, every band at every K.**
+  - K = 8, against the better part: +0.053 [+0.030, +0.079] vs M5 / +0.119 [+0.102, +0.135] vs M0 / +0.035 [+0.025, +0.046] vs M0.
+  - K = 64, against M5: +0.014 / +0.019 / +0.006, all CIs > 0.
+  - S2 as the prior gives the same picture (R2 holds on unseen).
+- **R2 does NOT hold in-family.** At K = 8 the combination only ties the network alone (in-family R0 0.923 / 0.720 / 0.615): +0.003 [-0.005, +0.012] / +0.010 [+0.002, +0.020] / -0.007 [-0.014, +0.002]. From K = 16 it is ahead: +0.036 / +0.101 / +0.087 vs M0; at K = 32 +0.035 / +0.052 / +0.047 vs M5.
+- **Microphones the prior is worth** (the K at which mics-only matches M6s at K = 8): unseen 10.1 / 11.0 / 13.4; in-family 25.1 / 20.1 / 21.5.
+- **Against the pre-registered prediction (D189(d)):**
+  - R1 held, as predicted.
+  - R2 on unseen at K >= 32 was predicted to FAIL at 200-300 Hz; it holds (+0.021 [+0.016, +0.027] at K = 32). The fitted prior scale lets KRR down-weight a weak prior without paying for it.
+  - R2 in-family at K = 8 was predicted to hold; it ties.
+  - The fixed-mean variant (M6) falls below KRR alone on unseen at K = 64 at 100-300 Hz (0.909 / 0.865 vs 0.924 / 0.917), as predicted. This is why the scaled form is primary.
+- **lam** (E7 calibration on the 4 T / DN rooms): 0.01 for M6 and M6s, the same value M5 chose.
+
+Running now (extensions, all pre-registered before any number):
+- **X1b (D192):** network vs physics as the prior when only the bounding box is known.
+- **X2 (D190):** a coarse, fast physics solve as the geometry-edit baseline (the network's one latency case).
+- **X3 (D191, D193):** moving the source without new simulation, via reciprocity swaps. Zero-training pre-check AFAM vs G2; arm RCP queued on tron; a new in-family second-source set (15 rooms) built.
+
+Links: [netprior.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/netprior.md) · [netprior.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/netprior.json) · [calibration.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/calibration.json) · [p4_9_netprior.py](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_9_netprior.py)
+
 ## 2026-11-22 (late night, 5) — 150K reads: S2X @150K (interim) and CTL @150K (final) -> F0
 
 **Headline:** The unseen-room specialist S2 is being trained longer (S2X). After 30K extra steps it is slightly better on known shapes (0.510, up from 0.502) and unchanged on unseen rooms (0.496). To become the meeting model at 240K it needs 0.56 on known shapes. On its current pace that looks out of reach, but the first pre-registered read is at 180K. The plain continuation of R0 (CTL) finished flat: more steps on the same corpus do not move either number.

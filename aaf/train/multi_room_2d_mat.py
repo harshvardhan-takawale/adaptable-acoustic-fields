@@ -80,7 +80,7 @@ def signal_kwargs(cfg, n_band: int) -> dict:
 P48_KEYS = ("mb_grids", "mb_f_top_hz", "mb_base_cell_m", "mb_n_levels", "mb_cells_per_wavelength", "ls_mode",
             "ls1_weight", "ls1_radius_m", "ls_band_hz", "ls2_weight", "ls2_rx_per_step", "ls2_floor_db")
 P49_KEYS = ("init_ckpt", "lr_restart_peak", "lr_warmup_iters", "lr_restart_from_iter", "p49_mode", "dir_labels",
-            "dir_frac_init", "dir_lo_bin", "dir_min_src_m", "dirg_rows_per_micro", "dirg_h_nodes")
+            "dir_frac_init", "dir_lo_bin", "dir_min_src_m", "dirg_rows_per_micro", "dirg_h_nodes", "p49_recip_p")
 
 #: P4-9 (D181 A8): the keys a warm start may change against its init checkpoint -- run control, the schedule and
 #: the P4-9 options. EVERY other key must match the init checkpoint's (absent there = the default), so a warm
@@ -379,6 +379,12 @@ class P32TrainCfg:
     dir_min_src_m: float = 0.5
     dirg_rows_per_micro: int = 2
     dirg_h_nodes: int = 2
+    #: P4-9 X3 (D191): p49_recip_p > 0 (p49_mode "ctl" only) swaps a row's receiver and source with this probability
+    #: -- acoustic reciprocity, H(s -> r) = H(r -> s), the label unchanged (D164; <= 1% label error in notched rooms,
+    #: D171(b)). The draws come from a SECOND dedicated CPU generator saved in every checkpoint, so the batch indices
+    #: stay CTL's. Rows whose receiver or source is an FDTD wall node are never swapped (reciprocity is exact only
+    #: between interior nodes). 0 = CTL's step exactly.
+    p49_recip_p: float = 0.0
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -786,9 +792,14 @@ class P32Trainer:
             # Created BEFORE the resume, which restores its state; seeded from cfg.seed otherwise.
             self._p49_gen = torch.Generator(device=self.device)
             self._p49_gen.manual_seed(int(cfg.seed))
+        if cfg.p49_recip_p > 0.0:
+            self._p49_swap_gen = torch.Generator(device="cpu")
+            self._p49_swap_gen.manual_seed(int(cfg.seed) + 7919)
         self.start_iter = self._maybe_resume()
         if cfg.p49_mode in ("dir", "dirg"):
             self._init_dir()
+        if cfg.p49_recip_p > 0.0:
+            self._init_recip()
         self._aug = self._init_augment() if _aug_requested(cfg) else None
         self._p48_refusals()
         self._ls = self._init_ls() if cfg.ls_mode else None
@@ -828,14 +839,15 @@ class P32Trainer:
 
     # ---------------------------------------------------------------- rendering
     def _render(self, cfg_ids: torch.Tensor, rx_ids: torch.Tensor, per_ray: bool = False,
-                explicit_jitter: bool = False):
+                explicit_jitter: bool = False, swap: Optional[torch.Tensor] = None):
         """Render the given (config, receiver) pairs, grouped by geometry for the AABB.
 
         P4-9 (D181 E2), both default off (then the return is the [B, n_band] tensor, exactly as before):
         per_ray: also the per-ray readout D = sum_j u_j s_j per row ([B, 2, n_band]) from the SAME renderer calls.
         explicit_jitter: draw each call's ray jitter here, by the renderer's own draw (same RNG consumption), pass it
         in, and return it per row -- so DIR-G can render a row's neighbours with its jitter.
-        With either, returns (out, {"D": ... or None, "jitter_row": [B] or None})."""
+        With either, returns (out, {"D": ... or None, "jitter_row": [B] or None}).
+        swap (P4-9 X3, D191): a [B] bool mask; those rows are rendered with receiver and source exchanged."""
         out = torch.zeros(cfg_ids.numel(), self.n_band,
                           dtype=torch.complex64, device=self.device)
         D = (torch.zeros(cfg_ids.numel(), 2, self.n_band, dtype=torch.complex64, device=self.device)
@@ -863,6 +875,9 @@ class P32Trainer:
                     tx = self.src.unsqueeze(0).expand(sub.numel(), -1)
                 else:
                     tx = src_per[cfg_ids[sub]]
+                if swap is not None:
+                    sw = swap[sub].unsqueeze(1)
+                    rx, tx = torch.where(sw, tx, rx), torch.where(sw, rx, tx)
                 z = self.cond[cfg_ids[sub]]
                 h_prior = getattr(self, "H_prior", None)
                 if (per_ray or explicit_jitter) and h_prior is None:
@@ -1124,6 +1139,10 @@ class P32Trainer:
             raise ValueError("p49_mode {!r} needs dir_labels".format(cfg.p49_mode))
         if cfg.p49_mode in ("dir", "dirg") and not 0.0 <= cfg.dir_frac_init < 1.0:
             raise ValueError("dir_frac_init must lie in [0, 1)")
+        if not 0.0 <= cfg.p49_recip_p < 1.0:
+            raise ValueError("p49_recip_p must lie in [0, 1)")
+        if cfg.p49_recip_p > 0.0 and cfg.p49_mode != "ctl":
+            raise ValueError("p49_recip_p > 0 needs p49_mode 'ctl' (D191: CTL's step plus the swap)")
         if cfg.p49_mode:
             bad = [k for k, on in (("ls_mode", bool(cfg.ls_mode)), ("modal_prior_dir", bool(cfg.modal_prior_dir)),
                                    ("augmentation", _aug_requested(cfg)), ("sigma_aux_weight", cfg.sigma_aux_weight > 0.0),
@@ -1220,6 +1239,36 @@ class P32Trainer:
                 torch.randint(0, self.train_rx_idx.numel(), (ci.numel(),), device=self.device, generator=g)]
             out.append((ci, ri))
         return out
+
+    def _init_recip(self) -> None:
+        """D191: which (config, receiver) rows may swap -- receiver AND source interior FDTD nodes (all four grid
+        neighbours in the room), per room's own dx; logged, never silently dropped."""
+        from aaf.data.augment_2d import is_interior_node
+        cfg = self.cfg
+        rx = self.rx.detach().cpu().numpy().astype(np.float64)
+        src = (self.src_per if getattr(self, "src_per", None) is not None
+               else self.src.unsqueeze(0).expand(len(self.configs), -1)).detach().cpu().numpy().astype(np.float64)
+        ok = np.zeros(rx.shape[:2], dtype=bool)
+        n_src_wall = 0
+        for i, c in enumerate(self.configs):
+            with h5py.File(Path(cfg.data_dir) / c.filename) as f:
+                dxx = float(f.attrs.get("dx_x", f.attrs.get("dx", 0.02)))
+                dxy = float(f.attrs.get("dx_y", f.attrs.get("dx", 0.02)))
+            s_ok = bool(is_interior_node(c.verts, src[i][None], dxx, dxy)[0])
+            n_src_wall += int(not s_ok)
+            ok[i] = is_interior_node(c.verts, rx[i], dxx, dxy) & s_ok
+        tr = self.train_rx_idx.cpu().numpy()
+        self._swap_ok = torch.as_tensor(ok, device=self.device)
+        self._recip_info = {"p": float(cfg.p49_recip_p), "rows_swappable": float(ok[:, tr].mean()),
+                            "rooms_with_wall_source": n_src_wall}
+        print("[recip] {}".format(self._recip_info), flush=True)
+
+    def _p49_swap(self, ci: torch.Tensor, ri: torch.Tensor, agg: dict) -> torch.Tensor:
+        """D191: the per-row swap mask, a FIXED consumption of the swap generator per micro-batch."""
+        u = torch.rand(ci.numel(), generator=self._p49_swap_gen).to(self.device)
+        sw = (u < float(self.cfg.p49_recip_p)) & self._swap_ok[ci, ri]
+        agg["recip_frac"] = agg.get("recip_frac", 0.0) + float(sw.float().mean()) / self.cfg.grad_accum_steps
+        return sw
 
     def _init_dir(self) -> None:
         """D181 A11: memory-mapped FDTD gradient labels, checked against this run's rooms and receivers; the term's
@@ -1366,12 +1415,13 @@ class P32Trainer:
         agg = {}
         w_r, w_i, w_a, w_p = cfg.weights
         for ci, ri in self._p49_batch():
+            swap = self._p49_swap(ci, ri, agg) if cfg.p49_recip_p > 0.0 else None
             if mode == "dir":
                 H_pred, ex = self._render(ci, ri, per_ray=True)
             elif mode == "dirg":
                 H_pred, ex = self._render(ci, ri, explicit_jitter=True)
             else:
-                H_pred, ex = self._render(ci, ri), None
+                H_pred, ex = self._render(ci, ri, swap=swap), None
             terms = _losses(H_pred, self.H[ci, ri], self.loss_lo_bin, w_spec=self.spec_w, amp_eps=self.amp_eps)
             loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
                     + w_a * terms["L_amp"] + w_p * terms["L_phase"])
@@ -1660,6 +1710,8 @@ class P32Trainer:
               "cfg": meta_cfg}
         if self.cfg.p49_mode:
             st["p49_gen_state"] = self._p49_gen.get_state()     # a resumed arm keeps drawing the same batches
+        if self.cfg.p49_recip_p > 0.0:
+            st["p49_swap_gen_state"] = self._p49_swap_gen.get_state()
         if self.cfg.p49_mode in ("dir", "dirg"):
             st["p49_dir_weight"] = float(self._dir_w)            # set once at init; a resume must not re-calibrate
         torch.save(st, tmp)
@@ -1747,6 +1799,8 @@ class P32Trainer:
                                        f"{getattr(self.cfg, k)!r} in this config.")
             if self.cfg.p49_mode and "p49_gen_state" not in st:
                 raise RuntimeError(f"refusing to resume {c.name}: no P4-9 batch-generator state")
+            if self.cfg.p49_recip_p > 0.0 and "p49_swap_gen_state" not in st:
+                raise RuntimeError(f"refusing to resume {c.name}: no P4-9 swap-generator state")
             if prev.get("configs_manifest") and self.manifest_sha and \
                     prev.get("_manifest_sha", self.manifest_sha) != self.manifest_sha:
                 raise RuntimeError(f"refusing to resume {c.name}: manifest sha mismatch")
@@ -1755,6 +1809,8 @@ class P32Trainer:
             self.sched.load_state_dict(st["scheduler"])
             if self.cfg.p49_mode:
                 self._p49_gen.set_state(st["p49_gen_state"])
+            if self.cfg.p49_recip_p > 0.0:
+                self._p49_swap_gen.set_state(st["p49_swap_gen_state"])
             if self.cfg.p49_mode in ("dir", "dirg"):
                 self._dir_w = float(st["p49_dir_weight"])
             sp = self.out / "scalars.json"
@@ -1802,6 +1858,7 @@ class P32Trainer:
             "amp_floor": self.amp_floor_info,
             "curriculum_bins": self.curriculum, "c2f": self.c2f,
             **({"augment": self._aug["info"]} if getattr(self, "_aug", None) is not None else {}),
+            **({"recip": self._recip_info} if getattr(self, "_recip_info", None) is not None else {}),
             **({"modal_prior": {"dir": cfg.modal_prior_dir, "modal_k": int(cfg.modal_k)}}
                if cfg.modal_prior_dir else {}),
             **({"per_room_source": {"n_distinct": int(len({tuple(x) for x in
