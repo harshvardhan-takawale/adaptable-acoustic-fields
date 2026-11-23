@@ -29,7 +29,7 @@ def reads(arm):
     out = []
     for p in sorted(d.glob("ckpt_iter*.pt")) if d.exists() else []:
         it = int(p.stem[-7:])
-        if it in (125000, 130000, 140000, 150000):
+        if it in (125000, 130000, 135000, 140000, 145000, 150000):
             out.append((it, "{}_{}K".format(arm, it // 1000)))
     return out
 

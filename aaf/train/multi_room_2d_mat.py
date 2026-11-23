@@ -82,7 +82,7 @@ P48_KEYS = ("mb_grids", "mb_f_top_hz", "mb_base_cell_m", "mb_n_levels", "mb_cell
 P49_KEYS = ("init_ckpt", "lr_restart_peak", "lr_warmup_iters", "lr_restart_from_iter", "p49_mode", "dir_labels",
             "dir_frac_init", "dir_lo_bin", "dir_min_src_m", "dirg_rows_per_micro", "dirg_h_nodes", "p49_recip_p")
 #: P4-10 (D195 0c, D197): free against an init checkpoint and compared on resume, like P49_KEYS.
-P410_KEYS = ("p410_ms_dir", "p410_row_jitter", "p410_str_dir", "p410_str_p", "p410_mat_dir", "p410_mat_p")
+P410_KEYS = ("p410_ms_dir", "p410_row_jitter", "p410_str_dir", "p410_str_p", "p410_mat_dir", "p410_mat_p", "p410_in_ram")
 
 #: P4-9 (D181 A8): the keys a warm start may change against its init checkpoint -- run control, the schedule and
 #: the P4-9 options. EVERY other key must match the init checkpoint's (absent there = the default), so a warm
@@ -401,6 +401,8 @@ class P32TrainCfg:
     p410_str_p: float = 0.0
     p410_mat_dir: str = ""
     p410_mat_p: float = 0.0
+    #: load the memmap corpora fully into host memory (fast random access); same numbers either way
+    p410_in_ram: bool = False
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -1319,7 +1321,10 @@ class P32Trainer:
             src, rx = np.load(d / "src.npy"), np.load(d / "rx.npy")
             if rx.shape[:2] != tuple(self.rx.shape[:2]) or not np.allclose(rx, self.rx.cpu().numpy(), atol=1e-6):
                 raise RuntimeError("p410_ms_dir receivers differ from this run's")
-            self._p410_mm = np.load(d / "H.npy", mmap_mode="r")
+            t0 = time.time()
+            self._p410_mm = np.load(d / "H.npy", mmap_mode=None if cfg.p410_in_ram else "r")
+            print("[p410] ms corpus {} in {:.0f}s".format("in RAM" if cfg.p410_in_ram else "memory-mapped", time.time() - t0),
+                  flush=True)
             if list(self._p410_mm.shape) != idx["shape"] or self._p410_mm.shape[:2] != src.shape[:2]:
                 raise RuntimeError("p410_ms_dir shapes disagree")
             own = (self.src_per if self.src_per is not None else self.src.unsqueeze(0).expand(len(names), -1)).cpu().numpy()
@@ -1357,7 +1362,7 @@ class P32Trainer:
         V = idx["n_variants"]
         if V != (2 if kind == "str" else 1) * len(names):
             raise RuntimeError("{}: {} variants".format(d, V))
-        mm = np.load(d / "H.npy", mmap_mode="r")
+        mm = np.load(d / "H.npy", mmap_mode=None if self.cfg.p410_in_ram else "r")
         if list(mm.shape) != idx["shape"]:
             raise RuntimeError("{} shape {} vs index {}".format(d, mm.shape, idx["shape"]))
         conds, dims = [], []

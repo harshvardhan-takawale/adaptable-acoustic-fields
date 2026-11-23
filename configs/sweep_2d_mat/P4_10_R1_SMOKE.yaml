@@ -48,4 +48,5 @@ lr_restart_from_iter: 120000
 p49_mode: ctl
 p49_recip_p: 0.25
 p410_ms_dir: /fs/nexus-scratch/htakawal/aaf_p410/ms_mm
+p410_in_ram: true
 p410_row_jitter: true

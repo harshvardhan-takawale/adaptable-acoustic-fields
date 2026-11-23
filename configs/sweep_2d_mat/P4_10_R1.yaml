@@ -1,6 +1,6 @@
 # P4-10 R1 (D195 2a, D197 A1-A4): the source fix. RCP's config (R0 @120K warm start, CTL's lr restart, swaps p 0.25) plus
 # the MS corpus (4 sources per room, memory-mapped) and one jitter per row. Trained in env `aaf` (A3). GENERATED from
-# P4_9_RCP.yaml -- differs ONLY in run_id, ckpt_every (2500, so +5K = 125K has a checkpoint; spec: every 2K), ckpt_keep_every, and the two p410 keys. Reads at 125K / 130K / 140K / 150K
+# P4_9_RCP.yaml -- differs ONLY in run_id, ckpt_every (2500, so +5K = 125K has a checkpoint; spec: every 2K), ckpt_keep_every, and the p410 keys (p410_in_ram is memory placement, not a numeric change). Reads at 125K / 130K / 140K / 150K
 # (+5K / +10K / +20K / +30K); every other arm is this file plus one key. Output: outputs/p4_10/arms/R1.
 run_id: p4_10_R1
 rooms_yaml: configs/sweeps_2d_mat/p3_2_train.yaml
@@ -48,4 +48,5 @@ lr_restart_from_iter: 120000
 p49_mode: ctl
 p49_recip_p: 0.25
 p410_ms_dir: /fs/nexus-scratch/htakawal/aaf_p410/ms_mm
+p410_in_ram: true
 p410_row_jitter: true
