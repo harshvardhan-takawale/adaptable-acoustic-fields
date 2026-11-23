@@ -20,6 +20,9 @@ Directional r = Re of the normalised complex inner product with FDTD grad p / (j
 | DIR_150K per-ray | 0.922 / 0.833 / 0.797 | 0.946 |
 | DIR_150K omni-FD | 0.837 / 0.741 / 0.751 | 0.845 |
 | DIR_150K proj-FD | 0.947 / 0.852 / 0.808 | 0.956 |
+| DIRG_150K per-ray | 0.832 / 0.807 / 0.787 | 0.903 |
+| DIRG_150K omni-FD | 0.935 / 0.817 / 0.785 | 0.944 |
+| DIRG_150K proj-FD | 0.951 / 0.852 / 0.808 | 0.960 |
 
 ### Unseen (16)
 
@@ -37,6 +40,9 @@ Directional r = Re of the normalised complex inner product with FDTD grad p / (j
 | DIR_150K per-ray | 0.642 / 0.596 / 0.609 | 0.711 |
 | DIR_150K omni-FD | 0.570 / 0.539 / 0.580 | 0.615 |
 | DIR_150K proj-FD | 0.657 / 0.620 / 0.625 | 0.708 |
+| DIRG_150K per-ray | 0.546 / 0.572 / 0.602 | 0.673 |
+| DIRG_150K omni-FD | 0.638 / 0.602 / 0.610 | 0.690 |
+| DIRG_150K proj-FD | 0.654 / 0.628 / 0.630 | 0.707 |
 
 ### U (8)
 
@@ -54,6 +60,9 @@ Directional r = Re of the normalised complex inner product with FDTD grad p / (j
 | DIR_150K per-ray | 0.658 / 0.620 / 0.656 | 0.714 |
 | DIR_150K omni-FD | 0.598 / 0.563 / 0.624 | 0.632 |
 | DIR_150K proj-FD | 0.680 / 0.642 / 0.671 | 0.719 |
+| DIRG_150K per-ray | 0.563 / 0.593 / 0.649 | 0.678 |
+| DIRG_150K omni-FD | 0.663 / 0.619 / 0.656 | 0.703 |
+| DIRG_150K proj-FD | 0.681 / 0.647 / 0.677 | 0.721 |
 
 ### C3 (8)
 
@@ -71,4 +80,7 @@ Directional r = Re of the normalised complex inner product with FDTD grad p / (j
 | DIR_150K per-ray | 0.626 / 0.572 / 0.563 | 0.709 |
 | DIR_150K omni-FD | 0.543 / 0.515 / 0.536 | 0.598 |
 | DIR_150K proj-FD | 0.633 / 0.598 / 0.579 | 0.697 |
+| DIRG_150K per-ray | 0.529 / 0.551 / 0.555 | 0.668 |
+| DIRG_150K omni-FD | 0.612 / 0.585 / 0.565 | 0.676 |
+| DIRG_150K proj-FD | 0.628 / 0.609 / 0.582 | 0.693 |
 

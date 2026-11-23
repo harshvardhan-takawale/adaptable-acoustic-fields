@@ -16,5 +16,17 @@ Directional r = Re rho vs FDTD grad p / (jk), receivers >= 0.5 m from the source
 **C3 (exploratory): does not hold** -- UF 25-100 Hz +0.004 [-0.002, +0.010].
 Levels (Rule 12): DIR_150K HF 0.587, UF 0.471 / 0.369 / 0.367; CTL_150K HF 0.583, UF 0.467 / 0.376 / 0.373
 
-**DIRG_150K**: no directional render yet.
+## DIRG_150K vs CTL_150K
+
+| band | arm readout (level) | CTL bar (level) | delta in-family [95% CI] | delta unseen [95% CI] | band |
+|---|---|---|---|---|---|
+| 25-100 Hz | proj-FD (0.951) | proj-FD (0.945) | +0.006 [+0.005, +0.007] | +0.005 [+0.002, +0.008] | -- |
+| 100-200 Hz | proj-FD (0.852) | proj-FD (0.849) | +0.003 [+0.002, +0.005] | +0.006 [+0.002, +0.010] | -- |
+| 200-300 Hz | proj-FD (0.808) | proj-FD (0.806) | +0.003 [+0.001, +0.004] | +0.001 [-0.003, +0.005] | -- |
+
+**E2 (D188, primary): FAILS** (0 of 3 bands). Literal reading (CTL bar = raw-FD only, labelled): passes (3 of 3).
+
+**C2 (no harm): HOLDS** -- HF +0.005 [+0.003, +0.007]; UF_25-100 +0.004 [-0.003, +0.010]; UF_100-200 +0.006 [+0.002, +0.011]; UF_200-300 +0.002 [-0.002, +0.006].
+**C3 (exploratory): does not hold** -- UF 25-100 Hz +0.004 [-0.003, +0.010].
+Levels (Rule 12): DIRG_150K HF 0.588, UF 0.471 / 0.382 / 0.375; CTL_150K HF 0.583, UF 0.467 / 0.376 / 0.373
 

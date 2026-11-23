@@ -56,6 +56,10 @@ Sections below are filled as each step lands.
 * Solve time vs band: 0.3 s (300 Hz), 3.2 s (600 Hz), 62 s (1 kHz), > 30 min (2 kHz).
 
 [F7_fast_physics.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F7_fast_physics.png).
+**DIR-G @150K (I11 part 2): E2 FAILS (0 of 3), fallback recorded; C2 HOLDS.** Best readout +0.006 / +0.003 / +0.003 over CTL's projected gradient.
+
+**RCP @150K (X3b, D191): S1 HOLDS (+0.266), S2 HOLDS (+0.267), C2 HOLDS (25-100 Hz).** Above 100 Hz RCP stays below "ignore the move" (in-family 0.191 / 0.098 vs 0.211 / 0.247); reciprocity gap closed partially (0.758 / 0.343 / 0.227 vs R0 0.167 / 0.050 / 0.027).
+
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
 
 **2a S2X @150K (interim):** HF 0.510, UF 0.496 / 0.417 / 0.402 (S2 @120K 0.502 / 0.501; HF +0.007 [+0.002, +0.012], UF -0.005 [-0.009, -0.000]). The 240K test needs HF >= 0.56 AND UF >= 0.49; UF holds now, HF is 0.050 short. **2b CTL @150K (final):** HF 0.583, UF 0.467 / 0.376 / 0.373, flat vs R0 (HF +0.002 [-0.003, +0.006]); train-room fit 0.670 (R0 0.645).

@@ -28,6 +28,30 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-23 (14:10) — I11 part 2 (DIR-G) and RCP @150K (X3b): DIR-G also FAILS E2 (fallback recorded); RCP MEETS its pre-registered bars at 25-100 Hz but stays below "ignore the move" above 100 Hz
+
+**Headline:** Two arms trained for sound direction (DIR and DIR-G) do not beat what an ordinary model already gives by differentiating its own sound field. So first-order direction comes from the field, not from directional training. Separately, training with source/listener swaps (RCP) makes the model far better at a moved source than its plain continuation at low frequencies (25-100 Hz: +0.27 in both known and unseen rooms, against a +0.10 / +0.05 bar), with no harm elsewhere. Above 100 Hz it still does worse than not moving the source at all, so swaps alone do not solve source editing. R1 (multi-source data + swaps) is next.
+
+**DIR-G @150K (E2 / C2 / C3, D188):**
+- **E2 FAILS, 0 of 3 bands.** DIR-G's best readout (projected omni gradient) 0.951 / 0.852 / 0.808 against CTL's 0.945 / 0.849 / 0.806: +0.006 / +0.003 / +0.003 (bar +0.05). Literal reading (raw-FD bar): passes 3 of 3, the projection trap again.
+- **C2 HOLDS:** HF +0.005 [+0.003, +0.007]; UF +0.004 / +0.006 / +0.002. C3 does not hold (+0.004 [-0.003, +0.010]).
+- **Levels (Rule 12):** DIR-G HF 0.588, UF 0.471 / 0.382 / 0.375; CTL HF 0.583, UF 0.467 / 0.376 / 0.373.
+- **E2's pre-registered fallback is therefore recorded:** first-order direction comes from the field (R0 / CTL zero-shot projected gradient) without directional supervision. DIR and DIR-G close. F4 follows with the P4-9 meeting pack.
+
+**RCP @150K (D191, vs CTL @150K, paired over rooms):**
+
+| reading | second source, 25-100 Hz | 100-200 Hz | 200-300 Hz |
+|---|---|---|---|
+| **S1 (in-family 15, bar +0.10): HOLDS** | +0.266 [+0.228, +0.307] | +0.123 [+0.086, +0.160] | +0.051 [+0.029, +0.075] |
+| **S2 (unseen 16, bar +0.05): HOLDS** | +0.267 [+0.217, +0.312] | +0.094 [+0.057, +0.132] | +0.062 [+0.039, +0.087] |
+| RCP level (in-family) / "ignore the move" | **0.487** / 0.311 | **0.191** / 0.211 | **0.098** / 0.247 |
+
+- **C2 HOLDS:** HF -0.001 [-0.004, +0.002]; UF +0.011 / +0.009 / +0.006.
+- **Reciprocity gap (D193):** RCP's swapped render 0.758 / 0.343 / 0.227 in-family (R0 0.167 / 0.050 / 0.027; normal 0.920 / 0.705 / 0.582); unseen 0.434 / 0.290 / 0.229.
+- **Reading:** swaps alone largely fix reciprocity and the 25-100 Hz band, but above 100 Hz RCP is below "ignore the move" in both sets. That agrees with E2 (D194): a moved source beyond the augmentation's reach needs multi-source data.
+
+Links: [e2_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/e2_read.md) · [x3_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/x3_read.md) · [recip_gap.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/recip_gap.md)
+
 ## 2026-11-23 (13:06) — CORRECTIONS to the P4-9 record (D194), read before forwarding anything from the last two days
 
 **Headline:** Re-checking last night's reports turned up errors. Three change what can be claimed. (1) We said every training corpus uses a single sound source. That is false: half of the meeting model's training rooms each use their own source position; what is true is one source per room. (2) The result that "training with source/listener swaps largely fixes source moves" is not supported. The test source position is exactly the mirror image the older model's flips had already trained on. The clean run with swaps only (RCP) helps below 100 Hz and stays below "do nothing" above it. (3) We said the larger model was unlikely to reach its target. It now reads 0.553 at 210K against a 0.56 target at 240K.
