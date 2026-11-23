@@ -28,7 +28,7 @@ Sections below are filled as each step lands.
 
 **2c NMF kill read (I13): passes** after the NaN fix (D186): in-family off-lattice r at 25-100 Hz 0.796 at 10K (>= 0.70), 0.840 at 20K; R0 0.918 on the same rooms. Unseen r pending.
 
-**2b interim @130K:** CTL HF 0.575, UF 0.464; DIR HF 0.576, UF 0.471 (R0 @120K: 0.582 / 0.468).
+**2b interim @130K:** CTL HF 0.575, UF 0.464; DIR HF 0.576, UF 0.471 (R0 @120K: 0.582 / 0.468). **@140K:** CTL HF 0.582, UF 0.466; DIR HF 0.585, UF 0.471; DIR-G @130K HF 0.578, UF 0.473. The directional terms cost nothing on the omni field so far; E2 / C2 / C3 are read at 150K.
 
 **2c feasibility (I9): GO.** S-b holds (24 modes: 0.984 in family at 25-100 Hz). Error budget: in-family >= 0.90 needs eigenfrequencies within ~2% and mode shapes within delta ~0.1; unseen >= 0.60 tolerates 5% / delta 0.4. [feasibility.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/feasibility.md).
 ## Suggestions S-1 to S-4

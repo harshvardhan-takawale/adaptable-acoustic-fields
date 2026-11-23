@@ -73,12 +73,13 @@ def main():
     axes[1].set_ylim(0.40, 0.56)
     for ax in axes:                            # end labels, pushed apart so arms that end together stay legible
         lo_, hi_ = ax.get_ylim()
-        gap = 0.03 * (hi_ - lo_)
+        gap = 0.045 * (hi_ - lo_)
         ends = sorted(ax.ends_, key=lambda e: (e[0], e[2]))
         ys = [e[0] for e in ends]
-        for i in range(1, len(ys)):
-            if ends[i][1] == ends[i - 1][1] or abs(ends[i][1] - ends[i - 1][1]) < 15:
-                ys[i] = max(ys[i], ys[i - 1] + gap)
+        for i in range(1, len(ys)):                # against EVERY lower label that ends within 15K steps
+            for j in range(i):
+                if abs(ends[i][1] - ends[j][1]) < 15:
+                    ys[i] = max(ys[i], ys[j] + gap)
         for (y0, x0, s), yl in zip(ends, ys):
             ax.text(x0 + 3, yl, s, color="#333333", fontsize=12, va="center")
     for ax in axes:

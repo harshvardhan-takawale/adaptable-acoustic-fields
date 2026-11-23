@@ -28,6 +28,26 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (night, 3) — trajectory read: CTL / DIR @140K, DIR-G @130K (interim; no verdict) -> F0
+
+**Headline:** Teaching the network to output sound direction so far costs nothing on its ordinary (omnidirectional) field. After 20K extra steps, the directional arms match the plain continuation (CTL) and the starting model R0 to within 0.01 everywhere. Whether they gain DIRECTION accuracy is read at 150K.
+
+| arm (read) | in-family test r 25-100 / 100-200 / 200-300 Hz (HF = 200-300) | unseen UF 25-100 / 100-200 / 200-300 Hz | train-room fit 200-300 Hz |
+|---|---|---|---|
+| R0 @120K (start) | 0.918 / 0.701 / **0.582** | **0.468** / 0.380 / 0.371 | 0.645 |
+| CTL @140K | 0.918 / 0.706 / **0.582** | **0.466** / 0.377 / 0.370 | 0.659 |
+| DIR @140K | 0.916 / 0.709 / **0.585** | **0.471** / 0.370 / 0.365 | 0.665 |
+| DIR-G @130K | 0.918 / 0.700 / **0.578** | **0.473** / 0.384 / 0.377 | 0.641 |
+| S2 @120K (reference) | 0.908 / 0.652 / 0.502 | 0.501 / 0.419 / 0.404 | 0.523 |
+
+- Interim reads, no pass rules. E2's pass rule, C2 and C3 are read on the 150K checkpoints (I11).
+- The restart dip at 130K has recovered by 140K for CTL and DIR.
+- Train-room fit at 200-300 Hz keeps rising slowly (0.645 -> 0.659 / 0.665). This is the exposure curve in Q25.
+- S2X (S2 continued to 240K) is at about 146K; its first pre-registered read is at 180K, with an interim at 150K.
+- The duplicate CTL 150K watcher was stopped (PID 846444), so each 150K eval launches once.
+
+Links: [F0_trajectory.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F0_trajectory.png)
+
 ## 2026-11-22 (late night, 2) — I14: NMF / NMF-P fail N1 and N2 -> F5; S-1 final: sharing one model across rooms, not the renderer, caps 200-300 Hz
 
 **Headline:** The physics-structured network (NMF) predicts a room's resonant modes and builds the sound field from them. It does not beat the plain network: 0.85 in known room shapes (plain network 0.92) and 0.45 in unseen ones (0.47). Adding physics losses on its modes changes nothing. The pictures show one way it fails: in both unseen rooms shown, it gets the first mode right but has no counterpart for the second (the first mode across the room's width). Each later predicted mode resembles the true mode one place further on. Separately, the plain network trained on ONE room fits it at 0.93-0.95 at 200-300 Hz, against 0.58-0.65 for the model shared across 1000 rooms. The renderer can represent these fields; sharing is what limits them.
