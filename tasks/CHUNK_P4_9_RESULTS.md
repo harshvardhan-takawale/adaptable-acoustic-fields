@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill reads), I3, I7, S-3, S-4 in; S-1 interim (10K pending); I5 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill reads), I3, I7, S-3, S-4, S-1, I14 (NMF N1 / N2) in; I5 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -24,6 +24,8 @@ Sections below are filled as each step lands.
 **I7 (D183 readings):** P1 FAILS (M1 at K = 32: unseen 0.597 R0 / 0.635 S2 < 0.65; M2 0.807 / 0.839). P2 HOLDS (R0 given only the bounding box beats physics given it: M2-iii - M4-iii +0.392 / +0.274 / +0.203, CIs > 0). P3 FAILS (M1 - M5 at 200-300 Hz: +0.142 at K = 8, -0.008 at 16, -0.313 at 32). Geometry-free Helmholtz kernel ridge (M5) at K = 32: 0.952 / 0.868 / 0.796, above every network method; physics with exact geometry 0.977 / 0.971 / 0.959 at any K. Realism (20 dB + 2 cm) leaves the network fits unchanged and costs M5 0.07 at 200-300 Hz. [grounding.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/step1/grounding.md) · [F1](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F1_grounding.png).
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
 
+**2c NMF N1 / N2 (I14): both FAIL.** NMF @30K 0.848 in-family / 0.451 unseen; NMF-P 0.828 / 0.438 (N1 bars 0.90 / 0.60). NMF-P - NMF on unseen -0.013 [-0.034, +0.007] (N2 needs >= +0.03). NMF - R0 on unseen -0.016 [-0.061, +0.031]; NMF - S2 -0.050 [-0.093, -0.002]. References: R0 0.918 / 0.468, S2 0.501 unseen, m1 0.978. Oracle decomposition (D187): with exact shapes + NMF k 0.544 / 0.484, NMF shapes + exact k 0.475 / 0.413, all exact 0.983 / 0.974 -> errors interact, neither half named. F5: in both median unseen rooms NMF has no counterpart of true mode 2 (the first width mode). [readings.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/readings.json) · [oracle.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/oracle.md) · [F5](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F5_nmf_modes.png).
+
 **2c NMF kill read (I13): passes** after the NaN fix (D186): in-family off-lattice r at 25-100 Hz 0.796 at 10K (>= 0.70), 0.840 at 20K; R0 0.918 on the same rooms. Unseen r pending.
 
 **2b interim @130K:** CTL HF 0.575, UF 0.464; DIR HF 0.576, UF 0.471 (R0 @120K: 0.582 / 0.468).
@@ -35,7 +37,7 @@ Sections below are filled as each step lands.
 
 **S-4 (sm_86/89 tinycudann, env `aaf_sm89`): parity HOLDS** -- R0 @120K dense in-family 0.9185 / 0.7009 / 0.5818 in both envs (delta 0.0000; max relative field difference 3.9e-6); training 0.761 -> 0.573 s/it (1.33x). Adoption from P4-10 (E8). [s4_parity.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/s4_parity.md).
 
-**S-1 (D185) interim @4K:** one-room training, 200-300 Hz on that room: 0.911 (lowest-fit room; R0 0.581) and 0.937 (median room; R0 0.645); LSD 1.5 / 1.3 dB vs R0 4.0 / 3.8. Already above D185's +0.10 bar; the pre-registered 10K read is pending.
+**S-1 (D185) final @10K: NOT the renderer cap.** One-room training, 200-300 Hz on that room: 0.931 (lowest-fit room; R0 0.581) and 0.953 (median room; R0 0.645), +0.350 / +0.308 against the +0.10 bar; LSD 1.3 / 1.0 dB vs R0 4.0 / 3.8; converged (4K -> 10K +0.020 / +0.016 <= 0.03). The one-room models read 0.15 / 0.17 on the other 22 fit rooms. Capacity vs per-room exposure is open (Q25); R0's own fit trajectory (0.443 / 0.556 / 0.612 / 0.645 at 30-120K, CTL 0.659 at 140K) says exposure helps slowly.
 ## Engineering
 
 All default-off, Rule-8 tested (D182(e)): warm start + closed-form LR restart; the P4-9 step with a dedicated batch generator (CTL / DIR / DIR-G draw identical batches and jitters); DIR (per-ray readout) and DIR-G (finite-difference omni gradient) terms with a calibrated, checkpointed weight; the 601-bin inference path; per-ray output; the per-token override (M1); the projection's padded-grid return + exact band-limited evaluation; FDTD stencil reruns (exact); m1 modal solves on perturbed geometries; pooled training launches.

@@ -2409,3 +2409,17 @@ The suggestions E8 refers to: **S-1** a single-room 200-300 Hz ceiling test (is 
 Regression tests: `test_soft_cutoff_gradient_finite_just_below_kb` (finite, bounded gradient at k_b (1 - eps) for eps down to 0; s^2 = w within 1e-6) and `test_kill_rule_treats_nan_as_failing`.
 
 (d) **Relaunch:** NMF and NMF-P from step 0, same configs, gated on the NMF test file passing on a GPU. I13 / I14 slip by the lost time (~3 h).
+
+**D187 — P4-9 2c: NMF oracle decomposition, recorded after the N1 / N2 reads and before the decomposition is computed** (descriptive, no pass rule; `scripts/p4_9_nmf_oracle.py`).
+
+(a) **Why:** N1 and N2 fail (NMF @30K unseen 25-100 Hz r 0.451, in-family 0.848; NMF-P 0.438 / 0.828). The eval shows eigenfrequency MAE ~6 Hz on the first 10 modes but subspace overlap 0.86-0.91. Which half of the model costs the accuracy decides what any NMF follow-up should fix, and the split costs one GPU-minute per arm.
+
+(b) **Definition:** on the 31 dense rooms, bins 50-199 (25-100 Hz), off-lattice receivers, the frozen scorer. Four fields from m1's formula (`NMF2D.field`, same zero mode, pulse and constant):
+* **pred**: the NMF's k, eta, mode shapes at receivers and source (reproduces the eval);
+* **true shapes + pred k**: m1's first 24 non-zero eigenpairs (shapes, eta, source values) with the NMF's k, paired by sort order;
+* **pred shapes + true k**: the NMF's shapes and eta with m1's first 24 non-zero k;
+* **all true**: m1 truncated to 24 modes (the ceiling of the 24-mode form; the I9 S-b check read 0.984 in family).
+
+Pairing by sort order is a fixed choice: the k head is sorted, and modes that swap order count as errors of the k head.
+
+(c) **Reading (fixed now):** whichever single substitution recovers more of the gap between pred and all-true is named the bottleneck. If both recover less than half of the gap, the errors interact and neither half alone is named.

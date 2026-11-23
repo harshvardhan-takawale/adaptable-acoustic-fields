@@ -28,6 +28,47 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (late night, 2) — I14: NMF / NMF-P fail N1 and N2 -> F5; S-1 final: sharing one model across rooms, not the renderer, caps 200-300 Hz
+
+**Headline:** The physics-structured network (NMF) predicts a room's resonant modes and builds the sound field from them. It does not beat the plain network: 0.85 in known room shapes (plain network 0.92) and 0.45 in unseen ones (0.47). Adding physics losses on its modes changes nothing. The pictures show one way it fails: in both unseen rooms shown, it gets the first mode right but has no counterpart for the second (the first mode across the room's width). Each later predicted mode resembles the true mode one place further on. Separately, the plain network trained on ONE room fits it at 0.93-0.95 at 200-300 Hz, against 0.58-0.65 for the model shared across 1000 rooms. The renderer can represent these fields; sharing is what limits them.
+
+- **N1 / N2 (D180, D184; 25-100 Hz, off-lattice; 15 in-family / 16 unseen dense rooms):**
+  - **N1 fails** (needs in-family >= 0.90 AND unseen >= 0.60): NMF @30K **0.848 / 0.451**; NMF-P @30K **0.828 / 0.438**.
+  - **N2 fails:** NMF-P - NMF on unseen **-0.013 [-0.034, +0.007]** (needs >= +0.03, CI > 0). The physics losses on the modes do not help.
+  - Against the networks on unseen rooms: NMF - R0 -0.016 [-0.061, +0.031] (NMF ahead in 4 / 16 rooms); NMF - S2 -0.050 [-0.093, -0.002].
+  - Reference levels (Rule 12): R0 0.918 in-family / 0.468 unseen; S2 0.501 unseen; m1 with exact inputs 0.978.
+  - Trajectory (NMF; in-family / unseen): 10K 0.796 / 0.424 -> 20K 0.840 / 0.450 -> 30K 0.848 / 0.451. Unseen has plateaued.
+  - Eigenfrequency MAE, first 10 modes (in-family / unseen): NMF 5.6 / 6.1 Hz, NMF-P 6.9 / 6.8 Hz. Subspace overlap: NMF 0.91 / 0.86, NMF-P 0.88 / 0.86.
+- **Oracle decomposition (D187; recorded after N1 / N2, before computing; descriptive).** Each half of the NMF is replaced in turn by m1's exact eigenpairs, 24 modes paired by sort order.
+
+  | rooms | NMF | true shapes + NMF k | NMF shapes + true k | all true (24 modes) |
+  |---|---|---|---|---|
+  | in-family | 0.848 | 0.544 | 0.475 | 0.983 |
+  | unseen | 0.451 | 0.484 | 0.413 | 0.974 |
+
+  - Either substitution LOWERS the in-family field.
+  - **D187(c) reading: the errors interact; neither half is named as the bottleneck.** The NMF's eigenfrequencies and shapes are co-adapted: they work as a pair but not with the true other half. NMF-P reads the same way (oracle.md).
+- **F5 (each family's median-r unseen room, NMF @30K).** True modes 1-6 sit above predicted modes 1-6, both sorted by frequency. Each predicted mode's title also names its best-correlated true mode among the first 10.
+  - Mode 1 is right in both rooms (|r| 0.97 / 0.98).
+  - True mode 2 (U 32.9 Hz, C3 38.9 Hz; the first mode across the width) has no counterpart.
+  - U: predicted modes 2-4 match true modes 3-5 at |r| 0.95 / 0.86 / 0.82, one place on.
+  - C3: the shapes past mode 1 are weaker (|r| 0.62-0.78).
+  - Seen in both rooms shown; whether it is systematic across rooms is not yet tested.
+- **S-1 final (D185; read at 10K): NOT the renderer cap.**
+
+  | room | R0 @120K (1000 rooms) | S-1 @10K (this room only) | S-1 - R0 at 200-300 Hz |
+  |---|---|---|---|
+  | lowest 200-300 Hz fit | 0.952 / 0.712 / **0.581**; LSD 4.0 dB | 0.996 / 0.964 / **0.931**; 1.3 dB | **+0.350** |
+  | median fit | 0.955 / 0.779 / **0.645**; 3.8 dB | 0.997 / 0.971 / **0.953**; 1.0 dB | **+0.308** |
+
+  - Both clear the +0.10 bar.
+  - Converged: the 4K -> 10K rise is +0.020 / +0.016, within 0.03, so there is no extension.
+  - The one-room models read 0.15 / 0.17 at 200-300 Hz on the other 22 fit rooms: they specialise, as they should.
+  - S-1 cannot separate shared capacity from per-room exposure (about 83x R0's per room).
+  - R0's own fit trajectory (0.443 / 0.556 / 0.612 / 0.645 at 30-120K; CTL 0.659 at 140K) says exposure helps but slowly. This is Q25 for the manager: OPEN_QUESTIONS.md.
+
+Links: [readings.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/readings.json) · [oracle.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/oracle.md) · [F5_nmf_modes.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F5_nmf_modes.png) · [S1lo_10K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/train_offlat_fit/S1lo_10K.json) · [S1med_10K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/train_offlat_fit/S1med_10K.json) · [OPEN_QUESTIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/OPEN_QUESTIONS.md)
+
 ## 2026-11-22 (late night) — S-3: the network does not generalise to a moved source; S-4: the faster GPU build is exact and 1.33x faster; S-1 interim: one-room training reaches 0.91-0.94 at 200-300 Hz
 
 **Headline:** Every room the network has trained on had its sound source at the same spot. When we move the source in the unseen test rooms, the network's accuracy below 100 Hz drops from 0.47 to 0.17. That is no better than leaving its old-source answer unchanged, and worse than reusing the true field from the old position (0.36). Physics does not care where the source is (0.98 at both positions). Separately, a recompiled GPU library gives identical results and trains 1.33x faster. In an early read (pre-registered read pending), the same network trained on one room alone reaches 0.91-0.94 at 200-300 Hz on that room, against 0.58-0.65 for the shared 1000-room model. So the renderer is not what limits 200-300 Hz.

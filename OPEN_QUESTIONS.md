@@ -190,3 +190,16 @@ m1 found that the solver's own operator, solved once per room in a modal basis (
 * (c) The INR's target shifts to what physics cannot give cheaply (e.g. real-time rendering of many rooms, inverse problems).
 
 **Not acted on beyond m3, as pre-registered.** One concrete probe would make m3 informative under (a): perturb the prior (beta x 0.5 / x 2, or geometry snapped to 10 cm) and measure whether the residual network recovers the truth. m1 already shows what the unaided prior loses under a beta error of 2x: 0.02-0.09 r and 1-2.4 dB.
+
+### Q25 — The 200-300 Hz fit cap comes from sharing one model across rooms (S-1, D185). Is it shared capacity or per-room exposure? *(P4-9 S-1; the manager's call)*
+
+**Finding:** R0's recipe trained on ONE room reaches 200-300 Hz off-lattice r 0.931 / 0.953 on it (LSD 1.3 / 1.0 dB) at 10K, converged. R0, which shares one model across 1000 rooms, reads 0.581 / 0.645 (4.0 / 3.8 dB) on the same rooms. So the renderer can represent these fields; sharing is what caps them. S-1 cannot say WHICH consequence of sharing does it. The one-room run gets about 83x R0's per-room exposure, and it also has the whole model to itself.
+
+**What already speaks to exposure (free, from P4-9's own reads):** R0's fit to the same 23 training rooms at 200-300 Hz rises 0.443 / 0.556 / 0.612 / 0.645 at 30K / 60K / 90K / 120K. CTL, which is R0 continued, reads 0.659 at 140K: still rising, now about +0.015 per 10K steps and slowing. So exposure helps. But even at the current rate, without further slowing, closing the remaining 0.29 to S-1's level would take about 190K more steps. Exposure alone is not a practical lever.
+
+**Options for P4-10 (not acted on):**
+* (a) Capacity at fixed exposure: R0 with a wider decoder (2x hidden) on the same 1000 rooms, read against R0's trajectory at matched steps (60K / 120K).
+* (b) Per-room adapters (FiLM heads per room, as in Step 1's M2) on 1000 rooms. This is the deployable form of "more capacity per room"; Step 1 already shows M2 lifting unseen 25-100 Hz from 0.47 to 0.81 with 32 measurements.
+* (c) Fewer rooms at fixed steps (R0's recipe on 200 and 50 GX rooms, 120K). This confounds capacity and exposure, but it maps the fit-versus-sharing curve between R0 (1000) and S-1 (1).
+
+The S-4 build (1.33x throughput, parity exact) makes any of these cheaper from P4-10.
