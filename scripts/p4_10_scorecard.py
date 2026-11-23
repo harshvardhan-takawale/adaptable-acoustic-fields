@@ -77,8 +77,11 @@ class Renderer:
         self.renderer.eval()
         self.name = name
 
-    def render(self, verts, L, W, alphas, src, rx, chunk=32):
+    def render(self, verts, L, W, alphas, src, rx, chunk=None):
+        import os
+
         from aaf.models.conditioning_2d import build_cond_vector_2d
+        chunk = int(os.environ.get("P410_CHUNK", "32")) if chunk is None else chunk
         t = self.torch
         z = build_cond_vector_2d("geom_token", L, W, list(alphas), verts=[tuple(map(float, v)) for v in verts],
                                  device=self.dev)
@@ -245,6 +248,41 @@ def source_gap(name, lite=False, groups=("test", "unseen")):
     return out
 
 
+def material_slope(name, lite=False, group="test"):
+    """decay-rate edit slope (MM1): over every Material cell of the group, the regression of the predicted change in mean
+    1/T30 (Pe - P0) on the true change (Te - T0), per octave band and pooled, with Pearson; NaN cells (truth too long for
+    the gate) are dropped and counted."""
+    pts = {b: [] for b in ("63", "125", "250")}
+    n_drop = 0
+    for c in cells(["Material"], lite):
+        if c["group"] != group:
+            continue
+        f = SC / name / (cid(c) + ".json")
+        if not f.exists():
+            continue
+        d = json.loads(f.read_text()).get("decay", {})
+        for b in pts:
+            e = d.get(b, {})
+            t, p = e.get("rate_Te", np.nan) - e.get("rate_T0", np.nan), e.get("rate_Pe", np.nan) - e.get("rate_P0", np.nan)
+            if np.isfinite(t) and np.isfinite(p):
+                pts[b].append((t, p))
+            else:
+                n_drop += 1
+    out = {"n_dropped_cells_bands": n_drop, "bands": {}}
+    allt, allp = [], []
+    for b, v in pts.items():
+        if len(v) >= 4:
+            x, y = np.array(v).T
+            allt += list(x)
+            allp += list(y)
+            sl, ic = np.polyfit(x, y, 1)
+            out["bands"][b] = {"slope": float(sl), "pearson": float(np.corrcoef(x, y)[0, 1]), "n": len(v)}
+    if len(allt) >= 4:
+        x, y = np.array(allt), np.array(allp)
+        out["pooled"] = {"slope": float(np.polyfit(x, y, 1)[0]), "pearson": float(np.corrcoef(x, y)[0, 1]), "n": len(allt)}
+    return out
+
+
 def boot(v):
     v = np.asarray(v, float)
     idx = np.random.default_rng(SEED).integers(0, len(v), (NB, len(v)))
@@ -305,6 +343,13 @@ def aggregate(models, families, lite, tag):
             L.append("| ignore the edit (original truth) | {} | -- | 1 (by definition) |".format(g3("ignore_r")))
             if np.isfinite(e0["m1_r"]["25-100"][0]):
                 L.append("| m1 physics (reference) | {} | {} | -- |".format(g3("m1_r"), g3("m1_r_delta")))
+            if fam == "Material":
+                for m in models:
+                    ms = material_slope(m, lite, g if g == "test" else "unseen")
+                    if "pooled" in ms:
+                        L.append("decay-rate edit slope (true -> predicted change in 1/T30) -- {}: {} (pooled over cells and octaves; Pearson {:.2f}, n {})".format(
+                            m, "{:.2f}".format(ms["pooled"]["slope"]), ms["pooled"]["pearson"], ms["pooled"]["n"]))
+                        rep["families"][key].setdefault(m, {})["material_slope"] = ms
             if fam in ("StretchU", "StretchA"):
                 L.append("| naive warp of the original truth | {} | -- | -- |".format(g3("warp_r")))
             L.append("")
