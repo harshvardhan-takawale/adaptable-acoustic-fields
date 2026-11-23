@@ -2864,3 +2864,10 @@ Does a measurement fit survive an edit?
 * Dimensions are quantised to 0.02 m and the realised L and W scales are stored (A6): s = 0.90 on L 5.54 is realised as 0.8989.
 * A second skip rule was needed that the spec does not name: two notches closer than 1.0 m count as "the room narrows below 1.0 m" (2 cells).
 * "Longest wall" = the longest polygon edge, first in ring order on ties. Third source: feasible in all 31 rooms.
+
+**D199 — P4-10 A5 gate PASSES: per-edge absorption in the FDTD is validated (D197 A5); recorded before any Material number.**
+* **Bit-identity:** uniform alpha through the new `edges` spec reproduces the old coefficients exactly on all 31 dense rooms (`tests/test_p4_10_fdtd_edges.py`). On rectangles with four different wall alphas it equals the established per-wall solver to 0.0e+00.
+* **Independent second method (D54): an EXACT rectangle solution**, complex Newton on the separable locally-reacting problem, not a small-alpha expansion. Against the FDTD's own poles (stacked-Hankel ESPRIT on 16 receivers, 2 s, the first 0.12 s dropped; checked on synthetic modes), every mode in 15-115 Hz in 7 cases matches within 0.4% in decay and 0.04 Hz in frequency, alpha up to 0.70. The pole nearest in frequency (with a small decay-closeness weight) was matched; all modes matched.
+* **The old gate (P3-3 Part 0a, fail at 38.8%) measured against a first-order reference.** The exact solution departs from that formula by 2-9% at alpha 0.60 (0.9% to 9.4% across the modes sampled), in the old gate's direction. My own first measurement here (modal projection plus EDC) also misread overlapping modes and is not used.
+* **Robin wall residual** on L / U / C3 rooms with a different alpha per edge: right per-edge b 0.004 / 0.019 / 0.027; assuming 0.15 everywhere 0.065 / 0.121 / 0.117.
+* Consequence: the Material family is unblocked; R1-M's alpha range [0.08, 0.60] (D195) stands.

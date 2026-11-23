@@ -3,8 +3,8 @@
 Per cell: the edited room on its own dense lattice (the frozen sets' rule: 64 x 64 over the bounding box, 0.12 m from
 walls, > 0.15 m from reflex corners, snapped to the 2 cm nodes) AND the common receivers (the original room's off-lattice
 dense receivers inside the edited room, >= 0.1 m from its walls) -> one npz per cell on scratch. Source cells keep the
-original receivers. 'second' sources reuse the existing src2 file. Material cells need per-edge absorption (A5) and are
-built by the same script once the solver supports it (--family Material refuses until then).
+original receivers; 'second' sources reuse the existing src2 file. Material cells use the per-edge absorption spec (A5,
+D199) with the original receivers.
   --gate              parity: (i) the dense rule reproduces each stored room's receivers; (ii) an identity cell re-run
                       reproduces the stored H, error normalised by the BAND's own norm (bins >= 50), 3 rooms
   --idx I --chunk N   build cells I*N .. of the selected families  [--families StretchU+StretchA+Wall+Notch+Source]
@@ -59,22 +59,22 @@ def stored(c):
 
 
 def solver_room(L, W, verts, edge_alphas):
-    """geometry and extra_walls for a polygon; per-edge absorption only once A5 is in."""
+    """geometry and extra_walls for a polygon; non-0.15 absorption goes through the per-edge spec (A5, D199)."""
     from aaf.sim import fdtd_2d as F
     from aaf.sim.polygon_geom import polygon_contains
-    if len(set(edge_alphas)) > 1 or edge_alphas[0] != 0.15:
-        raise NotImplementedError("non-0.15 absorption needs the per-edge spec (A5)")
     nx, dxx = F._fit_axis(L, DX, "L")
     ny, dxy = F._fit_axis(W, DX, "W")
     assert abs(dxx - DX) < 1e-12 and abs(dxy - DX) < 1e-12, (L, W, dxx, dxy)
     ii, jj = np.meshgrid(np.arange(nx), np.arange(ny), indexing="ij")
     P = np.stack([ii * dxx, jj * dxy], -1)
     inside = polygon_contains(verts, P)
-    extra = [{"type": "mask", "solid": ~inside, "alpha": 0.15}] if (~inside).any() else None
+    extra = [{"type": "mask", "solid": ~inside, "alpha": 0.15}] if (~inside).any() else []
+    if any(abs(a - 0.15) > 1e-12 for a in edge_alphas):
+        extra = extra + [{"type": "edges", "verts": [tuple(v) for v in verts], "alphas": [float(a) for a in edge_alphas]}]
     geom = F.build_geometry(L, W, [0.15] * 4, dx=DX, extra_walls=extra)
     bad = int((geom.air != inside).sum())
     assert bad == 0, bad
-    return extra
+    return extra or None
 
 
 def record(L, W, src, pts, extra):
