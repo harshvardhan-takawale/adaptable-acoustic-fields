@@ -1,14 +1,15 @@
 # P4-10 progress board
 
-Built 2026-11-23 16:08 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-23 16:58 (from JSON on disk; every read is a scored checkpoint).
 
-**Running jobs:** aaf_p4_5_eval x1, aaf_g2dense x1, aaf_oof x1, aaf_unseen_ev x1, aaf_s2x x1, aaf_r1 x1, aaf_r1s x1
+**Running jobs:** aaf_fit x1, aaf_r1 x1, aaf_r1s x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
 | read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
 |---|---|---|---|---|
-| R1_125K | pending | | | |
+| R1_125K | 0.536 | 0.483 / 0.393 / 0.377 | -0.047 [-0.054, -0.041] | +0.016 [+0.003, +0.028] |
+| R1_130K | pending | | | |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 
@@ -21,4 +22,5 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 
 | read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
 |---|---|---|---|---|
+| R1S_125K | pending | | | |
 
