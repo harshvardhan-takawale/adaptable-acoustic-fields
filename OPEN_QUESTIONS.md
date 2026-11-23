@@ -203,3 +203,13 @@ m1 found that the solver's own operator, solved once per room in a modal basis (
 * (c) Fewer rooms at fixed steps (R0's recipe on 200 and 50 GX rooms, 120K). This confounds capacity and exposure, but it maps the fit-versus-sharing curve between R0 (1000) and S-1 (1).
 
 The S-4 build (1.33x throughput; score parity <= 7.2e-6, but fp16 MLPs and training never compared -- D194) could make these cheaper from P4-10.
+
+### Q26 — Is amendment A7 (how T30 is measured) accepted, so that R1-M may launch? *(P4-10, D197; the manager's call; R1-M is HELD until it is answered)*
+
+**Why it needs an answer:** D197 says A7 "needs the manager's OK before R1-M launches", because it changes how MM2 (median |T30 error| <= 15%) is measured; MM1's decay-rate slope uses the same T30. No OK is on record.
+
+**What A7 does:** a 10 Hz cosine taper on each octave band, a record of at most 1.5 s, onset-shifted. Cells whose TRUTH does not reach -35 dB inside that window are dropped and counted, and the 250 Hz octave is clipped at 300 Hz. T20 is reported beside T30. Without it, a raw band mask on the 2 s record reads T20 of 16-43 s; with it, shape 1000 reads T30 0.841 / 0.711 / 0.721 s against physics 0.842 / 0.695 / 0.692. **The choice that could favour the model is dropping cells**, so the dropped count must sit beside every MM1 / MM2 number.
+
+**Process slip:** R1-M (job 8542917) was launched without this OK and trained from 18:07 to 18:10 on 2026-11-23. It was requeued in held state at 18:10:23, before any checkpoint or read. The smoke run also preceded the OK. R0's posted Material decay numbers (P-e: slope -0.11, Pearson -0.64) already use A7's definition and stand or fall with it.
+
+**Options:** (a) accept A7: `scontrol release 8542917`, and R1-M starts again from step 0; (b) change the T30 definition: re-score R0's Material decay, then release; (c) drop R1-M: cancel the job. Training itself does not use T30, so (a) and (b) give the same weights; only the bars' measurement differs.

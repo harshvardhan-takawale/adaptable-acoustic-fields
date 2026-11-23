@@ -3,6 +3,16 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (18:10) — Correction: R1-M was launched before a required sign-off; it is now held
+
+**Headline:** The materials arm (R1-M) started training at 18:07 without the manager's OK on amendment A7 (how decay time is measured), which our own record (D197) requires first. We put it back on hold at 18:10:23, before any checkpoint or read, so no result depends on it. It restarts from step 0 once the manager answers Q26. R1 and R1-S are unaffected.
+
+- The commits "R1-M launched" (7fa8614) and "R1-M decay-slope table" (6742919) are superseded on R1-M's state by this entry; the table stays empty.
+- R0's Material decay numbers posted in I2 (P-e) use A7's definition, so they too are provisional until Q26 is answered.
+- Job 8542917: requeued, held (`scontrol release 8542917` starts it). Its watcher is idle, waiting for a checkpoint.
+
+Link: [OPEN_QUESTIONS.md (Q26)](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/OPEN_QUESTIONS.md)
+
 ## 2026-11-23 (17:52) — I4 (R1 +10K, R1-S +5K): R1 passes its learning check, keeps gaining on the moved source, and is paying a little static accuracy
 
 **Headline:** After 10K steps the source-fix model (R1) is still gaining on source moves: at the clean third source in known rooms it reaches 0.713 / 0.391 / 0.279 (25-100 / 100-200 / 200-300 Hz), up from 0.648 / 0.342 / 0.202 at +5K, and the gap to its own static accuracy has narrowed to 0.19 / 0.26 / 0.27 (bar: at most 0.10 in every band, read at +30K). Its accuracy at the original source, the price of training on several positions, is 0.024 below the plain continuation at the same step count (HF 0.550 against 0.575), while unseen rooms are up. The second arm, R1-S (stretched rooms mixed in), reached its first checkpoint; at +5K it is level with R1 on stretch edits, as expected that early.
