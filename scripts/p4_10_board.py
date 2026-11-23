@@ -24,6 +24,7 @@ def ref_of(arm, step):
     return "CTL_150K" if arm == "R1" else "R1_{}K".format(step // 1000)
 
 
+REF_NOTE = "R1-M reads its primary metric on the Material lite cells"
 PRIMARY = {"R1": "in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)",
            "R1S": "r_delta on Stretch (lite) cells, in-family, paired vs R1 at the same step (bar: +0.05, CI > 0, >= 2 of 3 bands)",
            "R1M": "decay-rate edit slope on Material (lite) cells (bar: slope in [0.8, 1.2], Pearson >= 0.8)",
