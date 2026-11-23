@@ -2858,3 +2858,9 @@ Does a measurement fit survive an edit?
 - **A12 (reads).** Render at the 601-bin path (8.6 ms per receiver on the grid, about 31 s per room). A lite read (primary family + HF / UF) fits in about 1 h on 2 GPUs. The +30K FULL scorecard is about 9-10 GPU-h per model, so each family is posted as it finishes, within about 3 h.
 - **A13 (R1-P normaliser).** The spec divides by a DETACHED RMS "so shrinking the field cannot lower the loss". The value is scale-invariant, but the gradient is not: with the denominator detached, it still pushes |p| down, and in the unlabelled edited rooms nothing opposes it. Use a non-detached ratio, log the field's RMS ratio against R1, and mask bins < 41 (the DC head's). Bars unchanged.
 - **A14 (R1-M probe first).** Bin 0 is about 1,100 against about 1 elsewhere and scales as 1 / (sum of beta x length), and R0's DC head is untrained off alpha = 0.15. Run a forward-only probe of R0 on MAT tokens before training; if it blows up, rescale the DC head analytically and record it as a design change.
+
+**D198 — P4-10 edit manifest frozen (Step 0a), before any edit truth or score.** `configs/p4_10/edit_manifest.json`, rows_sha256 7ce02a5fb5ecf3e9e4ea1e83b1a89b3d1d30652a45ff0de01fbe242a421100d5, 675 cells (in-family 329, unseen 346), 7 skips logged in the file. Choices made while building it:
+* "Falls below 0.2 m" is read literally: an edit is skipped only if it SHRINKS a notch dimension to under 0.2 m. Three unseen rooms already have one under 0.2 m (d 0.14 / 0.08 / 0.06), and reading it as "is below" would have dropped all their edits.
+* Dimensions are quantised to 0.02 m and the realised L and W scales are stored (A6): s = 0.90 on L 5.54 is realised as 0.8989.
+* A second skip rule was needed that the spec does not name: two notches closer than 1.0 m count as "the room narrows below 1.0 m" (2 cells).
+* "Longest wall" = the longest polygon edge, first in ring order on ties. Third source: feasible in all 31 rooms.
