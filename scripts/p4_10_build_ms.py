@@ -68,10 +68,8 @@ def draw(i, r):
     air = geom.air.ravel()
     P = Pf[air]
     d = edge_distance(r["verts"], P)
-    rxd = np.min(np.hypot(P[:, None, 0] - r["rx"][None, :, 0], P[:, None, 1] - r["rx"][None, :, 1]), axis=1) \
-        if len(P) <= 4000 else np.concatenate([np.min(np.hypot(p[:, None, 0] - r["rx"][None, :, 0], p[:, None, 1]
-                                                               - r["rx"][None, :, 1]), axis=1)
-                                               for p in np.array_split(P, 1 + len(P) // 4000)])
+    from scipy.spatial import cKDTree
+    rxd = cKDTree(r["rx"]).query(P)[0]
     ok = rxd >= 0.04
     p05, p10 = P[(d >= 0.5) & ok], P[(d >= 1.0) & ok]
     rng = np.random.default_rng([SEED, i])
@@ -79,27 +77,32 @@ def draw(i, r):
     clear = edge_distance(r["verts"], s)
     redrawn = False
     if clear.max() < 1.0:
-        assert len(p10), "no node with 1.0 m clearance"
-        s[2] = p10[rng.integers(0, len(p10))]
-        redrawn = True
+        if len(p10):
+            s[2] = p10[rng.integers(0, len(p10))]
+            redrawn = True
+        else:
+            redrawn = "none >= 1.0 m"          # the room is too narrow (recorded; its three sources use the 0.5 m rule)
     return np.round(s, 6), redrawn, len(p05), len(p10)
 
 
 def write_manifest():
-    out, n_red = [], 0
+    out, n_red, n_none = [], 0, 0
     for i, row in enumerate(rows()):
         r = room(row)
         s, red, a, b = draw(i, r)
-        n_red += red
+        n_red += red is True
+        n_none += red == "none >= 1.0 m"
         out.append({"i": i, "filename": row["filename"], "origin": row["origin"], "slot0": [float(x) for x in r["src"]],
-                    "new_sources": s.tolist(), "pool_05": a, "pool_10": b})
+                    "new_sources": s.tolist(), "pool_05": a, "pool_10": b,
+                    "no_1m_node": red == "none >= 1.0 m"})
         if i % 200 == 0:
             print(i, row["filename"], s.tolist(), flush=True)
     blob = json.dumps(out, sort_keys=True).encode()
     MAN.write_text(json.dumps({"schema": "p4_10.ms/1", "seed": SEED, "rule": __doc__.split("\n\n")[1].strip(),
-                               "rows_sha256": hashlib.sha256(blob).hexdigest(), "n_redrawn_1m": n_red, "configs": out},
+                               "rows_sha256": hashlib.sha256(blob).hexdigest(), "n_redrawn_1m": n_red,
+                               "n_rooms_without_1m_node": n_none, "configs": out},
                               indent=0))
-    print("wrote", MAN, hashlib.sha256(blob).hexdigest()[:16], "redrawn for 1.0 m:", n_red)
+    print("wrote", MAN, hashlib.sha256(blob).hexdigest()[:16], "redrawn for 1.0 m:", n_red, "rooms without a 1.0 m node:", n_none)
 
 
 def sim(r, extra, src, rx):

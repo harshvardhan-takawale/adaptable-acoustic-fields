@@ -81,6 +81,8 @@ P48_KEYS = ("mb_grids", "mb_f_top_hz", "mb_base_cell_m", "mb_n_levels", "mb_cell
             "ls1_weight", "ls1_radius_m", "ls_band_hz", "ls2_weight", "ls2_rx_per_step", "ls2_floor_db")
 P49_KEYS = ("init_ckpt", "lr_restart_peak", "lr_warmup_iters", "lr_restart_from_iter", "p49_mode", "dir_labels",
             "dir_frac_init", "dir_lo_bin", "dir_min_src_m", "dirg_rows_per_micro", "dirg_h_nodes", "p49_recip_p")
+#: P4-10 (D195 0c, D197): free against an init checkpoint and compared on resume, like P49_KEYS.
+P410_KEYS = ("p410_ms_dir", "p410_row_jitter", "p410_str_dir", "p410_str_p", "p410_mat_dir", "p410_mat_p")
 
 #: P4-9 (D181 A8): the keys a warm start may change against its init checkpoint -- run control, the schedule and
 #: the P4-9 options. EVERY other key must match the init checkpoint's (absent there = the default), so a warm
@@ -90,7 +92,7 @@ INIT_FREE_KEYS = frozenset(("run_id", "n_iters", "lr_network", "eta_min", "seed"
                             "ckpt_every", "ckpt_keep_last", "ckpt_keep_every", "ckpt_keep_iters", "ckpt_thin_old",
                             "log_every", "early_stop_warmup", "early_stop_patience",
                             "early_stop_min_rel_improvement", "max_rows_per_render", "ls2_det_check_steps")
-                           + P49_KEYS)
+                           + P49_KEYS + P410_KEYS)
 
 
 def restart_lr(e: int, peak: float, eta_min: float, warmup: int, horizon: int) -> float:
@@ -385,6 +387,20 @@ class P32TrainCfg:
     #: stay CTL's. Rows whose receiver or source is an FDTD wall node are never swapped (reciprocity is exact only
     #: between interior nodes). 0 = CTL's step exactly.
     p49_recip_p: float = 0.0
+    #: P4-10 (D195 0b/0c, D197 A1, A2, A4), all default off; with any of them on, p49_mode "ctl" runs `_step_p410`.
+    #: p410_ms_dir: a memory-mapped corpus of S sources per room (H.npy [C, S, R, B] complex64, src.npy, rx.npy,
+    #: index.json); slot 0 is the room's own source. Batch indices come from `_p49_batch` (CTL's), the source slot per
+    #: row from a SECOND dedicated CPU generator, jitter per row (p410_row_jitter) from a third, the swap from CTL's.
+    #: Targets stay on the host. p410_str_dir / p410_str_p: that fraction of rows is replaced by the same room's
+    #: stretched variant (its own receivers, source, tokens, room size, target). p410_mat_dir / p410_mat_p: that
+    #: fraction keeps the room, source and receiver but takes the per-wall-absorption tokens and target.
+    #: Every arm draws the same numbers whether or not it uses them, so arms stay paired.
+    p410_ms_dir: str = ""
+    p410_row_jitter: bool = False
+    p410_str_dir: str = ""
+    p410_str_p: float = 0.0
+    p410_mat_dir: str = ""
+    p410_mat_p: float = 0.0
 
 
 def sample_solid_air(d: float, w: float, L: float, W: float, half: int,
@@ -642,7 +658,7 @@ class P32Trainer:
                     "per_room_source is off: the trainer would render every room with the LAST "
                     "file's source".format(len({tuple(x) for x in src_all.tolist()}), spread))
             self.src_per = None
-        self.H = torch.tensor(np.stack(H_list), device=self.device)
+        self.H = torch.tensor(np.stack(H_list), device=("cpu" if cfg.p410_ms_dir else self.device))
         # P4-7 m3 (D170(g)): the physics prior and the modal-kernel features, per (config, receiver).
         self.H_prior = self.modal_feat = None
         if cfg.modal_k > 0 and not cfg.modal_prior_dir:
@@ -730,7 +746,7 @@ class P32Trainer:
             nb = int(cfg.dc_head_bins)
             # P4-7 m3: with a modal prior the head models the RESIDUAL (the prior carries the zero mode)
             tgt = self.H if self.H_prior is None else self.H - self.H_prior
-            m = tgt[:, self.train_rx_idx, :nb].mean(dim=1)                 # [C, nb] complex
+            m = tgt[:, self.train_rx_idx.to(tgt.device), :nb].mean(dim=1)                 # [C, nb] complex
             sc = m.abs().pow(2).mean(dim=0).sqrt().clamp(min=1e-6).float()
             with torch.no_grad():
                 self.model.dc_scale.copy_(sc)
@@ -795,7 +811,11 @@ class P32Trainer:
         if cfg.p49_recip_p > 0.0:
             self._p49_swap_gen = torch.Generator(device="cpu")
             self._p49_swap_gen.manual_seed(int(cfg.seed) + 7919)
+        if self._p410_on():
+            self._init_p410()
         self.start_iter = self._maybe_resume()
+        if self._p410_on():
+            self._init_p410_data()
         if cfg.p49_mode in ("dir", "dirg"):
             self._init_dir()
         if cfg.p49_recip_p > 0.0:
@@ -805,7 +825,7 @@ class P32Trainer:
         self._ls = self._init_ls() if cfg.ls_mode else None
         self._step_fn = {"": self._step, "ls1": self._step_ls1, "ls2": self._step_ls2}[cfg.ls_mode]
         if cfg.p49_mode:
-            self._step_fn = self._step_p49
+            self._step_fn = self._step_p410 if self._p410_on() else self._step_p49
 
     def _parse_curriculum(self, spec: str):
         """'0:100,15000:200,35000:300' -> [(0, hi_bin), (15000, hi_bin), ...], hi_bin in band
@@ -1001,7 +1021,7 @@ class P32Trainer:
         return self._render_rows(rx, tx, A["cond"][ci, g], A["dims"][ci, g]), self.H[ci, ri]
 
     def _render_rows(self, rx: torch.Tensor, tx: torch.Tensor, z: torch.Tensor,
-                     dims: torch.Tensor) -> torch.Tensor:
+                     dims: torch.Tensor, jitter: Optional[torch.Tensor] = None) -> torch.Tensor:
         """`_render` for per-row receivers / sources / cond / room dims, grouped by room dims (the
         renderer takes one AABB per call)."""
         out = torch.zeros(rx.shape[0], self.n_band, dtype=torch.complex64, device=self.device)
@@ -1013,7 +1033,8 @@ class P32Trainer:
             room_max = uniq[gi].to(torch.float32)
             for s0 in range(0, sel.numel(), step):
                 sub = sel[s0:s0 + step]
-                H = self.renderer(self.model, rx[sub], tx[sub], room_min, room_max, z_s=z[sub])
+                kw = {} if jitter is None else {"jitter": jitter[sub]}
+                H = self.renderer(self.model, rx[sub], tx[sub], room_min, room_max, z_s=z[sub], **kw)
                 out[sub] = H[:, self.band[0]:self.band[1]]
         return out
 
@@ -1262,6 +1283,169 @@ class P32Trainer:
         self._recip_info = {"p": float(cfg.p49_recip_p), "rows_swappable": float(ok[:, tr].mean()),
                             "rooms_with_wall_source": n_src_wall}
         print("[recip] {}".format(self._recip_info), flush=True)
+
+    # ---------------------------------------------------------------- P4-10 (D195, D197 A1 / A2 / A4)
+    def _Hget(self, ci: torch.Tensor, ri: torch.Tensor) -> torch.Tensor:
+        """targets at (config, receiver) rows, on the training device wherever self.H lives."""
+        if self.H.device == ci.device:
+            return self.H[ci, ri]
+        return self.H[ci.cpu(), ri.cpu()].to(ci.device)
+
+    def _p410_on(self) -> bool:
+        c = self.cfg
+        return bool(c.p410_ms_dir or c.p410_row_jitter or c.p410_str_dir or c.p410_mat_dir)
+
+    def _init_p410(self) -> None:
+        """Generators (created before the resume), then -- in `_init_p410_data`, after it -- the memmaps."""
+        s = int(self.cfg.seed)
+        mk = lambda off: (lambda g: (g.manual_seed(s + off), g)[1])(torch.Generator(device="cpu"))  # noqa: E731
+        self._p410_gens = {"slot": mk(20011), "var": mk(30011), "jit": mk(40009)}
+
+    def _init_p410_data(self) -> None:
+        cfg = self.cfg
+        if cfg.p49_mode != "ctl":
+            raise ValueError("P4-10 options need p49_mode 'ctl', got {!r}".format(cfg.p49_mode))
+        if cfg.p410_str_p and not cfg.p410_str_dir or cfg.p410_mat_p and not cfg.p410_mat_dir:
+            raise ValueError("p410_str_p / p410_mat_p need their *_dir")
+        from aaf.data.augment_2d import is_interior_node
+        names = [c.filename for c in self.configs]
+        self._src_ms = self._src_ms_ok = None
+        self._p410_mm = None
+        if cfg.p410_ms_dir:
+            d = Path(cfg.p410_ms_dir)
+            idx = json.loads((d / "index.json").read_text())
+            if idx["filenames"] != names:
+                raise RuntimeError("p410_ms_dir {} was built for other rooms / another order".format(d))
+            src, rx = np.load(d / "src.npy"), np.load(d / "rx.npy")
+            if rx.shape[:2] != tuple(self.rx.shape[:2]) or not np.allclose(rx, self.rx.cpu().numpy(), atol=1e-6):
+                raise RuntimeError("p410_ms_dir receivers differ from this run's")
+            self._p410_mm = np.load(d / "H.npy", mmap_mode="r")
+            if list(self._p410_mm.shape) != idx["shape"] or self._p410_mm.shape[:2] != src.shape[:2]:
+                raise RuntimeError("p410_ms_dir shapes disagree")
+            own = (self.src_per if self.src_per is not None else self.src.unsqueeze(0).expand(len(names), -1)).cpu().numpy()
+            if not np.allclose(src[:, 0], own, atol=1e-6):
+                raise RuntimeError("p410_ms_dir slot 0 is not each room's own source")
+            self._src_ms = torch.tensor(src, dtype=torch.float32, device=self.device)
+            ok = np.zeros(src.shape[:2], bool)
+            for i, c in enumerate(self.configs):
+                ok[i] = is_interior_node(c.verts, src[i], 0.02, 0.02)
+            self._src_ms_ok = torch.as_tensor(ok, device=self.device)
+            for r in (0, len(names) // 2, len(names) - 1):                # slot 0 of the memmap IS the preloaded H
+                if not np.allclose(self._p410_mm[r, 0], self.H[r].cpu().numpy()[:, :self._p410_mm.shape[-1]], atol=1e-5):
+                    raise RuntimeError("p410_ms_dir slot 0 differs from the corpus target in room {}".format(r))
+            print("[p410] ms {} slots {} source interior {:.4f}".format(d, src.shape[1], ok.mean()), flush=True)
+        self._str = self._load_variants(cfg.p410_str_dir, "str") if cfg.p410_str_dir else None
+        self._mat = self._load_variants(cfg.p410_mat_dir, "mat") if cfg.p410_mat_dir else None
+        if not hasattr(self, "_rx_ok"):
+            self._rx_ok = self._rx_interior()
+
+    def _rx_interior(self) -> torch.Tensor:
+        """[C, R] receiver is an interior FDTD node (swaps need it); dx per room as in `_init_recip`."""
+        from aaf.data.augment_2d import is_interior_node
+        rx = self.rx.detach().cpu().numpy().astype(np.float64)
+        return torch.as_tensor(np.stack([is_interior_node(c.verts, rx[i], 0.02, 0.02) for i, c in enumerate(self.configs)]),
+                               device=self.device)
+
+    def _load_variants(self, dir_: str, kind: str) -> dict:
+        """A variant corpus: [V, S, R, B] targets (memmap) with its own receivers, sources, polygon, per-edge absorption
+        and room size; V = 2 C for 'str' (variant 2 c + k of room c), V = C for 'mat' (same receivers and sources)."""
+        d = Path(dir_)
+        idx = json.loads((d / "index.json").read_text())
+        names = [c.filename for c in self.configs]
+        if idx["base_filenames"] != names or idx["kind"] != kind:
+            raise RuntimeError("{} {} was built for other rooms / another kind".format(kind, d))
+        V = idx["n_variants"]
+        if V != (2 if kind == "str" else 1) * len(names):
+            raise RuntimeError("{}: {} variants".format(d, V))
+        mm = np.load(d / "H.npy", mmap_mode="r")
+        if list(mm.shape) != idx["shape"]:
+            raise RuntimeError("{} shape {} vs index {}".format(d, mm.shape, idx["shape"]))
+        conds, dims = [], []
+        for v in idx["variants"]:
+            conds.append(build_cond_vector_2d(self.cfg.cond_source, v["L"], v["W"], v["edge_alphas"],
+                                              verts=[tuple(p) for p in v["verts"]]).numpy())
+            dims.append((v["L"], v["W"]))
+        rx, src = np.load(d / "rx.npy"), np.load(d / "src.npy")
+        out = {"mm": mm, "rx": torch.tensor(rx, dtype=torch.float32, device=self.device),
+               "src": torch.tensor(src, dtype=torch.float32, device=self.device),
+               "cond": torch.tensor(np.stack(conds), device=self.device, dtype=self.cond.dtype),
+               "dims": torch.tensor(dims, dtype=torch.float32, device=self.device), "info": {"dir": str(d), "n": V}}
+        print("[p410] {} {} variants {}".format(kind, d, V), flush=True)
+        return out
+
+    def _p410_rows(self, ci: torch.Tensor, ri: torch.Tensor, agg: dict):
+        """One micro-batch: every random decision from its own generator with FIXED consumption, then one resolver that
+        returns (rx, tx, z, dims, target, jitter) per row. Returns the same numbers for an arm that uses a feature and
+        one that does not (except where the feature itself acts)."""
+        cfg, B, dev, g = self.cfg, ci.numel(), self.device, self._p410_gens
+        slot = torch.randint(0, 4, (B,), generator=g["slot"])
+        u_s, u_m, k = torch.rand(B, generator=g["var"]), torch.rand(B, generator=g["var"]), torch.randint(0, 2, (B,), generator=g["var"])
+        jit = torch.rand(B, generator=g["jit"])
+        S = self._p410_mm.shape[1] if self._p410_mm is not None else 1
+        slot = slot % S
+        c_, r_, s_ = ci.cpu().numpy(), ri.cpu().numpy(), slot.numpy()
+        rx, z = self.rx[ci, ri], self.cond[ci]
+        dims = torch.tensor(self.geom_dims, dtype=torch.float32, device=dev)[self.geom_id[ci]]
+        if self._p410_mm is not None:
+            tx = self._src_ms[ci, slot.to(dev)]
+            ok = self._rx_ok[ci, ri] & self._src_ms_ok[ci, slot.to(dev)]
+            T = np.array(self._p410_mm[c_, s_, r_])
+        else:
+            tx = self.src_per[ci] if self.src_per is not None else self.src.unsqueeze(0).expand(B, -1)
+            ok = self._rx_ok[ci, ri] & (self._src_ms_ok[ci, 0] if self._src_ms_ok is not None else True)
+            T = self.H[ci.to(self.H.device), ri.to(self.H.device)].cpu().numpy()
+        T = torch.from_numpy(T).to(dev)
+        rep_s = (u_s < float(cfg.p410_str_p)).to(dev) if self._str is not None else torch.zeros(B, dtype=torch.bool, device=dev)
+        rep_m = (u_m < float(cfg.p410_mat_p)).to(dev) if self._mat is not None else torch.zeros(B, dtype=torch.bool, device=dev)
+        if self._str is not None and bool(rep_s.any()):
+            V = 2 * ci + k.to(dev)
+            sl = slot.to(dev)
+            w = rep_s.unsqueeze(1)
+            rx = torch.where(w, self._str["rx"][V, ri], rx)
+            tx = torch.where(w, self._str["src"][V, sl], tx)
+            z = torch.where(w, self._str["cond"][V], z)
+            dims = torch.where(w, self._str["dims"][V], dims)
+            m = rep_s.cpu().numpy()
+            T2 = np.array(self._str["mm"][(2 * c_ + k.numpy())[m], s_[m], r_[m]])
+            T = T.clone()
+            T[rep_s] = torch.from_numpy(T2).to(dev)
+            ok = torch.where(rep_s, torch.ones_like(ok), ok)
+        if self._mat is not None and bool(rep_m.any()):
+            z = torch.where(rep_m.unsqueeze(1), self._mat["cond"][ci], z)
+            m = rep_m.cpu().numpy()
+            T2 = np.array(self._mat["mm"][c_[m], s_[m], r_[m]])
+            T = T.clone()
+            T[rep_m] = torch.from_numpy(T2).to(dev)
+        agg["p410_str_frac"] = agg.get("p410_str_frac", 0.0) + float(rep_s.float().mean()) / cfg.grad_accum_steps
+        agg["p410_mat_frac"] = agg.get("p410_mat_frac", 0.0) + float(rep_m.float().mean()) / cfg.grad_accum_steps
+        sw = torch.zeros(B, dtype=torch.bool, device=dev)
+        if cfg.p49_recip_p > 0.0:                              # CTL's swap draw, but the mask for THIS row's points
+            u = torch.rand(B, generator=self._p49_swap_gen).to(dev)
+            sw = (u < float(cfg.p49_recip_p)) & ok
+            agg["recip_frac"] = agg.get("recip_frac", 0.0) + float(sw.float().mean()) / cfg.grad_accum_steps
+        rx, tx = torch.where(sw[:, None], tx, rx), torch.where(sw[:, None], rx, tx)
+        jitter = (jit * 2.0 * math.pi / self.renderer.n_azi).to(dev) if cfg.p410_row_jitter else None
+        return rx, tx, z, dims, T[:, self.band[0]:self.band[1]], jitter
+
+    def _step_p410(self, it: int) -> dict:
+        """CTL's step with the P4-10 rows (R1 and its arms)."""
+        cfg = self.cfg
+        self.model.train()
+        self.opt.zero_grad(set_to_none=True)
+        agg: dict = {}
+        w_r, w_i, w_a, w_p = cfg.weights
+        for ci, ri in self._p49_batch():
+            rx, tx, z, dims, T, jitter = self._p410_rows(ci, ri, agg)
+            H_pred = self._render_rows(rx, tx, z, dims, jitter=jitter)
+            terms = _losses(H_pred, T, self.loss_lo_bin, w_spec=self.spec_w, amp_eps=self.amp_eps)
+            loss = (w_r * terms["L_spec_real"] + w_i * terms["L_spec_imag"]
+                    + w_a * terms["L_amp"] + w_p * terms["L_phase"])
+            (loss / cfg.grad_accum_steps).backward()
+            for kk, v in terms.items():
+                agg[kk] = agg.get(kk, 0.0) + float(v) / cfg.grad_accum_steps
+            agg["loss"] = agg.get("loss", 0.0) + float(loss) / cfg.grad_accum_steps
+        self._apply_grads()
+        return agg
 
     def _p49_swap(self, ci: torch.Tensor, ri: torch.Tensor, agg: dict) -> torch.Tensor:
         """D191: the per-row swap mask, a FIXED consumption of the swap generator per micro-batch."""
@@ -1675,7 +1859,7 @@ class P32Trainer:
             for s in range(0, ci.numel(), chunk):
                 sl = slice(s, s + chunk)
                 preds.append(self._render(ci[sl], self.val_rx_idx[sl]))
-                tgts.append(self.H[ci[sl], self.val_rx_idx[sl]])
+                tgts.append(self._Hget(ci[sl], self.val_rx_idx[sl]))
         P, T = torch.cat(preds), torch.cat(tgts)
         terms = _losses(P, T, self.loss_lo_bin)
         # `lsd_db` is the MODEL-SELECTION metric: early stopping reads it and checkpoints are
@@ -1712,6 +1896,8 @@ class P32Trainer:
             st["p49_gen_state"] = self._p49_gen.get_state()     # a resumed arm keeps drawing the same batches
         if self.cfg.p49_recip_p > 0.0:
             st["p49_swap_gen_state"] = self._p49_swap_gen.get_state()
+        if self._p410_on():
+            st["p410_gen_states"] = {k: g.get_state() for k, g in self._p410_gens.items()}
         if self.cfg.p49_mode in ("dir", "dirg"):
             st["p49_dir_weight"] = float(self._dir_w)            # set once at init; a resume must not re-calibrate
         torch.save(st, tmp)
@@ -1792,7 +1978,7 @@ class P32Trainer:
                         f"fresh directory for a different arm.")
             # P4-8: a key absent from an older checkpoint means its DEFAULT, so a GX checkpoint cannot be
             # resumed silently under ls_mode / mb_grids.
-            for k in P48_KEYS + P49_KEYS:
+            for k in P48_KEYS + P49_KEYS + P410_KEYS:
                 was = prev.get(k, P32TrainCfg.__dataclass_fields__[k].default)
                 if was != getattr(self.cfg, k):
                     raise RuntimeError(f"refusing to resume {c.name}: {k}={was!r} in the checkpoint but "
@@ -1811,6 +1997,11 @@ class P32Trainer:
                 self._p49_gen.set_state(st["p49_gen_state"])
             if self.cfg.p49_recip_p > 0.0:
                 self._p49_swap_gen.set_state(st["p49_swap_gen_state"])
+            if self._p410_on():
+                if "p410_gen_states" not in st:
+                    raise RuntimeError("refusing to resume {}: no P4-10 generator states".format(c.name))
+                for k, g in self._p410_gens.items():
+                    g.set_state(st["p410_gen_states"][k])
             if self.cfg.p49_mode in ("dir", "dirg"):
                 self._dir_w = float(st["p49_dir_weight"])
             sp = self.out / "scalars.json"
@@ -1859,6 +2050,9 @@ class P32Trainer:
             "curriculum_bins": self.curriculum, "c2f": self.c2f,
             **({"augment": self._aug["info"]} if getattr(self, "_aug", None) is not None else {}),
             **({"recip": self._recip_info} if getattr(self, "_recip_info", None) is not None else {}),
+            **({"p410": {"ms_dir": self.cfg.p410_ms_dir, "row_jitter": self.cfg.p410_row_jitter,
+                         "str": (self._str or {}).get("info"), "mat": (self._mat or {}).get("info"),
+                         "str_p": self.cfg.p410_str_p, "mat_p": self.cfg.p410_mat_p}} if self._p410_on() else {}),
             **({"modal_prior": {"dir": cfg.modal_prior_dir, "modal_k": int(cfg.modal_k)}}
                if cfg.modal_prior_dir else {}),
             **({"per_room_source": {"n_distinct": int(len({tuple(x) for x in

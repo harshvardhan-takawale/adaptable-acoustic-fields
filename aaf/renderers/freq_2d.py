@@ -73,7 +73,11 @@ class FreqRenderer2D(nn.Module):
         Out shape: [n_azi, 2].
         P4-8 LS2: an explicit ``jitter`` (one scalar tensor) replaces the per-call draw, so two passes over
         the same rows render bit-identically; no random number is drawn then. ``None`` is the old path.
+        P4-10 (D197 A4): a ``jitter`` of shape [B] with B > 1 is one offset per ROW -> directions [B, n_azi, 2].
         """
+        if jitter is not None and jitter.numel() > 1:
+            th = self.theta_grid.unsqueeze(0) + jitter.view(-1, 1)                       # [B, n_azi]
+            return torch.stack([torch.cos(th), torch.sin(th)], dim=-1)
         if jitter is not None:
             return torch.stack([torch.cos(self.theta_grid + jitter), torch.sin(self.theta_grid + jitter)], dim=-1)
         # In training mode, jitter; in eval mode, use the deterministic grid.
@@ -103,7 +107,7 @@ class FreqRenderer2D(nn.Module):
         """
         # Broadcast: rx_pos [B,1,2], dirs [1,n_azi,2]
         rx = rx_pos.unsqueeze(1)
-        dr = dirs.unsqueeze(0)
+        dr = dirs if dirs.dim() == 3 else dirs.unsqueeze(0)      # [B, n_azi, 2] (per-row jitter, A4) or [1, n_azi, 2]
         # Avoid div-by-zero when a ray is exactly axis-aligned.
         safe_dr = torch.where(dr.abs() < eps, torch.full_like(dr, eps), dr)
         t_lo = (room_min - rx) / safe_dr  # [B, n_azi, 2]
@@ -180,9 +184,9 @@ class FreqRenderer2D(nn.Module):
         d_vals = self.near + (t_far.unsqueeze(-1) - self.near) * u  # [B, n_azi, N_p]
 
         # pts[b, a, i] = rx_pos[b] + dirs[a] * d_vals[b, a, i]
-        pts = rx_pos.view(B, 1, 1, 2) + dirs.view(1, N_a, 1, 2) * d_vals.unsqueeze(-1)
+        pts = rx_pos.view(B, 1, 1, 2) + dirs.view(-1, N_a, 1, 2) * d_vals.unsqueeze(-1)
         # view direction at each sample = ray direction (broadcast)
-        view = dirs.view(1, N_a, 1, 2).expand(B, N_a, N_p, 2)
+        view = dirs.view(-1, N_a, 1, 2).expand(B, N_a, N_p, 2)
         # tx broadcasts across rays/points
         tx = tx_pos.view(B, 1, 1, 2).expand(B, N_a, N_p, 2)
         # tx_view: omni source — pass None to the model (it maps None → zero vector)

@@ -581,6 +581,44 @@ def _apply_patch(
     }
 
 
+def _apply_edges(spec: Dict[str, Any], face_alpha: np.ndarray, dx_x: float, dx_y: float, nx: int, ny: int) -> Dict[str, Any]:
+    """Paint `face_alpha` along each edge of a CCW axis-aligned polygon (D197 A5). Direction of the edge -> the face it
+    walls off: up -> XP, down -> XM, right -> YM, left -> YP (the interior is on the left of a CCW edge)."""
+    V = [(float(x), float(y)) for x, y in spec["verts"]]
+    al = [float(a) for a in spec["alphas"]]
+    n = len(V)
+    if len(al) != n:
+        raise ValueError("edges: {} alphas for {} vertices".format(len(al), n))
+    area2 = sum(V[k][0] * V[(k + 1) % n][1] - V[(k + 1) % n][0] * V[k][1] for k in range(n))
+    if area2 <= 0:
+        raise ValueError("edges: the ring must be CCW")
+    painted = np.full((4, nx, ny), -1, dtype=np.int64)
+    for k in range(n):
+        (x0, y0), (x1, y1) = V[k], V[(k + 1) % n]
+        if not 0.0 <= al[k] <= 1.0:
+            raise ValueError("edges: alpha {!r}".format(al[k]))
+        if abs(x1 - x0) < 1e-9 and abs(y1 - y0) > 1e-9:             # vertical edge
+            i = x0 / dx_x
+            lo, hi = sorted((y0 / dx_y, y1 / dx_y))
+            d = XP if y1 > y0 else XM
+        elif abs(y1 - y0) < 1e-9 and abs(x1 - x0) > 1e-9:
+            i = y0 / dx_y
+            lo, hi = sorted((x0 / dx_x, x1 / dx_x))
+            d = YM if x1 > x0 else YP
+        else:
+            raise ValueError("edges: edge {} is not axis-aligned".format(k))
+        if max(abs(i - round(i)), abs(lo - round(lo)), abs(hi - round(hi))) > 1e-6:
+            raise ValueError("edges: edge {} of the polygon does not lie on grid nodes".format(k))
+        i, lo, hi = int(round(i)), int(round(lo)), int(round(hi))
+        if d in (XP, XM):
+            face_alpha[d, i, lo:hi + 1] = al[k]
+            painted[d, i, lo:hi + 1] = k
+        else:
+            face_alpha[d, lo:hi + 1, i] = al[k]
+            painted[d, lo:hi + 1, i] = k
+    return {"type": "edges", "n_edges": n, "alphas": al, "_painted": painted}
+
+
 def _iter_specs(extra_walls: Any) -> List[Dict[str, Any]]:
     if extra_walls is None:
         return []
@@ -619,6 +657,13 @@ def build_geometry(
     ``{"type": "mask", "solid": bool_array, "alpha": a}``
         Escape hatch: an arbitrary rigid/absorbing solid mask.
 
+    ``{"type": "edges", "verts": [[x, y], ...], "alphas": [a_0, ...]}`` (P4-10, D197 A5)
+        Per-EDGE absorption of a CCW polygon (edge i runs verts[i] -> verts[i+1]), including the two faces of a
+        notch. Paints every blocked face of every air node whose wall segment it is, AFTER the other specs, so it
+        overrides them. Vertices must lie on grid nodes (an off-grid edge is refused, never snapped), and the
+        builder raises if any blocked face of an air node is left without an edge. Pair it with a ``mask`` for the
+        solid notch nodes. Uniform alphas reproduce the old field bit for bit.
+
     Both spec kinds write into the same per-face ``alpha`` array, so the solver sees no
     difference between an outer wall, a divider face and an absorber patch.
     """
@@ -652,7 +697,7 @@ def build_geometry(
         kind = str(spec.get("type", "slab")).lower()
         if kind == "slab":
             specs_out.append(_apply_slab(spec, solid, face_alpha, dx_x, dx_y))
-        elif kind in ("patch", "wall_segments"):
+        elif kind in ("patch", "wall_segments", "edges"):
             patches.append(spec)  # applied last so it wins over slab-induced faces
         elif kind == "mask":
             m = np.asarray(spec["solid"], dtype=bool)
@@ -674,6 +719,8 @@ def build_geometry(
     for spec in patches:
         if str(spec.get("type", "")).lower() == "wall_segments":
             specs_out.append(_apply_wall_segments(spec, face_alpha, dx_x, dx_y, nx, ny))
+        elif str(spec.get("type", "")).lower() == "edges":
+            specs_out.append(_apply_edges(spec, face_alpha, dx_x, dx_y, nx, ny))
         else:
             specs_out.append(_apply_patch(spec, face_alpha, dx_x, dx_y, nx, ny))
 
@@ -690,6 +737,15 @@ def build_geometry(
     air = ~solid
     if not air.any():
         raise ValueError("extra_walls filled the entire room; no fluid nodes remain")
+    for sp in specs_out:                                   # A5: no blocked face of an air node may lack an edge
+        if sp.get("type") == "edges":
+            p = sp.pop("_painted")
+            need = blocked & air[None]
+            bad = need & (p < 0)
+            if bad.any():
+                raise ValueError("edges: {} blocked face(s) of air nodes belong to no polygon edge, e.g. (dir, i, j) {}".format(
+                    int(bad.sum()), np.argwhere(bad)[:4].tolist()))
+            sp["n_faces_painted"] = int(need.sum())
     bad_x = air & blocked[XM] & blocked[XP]
     bad_y = air & blocked[YM] & blocked[YP]
     if bad_x.any() or bad_y.any():
