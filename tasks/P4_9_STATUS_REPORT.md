@@ -28,6 +28,30 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (night, 4) — I5: directional output zero-shot — R0 already predicts sound direction (0.94 / 0.84 / 0.80 in family), far above the spec's expected < 0.3; D188 fixes E2's bar before the 150K read
+
+**Headline:** Without ever being trained on direction, the current model already predicts which way sound travels through each point of the room. Its directional estimate correlates 0.94 (below 100 Hz) to 0.80 (200-300 Hz) with the true acoustic gradient in known room shapes, and 0.62-0.65 in unseen rooms. The spec expected below 0.3. Direction mostly comes for free from a good omnidirectional field. The directional training arms, read at 150K, must beat this, not zero.
+
+- **Unit test (E3): passes.** The per-ray readout's error on an analytic point source equals the closed form |H1/(jH0) - 1| and stays within 0.086 of 1/(2kr) over kr 1-30. The finite-difference gradient reproduces the analytic one to 9.3e-4.
+- **Score (c2):** Re of the normalised complex correlation with FDTD grad p / (jk), per bin, over off-lattice receivers >= 0.5 m from the source, both components, band means. 1.0 is perfect by construction.
+
+  | R0 @120K readout | in-family (15) 25-100 / 100-200 / 200-300 Hz [95% CI] | unseen (16) |
+  |---|---|---|
+  | per-ray D | 0.835 [0.824, 0.846] / 0.795 / 0.780 | 0.553 [0.489, 0.621] / 0.567 / 0.596 |
+  | raw-field gradient (FD, h = 4 cm) | 0.848 [0.832, 0.862] / 0.739 / 0.747 | 0.580 / 0.549 / 0.580 |
+  | **projected-field gradient (spectral)** | **0.943** [0.935, 0.950] / **0.844** / **0.803** | **0.651** [0.591, 0.715] / **0.625** / **0.624** |
+  | S2 @120K, projected-field gradient | 0.935 / 0.808 / 0.742 | 0.670 / 0.652 / 0.659 |
+
+- **Contrasts (paired bootstrap):**
+  - Projected minus raw gradient, R0 in-family: +0.095 [+0.084, +0.108] / +0.106 [+0.089, +0.124] / +0.056 [+0.050, +0.063]. Unseen: +0.071 / +0.076 / +0.044, all CIs > 0. The projection cleans the field's fine-scale errors (W4), and the gradient is where they show.
+  - Per-ray minus raw gradient, in-family: -0.013 [-0.028, +0.004] / +0.056 / +0.033.
+  - S2 - R0, projected gradient: in-family -0.009 / -0.037 / -0.061; unseen +0.020 / +0.027 / +0.035 (CIs > 0). This is the same in-family / unseen trade-off as the omni scores.
+- **The spec's labelled expectation (< 0.3) is refuted.** Omni supervision constrains the field's spatial structure well enough that its gradient carries first-order direction.
+- **D188 (recorded before any 150K directional number).** E2's rule compares DIR / DIR-G's best readout with "CTL's omni-gradient readout". Read literally (bar = raw gradient only), R0 itself passes against its own bar in all 3 bands, through the projection alone. The bar is therefore CTL's BETTER omni-field readout per band (raw or projected), and the literal reading is reported beside it. The manager may override before the read.
+- Ops: the first render job hit its 5 h limit with 61 / 62 room renders done. It resumed from cache.
+
+Links: [directional_zero_shot.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/directional_zero_shot.md) · [directional_zero_shot.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/directional_zero_shot.json) · [contrasts](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/directional_zero_shot_contrasts.json) · [DECISIONS.md (D188)](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md)
+
 ## 2026-11-22 (night, 3) — trajectory read: CTL / DIR @140K, DIR-G @130K (interim; no verdict) -> F0
 
 **Headline:** Teaching the network to output sound direction so far costs nothing on its ordinary (omnidirectional) field. After 20K extra steps, the directional arms match the plain continuation (CTL) and the starting model R0 to within 0.01 everywhere. Whether they gain DIRECTION accuracy is read at 150K.

@@ -2423,3 +2423,19 @@ Regression tests: `test_soft_cutoff_gradient_finite_just_below_kb` (finite, boun
 Pairing by sort order is a fixed choice: the k head is sorted, and modes that swap order count as errors of the k head.
 
 (c) **Reading (fixed now):** whichever single substitution recovers more of the gap between pred and all-true is named the bottleneck. If both recover less than half of the gap, the errors interact and neither half alone is named.
+
+**D188 — P4-9 E2: "CTL's omni-gradient readout" means CTL's BEST omni-field readout, per band. Recorded from the I5 zero-shot result, before any DIR / DIR-G / CTL directional number at 150K exists** (D181 E2, A13, c2; `outputs/p4_9/directional_zero_shot.md`).
+
+(a) **The ambiguity.** E2's pass rule compares DIR / DIR-G's best readout (over c2's three: per-ray D, the raw-field finite-difference gradient at h = 4 cm, the spectral gradient of the projected field) against "CTL's omni-gradient readout", in the singular. A13 names TWO omni-field gradients: projected-spectral and raw finite-difference.
+
+(b) **Why it matters, measured on R0 @120K (no directional supervision; in-family 15, Re rho, paired bootstrap):**
+* projected-spectral minus raw-FD: +0.095 [+0.084, +0.108] / +0.106 [+0.089, +0.124] / +0.056 [+0.050, +0.063].
+* Under the literal reading (bar = raw-FD only), a model WITHOUT directional training passes E2 against itself in all 3 bands. A DIR "pass" would then measure the projection, not the directional loss.
+
+(c) **Reading fixed now (primary).** Per band, the bar is the better of CTL's two omni-field readouts: raw-FD and projected-spectral. The arm's figure is the better of its three readouts. Each "better" is chosen on the arm's own in-family band mean. The contrast is the paired per-room difference of the two selected readouts, bootstrapped over the 15 shapes (10k, seed 20261013).
+* Pass: >= +0.05 in at least 2 of 3 bands, CI excluding 0. This is unchanged from E2.
+* The arm may pick per-ray D, a readout CTL does not get. This biases slightly toward the arm, and it is E2's own asymmetry.
+
+(d) **The literal reading is reported beside the primary** in the 150K read, labelled.
+
+(e) **Flagged to the manager** (CONTEXT), who may override before the 150K read.
