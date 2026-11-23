@@ -16,7 +16,7 @@ Off-lattice, paired over rooms, bootstrap 10k (seed 20261013); CTL's and RCP's o
 | second | unseen 16 | 0.172 / 0.077 / 0.055 | 0.176 / 0.068 / 0.052 | 0.444 / 0.163 / 0.114 | 0.357 / 0.204 / 0.210 | +0.267 [+0.217, +0.312] / +0.094 / +0.062 |
 | **third** | **unseen 16** | 0.252 / 0.144 / 0.069 | 0.244 / 0.135 / 0.056 | **0.443 / 0.266 / 0.164** | 0.332 / 0.287 / 0.208 | **+0.199 [+0.164, +0.236] / +0.131 / +0.107** |
 
-- **Moved-source gap** (static r on the original room minus moved r; RS1's metric for R1, bar <= 0.10 in every band; read here as a reference for R1): R0 0.68-0.63 / 0.60 / 0.53 in-family third source; RCP 0.346 / 0.439 / 0.429 in-family third source. RCP is a large step towards, but not at, the bar.
+- **Moved-source gap** (static r on the original room minus moved r; RS1's metric for R1, bar <= 0.10 in every band; read here as a reference for R1): R0 0.683 / 0.602 / 0.534 in-family third source (CTL 0.689 / 0.618 / 0.542); RCP 0.346 / 0.439 / 0.429. RCP is a large step towards, but not at, the bar of 0.10 in every band.
 - **Reading, replacing the D194 wording for RCP:** RCP's gain at the clean third source is larger than at the (mirror) second one at every band, so it does not come from the flips. Swaps alone carry RCP's gain at 25-200 Hz; at 200-300 Hz RCP stays below ignore-the-move (0.153 vs 0.183 in-family; 0.164 vs 0.208 unseen). Whether multi-source training closes the rest is R1's question.
 - **A corruption fixed:** nine score files (CTL and RCP, Source) were corrupted by two jobs writing the same cell at once. They were regenerated; the scorer now writes atomically, and 0 corrupt files remain. R0's published table was not affected.
 
