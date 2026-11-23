@@ -221,6 +221,8 @@ def load_model(ckpt_path: Path, device: torch.device):
     ).to(device)
     model.load_state_dict(st["model"])
     model.eval()
+    # P4-10 R1-M (D200): trained with the per-edge absorption DC gain -- the evaluator must apply it too (D73)
+    model.dc_beta_gain = bool(cfg.get("p410_mat_dir"))
     renderer = FreqRenderer2D(
         n_azi=int(cfg["n_azi"]), n_pts_per_ray=int(cfg["n_pts_per_ray"]),
         near=float(cfg["near"]), fs=int(cfg["fs"]),

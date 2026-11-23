@@ -716,6 +716,10 @@ class INR2D_AutoDecoder(nn.Module):
             nn.init.zeros_(self.dc_head[-1].weight)
             nn.init.zeros_(self.dc_head[-1].bias)
             self.register_buffer("dc_scale", torch.ones(self.dc_head_bins))
+            # P4-10 (D200, A14): scale the DC head's output by Sum beta(0.15) l / Sum beta(token) l (the DC compliance level is
+            # 1 / Sum beta l, D170(d)); the head was fitted at alpha 0.15 and does not respond to material tokens. Off by
+            # default; a row whose every edge is at alpha 0.15 gets exactly 1.0 (bit-identical to no gain).
+            self.dc_beta_gain = False
         else:
             self.dc_head = None
         # P4-7 m3 (D170(g)). Built after the DC head, so a model without them consumes the RNG
@@ -858,6 +862,25 @@ class INR2D_AutoDecoder(nn.Module):
         film += sum(p.numel() for f in self._signal_films for p in f.parameters())
         return {"raw": int(nets + film), "active_band_0_300": int(nets + film), "heads": len(self._signal_nets)}
 
+    def _dc_beta_gain(self, z: torch.Tensor) -> torch.Tensor:
+        """[B] gain from the geometry tokens: Sum beta(0.15) l / Sum beta(alpha) l over the edges, 1.0 exactly when every edge
+        is at alpha 0.15 (float rounding would otherwise break the bit-identity of the base rows). Token layout as in
+        `conditioning_2d.polygon_edge_tokens`: 12 x 26 then 12 mask; extent at 18, m_hat = -ln(1 - alpha) / 3 at 19."""
+        if z.shape[-1] != 324:
+            return torch.ones(z.shape[0], device=z.device)
+        tok = z[:, :312].reshape(-1, 12, 26)
+        mask = z[:, 312:].to(torch.bool)
+        ell, mh = tok[:, :, 18], tok[:, :, 19]
+        alpha = (1.0 - torch.exp(-3.0 * mh.clamp(min=0.0))).clamp(0.0, 0.999)
+        r = torch.sqrt(1.0 - alpha)
+        beta = (1.0 - r) / (1.0 + r)
+        b15 = float((1.0 - math.sqrt(0.85)) / (1.0 + math.sqrt(0.85)))
+        s15 = (torch.where(mask, b15 * ell, torch.zeros_like(ell))).sum(1)
+        s = torch.where(mask, beta * ell, torch.zeros_like(ell)).sum(1).clamp(min=1e-6)
+        g = s15 / s
+        at_base = (torch.where(mask, (mh - (-math.log(1 - 0.15) / 3.0)).abs(), torch.zeros_like(mh)) < 1e-6).all(1)
+        return torch.where(at_base, torch.ones_like(g), g)
+
     def dc_term(self, z_s: torch.Tensor, n_freq: int) -> Optional[torch.Tensor]:
         """[B, n_freq] complex near-DC term (zero above `dc_head_bins`), or None if no head."""
         if self.dc_head is None or z_s is None:
@@ -866,6 +889,8 @@ class INR2D_AutoDecoder(nn.Module):
         o = self.dc_head(z.to(self.dc_scale.dtype))
         nb = self.dc_head_bins
         term = torch.complex(o[:, :nb], o[:, nb:]) * self.dc_scale
+        if self.dc_beta_gain:
+            term = term * self._dc_beta_gain(z).to(term.real.dtype).unsqueeze(1)
         out = torch.zeros(z.shape[0], n_freq, dtype=term.dtype, device=term.device)
         out[:, :min(nb, n_freq)] = term[:, :min(nb, n_freq)]
         return out

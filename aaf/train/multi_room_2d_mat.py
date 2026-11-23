@@ -741,6 +741,7 @@ class P32Trainer:
         ).to(self.device)
         if self.model._model_signal is None:
             print("[signal] {}".format(self.model.signal_param_counts()), flush=True)
+        self.model.dc_beta_gain = bool(cfg.p410_mat_dir)         # D200 (A14): material arms only; off leaves R0 bit-identical
         if cfg.dc_head_bins > 0:
             # The head's output scale: corpus RMS of the SPATIAL-MEAN target per bin, training
             # receivers only. Set once before training; it is a buffer, so it is saved in every
