@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-23, 00:50): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14, I5, 150K reads (S2X interim, CTL final) in; extensions X1, X1b, X3a (D189, D192, D191, D193) in; X2 and RCP running; DIR E2 / C2 / C3 next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-23, 00:50): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14, I5, 150K reads (S2X interim, CTL final) in; extensions X1, X1b, X2, X3a (D189-D193) in; arm RCP training; DIR E2 / C2 / C3 next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -47,6 +47,15 @@ Sections below are filled as each step lands.
 * Arm RCP (CTL + swaps p 0.25) is training; S1 / S2 / C2 are read at 150K.
 
 [x3_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/x3_read.md).
+**X2 (D190): fast physics for the geometry edit -- the network keeps only the single-listener case.**
+* m1 re-solved on a coarse grid beats the network's full-room render on speed AND accuracy in every band.
+  * 10 cm / 350 Hz: 0.38 s on one CPU, unseen 0.972 / 0.913 / 0.759, in-family 0.984 / 0.931 / 0.774.
+  * Network: 32.1 s on a GPU, 0.468 / 0.380 / 0.371 and 0.918 / 0.701 / 0.582.
+  * 14 of 15 configurations dominate. None does for one listener (12 ms).
+* Parity at 2 cm: 8.8e-9.
+* Solve time vs band: 0.3 s (300 Hz), 3.2 s (600 Hz), 62 s (1 kHz), > 30 min (2 kHz).
+
+[F7_fast_physics.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F7_fast_physics.png).
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
 
 **2a S2X @150K (interim):** HF 0.510, UF 0.496 / 0.417 / 0.402 (S2 @120K 0.502 / 0.501; HF +0.007 [+0.002, +0.012], UF -0.005 [-0.009, -0.000]). The 240K test needs HF >= 0.56 AND UF >= 0.49; UF holds now, HF is 0.050 short. **2b CTL @150K (final):** HF 0.583, UF 0.467 / 0.376 / 0.373, flat vs R0 (HF +0.002 [-0.003, +0.006]); train-room fit 0.670 (R0 0.645).

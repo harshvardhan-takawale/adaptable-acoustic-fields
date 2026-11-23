@@ -28,6 +28,32 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-23 (02:30) — X2 (D190): after a geometry edit, a coarse physics re-solve beats the network's full-room render on BOTH speed and accuracy; the network keeps only the single-listener case -> F7
+
+**Headline:** The network's one clear speed advantage was the geometry edit: change the room, and it renders a listener in 12 ms where a full physics re-solve took ~55 s. But that re-solve was built to reproduce the simulator exactly, not to be fast. Re-solved on a 10 cm grid with modes to 350 Hz, physics recomputes the WHOLE room in 0.4 s on one CPU, scoring r 0.97 / 0.91 / 0.76 on unseen rooms. The network takes 32 s on a GPU to render the room at 0.47 / 0.38 / 0.37. A 6 cm grid gives 0.98 / 0.95 / 0.89 in 1 s. So for full-room rendering in 2-D at <= 300 Hz, physics is faster AND more accurate. The network keeps one case: a single listener needed within ~0.3 s of an edit. Physics cost climbs steeply with frequency (0.3 s at 300 Hz, 3 s at 600 Hz, 62 s at 1 kHz, > 30 min at 2 kHz), so the network's speed case lies at high frequency and in 3-D, which it does not cover yet.
+
+m1 (the FDTD's operator in modal form, exact beta) re-solved on a grid of spacing h with modes to f_max; polygon snapped by the grid. Mode shapes are bilinearly interpolated to the dense receivers. Off-lattice r (frozen scorer), mean over rooms. Timing = operator build + eigen-solve + field, median, 4 threads, one CPU node (legacy01, Xeon E5-2620 v3), shape 1000 (3,753 points). Selected rows (all 15 in [fastphys.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/fastphys/fastphys.md)):
+
+| method after a geometry edit | 1 listener | full room | unseen 16 r | in-family 15 r |
+|---|---|---|---|---|
+| physics, 2 cm, modes to 600 Hz (= m1; I1's re-solve) | 46.9 s | 47.0 s | 0.978 / 0.972 / 0.960 | 0.988 / 0.976 / 0.960 |
+| physics, 4 cm, 350 Hz | 2.6 s | 2.7 s | 0.978 / 0.959 / 0.918 | 0.988 / 0.967 / 0.933 |
+| physics, 6 cm, 350 Hz | 0.89 s | 0.96 s | 0.977 / 0.945 / 0.886 | 0.987 / 0.949 / 0.891 |
+| physics, 8 cm, 350 Hz | 0.46 s | 0.54 s | 0.975 / 0.924 / 0.826 | 0.986 / 0.945 / 0.855 |
+| **physics, 10 cm, 350 Hz** | **0.31 s** | **0.38 s** | **0.972 / 0.913 / 0.759** | **0.984 / 0.931 / 0.774** |
+| **network R0 @120K (A5000 GPU, I1)** | **0.012 s** | **32.1 s** | **0.468 / 0.380 / 0.371** | **0.918 / 0.701 / 0.582** |
+
+- **Parity gate passes.** At h = 2 cm and 600 Hz the new path reproduces m1's per-room r to 8.8e-9 on all 31 rooms. The level offset is the same at every h, so the FDTD constant with coarse-grid normalisation is right.
+- **D190(c) verdict:**
+  - Full room: 14 of 15 configurations dominate the network (faster AND higher r in all 3 bands), unseen and in-family alike; the fastest is 10 cm / 350 Hz at 0.38 s. The exception is 2 cm / 600 Hz (47 s).
+  - Single listener: no configuration dominates. 12 ms is below every solve.
+  - Prediction D190(d) held.
+- **Frequency scaling** (timing only, largest unseen room, h = c / (10 f_max), EPYC node): 300 Hz 0.31 s (88 modes); 600 Hz 3.2 s (336); 1 kHz 62 s (904); 2 kHz > 30 min (cap). Mode count grows as f^2 in 2-D (f^3 in 3-D).
+- **Hardware is not matched, and the mismatch favours the network.** Physics ran on an old CPU (this node's 2 cm re-solve is 46.9 s against I1's 55.6 s on legacy42); the network ran on a GPU. The timing node differs from I1's because that node type was fully booked (deviation noted).
+- **What this changes:** F2's sentence "the network's case is the geometry edit" is amended to "the single-listener geometry edit, under ~0.3 s". Combined with X1b, the 2-D case for the network at <= 300 Hz is narrow. The project's stated band (0-2 kHz) and 3-D are where per-edit physics stops being cheap.
+
+Links: [F7_fast_physics.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F7_fast_physics.png) · [fastphys.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/fastphys/fastphys.md) · [fastphys.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/fastphys/fastphys.json) · [p4_9_fast_physics.py](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_9_fast_physics.py)
+
 ## 2026-11-23 (01:10) — X3a (D191, D193): the network cannot move the source, in known shapes too — but source/listener swaps in training largely fix it, with no new simulation
 
 **Headline:** Moving the sound source breaks the network even in room shapes it knows well: accuracy at 25-100 Hz falls from 0.92 to 0.23. That is worse than not moving the source at all (0.31). The network is also not "reciprocal". Swapping source and listener leaves the true sound field unchanged, yet it collapses the network's prediction (0.92 -> 0.17); it predicts almost entirely from the listener's position. An older model trained with source/listener swaps and mirror images (AFAM) keeps 0.50 / 0.40 / 0.41 at the moved source, against 0.23 / 0.06 / 0.05 for its otherwise identical twin trained without them (G2), and beats "not moving" in every band. This needs no new simulation. RCP (the meeting model R0 + swaps, CTL's exact batches) is training; its reads are at 130K / 140K / 150K (~02:40 / ~04:50 / ~07:00).
