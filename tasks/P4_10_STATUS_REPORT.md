@@ -3,6 +3,33 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (16:27) — I2 complete: R0's full editability scorecard (675 cells, 6 families) -> it edits geometry well in rooms it knows, not in new ones; it cannot edit the source or materials
+
+**Headline:** We scored every edit the pre-registration lists against re-simulated truth. In rooms the model knows, changing the room's geometry works well: a stretched room is reproduced with accuracy 0.83 / 0.61 / 0.49 (25-100 / 100-200 / 200-300 Hz), and the moved wall and the notch edit with 0.90 / 0.67 / 0.56 and 0.92 / 0.70 / 0.57. Its predicted changes follow the true ones closely (pattern correlation 0.82 for stretches, 0.74 for moved walls). In unseen rooms the same edits are far worse (0.40 / 0.33 / 0.30). Moving the source and changing absorption do not work: the moved source scores 0.23 / 0.08 / 0.04, and changing the wall absorption moves the model the wrong way (the new render is farther from the truth than the old one). Cheap physics, re-solved for the edit, scores 0.97-0.98 in every family, so this is a score sheet, not a claim of superiority.
+
+In-family 15 rooms (off-lattice; mean over rooms of each room's average over magnitudes; m1 = physics at the edited geometry, 10 cm grid, a reference):
+
+| family | R0 edited r | ignore the edit | R0 r_delta | R0 g_delta | m1 physics | unseen: R0 edited r / r_delta |
+|---|---|---|---|---|---|---|
+| Stretch-U | 0.833 / 0.606 / 0.493 | 0.410 / 0.171 / 0.119 | 0.818 / 0.589 / 0.486 | 2.99 / 1.65 / 1.49 | 0.982 / 0.924 / 0.762 | 0.402 / 0.325 / 0.304 ; 0.253 / 0.203 / 0.249 |
+| Stretch-A | 0.835 / 0.613 / 0.495 | 0.514 / 0.250 / 0.281 | 0.766 / 0.552 / 0.327 | 2.54 / 1.55 / 1.25 | 0.984 / 0.932 / 0.769 | 0.416 / 0.347 / 0.327 ; 0.224 / 0.164 / 0.135 |
+| Wall | 0.900 / 0.673 / 0.562 | 0.735 / 0.421 / 0.233 | 0.743 / 0.506 / 0.458 | 2.14 / 1.45 / 1.45 | 0.984 / 0.928 / 0.764 | 0.438 / 0.363 / 0.347 ; 0.179 / 0.144 / 0.210 |
+| Notch | 0.917 / 0.697 / 0.568 | 0.885 / 0.715 / 0.534 | 0.637 / 0.328 / 0.216 | 1.53 / 1.26 / 1.19 | 0.984 / 0.928 / 0.771 | 0.464 / 0.380 / 0.372 ; 0.067 / 0.019 / 0.019 |
+| Source (second + third) | 0.231 / 0.083 / 0.044 | 0.305 / 0.217 / 0.215 | 0.504 / 0.391 / 0.304 | 0.97 / 0.99 / 0.94 | 0.985 / 0.947 / 0.785 | 0.212 / 0.110 / 0.062 ; 0.283 / 0.253 / 0.226 |
+| Material | 0.772 / 0.583 / 0.469 | 0.911 / 0.891 / 0.880 | 0.067 / 0.026 / 0.017 | 0.84 / 0.84 / 0.85 | omitted (no per-wall beta) | 0.428 / 0.357 / 0.347 ; 0.027 / -0.006 / -0.000 |
+
+(g_delta > 1 means the edited render is closer to the edited truth than the original render was. r_delta = per-bin spatial correlation of the dB change over the common receivers, clipped at +/-20 dB.)
+
+- **P-a (edited r within 0.05 of static r, in-family): FAILS for Stretch, HOLDS for Wall.** Stretch-U -0.085 [-0.129, -0.047] / -0.094 [-0.125, -0.066] / -0.089 [-0.121, -0.059]; Stretch-A -0.084 [-0.124, -0.048] / -0.088 [-0.112, -0.064] / -0.086 [-0.118, -0.057]; Wall -0.019 [-0.035, -0.005] / -0.028 [-0.043, -0.012] / -0.020 [-0.037, -0.004].
+- **P-b (g_delta > 1 for Stretch-U and Wall at 100-300 Hz, in-family): HOLDS** (Stretch-U 1.65 / 1.49, Wall 1.45 / 1.45).
+- **P-c (Notch r_delta below Stretch and Wall r_delta, in-family): HOLDS.** Paired: Notch - Stretch-U -0.181 [-0.217, -0.146] / -0.261 / -0.271; - Stretch-A -0.129 [-0.166, -0.092] / -0.224 / -0.111; - Wall -0.106 [-0.140, -0.074] / -0.177 / -0.242.
+- **P-d (Source below "ignore the move" in every band): HOLDS** (0.231 / 0.083 / 0.044 against 0.305 / 0.217 / 0.215, and the clean third source).
+- **P-e (Material: g_delta near 1, decay-rate slope near 0): mostly.** g_delta 0.84 in every band (the edited render is FARTHER from the truth, not near 1). Decay-rate edit slope -0.11 with Pearson -0.64 (pooled over octaves and cells, n 180 in-family): near zero, with the sign of the small predicted change slightly wrong. R0's corpus never varied absorption, so this is extrapolation (D200 shows its head ignores material tokens).
+- **P-f (unseen: every family at or below R0's static unseen r): HOLDS.** Edited minus static unseen: Stretch-U -0.065 [-0.099, -0.036] / -0.055 / -0.067, Stretch-A -0.052 / -0.032 / -0.044, Wall -0.030 [-0.045, -0.015] / -0.017 / -0.024, Notch -0.004 / +0.001 / +0.001 (equal within CI), Source -0.255 / -0.270 / -0.309, Material -0.039 / -0.023 / -0.024 (all CIs below or at 0).
+- **Reading:** R0 is editable for geometry inside the family it was trained on, with a real pattern of change (r_delta up to 0.82), and degrades quickly outside it. The source and material edits are not there, which is what R1 and R1-M target. **Not yet scored:** mode-shift slope (A8), F1 figure, and the second-source/third-source split for R1 at +10K.
+
+Links: [scorecard_R0_full.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R0_full.md) · [json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R0_full.json)
+
 ## 2026-11-23 (16:08) — I3 (smoke read): R1 (the source fix) at +5K steps already beats the swap-only model at the moved source
 
 **Headline:** R1, the model trained with several source positions per room, reached its first scored checkpoint after only 5K steps. At the moved source it is already as good as the swap-only model (RCP) after six times as much training, and better above 100 Hz: at the clean third source, in-family, 0.648 / 0.342 / 0.202 against RCP's 0.604 / 0.266 / 0.147 (25-100 / 100-200 / 200-300 Hz), and against "leave the source alone" 0.285 / 0.231 / 0.177 it is ahead in every band. Unseen, 0.473 / 0.329 / 0.199 against RCP 0.439 / 0.273 / 0.154. This is a small-sample reading: the 16-room "lite" set and one early checkpoint.
