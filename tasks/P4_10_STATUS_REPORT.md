@@ -8,7 +8,7 @@
 **Headline:** We found that the decay-time measurement we planned for the materials test is unreliable on the model's own fields. R0's sound decays fast, then sits on a flat late floor, so T30 reads 2.2 s at 125 Hz and 5.3 s at 250 Hz in unedited rooms where the truth is 0.70 s and 0.78 s. The materials test (MM2) cannot be judged with it as written. R1-M remains on hold (Q26), now with a stronger reason, and the decay numbers in I2 (P-e) should not be read as a material response. Full report for the manager: [P4_10_MANAGER_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT.md).
 
 - Measured on 8 in-family lite rooms, 1 in 40 off-lattice receivers (>= 1 m from the source), the original room's truth and R0's render of it: T20 is 35 / 59 / 43% too short (63 / 125 / 250 Hz), T30 off by 34 / 215 / 586%, EDT by 15 / 21 / 28%.
-- The late floor, in energy relative to the first 0.1 s: R0 about -43 dB at 125 Hz, -38 to -40 dB at 250 Hz, flat from 0.5 to 1.4 s; the truth is near -86 dB at 1.4 s at 125 Hz.
+- The late floor (3 in-family lite rooms, 1 in 25 receivers), in energy relative to the first 0.1 s: R0 about -43 dB at 125 Hz, -38 to -40 dB at 250 Hz, flat from 0.5 to 1.4 s; the truth is near -86 dB at 1.4 s at 125 Hz.
 - The earlier check of A7 (T30 within about 4% of physics) was on truth fields only.
 
 ## 2026-11-23 (18:30) — I6 (R1-S +10K, all lite families): training on stretched rooms helps stretch edits a little, less than the bar asks

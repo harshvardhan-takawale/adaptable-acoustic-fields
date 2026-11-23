@@ -73,7 +73,7 @@ By family, in-family: Stretch-U +0.035 / +0.010 / +0.014, Stretch-A +0.042 / +0.
 ## 3. Things I got wrong or left undone (read before relying on them)
 
 1. **R1-M was launched without the required OK (D197).** It trained 18:07-18:10 and wrote no checkpoint; it is now held. The A7 gate is only the launch condition; the training itself does not use T30.
-2. **I told the user I recommended accepting A7. I no longer do.** A7 was checked on truth fields only (one room, within about 4% of physics). When I scored it on R0's model fields in the original, unedited rooms (8 in-family lite rooms, 1 in 40 receivers), the model's impulse response falls fast and then sits on a flat late floor (about -43 dB at 125 Hz, -38 to -40 dB at 250 Hz, from 0.5 s on), while the truth keeps falling. Medians over rooms, truth against R0, with |error| of the room-median:
+2. **I told the user I recommended accepting A7. I no longer do.** A7 was checked on truth fields only (one room, within about 4% of physics). When I looked at R0's model fields in the original, unedited rooms, the model's impulse response falls fast and then sits on a flat late floor (about -43 dB at 125 Hz, -38 to -40 dB at 250 Hz, from 0.5 s on; measured on 3 in-family lite rooms, 1 in 25 receivers), while the truth keeps falling. Medians over rooms (8 in-family lite rooms, 1 in 40 receivers), truth against R0, with |error| of the room-median:
 
 | octave | T20 truth / R0 (error) | T30 truth / R0 (error) | EDT truth / R0 (error) |
 |---|---|---|---|
@@ -81,7 +81,7 @@ By family, in-family: Stretch-U +0.035 / +0.010 / +0.014, Stretch-A +0.042 / +0.
 | 125 Hz | 0.692 / 0.301 (59%) | 0.699 / 2.161 (215%) | 0.815 / 0.676 (21%) |
 | 250 Hz | 0.731 / 0.400 (43%) | 0.781 / 5.336 (586%) | 0.857 / 0.624 (28%) |
 
-   So for R0, **T30 at 125 and 250 Hz measures the floor, not the decay, and MM2's 15% bar is missed before any edit.** (Over all 60 in-family Material cells, the room-median |T30| error in the original room is 32% / 261% / 577%.) The posted Material decay slope (-0.11, Pearson -0.64) mixes these bands and should not be read as a material response. A7 dropped 0 cell-bands in either set, so the concern I raised about dropping cells does not bind here. Its per-receiver mask does remove some receivers at 250 Hz: the share kept is 0.987 (median) and 0.870 (worst) in-family, 0.989 and 0.750 unseen.
+   So for R0, **T30 at 125 and 250 Hz measures the floor, not the decay, and MM2's 15% bar is missed before any edit.** (Over all 60 in-family Material cells, the room-median |T30| error in the original room is 32% / 261% / 577%.) The posted Material decay slope (-0.11, Pearson -0.64) mixes these bands and should not be read as a material response. A7 dropped 0 cell-bands in either set, so the concern I raised about dropping cells does not bind here. Its per-receiver mask does remove some receivers at 250 Hz: the share kept is 0.988 (median) and 0.870 (worst) in-family, 0.989 and 0.750 unseen.
 3. **Scoring runs in `aaf`, not `aaf_sm89`** as amendment A3 says (the 14:54 entry states this). Training and scoring are consistent with each other; the text of A3 is not.
 4. **The progress board lacks three things the contract asks for:** Table C (scorecard headline per model), the ETA of the next read, and F2 (trajectories). The script's docstring promises Table C and F2; they are not built. F1, F3-F7, the mode-shift slope and the meeting folder do not exist yet either.
 5. **0d (R1-P calibration) was due Day 0 and is not written.**
