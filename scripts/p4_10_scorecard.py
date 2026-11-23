@@ -222,6 +222,14 @@ def decay_cell(c, base, o, z, p):
     return out
 
 
+def write_json_atomic(path, obj):
+    """several jobs may score the same cell: private name, then rename (a non-atomic write left 1 corrupted JSON on 2026-11-23)"""
+    import os
+    tmp = path.parent / "{}.{}.{}.tmp".format(path.stem, os.getpid(), os.uname().nodename.split(".")[0])
+    tmp.write_text(json.dumps(obj))
+    os.replace(tmp, path)
+
+
 def score(name, families, lite, idx=None, chunk=None, m1=True):
     M = cells(families, lite)
     if idx is not None:
@@ -231,7 +239,7 @@ def score(name, families, lite, idx=None, chunk=None, m1=True):
         dst = SC / name / (cid(c) + ".json")
         if dst.exists() or not (PRED / name / (cid(c) + ".npz")).exists():
             continue
-        dst.write_text(json.dumps(score_cell(name, c, m1=m1)))
+        write_json_atomic(dst, score_cell(name, c, m1=m1))
         print("scored", c["id"], flush=True)
 
 
