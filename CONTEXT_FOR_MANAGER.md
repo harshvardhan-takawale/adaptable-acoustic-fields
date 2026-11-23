@@ -4,6 +4,8 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
+**P4-10 status and open questions (2026-11-23 (18:36) EST, Q26-Q33): [tasks/P4_10_MANAGER_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT.md).** Start there for P4-10; the older entry below stops at P4-9.
+
 **Last updated**: **P4-9 Day 1-2 (2026-11-23, 00:50; D180-D193): I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14 (NMF), I5, 150K reads in; DIR E2 fails (D188); extensions X1, X1b, X2, X3a in (D189-D193); DIR-G and arm RCP training; S2X / DIR-G training, RCP queued.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 * **P4-9 last verdicts (2026-11-23):** DIR-G E2 FAILS (0 of 3 bands, like DIR), so E2's fallback is recorded: direction comes from the field. RCP @150K: S1 HOLDS (+0.266 in-family at 25-100 Hz vs CTL), S2 HOLDS (+0.267), C2 HOLDS; but above 100 Hz RCP stays below "ignore the move" (0.191 / 0.098 vs 0.211 / 0.247), so swaps alone do not fix the source (needs R1). RCP's swapped render 0.758 (R0 0.167).

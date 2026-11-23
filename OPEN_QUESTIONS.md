@@ -213,3 +213,15 @@ The S-4 build (1.33x throughput; score parity <= 7.2e-6, but fp16 MLPs and train
 **Process slip:** R1-M (job 8542917) was launched without this OK and trained from 18:07 to 18:10 on 2026-11-23. It was requeued in held state at 18:10:23, before any checkpoint or read. The smoke run also preceded the OK. R0's posted Material decay numbers (P-e: slope -0.11, Pearson -0.64) already use A7's definition and stand or fall with it.
 
 **Options:** (a) accept A7: `scontrol release 8542917`, and R1-M starts again from step 0; (b) change the T30 definition: re-score R0's Material decay, then release; (c) drop R1-M: cancel the job. Training itself does not use T30, so (a) and (b) give the same weights; only the bars' measurement differs.
+
+**Update to Q26 (2026-11-23 (18:36)): my recommendation to accept A7 is withdrawn.** A7 was checked on truth fields only. On R0's fields in the ORIGINAL, unedited rooms (8 in-family lite rooms, 1 in 40 receivers) the model's impulse response sits on a flat late floor (about -43 dB at 125 Hz, -38 to -40 dB at 250 Hz from 0.5 s on), so T30 measures the floor: truth / R0 room-medians 0.699 / 2.161 s at 125 Hz, 0.781 / 5.336 s at 250 Hz; T20 is 43-59% too short and EDT 15-28% off (63 Hz: T30 34%, T20 35% off). MM2's 15% bar is therefore missed before any edit, and R0's posted decay slope (-0.11, Pearson -0.64) is not a clean material response. A7 dropped 0 cell-bands. See Q26 in the report below for the options.
+
+Full texts, with evidence, options and the default I follow if there is no answer, are in [tasks/P4_10_MANAGER_REPORT.md](tasks/P4_10_MANAGER_REPORT.md), section 4:
+
+### Q27 — How is RS1 (six gaps) read at +30K, and what does its extension rule mean? *(manager's call; needed before R1's read, about 21:20 ET on 2026-11-23)*
+### Q28 — If RS1 fails or holds only in some bands, which model is the base for P4-11 and the meeting: R0, S2X or R1? *(manager's call)*
+### Q29 — Does the manager override CLAUDE.md rule 10 for R1-C? *(manager's call; held until then)*
+### Q30 — Is R1-P still wanted, with A9 / A10 / A13 as amended? 0d is not written. *(manager's call)*
+### Q31 — Confirm training AND scoring in `aaf` (A3 says scoring in `aaf_sm89`; the code scores in `aaf`). *(manager's call)*
+### Q32 — May the 16-room confirmation set be used for R1? D181 c6 said "scored once". *(manager's call)*
+### Q33 — When is the meeting? *(user / manager)*
