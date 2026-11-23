@@ -30,7 +30,7 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ## 2026-11-23 (14:10) — I11 part 2 (DIR-G) and RCP @150K (X3b): DIR-G also FAILS E2 (fallback recorded); RCP MEETS its pre-registered bars at 25-100 Hz but stays below "ignore the move" above 100 Hz
 
-**Headline:** Two arms trained for sound direction (DIR and DIR-G) do not beat what an ordinary model already gives by differentiating its own sound field. So first-order direction comes from the field, not from directional training. Separately, training with source/listener swaps (RCP) makes the model far better at a moved source than its plain continuation at low frequencies (25-100 Hz: +0.27 in both known and unseen rooms, against a +0.10 / +0.05 bar), with no harm elsewhere. Above 100 Hz it still does worse than not moving the source at all, so swaps alone do not solve source editing. R1 (multi-source data + swaps) is next.
+**Headline:** Two arms trained for sound direction (DIR and DIR-G) do not beat what an ordinary model already gives by differentiating its own sound field. So first-order direction comes from the field, not from directional training. Separately, training with source/listener swaps (RCP) makes the model far better at a moved source than its plain continuation at low frequencies (25-100 Hz: +0.27 in both known and unseen rooms, against a +0.10 / +0.05 bar), with no harm elsewhere. Above 100 Hz it still does worse than not moving the source at all, so swaps alone do not solve source editing there; R1 (multi-source data plus swaps) tests that next.
 
 **DIR-G @150K (E2 / C2 / C3, D188):**
 - **E2 FAILS, 0 of 3 bands.** DIR-G's best readout (projected omni gradient) 0.951 / 0.852 / 0.808 against CTL's 0.945 / 0.849 / 0.806: +0.006 / +0.003 / +0.003 (bar +0.05). Literal reading (raw-FD bar): passes 3 of 3, the projection trap again.
@@ -48,7 +48,7 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 - **C2 HOLDS:** HF -0.001 [-0.004, +0.002]; UF +0.011 / +0.009 / +0.006.
 - **Reciprocity gap (D193):** RCP's swapped render 0.758 / 0.343 / 0.227 in-family (R0 0.167 / 0.050 / 0.027; normal 0.920 / 0.705 / 0.582); unseen 0.434 / 0.290 / 0.229.
-- **Reading:** swaps alone largely fix reciprocity and the 25-100 Hz band, but above 100 Hz RCP is below "ignore the move" in both sets. That agrees with E2 (D194): a moved source beyond the augmentation's reach needs multi-source data.
+- **Reading:** swaps improve reciprocity (most at 25-100 Hz: swapped 0.758 against 0.920 normal; far less at 200-300 Hz, 0.227 against 0.582) and the moved source at 25-100 Hz. Above 100 Hz RCP is below "ignore the move" in both sets, so swaps alone do not solve source editing there. Whether multi-source data closes it is what R1 tests.
 
 Links: [e2_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/e2_read.md) · [x3_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/x3_read.md) · [recip_gap.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/recip_gap.md)
 
