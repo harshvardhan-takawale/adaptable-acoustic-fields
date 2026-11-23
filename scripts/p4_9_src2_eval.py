@@ -189,7 +189,7 @@ def report(which="unseen"):
                       " / ".join("{:.3f}".format(m["R0src1_vs_T2"][b]) for b in BANDS),
                       " / ".join("{:.3f}".format(m["T1_vs_T2"][b]) for b in BANDS)), ""]
     ign = [json.load(open(p)) for p in sorted(OUT.glob("*.json")) if not p.stem.startswith("diag")]
-    ign = [d for d in ign if "ignore_move_vs_src2" in d["raw"][BANDS[0]]]
+    ign = [d for d in ign if "ignore_move_vs_src2" in d["raw"][next(iter(BANDS))]]
     if ign:
         lines += ["**'Ignore the move'** (the original-source truth scored against the second-source truth, raw): " +
                   " / ".join("{:.3f}".format(ign[0]["raw"][b]["ignore_move_vs_src2"]) for b in BANDS), ""]

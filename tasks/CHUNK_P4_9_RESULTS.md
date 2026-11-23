@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-23, 00:50): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14, I5, 150K reads (S2X interim, CTL final) in; extensions X1 (D189) and X1b (D192) in, X2 / X3 (D190, D191, D193) running; DIR E2 / C2 / C3 next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-23, 00:50): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14, I5, 150K reads (S2X interim, CTL final) in; extensions X1, X1b, X3a (D189, D192, D191, D193) in; X2 and RCP running; DIR E2 / C2 / C3 next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -40,6 +40,13 @@ Sections below are filled as each step lands.
 * "Learned prior for reconstruction" is therefore not a role physics cannot fill (Q24).
 
 [F8_netprior.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F8_netprior.png).
+**X3a (D191) + reciprocity gap (D193): moving the source.**
+* **New in-family second-source set (15 shapes).** R0 falls 0.918 -> 0.227 / 0.701 -> 0.067 / 0.582 -> 0.040, below "ignore the move" (0.311 / 0.211 / 0.247).
+* **R0 is not reciprocal.** The swapped render scores 0.167 / 0.050 / 0.027 against the same truth.
+* **Zero-training pre-check.** AFAM (G2 + D4 flips + swaps) minus G2 at the second source: in-family +0.273 / +0.342 / +0.359, unseen +0.163 / +0.213 / +0.199 (CIs > 0). AFAM at the moved source reads 0.499 / 0.398 / 0.412 in-family, above "ignore the move".
+* Arm RCP (CTL + swaps p 0.25) is training; S1 / S2 / C2 are read at 150K.
+
+[x3_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/x3_read.md).
 ## Step 2 — training arms (S2X, CTL, DIR, DIR-G, NMF, NMF-P)
 
 **2a S2X @150K (interim):** HF 0.510, UF 0.496 / 0.417 / 0.402 (S2 @120K 0.502 / 0.501; HF +0.007 [+0.002, +0.012], UF -0.005 [-0.009, -0.000]). The 240K test needs HF >= 0.56 AND UF >= 0.49; UF holds now, HF is 0.050 short. **2b CTL @150K (final):** HF 0.583, UF 0.467 / 0.376 / 0.373, flat vs R0 (HF +0.002 [-0.003, +0.006]); train-room fit 0.670 (R0 0.645).

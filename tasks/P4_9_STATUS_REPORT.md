@@ -28,7 +28,48 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
-## 2026-11-23 (02:10) — X1b (D192): when physics gets the same partial information, it is as good a prior as the network — Q does NOT hold -> F8
+## 2026-11-23 (01:10) — X3a (D191, D193): the network cannot move the source, in known shapes too — but source/listener swaps in training largely fix it, with no new simulation
+
+**Headline:** Moving the sound source breaks the network even in room shapes it knows well: accuracy at 25-100 Hz falls from 0.92 to 0.23. That is worse than not moving the source at all (0.31). The network is also not "reciprocal". Swapping source and listener leaves the true sound field unchanged, yet it collapses the network's prediction (0.92 -> 0.17); it predicts almost entirely from the listener's position. An older model trained with source/listener swaps and mirror images (AFAM) keeps 0.50 / 0.40 / 0.41 at the moved source, against 0.23 / 0.06 / 0.05 for its otherwise identical twin trained without them (G2), and beats "not moving" in every band. This needs no new simulation. RCP (the meeting model R0 + swaps, CTL's exact batches) is training; its reads are at 130K / 140K / 150K (~02:40 / ~04:50 / ~07:00).
+
+**New set (D191(b)(ii)):** the 15 in-family test shapes re-simulated at a second source (S-3's rule; geometry proven by the same rerun check), same dense receivers. Raw off-lattice r per band (S-3's scorer); original source -> second source; drop [95% CI]:
+
+| model | in-family 15: 25-100 / 100-200 / 200-300 Hz | unseen 16: 25-100 / 100-200 / 200-300 Hz |
+|---|---|---|
+| R0 @120K | 0.918 -> 0.227 / 0.701 -> 0.067 / 0.582 -> 0.040 | 0.468 -> 0.172 / 0.380 -> 0.077 / 0.371 -> 0.055 |
+| CTL @150K | 0.920 -> 0.221 / 0.708 -> 0.068 / 0.583 -> 0.048 | 0.467 -> 0.176 / 0.376 -> 0.068 / 0.373 -> 0.052 |
+| S2 @120K | 0.908 -> 0.487 / 0.652 -> 0.182 / 0.502 -> 0.141 | 0.501 -> 0.386 / 0.419 -> 0.193 / 0.404 -> 0.155 |
+| G2 @60K (no augmentation) | 0.774 -> 0.226 / 0.475 -> 0.056 / 0.309 -> 0.053 | 0.458 -> 0.165 / 0.312 -> -0.001 / 0.262 -> 0.022 |
+| **AFAM @60K (= G2 + D4 flips + swaps)** | **0.806 -> 0.499 / 0.521 -> 0.398 / 0.405 -> 0.412** | **0.444 -> 0.329 / 0.361 -> 0.213 / 0.351 -> 0.221** |
+| "ignore the move" (original-source truth vs second-source truth) | 0.311 / 0.211 / 0.247 | 0.357 / 0.204 / 0.210 |
+| physics m1 (exact geometry) | -- | 0.978 -> 0.978 / 0.972 -> 0.969 / 0.960 -> 0.960 |
+
+- **X3a, AFAM - G2 at the second source (paired):**
+  - in-family **+0.273 [+0.213, +0.330] / +0.342 [+0.309, +0.376] / +0.359 [+0.327, +0.391]**;
+  - unseen +0.163 [+0.075, +0.250] / +0.213 [+0.138, +0.287] / +0.199 [+0.111, +0.282].
+  - At the original source the gap is small: in-family +0.032 / +0.046 / +0.096; unseen -0.014 / +0.049 / +0.089.
+- **Drops:**
+  - AFAM loses -0.307 / -0.123 / +0.007 in-family, against G2's -0.548 / -0.419 / -0.256.
+  - The prediction "at most half of G2's drop" holds in 5 of 6 band-sets; in-family 25-100 Hz it is 56%.
+- **Caveat:** AFAM's augmentation is D4 flips (which also move the source, mirrored) plus swaps, so X3a cannot attribute the gain to swaps alone. RCP isolates the swaps (p 0.25, nothing else changed against CTL).
+- **Reciprocity gap (D193):** the swapped render scored against the SAME truth, off-lattice interior receivers.
+
+  | model | set | normal | swapped | swapped vs normal |
+  |---|---|---|---|---|
+  | R0 @120K | in-family | 0.918 / 0.701 / 0.582 | 0.167 / 0.050 / 0.027 | 0.172 / 0.070 / 0.030 |
+  | R0 @120K | unseen | 0.468 / 0.380 / 0.371 | 0.122 / 0.054 / 0.027 | 0.189 / 0.082 / 0.038 |
+  | CTL @150K | in-family | 0.920 / 0.708 / 0.583 | 0.170 / 0.050 / 0.034 | 0.173 / 0.069 / 0.033 |
+
+  R0 is far from reciprocal: exchanging source and listener changes its field almost completely. Together with S-3 (R0's moved-source render is no better than its original-source one), this says R0 has learned the field as a function of the listener position for the one source each room was trained with.
+- **Pre-registered RCP readings (D191(e)), at 150K vs CTL @150K:**
+  - S1: in-family second source, 25-100 Hz, >= +0.10 with CI > 0;
+  - S2: unseen, >= +0.05;
+  - C2: no harm at the original source.
+  - RCP runs at 0.78 s/it on tron; every training row is swappable (no wall nodes).
+
+Links: [x3_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/x3_read.md) · [src2_test.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/src2_test.md) · [recip_gap.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/recip_gap.md) · [P4_9_RCP.yaml](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/sweep_2d_mat/P4_9_RCP.yaml)
+
+## 2026-11-23 (01:00) — X1b (D192): when physics gets the same partial information, it is as good a prior as the network — Q does NOT hold -> F8
 
 **Headline:** X1 showed the network is a useful starting guess for reconstructing a room from a few microphones. The fair question is whether physics can do the same job. We gave both the same partial information, only the room's bounding box. A quick physics solve on that box, used as the starting guess, is as good as the network at 8 microphones and slightly better from 16 on (unseen rooms); in known room shapes it is better at every count. Even the network given the EXACT shape beats the box-only physics guess only at 8 microphones. So "a learned prior for reconstruction" is a role cheap physics already fills. This does not answer Q24 in the network's favour.
 
