@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-from scripts.p4_10_scorecard import BAND, SC, boot, cells, cid, source_gap
+from scripts.p4_10_scorecard import BAND, SC, boot, cells, cid, material_slope, source_gap
 from scripts.p4_8_primary_table import load, paired
 
 ARMS = Path("outputs/p4_10/arms")
@@ -24,7 +24,6 @@ def ref_of(arm, step):
     return "CTL_150K" if arm == "R1" else "R1_{}K".format(step // 1000)
 
 
-REF_NOTE = "R1-M reads its primary metric on the Material lite cells"
 PRIMARY = {"R1": "in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)",
            "R1S": "r_delta on Stretch (lite) cells, in-family, paired vs R1 at the same step (bar: +0.05, CI > 0, >= 2 of 3 bands)",
            "R1M": "decay-rate edit slope on Material (lite) cells (bar: slope in [0.8, 1.2], Pearson >= 0.8)",
@@ -55,6 +54,8 @@ def arm_rows(arm):
         g = source_gap(name, lite=True)
         if g.get("test"):
             row["gap"] = {grp: {mag: {b: boot([v[b] for v in g[grp][mag].values()]) for b in B} for mag in g[grp]} for grp in g}
+        if arm == "R1M":
+            row["material"] = {g: material_slope(name, True, g) for g in ("test", "unseen")}
         if arm == "R1S":
             row["stretch"] = stretch_primary(name, ref_of(arm, it))
         rows.append(row)
@@ -115,6 +116,16 @@ def main():
                 r["name"], s["HF"], " / ".join("{:.3f}".format(s["UF"][b]) for b in B),
                 f(d["HF"]) if d else "--", f(d["UF_25-100"]) if d else "--"))
         L.append("")
+        matr = [r for r in rep["arms"][a] if r.get("material", {}).get("test", {}).get("pooled")]
+        if matr:
+            L += ["Decay-rate edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8; MM1):", "",
+                  "| read | set | slope | Pearson | cells | dropped |", "|---|---|---|---|---|---|"]
+            for r in matr:
+                for g in ("test", "unseen"):
+                    m = r["material"][g]
+                    if m.get("pooled"):
+                        L.append("| {} | {} | {:.2f} | {:.2f} | {} | {} |".format(r["name"], g, m["pooled"]["slope"], m["pooled"]["pearson"], m["pooled"]["n"], m["n_dropped_cells_bands"]))
+            L.append("")
         strc = [r for r in rep["arms"][a] if r.get("stretch", {}).get("test")]
         if strc:
             L += ["Stretch r_delta (lite cells; paired vs R1 at the same step):", "", "| read | set | level | R1 | delta 25-100 / 100-200 / 200-300 [CI] |", "|---|---|---|---|---|"]
