@@ -1,5 +1,5 @@
 {
- "built": "2026-11-23 17:52",
+ "built": "2026-11-23 18:23",
  "arms": {
   "R1": [
    {
@@ -219,8 +219,88 @@
       }
      }
     }
+   },
+   {
+    "name": "R1_135K",
+    "step": 135000,
+    "static": null,
+    "gap": {
+     "test": {
+      "second": {
+       "25-100": [
+        0.284129548817873,
+        0.19141573254019023,
+        0.38721394510939716
+       ],
+       "100-200": [
+        0.39436967205256224,
+        0.32874105519149455,
+        0.4607250113040209
+       ],
+       "200-300": [
+        0.37204221077263355,
+        0.3291331734508276,
+        0.42618498019874096
+       ]
+      },
+      "third": {
+       "25-100": [
+        0.15584447979927063,
+        0.12466385867446661,
+        0.1801770254969597
+       ],
+       "100-200": [
+        0.25270724669098854,
+        0.21750707663595675,
+        0.28370318934321404
+       ],
+       "200-300": [
+        0.2690209485590458,
+        0.2503805495798588,
+        0.28965120017528534
+       ]
+      }
+     },
+     "unseen": {
+      "second": {
+       "25-100": [
+        -0.004512283951044083,
+        -0.10020150011405349,
+        0.08450672784820196
+       ],
+       "100-200": [
+        0.197859444655478,
+        0.12120505049824715,
+        0.26439152006059885
+       ],
+       "200-300": [
+        0.22556566214188933,
+        0.12859976821346208,
+        0.3205812689848244
+       ]
+      },
+      "third": {
+       "25-100": [
+        -0.01753763109445572,
+        -0.1063939817249775,
+        0.06933126011863344
+       ],
+       "100-200": [
+        0.07222972437739372,
+        0.02133864536881447,
+        0.12312080338597298
+       ],
+       "200-300": [
+        0.1320050898939371,
+        0.0842767623718828,
+        0.17879690141417084
+       ]
+      }
+     }
+    }
    }
   ],
+  "R1M": [],
   "R1S": [
    {
     "name": "R1S_125K",
@@ -257,35 +337,118 @@
      }
     },
     "stretch": {}
+   },
+   {
+    "name": "R1S_130K",
+    "step": 130000,
+    "static": null,
+    "stretch": {}
    }
   ]
  },
  "queue": [
   {
+   "job": "aaf_p4_5_eval",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_p4_5_eval",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
    "job": "aaf_board",
    "state": "PENDING",
    "elapsed": "0:00",
    "limit": "30:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_ss_R1S_130K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "2:00:00",
    "where": "(Priority)"
+  },
+  {
+   "job": "aaf_board",
+   "state": "RUNNING",
+   "elapsed": "0:05",
+   "limit": "30:00",
+   "where": "brigid16"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "17:33",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "17:33",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "17:33",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "19:28",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "19:28",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "19:28",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
   },
   {
    "job": "aaf_confirm",
    "state": "RUNNING",
-   "elapsed": "11:18",
+   "elapsed": "42:58",
    "limit": "2:00:00",
    "where": "legacygpu18"
   },
   {
+   "job": "aaf_r1m",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "1-00:00:00",
+   "where": "(job requeued in held state)"
+  },
+  {
    "job": "aaf_r1",
    "state": "RUNNING",
-   "elapsed": "3:08:55",
+   "elapsed": "3:40:35",
    "limit": "1-00:00:00",
    "where": "tron46"
   },
   {
    "job": "aaf_r1s",
    "state": "RUNNING",
-   "elapsed": "2:08:32",
+   "elapsed": "2:40:12",
    "limit": "1-00:00:00",
    "where": "tron53"
   }

@@ -29,7 +29,7 @@ while true; do
     launch fit aaf_fit 02:00:00 32G "$FITPY --items $N=$CK"
     if [ "$ITER" -gt "${KILLSIG:-4000}" ]; then
       if [ ! -f "$MARK/${N}" ]; then
-        E=$(sbatch --parsable --export=ALL,RUN=$ARMS/$A,CK=$(basename "$CK"),NAME=$N scripts/slurm/p4_5_eval_ckpt.sh) \
+        E=$(sbatch --parsable ${GRES:+--gres=$GRES} --export=ALL,RUN=$ARMS/$A,CK=$(basename "$CK"),NAME=$N scripts/slurm/p4_5_eval_ckpt.sh) \
           && touch "$MARK/${N}" && echo "$(date +%H:%M) launched eval $N -> $E"
       fi
       launch dense aaf_g2dense 03:00:00 32G "scripts/p4_5_gate2_dense.py --checkpoint $CK --name $N"

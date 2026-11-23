@@ -3,6 +3,25 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (18:28) — I5 (R1 +15K, source cells): still improving at 25-100 Hz, but the moved-source gap has stopped closing above 100 Hz at the second source
+
+**Headline:** After 15K of 30K steps, the source-fix model (R1) still gains on moved sources in the lowest band: at the clean third source in known rooms it reaches 0.748 / 0.407 / 0.283 (25-100 / 100-200 / 200-300 Hz), from 0.713 / 0.391 / 0.279 at +10K. Above 100 Hz progress has slowed: the gap to its own static accuracy is unchanged at the third source at 200-300 Hz (0.269) and slightly wider at the second source (0.394 and 0.372, from 0.390 and 0.347). The bar (at most 0.10 in every band, at both sources, at +30K) is not met in any in-family band, and no pre-registered rule is applied at this read.
+
+Off-lattice; lite set (8 in-family, 8 unseen rooms); frozen scorer; 32/32 cells. Edited r / gap to the original room's static r. Reference levels (Rule 12): R1's static r 0.904 / 0.660 / 0.552 in-family, 0.537 / 0.446 / 0.407 unseen.
+
+| set, source | edited r | gap (+10K gap) | ignore the move |
+|---|---|---|---|
+| in-family, second | 0.620 / 0.266 / 0.180 | 0.284 / 0.394 / 0.372 (0.312 / 0.390 / 0.347) | 0.336 / 0.197 / 0.249 |
+| in-family, third | 0.748 / 0.407 / 0.283 | 0.156 / 0.253 / 0.269 (0.187 / 0.264 / 0.269) | 0.285 / 0.231 / 0.177 |
+| unseen, second | 0.541 / 0.248 / 0.181 | -0.005 / 0.198 / 0.226 (0.008 / 0.202 / 0.204) | 0.381 / 0.229 / 0.229 |
+| unseen, third | 0.554 / 0.374 / 0.275 | -0.018 / 0.072 / 0.132 (0.000 / 0.080 / 0.148) | 0.314 / 0.276 / 0.200 |
+
+- **In two cells R1 is below "ignore the move":** the second source at 200-300 Hz, in-family (0.180 against 0.249) and unseen (0.181 against 0.229). The unseen gaps near zero at 25-100 Hz sit beside a low static level (0.537), so they are not evidence of a good field.
+- **Static accuracy (HF / UF) at +15K is not in yet.** Its report job was queued for an A5000 with a start estimate of 23:30; it now asks for a P6000.
+- R1-M stays held (Q26).
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (18:10) — Correction: R1-M was launched before a required sign-off; it is now held
 
 **Headline:** The materials arm (R1-M) started training at 18:07 without the manager's OK on amendment A7 (how decay time is measured), which our own record (D197) requires first. We put it back on hold at 18:10:23, before any checkpoint or read, so no result depends on it. It restarts from step 0 once the manager answers Q26. R1 and R1-S are unaffected.
