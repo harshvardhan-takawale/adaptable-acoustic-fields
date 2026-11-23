@@ -50,7 +50,7 @@ R1, 8 in-family lite rooms, 32/32 source cells per read:
 (gap = static r minus moved r; RS1 bar: every gap <= 0.10 at +30K. The last column is my arithmetic on the six rounded gaps.)
 
 - **Learning check passed** at +10K (0.587 >= 0.38). **Harm kill not triggered** at +10K: HF -0.033 [-0.039, -0.027] against CTL @150K, UF +0.025 / +0.023 / +0.020.
-- **RC1 is at risk:** it allows HF -0.02 at +30K and R1 read -0.033 at +10K. HF at +15K is not in yet.
+- **RC1 is at risk:** it allows HF -0.02 at +30K and R1 read -0.033 at +10K and -0.028 [-0.035, -0.022] at +15K against CTL @150K (added 18:48; UF +0.030 / +0.036 / +0.025, HF 0.555, UF 0.497 / 0.412 / 0.398).
 - **The gap above 100 Hz has stopped closing.** At +15K, R1's second-source r at 200-300 Hz (0.180 in-family, 0.181 unseen) is below "ignore the move" (0.249 and 0.229).
 - If judged at +15K, **RS2** (unseen moved r >= ignore + 0.05, all bands, both sources) would hold at the third source (+0.240 / +0.098 / +0.075) and not at the second (+0.160 / +0.019 / -0.048). This is a descriptive reading; RS2 is judged at +30K.
 - R1 +5K ... +15K entries: [https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_STATUS_REPORT.md)
@@ -62,7 +62,7 @@ R1, 8 in-family lite rooms, 32/32 source cells per read:
 | in-family (SS1) | 0.801 / 0.539 / 0.341 | 0.762 / 0.532 / 0.333 | +0.039 [+0.015, +0.066] / +0.007 [+0.001, +0.012] / +0.007 [+0.002, +0.013] |
 | unseen | 0.362 / 0.290 / 0.225 | 0.338 / 0.266 / 0.211 | +0.025 [+0.014, +0.036] / +0.024 [+0.018, +0.031] / +0.014 [+0.005, +0.022] |
 
-By family, in-family: Stretch-U +0.035 / +0.010 / +0.014, Stretch-A +0.042 / +0.004 / +0.000. SS1's bar (+0.05, CI > 0, 2 of 3 bands, at +30K) is not met by either reading at +10K. R1-S's harm-kill inputs (HF, UF at 130K) are still rendering. Edited r for Stretch-U: in-family +0.050 / +0.031 / +0.045, unseen +0.047 / +0.050 / +0.045 over R1.
+By family, in-family: Stretch-U +0.035 / +0.010 / +0.014, Stretch-A +0.042 / +0.004 / +0.000. SS1's bar (+0.05, CI > 0, 2 of 3 bands, at +30K) is not met by either reading at +10K. R1-S's harm kill at +10K is NOT triggered (added 18:48: HF -0.002 [-0.006, +0.002] against R1 at the same step; UF +0.006 / +0.015 / +0.002). Edited r for Stretch-U: in-family +0.050 / +0.031 / +0.045, unseen +0.047 / +0.050 / +0.045 over R1.
 
 ### 2d. P4-9, final
 - **S2X @240K passes its pre-registered test** (HF 0.5635 >= 0.56, UF 0.4951 >= 0.49) but trades: against R0 @120K HF -0.018 [-0.024, -0.013], UF +0.028 [+0.017, +0.038]. Raw: [https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/unseen/S2X_240K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/unseen/S2X_240K.json) · trajectory figure: [https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F0_trajectory.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F0_trajectory.png)

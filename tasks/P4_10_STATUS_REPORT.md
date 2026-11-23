@@ -3,6 +3,16 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (18:48) — I7 (static accuracy, R1 +15K and R1-S +10K): R1's cost at the original source is shrinking but still over RC1's limit; R1-S does no harm
+
+**Headline:** R1's accuracy at the original source in known rooms is 0.028 below the plain continuation (CTL @150K) at 200-300 Hz, down from 0.033 at +10K. The no-harm rule (RC1, judged at +30K) allows 0.02. R1 is ahead in unseen rooms in every band. R1-S, the stretched-room arm, is level with R1 at the same step at the original source and passes its +10K harm check.
+
+- **R1 @135K (+15K):** HF 0.555 (0.550 at +10K), UF 0.497 / 0.412 / 0.398. Against CTL @150K: HF -0.028 [-0.035, -0.022]; UF +0.030 [+0.018, +0.043] / +0.036 [+0.026, +0.048] / +0.025 [+0.015, +0.035]. Reference levels: CTL @150K HF 0.583, UF 0.467 / 0.376 / 0.373. R1 @130K -> 135K: HF +0.005 [-0.001, +0.010].
+- **R1-S harm kill (+10K, against R1 at the matched step): NOT triggered.** R1-S @130K - R1 @130K: HF -0.002 [-0.006, +0.002]; UF +0.006 [+0.001, +0.012] / +0.015 [+0.008, +0.022] / +0.002 [-0.005, +0.009]. Levels: R1-S HF 0.549, UF 0.499 / 0.413 / 0.395; R1 0.550, 0.492 / 0.398 / 0.393. (R1-S against CTL @150K is -0.035 at HF; R1-S is judged against R1.)
+- **Reading for RC1:** on R1's +10K and +15K reads HF is still outside the limit. Whether it recovers by +30K is the pre-registered read; nothing is concluded from +15K.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (18:36) — Correction: T30 on the model's fields measures a noise floor, not decay; A7's recommendation withdrawn
 
 **Headline:** We found that the decay-time measurement we planned for the materials test is unreliable on the model's own fields. R0's sound decays fast, then sits on a flat late floor, so T30 reads 2.2 s at 125 Hz and 5.3 s at 250 Hz in unedited rooms where the truth is 0.70 s and 0.78 s. The materials test (MM2) cannot be judged with it as written. R1-M remains on hold (Q26), now with a stronger reason, and the decay numbers in I2 (P-e) should not be read as a material response. Full report for the manager: [P4_10_MANAGER_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT.md).

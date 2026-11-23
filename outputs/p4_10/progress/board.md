@@ -1,8 +1,8 @@
 # P4-10 progress board
 
-Built 2026-11-23 18:29 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-23 18:48 (from JSON on disk; every read is a scored checkpoint).
 
-**Running jobs:** aaf_p4_5_eval x2, aaf_board x1, aaf_g2dense x2, aaf_oof x1, aaf_unseen_ev x2, aaf_confirm x1, aaf_r1 x1, aaf_r1s x1
+**Running jobs:** aaf_confirm x1, aaf_r1 x1, aaf_r1s x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -10,7 +10,7 @@ Built 2026-11-23 18:29 (from JSON on disk; every read is a scored checkpoint).
 |---|---|---|---|---|
 | R1_125K | 0.536 | 0.483 / 0.393 / 0.377 | -0.047 [-0.054, -0.041] | +0.016 [+0.003, +0.028] |
 | R1_130K | 0.550 | 0.492 / 0.398 / 0.393 | -0.033 [-0.039, -0.027] | +0.025 [+0.011, +0.040] |
-| R1_135K | pending | | | |
+| R1_135K | 0.555 | 0.497 / 0.412 / 0.398 | -0.028 [-0.035, -0.022] | +0.030 [+0.018, +0.043] |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 
@@ -33,7 +33,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
 |---|---|---|---|---|
 | R1S_125K | 0.534 | 0.474 / 0.396 / 0.391 | -0.002 [-0.009, +0.005] | -0.009 [-0.016, -0.002] |
-| R1S_130K | pending | | | |
+| R1S_130K | 0.549 | 0.499 / 0.413 / 0.395 | -0.002 [-0.006, +0.002] | +0.006 [+0.001, +0.012] |
 
 Stretch r_delta (lite cells; paired vs R1 at the same step):
 
