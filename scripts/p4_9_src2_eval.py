@@ -1,6 +1,6 @@
 """P4-9 S-3 (D181 E8; D182(b)): a second source position for the 16 frozen unseen rooms -- descriptive, no pass rule.
 
-The original source (0.5, 1.6) is the only source any corpus has ever used (W6). Per room, `data/track_p4_9_unseen_src2`
+The frozen rooms use source (0.5, 1.6) (D194: R0's corpus itself has one source PER ROOM, 499 distinct in CX500). Per room, `data/track_p4_9_unseen_src2`
 holds the FDTD at a second source (D182(b): the first of (L - 0.5, 1.6), (L / 2, 1.0), (L / 2, W / 2) on an air node
 >= 0.3 m from every wall) and the SAME dense receivers. Scored exactly as `p4_8_unseen_eval` (off-lattice, Rule 11; raw
 and after the render-time projection, POST-PROCESSING; band-mean r over 25-100 / 100-200 / 200-300 Hz and band LSD):
@@ -165,8 +165,8 @@ def report(which="unseen"):
              if which == "unseen" else
              "# P4-9 X3 (D191(b)(ii)): a second source position on the 15 in-family test shapes (descriptive)")
     lines = [title, "",
-             "Every corpus so far uses ONE source, (0.5, 1.6). Here each frozen unseen room is re-simulated with a second "
-             "source (D182(b)) on the same dense receivers; off-lattice r (Rule 11), mean over 16 rooms, band-mean per-bin "
+             "Each training room has ONE source (D194; R0's CX500 half has 499 distinct ones). Here each frozen room is re-simulated with a second "
+             "source (D182(b)) on the same dense receivers; off-lattice r (Rule 11), mean over the set's rooms, band-mean per-bin "
              "Pearson of dB. Delta = second - original source, paired bootstrap over rooms (10k, seed 20261013).", ""]
     for v in ("raw", "projected"):
         lines += ["**{}** (r: original source -> second source; delta [95% CI]; LSD dB original / second)".format(v), "",

@@ -202,4 +202,4 @@ m1 found that the solver's own operator, solved once per room in a modal basis (
 * (b) Per-room adapters (FiLM heads per room, as in Step 1's M2) on 1000 rooms. This is the deployable form of "more capacity per room"; Step 1 already shows M2 lifting unseen 25-100 Hz from 0.47 to 0.81 with 32 measurements.
 * (c) Fewer rooms at fixed steps (R0's recipe on 200 and 50 GX rooms, 120K). This confounds capacity and exposure, but it maps the fit-versus-sharing curve between R0 (1000) and S-1 (1).
 
-The S-4 build (1.33x throughput, parity exact) makes any of these cheaper from P4-10.
+The S-4 build (1.33x throughput; score parity <= 7.2e-6, but fp16 MLPs and training never compared -- D194) could make these cheaper from P4-10.

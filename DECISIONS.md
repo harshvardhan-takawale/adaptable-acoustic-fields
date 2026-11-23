@@ -2527,3 +2527,19 @@ Scored on the 31 dense rooms (15 in-family, 16 unseen), off-lattice receivers, t
 * swapped: receiver at s, source at r_i.
 
 Both are scored against the SAME truth with the frozen scorer (`p4_7_m1_modal.scores`), and the swapped render is also correlated with the normal one. A reciprocal model scores the same both ways. RCP's swaps train exactly this property, so the gap is read for R0 @120K, CTL @150K and RCP @150K. It separates "RCP became reciprocal" from "RCP can move the source": a swap supervises a source anywhere, but always with its receiver at the original source (D191(f)). (`scripts/p4_9_recip_gap.py`)
+
+**D194 — ERRATUM to P4-9 (D189-D193 and S-3 / S-4), found by re-checking before P4-10.** The table is in `tasks/P4_9_STATUS_REPORT.md` (top entry).
+
+(a) **Corpus sources (E1).** S-3 and W6 said every corpus uses the single source (0.5, 1.6). False: GX = C500 (500 rooms, all (0.5, 1.6)) + CX500 (500 rooms, 499 distinct sources, none at (0.5, 1.6)), trained with `per_room_source`. The true statement is ONE source per room. R0 is therefore not source-blind for lack of across-room variety.
+
+(b) **X3a's confound (E2, E3).** The second source (L - 0.5, 1.6) is the exact fx mirror of (0.5, 1.6) in 26 of 31 rooms (15 of 15 in-family; the other 5 unseen rooms fell back to another candidate). AFAM trains on it. RCP (swaps only, 150K) reads 0.487 / 0.191 / 0.098 in-family at the second source (CTL 0.221 / 0.068 / 0.048; ignore the move 0.311 / 0.211 / 0.247). X3a supports nothing about swaps above 100 Hz. The clean test is a third source, off both mirrors (P4-10).
+
+(c) **The prediction "at most half of G2's drop" held in 4 of 6 band-sets, not 5 (E3).**
+
+(d) **S2X (E4).** The "~0.53 by 240K, out of reach" extrapolation was wrong: 0.541 @180K, 0.553 @210K.
+
+(e) **S-4 (E7).** The 3.9e-6 "max relative field difference" is normalised by max |H|, which the DC bin dominates (bin 0 is about 1e3 against about 1 above 20 Hz). The same error made a test metric read 0.4% for a real change (`tests/test_p4_9_recip.py`). Relative L2 over 25-300 Hz is 3.2e-4 to 8.9e-4 on the two rooms recomputed. Score parity (<= 7.2e-6) stands; "exact" does not. No warm start, resume or training trajectory was ever compared under `aaf_sm89` (fp16 MLPs).
+
+(f) **D191(d) said initialisation refuses wall-node rows (E8).** The code masks them instead; RCP reports rows_swappable 1.0, so there is no effect.
+
+(g) **X1 (E6).** M2 has seed 0 only at K = 8 / 16 / 64. On matched seed 0 the network prior beats M2 in every band and K on both sets except unseen K = 8, 200-300 Hz (+0.014 [-0.005, +0.033]).

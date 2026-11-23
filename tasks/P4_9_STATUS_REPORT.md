@@ -28,7 +28,24 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
-## 2026-11-23 (02:45) — I11 part 1: DIR @150K — E2 FAILS under D188 (0 of 3); directional training sharpens the per-ray readout but does not beat the omni field's own gradient; C2 holds
+## 2026-11-23 (13:06) — CORRECTIONS to the P4-9 record (D194), read before forwarding anything from the last two days
+
+**Headline:** Re-checking last night's reports turned up errors. Three change what can be claimed. (1) We said every training corpus uses a single sound source. That is false: half of the meeting model's training rooms each use their own source position; what is true is one source per room. (2) The result that "training with source/listener swaps largely fixes source moves" is not supported. The test source position is exactly the mirror image the older model's flips had already trained on. The clean run with swaps only (RCP) helps below 100 Hz and stays below "do nothing" above it. (3) We said the larger model was unlikely to reach its target. It now reads 0.553 at 210K against a 0.56 target at 240K.
+
+| # | published | correct |
+|---|---|---|
+| E1 | "every corpus has one source, (0.5, 1.6)" | R0's GX corpus: C500 all at (0.5, 1.6); CX500 499 distinct sources over 500 rooms. One source per ROOM. R0 saw source variety across rooms and still ignores the source |
+| E2 | X3a credits swaps plus flips at the moved source | Second source = mirror of (0.5, 1.6) in 26 of 31 rooms (15 of 15 in-family); AFAM's fx flips train on it. RCP (swaps only) reaches 0.191 / 0.098 at 100-300 Hz against AFAM's 0.398 / 0.412 |
+| E3 | "at most half of G2's drop in 5 of 6"; "largely fix"; "beats not moving in every band" | 4 of 6; not supported; in-family only. Unseen AFAM is below "ignore the move" at 25-100 Hz (0.329 vs 0.357) |
+| E4 | S2X at 240K "~0.53", "looks out of reach" | 0.541 @180K, 0.553 @210K |
+| E5 | entry times of X1, X1b, X2, I11 part 1 | were guessed; now the commit times 00:27, 00:48, 01:41, 02:07 |
+| E6 | network prior "beats fine-tuning at every microphone count" | holds on matched seeds except a tie at K = 8, 200-300 Hz, unseen |
+| E7 | S-4 "parity exact" (field difference 3.9e-6) | score parity is real (<= 7.2e-6), but 3.9e-6 is normalised by the DC bin; relative L2 over 25-300 Hz is 3.2e-4 to 8.9e-4. aaf_sm89 runs MLPs in fp16 and its training was never compared |
+| E8 | D191(d): initialisation "refuses" wall nodes | the code masks those rows; no effect (100% swappable) |
+
+**Process:** the DIR-G scoring job failed to submit at 04:51 and nothing noticed; scoring is queued now. Nothing was posted between 02:10 and 12:03 although RCP reads landed from 02:41 (the watchers were detached and could not alert me). I removed a `.nfs` temporary file in `scripts/` without checking it; both watchers finished and no damage was found.
+
+## 2026-11-23 (02:07) — I11 part 1: DIR @150K — E2 FAILS under D188 (0 of 3); directional training sharpens the per-ray readout but does not beat the omni field's own gradient; C2 holds
 
 **Headline:** Training the model with an explicit direction loss (DIR) made its built-in direction readout better: +0.09 below 100 Hz. But the best direction estimate available WITHOUT that training, the gradient of the ordinary sound field after physical projection, was already as good or better. DIR's best readout beats the untrained control's best by only +0.002-0.003, far below the +0.05 bar. So far, first-order direction comes from a good omnidirectional field, not from directional supervision. The direction loss costs nothing on ordinary accuracy. DIR-G, the second directional arm, reads at ~07:00.
 
@@ -53,7 +70,7 @@ In-family 15 (decides), Re rho vs FDTD grad p / (jk), receivers >= 0.5 m from th
 
 Links: [e2_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/e2_read.md) · [directional_zero_shot.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/directional_zero_shot.md) · [e2_read.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/e2_read.json)
 
-## 2026-11-23 (02:30) — X2 (D190): after a geometry edit, a coarse physics re-solve beats the network's full-room render on BOTH speed and accuracy; the network keeps only the single-listener case -> F7
+## 2026-11-23 (01:41) — X2 (D190): after a geometry edit, a coarse physics re-solve beats the network's full-room render on BOTH speed and accuracy; the network keeps only the single-listener case -> F7
 
 **Headline:** The network's one clear speed advantage was the geometry edit: change the room, and it renders a listener in 12 ms where a full physics re-solve took ~55 s. But that re-solve was built to reproduce the simulator exactly, not to be fast. Re-solved on a 10 cm grid with modes to 350 Hz, physics recomputes the WHOLE room in 0.4 s on one CPU, scoring r 0.97 / 0.91 / 0.76 on unseen rooms. The network takes 32 s on a GPU to render the room at 0.47 / 0.38 / 0.37. A 6 cm grid gives 0.98 / 0.95 / 0.89 in 1 s. So for full-room rendering in 2-D at <= 300 Hz, physics is faster AND more accurate. The network keeps one case: a single listener needed within ~0.3 s of an edit. Physics cost climbs steeply with frequency (0.3 s at 300 Hz, 3 s at 600 Hz, 62 s at 1 kHz, > 30 min at 2 kHz), so the network's speed case lies at high frequency and in 3-D, which it does not cover yet.
 
@@ -79,9 +96,9 @@ m1 (the FDTD's operator in modal form, exact beta) re-solved on a grid of spacin
 
 Links: [F7_fast_physics.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F7_fast_physics.png) · [fastphys.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/fastphys/fastphys.md) · [fastphys.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/fastphys/fastphys.json) · [p4_9_fast_physics.py](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_9_fast_physics.py)
 
-## 2026-11-23 (01:10) — X3a (D191, D193): the network cannot move the source, in known shapes too — but source/listener swaps in training largely fix it, with no new simulation
+## 2026-11-23 (01:07) — X3a (D191, D193): the network cannot move the source, in known shapes too; flips + swaps help, but the test position is one the flips train on [title corrected, D194: was "largely fix it"]
 
-**Headline:** Moving the sound source breaks the network even in room shapes it knows well: accuracy at 25-100 Hz falls from 0.92 to 0.23. That is worse than not moving the source at all (0.31). The network is also not "reciprocal". Swapping source and listener leaves the true sound field unchanged, yet it collapses the network's prediction (0.92 -> 0.17); it predicts almost entirely from the listener's position. An older model trained with source/listener swaps and mirror images (AFAM) keeps 0.50 / 0.40 / 0.41 at the moved source, against 0.23 / 0.06 / 0.05 for its otherwise identical twin trained without them (G2), and beats "not moving" in every band. This needs no new simulation. RCP (the meeting model R0 + swaps, CTL's exact batches) is training; its reads are at 130K / 140K / 150K (~02:40 / ~04:50 / ~07:00).
+**Headline:** Moving the sound source breaks the network even in room shapes it knows well: accuracy at 25-100 Hz falls from 0.92 to 0.23. That is worse than not moving the source at all (0.31). The network is also not "reciprocal". Swapping source and listener leaves the true sound field unchanged, yet it collapses the network's prediction (0.92 -> 0.17); it predicts almost entirely from the listener's position. An older model trained with source/listener swaps and mirror images (AFAM) keeps 0.50 / 0.40 / 0.41 at the moved source, against 0.23 / 0.06 / 0.05 for its otherwise identical twin trained without them (G2), and in-family it beats "not moving" in every band (on unseen rooms it does not at 25-100 Hz; D194). This needs no new simulation. **[D194: the flips train on exactly this source position, so do not read this as "swaps fix it".]** RCP (the meeting model R0 + swaps, CTL's exact batches) is training; its reads are at 130K / 140K / 150K (~02:40 / ~04:50 / ~07:00).
 
 **New set (D191(b)(ii)):** the 15 in-family test shapes re-simulated at a second source (S-3's rule; geometry proven by the same rerun check), same dense receivers. Raw off-lattice r per band (S-3's scorer); original source -> second source; drop [95% CI]:
 
@@ -101,7 +118,8 @@ Links: [F7_fast_physics.png](https://raw.githubusercontent.com/harshvardhan-taka
   - At the original source the gap is small: in-family +0.032 / +0.046 / +0.096; unseen -0.014 / +0.049 / +0.089.
 - **Drops:**
   - AFAM loses -0.307 / -0.123 / +0.007 in-family, against G2's -0.548 / -0.419 / -0.256.
-  - The prediction "at most half of G2's drop" holds in 5 of 6 band-sets; in-family 25-100 Hz it is 56%.
+  - The prediction "at most half of G2's drop" holds in **4 of 6** band-sets [corrected, D194: was "5 of 6"]; it fails in-family at 25-100 Hz (56%) and unseen at 200-300 Hz (54%).
+  - **[Added, D194] Confound:** the second source is (L - 0.5, 1.6) in 26 of 31 rooms (all 15 in-family), the exact left-right mirror of (0.5, 1.6). AFAM's fx flips TRAIN on that position. X3a therefore cannot credit swaps, and on unseen rooms AFAM is below "ignore the move" at 25-100 Hz (0.329 vs 0.357).
 - **Caveat:** AFAM's augmentation is D4 flips (which also move the source, mirrored) plus swaps, so X3a cannot attribute the gain to swaps alone. RCP isolates the swaps (p 0.25, nothing else changed against CTL).
 - **Reciprocity gap (D193):** the swapped render scored against the SAME truth, off-lattice interior receivers.
 
@@ -120,7 +138,7 @@ Links: [F7_fast_physics.png](https://raw.githubusercontent.com/harshvardhan-taka
 
 Links: [x3_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/x3_read.md) · [src2_test.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/src2_test.md) · [recip_gap.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/recip_gap.md) · [P4_9_RCP.yaml](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/sweep_2d_mat/P4_9_RCP.yaml)
 
-## 2026-11-23 (01:00) — X1b (D192): when physics gets the same partial information, it is as good a prior as the network — Q does NOT hold -> F8
+## 2026-11-23 (00:48) — X1b (D192): when physics gets the same partial information, it is as good a prior as the network — Q does NOT hold -> F8
 
 **Headline:** X1 showed the network is a useful starting guess for reconstructing a room from a few microphones. The fair question is whether physics can do the same job. We gave both the same partial information, only the room's bounding box. A quick physics solve on that box, used as the starting guess, is as good as the network at 8 microphones and slightly better from 16 on (unseen rooms); in known room shapes it is better at every count. Even the network given the EXACT shape beats the box-only physics guess only at 8 microphones. So "a learned prior for reconstruction" is a role cheap physics already fills. This does not answer Q24 in the network's favour.
 
@@ -148,9 +166,9 @@ Unseen 16, pooled, r 25-100 / 100-200 / 200-300 Hz (both priors combined with th
 
 Links: [F8_netprior.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F8_netprior.png) · [netprior.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/netprior.md) · [netprior.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/netprior.json)
 
-## 2026-11-23 (00:50) — X1 (extension, D189): the network as a PRIOR for few-microphone reconstruction — it cuts the microphones needed, and beats fine-tuning the network
+## 2026-11-23 (00:27) — X1 (extension, D189): the network as a PRIOR for few-microphone reconstruction — it cuts the microphones needed, and beats fine-tuning the network
 
-**Headline:** We tested a new use for the network. Some microphones are measured in a room, and the sound field everywhere else is reconstructed from them. The network's prediction serves as the starting guess and the measurements correct it with a standard physics-based interpolation (kernel ridge regression with Helmholtz kernels). In unseen rooms, 8 microphones with the network's guess are worth about 10-14 microphones without it; in known room shapes about 20-25. With 32 microphones, unseen-room accuracy reaches r 0.97 / 0.90 / 0.83 (25-100 / 100-200 / 200-300 Hz). It takes 0.8 s on a CPU, and it beats fine-tuning the network on the same microphones (58 s on a GPU) at every microphone count. **Caveat:** if the exact room shape is known, a physics solve needs no microphones at all (0.98 / 0.97 / 0.96). The fair test gives physics and the network the same partial information (only the bounding box); it is running (X1b, D192).
+**Headline:** We tested a new use for the network. Some microphones are measured in a room, and the sound field everywhere else is reconstructed from them. The network's prediction serves as the starting guess and the measurements correct it with a standard physics-based interpolation (kernel ridge regression with Helmholtz kernels). In unseen rooms, 8 microphones with the network's guess are worth about 10-14 microphones without it; in known room shapes about 20-25. With 32 microphones, unseen-room accuracy reaches r 0.97 / 0.90 / 0.83 (25-100 / 100-200 / 200-300 Hz). It takes 0.8 s on a CPU, and it beats fine-tuning the network on the same microphones (58 s on a GPU) at every microphone count [D194: except a tie at K = 8, 200-300 Hz, unseen; M2 has one seed at K = 8 / 16 / 64, and on matched seeds the margin there is +0.014 [-0.005, +0.033]]. **Caveat:** if the exact room shape is known, a physics solve needs no microphones at all (0.98 / 0.97 / 0.96). The fair test gives physics and the network the same partial information (only the bounding box); it is running (X1b, D192).
 
 Unseen 16 rooms, off-lattice, mean over rooms (seeds 0-2), pooled strata. M0 = network alone; M5 = microphones only (Step 1's Helmholtz KRR); M2 = network fine-tuned on the microphones (Step 1); **M6s = network prior + KRR** (primary). r 25-100 / 100-200 / 200-300 Hz:
 
@@ -185,7 +203,7 @@ Links: [netprior.md](https://raw.githubusercontent.com/harshvardhan-takawale/ada
 
 ## 2026-11-22 (late night, 5) — 150K reads: S2X @150K (interim) and CTL @150K (final) -> F0
 
-**Headline:** The unseen-room specialist S2 is being trained longer (S2X). After 30K extra steps it is slightly better on known shapes (0.510, up from 0.502) and unchanged on unseen rooms (0.496). To become the meeting model at 240K it needs 0.56 on known shapes. On its current pace that looks out of reach, but the first pre-registered read is at 180K. The plain continuation of R0 (CTL) finished flat: more steps on the same corpus do not move either number.
+**Headline:** The unseen-room specialist S2 is being trained longer (S2X). After 30K extra steps it is slightly better on known shapes (0.510, up from 0.502) and unchanged on unseen rooms (0.496). To become the meeting model at 240K it needs 0.56 on known shapes. On its current pace that looks out of reach [D194: wrong; HF is 0.541 at 180K and 0.553 at 210K], but the first pre-registered read is at 180K. The plain continuation of R0 (CTL) finished flat: more steps on the same corpus do not move either number.
 
 | model (read) | in-family test r 25-100 / 100-200 / 200-300 Hz (HF = 200-300) | unseen UF 25-100 / 100-200 / 200-300 Hz | train-room fit 200-300 Hz |
 |---|---|---|---|
@@ -290,7 +308,7 @@ Links: [F0_trajectory.png](https://raw.githubusercontent.com/harshvardhan-takawa
 
 Links: [readings.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/readings.json) · [oracle.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/oracle.md) · [F5_nmf_modes.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F5_nmf_modes.png) · [S1lo_10K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/train_offlat_fit/S1lo_10K.json) · [S1med_10K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/train_offlat_fit/S1med_10K.json) · [OPEN_QUESTIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/OPEN_QUESTIONS.md)
 
-## 2026-11-22 (late night) — S-3: the network does not generalise to a moved source; S-4: the faster GPU build is exact and 1.33x faster; S-1 interim: one-room training reaches 0.91-0.94 at 200-300 Hz
+## 2026-11-22 (late night) — S-3: the network does not generalise to a moved source; S-4: the faster GPU build scores identically and is 1.33x faster [D194: "exact" overstated]; S-1 interim: one-room training reaches 0.91-0.94 at 200-300 Hz
 
 **Headline:** Every room the network has trained on had its sound source at the same spot. When we move the source in the unseen test rooms, the network's accuracy below 100 Hz drops from 0.47 to 0.17. That is no better than leaving its old-source answer unchanged, and worse than reusing the true field from the old position (0.36). Physics does not care where the source is (0.98 at both positions). Separately, a recompiled GPU library gives identical results and trains 1.33x faster. In an early read (pre-registered read pending), the same network trained on one room alone reaches 0.91-0.94 at 200-300 Hz on that room, against 0.58-0.65 for the shared 1000-room model. So the renderer is not what limits 200-300 Hz.
 
@@ -312,7 +330,7 @@ Links: [readings.json](https://raw.githubusercontent.com/harshvardhan-takawale/a
     - S2 is the only network field to reach that reference, at 25-100 Hz (0.386 vs 0.357).
   - By family (25-100 Hz, original -> second): R0 U 0.481 -> 0.158, C3 0.454 -> 0.186; S2 U 0.510 -> 0.417, C3 0.491 -> 0.355.
   - **Reading:**
-    - Every corpus fixes the source at (0.5, 1.6), so the network's source input has never varied in training.
+    - [Corrected, D194] R0's corpus does NOT fix the source: CX500's 500 rooms have 499 distinct sources (C500's 500 rooms all use (0.5, 1.6)). What is true is ONE source per room. The earlier sentence ("every corpus fixes the source ... never varied") was wrong.
     - F2's source-move latency row is now hatched: latency only, accuracy failing.
     - Caveat: these rooms are already out of family, so two shifts compound. An in-family second-source test would isolate the source shift.
     - The remedy is source-diverse corpora (S-5, next round).
