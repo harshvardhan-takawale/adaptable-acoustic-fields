@@ -28,6 +28,34 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-23 (02:10) — X1b (D192): when physics gets the same partial information, it is as good a prior as the network — Q does NOT hold -> F8
+
+**Headline:** X1 showed the network is a useful starting guess for reconstructing a room from a few microphones. The fair question is whether physics can do the same job. We gave both the same partial information, only the room's bounding box. A quick physics solve on that box, used as the starting guess, is as good as the network at 8 microphones and slightly better from 16 on (unseen rooms); in known room shapes it is better at every count. Even the network given the EXACT shape beats the box-only physics guess only at 8 microphones. So "a learned prior for reconstruction" is a role cheap physics already fills. This does not answer Q24 in the network's favour.
+
+Unseen 16, pooled, r 25-100 / 100-200 / 200-300 Hz (both priors combined with the same KRR, M6s's form and lam):
+
+| method (bounding box only) | K = 8 | K = 16 | K = 32 | K = 64 |
+|---|---|---|---|---|
+| network on the box, no mics (M0-iii) | 0.420 / 0.336 / 0.389 | same | same | same |
+| physics on the box, beta fitted (M4-iii) | 0.412 / 0.321 / 0.370 | same | same | same |
+| mics only (M5) | 0.753 / 0.389 / 0.311 | 0.910 / 0.688 / 0.490 | 0.951 / 0.872 / 0.805 | 0.963 / 0.924 / 0.917 |
+| **network-on-box prior + mics (M6-iii)** | 0.790 / 0.482 / 0.434 | 0.931 / 0.739 / 0.593 | 0.967 / 0.900 / 0.827 | 0.977 / 0.944 / 0.924 |
+| **physics-on-box prior + mics (M7-iii)** | 0.790 / 0.477 / 0.435 | 0.940 / 0.754 / 0.600 | 0.975 / 0.923 / 0.856 | 0.985 / 0.963 / 0.942 |
+
+- **Q (M6-iii - M7-iii, unseen, CI > 0 in >= 2 bands at K = 8 and 16): does NOT hold.**
+  - K = 8: +0.000 [-0.004, +0.005] / +0.004 [-0.008, +0.016] / -0.001 [-0.023, +0.018] (tie).
+  - K = 16: -0.009 [-0.011, -0.007] / -0.016 [-0.024, -0.007] / -0.007 [-0.020, +0.005].
+  - K = 32: -0.008 / -0.023 / -0.029, all CIs < 0.
+- **In-family 15: physics-on-box is the better prior at every K,** -0.018 to -0.070 at K = 8 (CIs < 0); M7-iii 0.837 / 0.644 / 0.571 vs M6-iii 0.819 / 0.587 / 0.501.
+- **Descriptive: the network given the EXACT shape (X1's M6s) against physics given only the box (M7-iii).** The network leads only at K = 8:
+  - unseen: +0.015 [-0.004, +0.035] / +0.050 [+0.022, +0.080] / +0.008 [-0.019, +0.032];
+  - in-family: +0.089 / +0.087 / +0.037.
+  - From K = 32 the box physics is ahead: unseen -0.008 / -0.019 / -0.030; in-family -0.003 / -0.028 / -0.042.
+- **Prediction (D192(d)) was wrong.** I expected the network to win at K = 8 at 100-300 Hz (Step 1's P2 had the network well ahead when each method fitted alone). Zero-shot the two are equally poor (0.42 vs 0.41 unseen). Once measurements correct them, physics's errors are the easier kind for the Helmholtz kernel to fix.
+- **Reading for Q24:** X1 + X1b together say the network can act as a reconstruction prior, but not one that does better than a crude modal solve given the same geometry knowledge. The remaining cases for the network are those physics cannot reach cheaply: interactive geometry editing (X2 tests even that) and settings where the physics model itself is wrong (measured rooms, unknown materials), which the simulated data here cannot test.
+
+Links: [F8_netprior.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F8_netprior.png) · [netprior.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/netprior.md) · [netprior.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/netprior/netprior.json)
+
 ## 2026-11-23 (00:50) — X1 (extension, D189): the network as a PRIOR for few-microphone reconstruction — it cuts the microphones needed, and beats fine-tuning the network
 
 **Headline:** We tested a new use for the network. Some microphones are measured in a room, and the sound field everywhere else is reconstructed from them. The network's prediction serves as the starting guess and the measurements correct it with a standard physics-based interpolation (kernel ridge regression with Helmholtz kernels). In unseen rooms, 8 microphones with the network's guess are worth about 10-14 microphones without it; in known room shapes about 20-25. With 32 microphones, unseen-room accuracy reaches r 0.97 / 0.90 / 0.83 (25-100 / 100-200 / 200-300 Hz). It takes 0.8 s on a CPU, and it beats fine-tuning the network on the same microphones (58 s on a GPU) at every microphone count. **Caveat:** if the exact room shape is known, a physics solve needs no microphones at all (0.98 / 0.97 / 0.96). The fair test gives physics and the network the same partial information (only the bounding box); it is running (X1b, D192).
