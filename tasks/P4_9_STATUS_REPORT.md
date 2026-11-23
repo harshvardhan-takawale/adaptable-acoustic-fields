@@ -28,6 +28,26 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-23 (18:55) — I12 (part 2): the one-time confirmation read — S2X's gain over R0 holds above 100 Hz on fresh rooms, but not at 25-100 Hz
+
+**Headline:** We scored the model trained on the larger corpus (S2X) and the current meeting model (R0) once on 16 rooms that neither had been scored on. S2X is better at 100-300 Hz (+0.020 and +0.029), level at 25-100 Hz (-0.002, the interval spans zero). On the frozen set S2X led R0 by 0.028 in that low band, so that part of its advantage did not show up here. S2X's pre-registered test passed on the frozen set (I12 part 1) and remains the decision.
+
+Off-lattice, raw, 16 unseen rooms (8 U + 8 C3), manifest sha 688e319f18f6dd32 (frozen before any score; D181 c6, D182); paired bootstrap over rooms (10k, seed 20261013).
+
+| | 25-100 Hz | 100-200 Hz | 200-300 Hz |
+|---|---|---|---|
+| S2X @240K | 0.605 | 0.466 | 0.430 |
+| R0 @120K (reference level) | 0.607 | 0.447 | 0.400 |
+| **S2X - R0, confirmation** | -0.002 [-0.012, +0.008] | +0.020 [+0.003, +0.037] | +0.029 [+0.008, +0.052] |
+| S2X - R0, frozen set (I12 part 1) | +0.028 [+0.017, +0.038] | +0.023 [+0.003, +0.046] | +0.027 [+0.012, +0.042] |
+
+- Rooms where S2X is better: 7 / 10 / 12 of 16 (25-100 / 100-200 / 200-300 Hz). By family (S2X / R0): U 0.636 / 0.464 / 0.461 against 0.643 / 0.447 / 0.445; C3 0.573 / 0.469 / 0.399 against 0.570 / 0.447 / 0.356.
+- The confirmation rooms score higher overall than the frozen unseen rooms at 25-100 Hz (R0 0.607 against 0.468), so levels are not comparable between the sets. Only the paired difference is.
+- The read covers unseen rooms only. It says nothing new about in-family HF (S2X -0.018 against R0).
+- I had opened S2X's half of this file before R0's finished, while checking that the job was alive. No decision used it.
+
+Links: [S2X_240K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/confirm/S2X_240K.json) · [R0_120K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/confirm/R0_120K.json) · [confirmation manifest](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/sweeps_2d_mat/p4_9_confirm_manifest.json)
+
 ## 2026-11-23 (17:39) — I12 (part 1): S2X @240K PASSES its pre-registered test; the confirmation read is queued
 
 **Headline:** The larger-corpus model (S2X) reached its 240K checkpoint. On known room shapes its high-frequency accuracy is 0.564 (bar 0.56) and on unseen rooms its low-band accuracy is 0.495 (bar 0.49). Both pre-registered conditions hold, so S2X passes and becomes the candidate meeting model, pending the one-time confirmation set (queued). It is not a clear win over the current meeting model: S2X is better on unseen rooms by 0.028 (25-100 Hz) but worse on known shapes at the highest band by 0.018.
