@@ -28,6 +28,18 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-23 (17:39) — I12 (part 1): S2X @240K PASSES its pre-registered test; the confirmation read is queued
+
+**Headline:** The larger-corpus model (S2X) reached its 240K checkpoint. On known room shapes its high-frequency accuracy is 0.564 (bar 0.56) and on unseen rooms its low-band accuracy is 0.495 (bar 0.49). Both pre-registered conditions hold, so S2X passes and becomes the candidate meeting model, pending the one-time confirmation set (queued). It is not a clear win over the current meeting model: S2X is better on unseen rooms by 0.028 (25-100 Hz) but worse on known shapes at the highest band by 0.018.
+
+- **Pre-registered 2a test at 240K (D181): HF >= 0.56 AND UF >= 0.49: HOLDS** (HF 0.5635, UF 0.4951). S2X's 210K read was 0.553 and 180K 0.541; D194 recorded that my earlier "~0.53, out of reach" extrapolation was wrong.
+- **Levels (Rule 12):** S2X @240K test r 0.917 / 0.686 / 0.563 (25-100 / 100-200 / 200-300), UF 0.495 / 0.403 / 0.398. R0 @120K 0.918 / 0.701 / 0.582 and 0.468 / 0.380 / 0.371; CTL @150K 0.920 / 0.708 / 0.583 and 0.467 / 0.376 / 0.373; S2 @120K 0.908 / 0.652 / 0.502 and 0.501 / 0.419 / 0.404.
+- **S2X - R0 @120K:** HF -0.018 [-0.024, -0.013]; UF +0.028 [+0.017, +0.038] / +0.023 [+0.003, +0.046] / +0.027 [+0.012, +0.042].
+- **S2X - CTL @150K:** HF -0.020 [-0.025, -0.015]; UF +0.028 [+0.017, +0.039] / +0.027 / +0.025. **S2X - S2 @120K:** HF +0.061 [+0.052, +0.069]; UF -0.006 [-0.014, +0.003] / -0.016 / -0.007 (the extra 120K steps buy HF, not UF).
+- **Next (pre-registered, one time):** the frozen 16-room confirmation set (manifest sha 688e319f18f6dd32, D182) is scored once for S2X @240K and R0 @120K; its UF is reported beside the frozen-set verdict, which stays the pre-registered decision. S-3 for S2X and F6 follow. F0 redrawn.
+
+Links: [S2X_240K unseen](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/unseen/S2X_240K.json) · [F0_trajectory.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F0_trajectory.png)
+
 ## 2026-11-23 (14:10) — I11 part 2 (DIR-G) and RCP @150K (X3b): DIR-G also FAILS E2 (fallback recorded); RCP MEETS its pre-registered bars at 25-100 Hz but stays below "ignore the move" above 100 Hz
 
 **Headline:** Two arms trained for sound direction (DIR and DIR-G) do not beat what an ordinary model already gives by differentiating its own sound field. So first-order direction comes from the field, not from directional training. Separately, training with source/listener swaps (RCP) makes the model far better at a moved source than its plain continuation at low frequencies (25-100 Hz: +0.27 in both known and unseen rooms, against a +0.10 / +0.05 bar), with no harm elsewhere. Above 100 Hz it still does worse than not moving the source at all, so swaps alone do not solve source editing there; R1 (multi-source data plus swaps) tests that next.

@@ -13,7 +13,8 @@ N=$(python scripts/p4_10_scorecard.py --plan --families "$FAM" $L --chunk $CHUNK
 [ "${N:-0}" -gt 0 ] || { echo "FAILED $NAME: no cells"; exit 1; }
 T=$(( (N - 1) / CHUNK + 1 ))
 sub() { local J; J=$(sbatch --parsable "$@") && echo "$J" || { echo "FAILED submit: $*" >&2; return 1; }; }
-R=$(sub --array=0-$((T-1))%16 --job-name=aaf_sc_$NAME --export=ALL,CMD="scripts/p4_10_scorecard.py --render --model $NAME=$CK --families $FAM $L --chunk $CHUNK --idx @" scripts/slurm/p4_10_gpu.sh) || { echo "FAILED $NAME render"; exit 1; }
+# renders run on 16 GB rtxa4000 cards (they start at once; 601-bin renders need no training memory) with 16 rows per chunk
+R=$(sub --array=0-$((T-1))%24 --partition=scavenger --account=scavenger --qos=scavenger --requeue --gres=${GRES:-gpu:rtxa4000:1} --time=01:30:00 --cpus-per-task=2 --mem=14G --job-name=aaf_sc_$NAME --export=ALL,P410_CHUNK=${P410_CHUNK:-16},CMD="scripts/p4_10_scorecard.py --render --model $NAME=$CK --families $FAM $L --chunk $CHUNK --idx @" scripts/slurm/p4_10_gpu.sh) || { echo "FAILED $NAME render"; exit 1; }
 S=$(sub --array=0-$((T-1))%32 --dependency=afterok:$R --kill-on-invalid-dep=yes --mem=16G --time=02:00:00 --job-name=aaf_ss_$NAME --export=ALL,CMD="scripts/p4_10_scorecard.py --score --model $NAME --families $FAM $L --chunk $CHUNK --idx @" scripts/slurm/p4_10_cpu.sh) || { echo "FAILED $NAME score"; exit 1; }
 G=$(sub --dependency=afterany:$S --time=00:30:00 --mem=8G --job-name=aaf_board --export=ALL,CMD="scripts/p4_10_board.py" scripts/slurm/p4_10_cpu.sh) || { echo "FAILED $NAME board"; exit 1; }
 echo "$(date '+%H:%M') $NAME $MODE $FAM ($N cells): render $R score $S board $G"
