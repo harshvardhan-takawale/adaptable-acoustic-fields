@@ -1,979 +1,152 @@
 {
- "built": "2026-11-23 13:20",
- "arms": {},
+ "built": "2026-11-23 16:08",
+ "arms": {
+  "R1": [
+   {
+    "name": "R1_125K",
+    "step": 125000,
+    "static": null,
+    "gap": {
+     "test": {
+      "second": {
+       "25-100": [
+        0.3514166884124279,
+        0.2524539791047573,
+        0.4579868922941386
+       ],
+       "100-200": [
+        0.405249104835093,
+        0.3485237453132868,
+        0.4609257315285503
+       ],
+       "200-300": [
+        0.37835059501230717,
+        0.3485335083678365,
+        0.41678325904067604
+       ]
+      },
+      "third": {
+       "25-100": [
+        0.24337955564260483,
+        0.19896397721022369,
+        0.28370295464992523
+       ],
+       "100-200": [
+        0.30490919575095177,
+        0.2735464091412723,
+        0.33379074186086655
+       ],
+       "200-300": [
+        0.32795080728828907,
+        0.3073643879033625,
+        0.3455485740210861
+       ]
+      }
+     },
+     "unseen": {
+      "second": {
+       "25-100": [
+        0.06674682348966599,
+        -0.06627719039097427,
+        0.18376417085528374
+       ],
+       "100-200": [
+        0.22068557795137167,
+        0.1481918515637517,
+        0.29138877522200346
+       ],
+       "200-300": [
+        0.2167602740228176,
+        0.13305199705064297,
+        0.30585876666009426
+       ]
+      },
+      "third": {
+       "25-100": [
+        0.04870142042636871,
+        -0.04254436111077666,
+        0.14731483161449432
+       ],
+       "100-200": [
+        0.09632755815982819,
+        0.04035875126719475,
+        0.15246363524347542
+       ],
+       "200-300": [
+        0.18560900911688805,
+        0.13684126920998096,
+        0.241081478074193
+       ]
+      }
+     }
+    }
+   }
+  ],
+  "R1S": []
+ },
  "queue": [
   {
-   "job": "aaf_truth",
+   "job": "aaf_ss_R0t",
    "state": "PENDING",
    "elapsed": "0:00",
    "limit": "2:00:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_p4_5_eval",
+   "state": "RUNNING",
+   "elapsed": "3:40",
+   "limit": "3:00:00",
+   "where": "gammagpu01"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "10:28",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "10:28",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "10:28",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_sc_R0t",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "4:00:00",
    "where": "(JobArrayTaskLimit)"
-  },
-  {
-   "job": "aaf_ms_mm",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "2:00:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_ms_smoke",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "1:00:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_ms_fdtd",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "2:00:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy04"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy13"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy13"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy13"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy13"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy14"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy14"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy14"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy14"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy14"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy14"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy15"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy15"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy15"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy15"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy15"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy15"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy17"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy17"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy17"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy17"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy17"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy17"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy18"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy18"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy18"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy18"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy18"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy18"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy19"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy19"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy19"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy19"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy19"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy19"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy20"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy33"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy34"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "1:19",
-   "limit": "2:00:00",
-   "where": "legacy34"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy47"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy45"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy45"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy45"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy44"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy44"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy44"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy44"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy10"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy10"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy09"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy09"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy09"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy01"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy01"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy01"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy01"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy01"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy01"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy02"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy02"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy02"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy02"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy02"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy02"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy03"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy03"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy03"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy03"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy03"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy04"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy04"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy04"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy04"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy04"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy05"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy05"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy05"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy05"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy05"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy05"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy06"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy06"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy06"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy06"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy06"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy07"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy07"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy07"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy07"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy07"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy08"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy08"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy08"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy08"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy08"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy08"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy42"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy42"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy42"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy42"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy42"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy42"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy11"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy11"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy11"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy11"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy13"
-  },
-  {
-   "job": "aaf_truth",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "2:00:00",
-   "where": "legacy13"
-  },
-  {
-   "job": "aaf_ms_man",
-   "state": "RUNNING",
-   "elapsed": "2:58",
-   "limit": "40:00",
-   "where": "legacy52"
-  },
-  {
-   "job": "aaf_dirzs_score",
-   "state": "RUNNING",
-   "elapsed": "14:05",
-   "limit": "3:00:00",
-   "where": "gammagpu06"
-  },
-  {
-   "job": "aaf_rgap_RCP",
-   "state": "RUNNING",
-   "elapsed": "14:05",
-   "limit": "3:00:00",
-   "where": "tron57"
   },
   {
    "job": "aaf_s2x",
    "state": "RUNNING",
-   "elapsed": "21:44:08",
+   "elapsed": "1-00:32:17",
    "limit": "2-00:00:00",
    "where": "tron05"
   },
   {
-   "job": "aaf_test_410b",
+   "job": "aaf_r1",
    "state": "RUNNING",
-   "elapsed": "0:17",
-   "limit": "1:00:00",
-   "where": "tron49"
+   "elapsed": "1:25:27",
+   "limit": "1-00:00:00",
+   "where": "tron46"
+  },
+  {
+   "job": "aaf_r1s",
+   "state": "RUNNING",
+   "elapsed": "25:04",
+   "limit": "1-00:00:00",
+   "where": "tron53"
   }
  ]
 }

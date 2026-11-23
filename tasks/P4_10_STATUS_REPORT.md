@@ -3,6 +3,25 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (16:08) — I3 (smoke read): R1 (the source fix) at +5K steps already beats the swap-only model at the moved source
+
+**Headline:** R1, the model trained with several source positions per room, reached its first scored checkpoint after only 5K steps. At the moved source it is already as good as the swap-only model (RCP) after six times as much training, and better above 100 Hz: at the clean third source, in-family, 0.648 / 0.342 / 0.202 against RCP's 0.604 / 0.266 / 0.147 (25-100 / 100-200 / 200-300 Hz), and against "leave the source alone" 0.285 / 0.231 / 0.177 it is ahead in every band. Unseen, 0.473 / 0.329 / 0.199 against RCP 0.439 / 0.273 / 0.154. This is a small-sample reading: the 16-room "lite" set and one early checkpoint.
+
+Off-lattice, frozen scorer; scorecard-lite rooms (8 in-family, 8 unseen) at the second and third source; paired bootstrap over rooms (10k, seed 20261013). "gap" = the model's static r on the original room minus its r at the moved source.
+
+| source | set | R1 @+5K (125K) | RCP @+30K | CTL @+30K | ignore the edit | R1 - CTL (25-100 / 100-200 / 200-300) | R1 - RCP |
+|---|---|---|---|---|---|---|---|
+| second | in-family | 0.539 / 0.241 / 0.152 | 0.503 / 0.189 / 0.102 | 0.234 / 0.067 / 0.041 | 0.336 / 0.197 / 0.249 | +0.305 / +0.175 / +0.111 | +0.036 [-0.033, +0.106] / +0.053 [+0.033, +0.076] / +0.050 [+0.033, +0.066] |
+| **third** | **in-family** | **0.648 / 0.342 / 0.202** | 0.604 / 0.266 / 0.147 | 0.220 / 0.071 / 0.028 | 0.285 / 0.231 / 0.177 | +0.427 [+0.358, +0.490] / +0.271 / +0.174 | +0.044 [+0.017, +0.071] / +0.076 / +0.055 |
+| second | unseen | 0.454 / 0.204 / 0.168 | 0.448 / 0.173 / 0.116 | 0.158 / 0.074 / 0.042 | 0.381 / 0.229 / 0.229 | +0.296 / +0.130 / +0.126 | +0.007 [-0.057, +0.071] / +0.032 / +0.052 |
+| **third** | **unseen** | **0.473 / 0.329 / 0.199** | 0.439 / 0.273 / 0.154 | 0.241 / 0.135 / 0.041 | 0.314 / 0.276 / 0.200 | +0.232 / +0.193 / +0.157 | +0.034 [-0.001, +0.072] / +0.056 / +0.044 |
+
+- **Still at 125K steps (+5K).** Moved-source gap (R1's static r on the original room minus its r at the moved source; RS1's bar is <= 0.10 in every band at BOTH sources, read at +30K): in-family third source 0.243 / 0.305 / 0.328, second 0.351 / 0.405 / 0.378. R0's was 0.68 / 0.60 / 0.53 (third). R1 is not at the bar yet; whether it reaches it by +30K is the pre-registered read.
+- **No static accuracy yet:** the HF / UF read for R1 @125K (standard report) is still rendering on the cluster; it follows this entry. The +10K learning check (in-family second-source r at 25-100 Hz >= 0.38) is read at 130K.
+- **RCP's lite numbers differ slightly from its full-set numbers** because the lite set has 8 rooms per group (RCP full in-family third source 0.575 / 0.266 / 0.153).
+
+Links: [scorecard harness](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_10_scorecard.py) · [P4_10_R1.yaml](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/sweep_2d_mat/P4_10_R1.yaml) · [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (15:36) — I2 cont.: Source, three models; the swap-only model (RCP) does move the source, at low frequencies, in both sources
 
 **Headline:** Scoring the source-swap model (RCP) beside the plain continuation (CTL) and the meeting model (R0) at the same two moved positions. RCP's gain over CTL is clear at both sources: at the clean third source, +0.34 / +0.18 / +0.11 (25-100 / 100-200 / 200-300 Hz, in-family) and +0.20 / +0.13 / +0.11 unseen. It beats "leave the source alone" at 25-100 Hz in both room sets (third source 0.575 vs 0.298 in-family, 0.443 vs 0.332 unseen), and at 100-200 Hz in-family (0.266 vs 0.223), but not at 200-300 Hz. Physics still sits at 0.99 / 0.95 / 0.79. The R1 arm adds multi-source training on top of RCP's swaps.

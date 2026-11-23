@@ -18,7 +18,7 @@ if [ "$FIT" = fam ]; then FITPY=scripts/p4_6_train_fit_family.py; FITJ=outputs/p
 else FITPY=scripts/p4_5_train_offlat_fit.py; FITJ=outputs/p4_5/train_offlat_fit/${N}.json; fi
 OOFJ=outputs/p4_6/family_oof/${N}.json; SPJ=outputs/p4_5/speckle/${N}.json
 CIJ=outputs/p4_8/GAP_CI_${N}.json; RKJ=outputs/p4_8/RISK_METRICS_${N}.json; UNJ=outputs/p4_8/unseen/${N}.json
-GPU="--partition=scavenger --account=scavenger --qos=scavenger --requeue --gres=gpu:rtxa5000:1 --exclude=legacy43"
+GPU="--partition=scavenger --account=scavenger --qos=scavenger --requeue --gres=${GRES:-gpu:rtxa5000:1} --exclude=legacy43"
 launch() {  # tag, job-name, time, mem, cmd
   [ -f "$MARK/${N}_$1" ] && return
   E=$(sbatch --parsable $GPU --job-name=$2 --time=$3 --mem=$4 --export=ALL,CMD="$5" scripts/slurm/p4_5_gpu.sh) \
