@@ -94,6 +94,14 @@ class Renderer:
         return np.concatenate(out).astype(np.complex64)
 
 
+def save_atomic(path, **kw):
+    """several array tasks may render the same room's original field: write to a private name, then rename"""
+    import os
+    tmp = path.parent / "{}.{}.{}.tmp.npz".format(path.stem, os.getpid(), os.uname().nodename.split(".")[0])
+    np.savez_compressed(tmp, **kw)
+    os.replace(tmp, path)
+
+
 def render(name, ck, families, lite, idx, chunk):
     M = cells(families, lite)
     M = M[idx * chunk:(idx + 1) * chunk]
@@ -113,12 +121,12 @@ def render(name, ck, families, lite, idx, chunk):
         op = PRED / name / "orig" / (c["room"] + ".npz")
         if not op.exists():                                    # the model's original render at every original receiver
             P0 = rd.render(c["orig_verts"], c["orig_L"], c["orig_W"], [0.15] * len(c["orig_verts"]), (0.5, 1.6), base["rx"])
-            np.savez_compressed(op, P=P0, rx=base["rx"])
+            save_atomic(op, P=P0, rx=base["rx"])
         z = np.load(tp)
         Pd = rd.render(c["verts"], c["L"], c["W"], c["edge_alphas"], c["src"], z["rx"])
         Pc = Pd[z["common_idx"]] if c["family"] in ("Source", "Material") else rd.render(
             c["verts"], c["L"], c["W"], c["edge_alphas"], c["src"], z["common"])
-        np.savez_compressed(dst, Pd=Pd, Pc=Pc, id=c["id"])
+        save_atomic(dst, Pd=Pd, Pc=Pc, id=c["id"])
         print("rendered", c["id"], len(Pd), len(Pc), flush=True)
 
 
@@ -172,6 +180,8 @@ def score_cell(name, c, m1=True):
     if c["family"] in ("StretchU", "StretchA"):
         Wp = warp_field(c, base["H"], base["rx"], rx)[off]
         row["warp"] = {"r": band_r(Wp, Td), "lsd": band_lsd(Wp, Td)}
+    if c["family"] == "Material":
+        row["decay"] = decay_cell(c, base, o, z, p)
     if m1 and c["family"] != "Material":
         Pm = m1_field(c, rx, tuple(c["src"]))[off]
         row["m1"] = {"r": band_r(Pm, Td), "lsd": band_lsd(Pm, Td)}
@@ -179,6 +189,34 @@ def score_cell(name, c, m1=True):
         rm = colr(dM, dT)
         row["m1"]["r_delta"] = {b: float(np.nanmean(rm[lo:hi])) for b, (lo, hi) in BAND.items()}
     return row
+
+
+def decay_cell(c, base, o, z, p):
+    """Octave-band decay (A7) on the Material cell's receivers: T0 / Te (truth before / after the edit), P0 / Pe (model).
+    Receivers: off-lattice, >= 1 m from the source, valid in BOTH truths. Per band: mean decay rate 1/T30 (1/s) of each field,
+    median |T30 error| / truth, median |EDT error| / truth, median |C50 error| dB (all vs the edited truth)."""
+    from aaf.eval.octave_decay import BANDS, decay_metrics, valid_mask
+    rx = base["rx"]
+    src = np.array([0.5, 1.6])
+    sel = ~on_lattice(rx) & (np.hypot(rx[:, 0] - src[0], rx[:, 1] - src[1]) >= 1.0)
+    F = {"T0": base["H"][sel], "Te": z["Hd"][sel], "P0": o["P"][sel], "Pe": p["Pd"][sel]}
+    out = {"n_rx": int(sel.sum())}
+    for b in BANDS:
+        m = {k: decay_metrics(v, b) for k, v in F.items()}
+        ok = valid_mask(m["T0"]["t35"]) & valid_mask(m["Te"]["t35"])
+        e = {"n_valid": int(ok.sum())}
+        for k in F:
+            T = m[k]["T30"]
+            e["rate_" + k] = float(np.nanmean(1.0 / T[ok])) if ok.any() else np.nan
+            e["T30_" + k] = float(np.nanmedian(T[ok])) if ok.any() else np.nan
+        if ok.any():
+            t30 = np.abs(m["Pe"]["T30"] - m["Te"]["T30"]) / np.maximum(m["Te"]["T30"], 1e-6)
+            e["t30_err"] = float(np.nanmedian(t30[ok]))
+            e["edt_err"] = float(np.nanmedian((np.abs(m["Pe"]["EDT"] - m["Te"]["EDT"]) / np.maximum(m["Te"]["EDT"], 1e-6))[ok]))
+            e["c50_err_db"] = float(np.nanmedian(np.abs(m["Pe"]["C50"] - m["Te"]["C50"])[ok]))
+            e["t30_err_orig_model"] = float(np.nanmedian(np.abs(m["P0"]["T30"] - m["Te"]["T30"])[ok] / np.maximum(m["Te"]["T30"], 1e-6)[ok]))
+        out[b] = e
+    return out
 
 
 def score(name, families, lite, idx=None, chunk=None, m1=True):
