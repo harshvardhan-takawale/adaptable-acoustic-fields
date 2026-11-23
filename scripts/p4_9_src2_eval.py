@@ -134,7 +134,7 @@ def report():
     for v in ("raw", "projected"):
         lines += ["**{}** (r: original source -> second source; delta [95% CI]; LSD dB original / second)".format(v), "",
                   "| field | 25-100 Hz | 100-200 Hz | 200-300 Hz |", "|---|---|---|---|"]
-        for p in sorted(OUT.glob("*.json"), key=lambda q: (q.stem != "m1", q.stem)):
+        for p in sorted([q for q in OUT.glob("*.json") if not q.stem.startswith("diag")], key=lambda q: (q.stem != "m1", q.stem)):
             d = json.load(open(p))
             cells = []
             for b in BANDS:
@@ -143,6 +143,14 @@ def report():
                     e["src1"], e["src2"], e["delta"], *e["ci95"], e["lsd_src1"], e["lsd_src2"]))
             lines.append("| {} | {} |".format(d["name"], " | ".join(cells)))
         lines.append("")
+    dg = OUT / "diag_source_blind.json"
+    if dg.exists():
+        m = json.load(open(dg))["mean"]
+        lines += ["**Reference fields** (`scripts/p4_9_src2_diag.py`; raw, off-lattice, scored against the SECOND-source "
+                  "truth): R0's ORIGINAL-source render {} ; the original-source TRUTH (a field that ignores the move) "
+                  "{} (25-100 / 100-200 / 200-300 Hz).".format(
+                      " / ".join("{:.3f}".format(m["R0src1_vs_T2"][b]) for b in BANDS),
+                      " / ".join("{:.3f}".format(m["T1_vs_T2"][b]) for b in BANDS)), ""]
     lines += ["Per room (sources, families, both variants): `outputs/p4_9/src2/<name>.json`."]
     Path("outputs/p4_9/src2.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))

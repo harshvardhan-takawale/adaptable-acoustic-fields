@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill reads), I3, I7 in; I5, S-1, S-3, S-4 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-22, night): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13 (kill reads), I3, I7, S-3, S-4 in; S-1 interim (10K pending); I5 running.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -30,6 +30,12 @@ Sections below are filled as each step lands.
 
 **2c feasibility (I9): GO.** S-b holds (24 modes: 0.984 in family at 25-100 Hz). Error budget: in-family >= 0.90 needs eigenfrequencies within ~2% and mode shapes within delta ~0.1; unseen >= 0.60 tolerates 5% / delta 0.4. [feasibility.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/feasibility.md).
 ## Suggestions S-1 to S-4
+
+**S-3 (second source, 16 unseen rooms; descriptive):** m1 0.978 / 0.972 / 0.960 -> 0.978 / 0.969 / 0.960; R0 0.468 / 0.380 / 0.371 -> 0.172 / 0.077 / 0.055 (deltas -0.30 / -0.30 / -0.32, CIs well below 0); S2 0.501 / 0.419 / 0.404 -> 0.386 / 0.193 / 0.155. References vs the second-source truth: R0's original-source render 0.174 / 0.031 / 0.052; original-source truth 0.357 / 0.204 / 0.210. The network does not use its source input off the single trained position. [src2.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/src2.md).
+
+**S-4 (sm_86/89 tinycudann, env `aaf_sm89`): parity HOLDS** -- R0 @120K dense in-family 0.9185 / 0.7009 / 0.5818 in both envs (delta 0.0000; max relative field difference 3.9e-6); training 0.761 -> 0.573 s/it (1.33x). Adoption from P4-10 (E8). [s4_parity.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/s4_parity.md).
+
+**S-1 (D185) interim @4K:** one-room training, 200-300 Hz on that room: 0.911 (lowest-fit room; R0 0.581) and 0.937 (median room; R0 0.645); LSD 1.5 / 1.3 dB vs R0 4.0 / 3.8. Already above D185's +0.10 bar; the pre-registered 10K read is pending.
 ## Engineering
 
 All default-off, Rule-8 tested (D182(e)): warm start + closed-form LR restart; the P4-9 step with a dedicated batch generator (CTL / DIR / DIR-G draw identical batches and jitters); DIR (per-ray readout) and DIR-G (finite-difference omni gradient) terms with a calibrated, checkpointed weight; the 601-bin inference path; per-ray output; the per-token override (M1); the projection's padded-grid return + exact band-limited evaluation; FDTD stencil reruns (exact); m1 modal solves on perturbed geometries; pooled training launches.

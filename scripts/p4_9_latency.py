@@ -294,6 +294,13 @@ def report():
           "**A 2D FDTD on a GPU:** {}.".format(out["gpu_fdtd_2d_estimate"]), "",
           "Reading (labelled, D181 E5): with cached modes, physics answers listener, source and material edits faster "
           "than the network; the network's latency case is the GEOMETRY edit, where physics must re-solve."]
+    s3 = Path("outputs/p4_9/src2/R0_120K.json")
+    if s3.exists():
+        d = json.load(open(s3))["raw"]
+        L += ["", "**Accuracy caveat on the network's source-move row (S-3, `outputs/p4_9/src2.md`):** every corpus uses "
+              "one source position; at a second source R0's unseen r falls {:.3f} -> {:.3f} / {:.3f} -> {:.3f} / "
+              "{:.3f} -> {:.3f} (25-100 / 100-200 / 200-300 Hz). Its source-move latency is real, its accuracy is not.".format(
+                  *[x for b in ("25-100", "100-200", "200-300") for x in (d[b]["src1"], d[b]["src2"])])]
     (Path("outputs/p4_9") / "latency.md").write_text("\n".join(L) + "\n")
     print("\n".join(L))
     figure_f2(out)
@@ -310,8 +317,14 @@ def figure_f2(out):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     edits = [r["edit"] for r in out["rows"]]
-    meth = [("network (601-bin path, GPU)", "#2a78d6"), ("physics, cached modes (CPU)", "#eb6834"),
-            ("physics, re-solve modes to 600 Hz (CPU)", "#1baf7a"), ("FDTD re-run (CPU)", "#eda100")]
+    # colours follow the entity across the deck (R0 blue, physics green; orange is S2 elsewhere): blue / green /
+    # dark green / amber -- worst adjacent CVD dE 7.6 (blue-dark green, tritan), legal with this figure's value labels
+    meth = [("network (601-bin path, GPU)", "#2a78d6"), ("physics, cached modes (CPU)", "#1baf7a"),
+            ("physics, re-solve modes to 600 Hz (CPU)", "#008300"), ("FDTD re-run (CPU)", "#eda100")]
+    s3 = Path("outputs/p4_9/src2/R0_120K.json")
+    s3 = json.load(open(s3)) if s3.exists() else None
+    s3m = Path("outputs/p4_9/src2/m1.json")
+    s3m = json.load(open(s3m)) if (s3 is not None and s3m.exists()) else None
     plt.rcParams.update({"font.size": 13, "axes.edgecolor": "#888888", "xtick.color": "#444444",
                          "ytick.color": "#555555", "hatch.color": "white", "hatch.linewidth": 1.5})
     fig, axes = plt.subplots(1, 2, figsize=(16, 9), dpi=160, facecolor="white", sharey=True)
@@ -339,7 +352,8 @@ def figure_f2(out):
                 if not np.isfinite(v):
                     ax.text(xb, 1.3e-3, "n/a\n(re-\nsolve)", ha="center", va="bottom", fontsize=8.5, color="#777777")
                     continue
-                hatch = "//" if (j == 0 and r["edit"] == "material change") else None
+                hatch = "//" if (j == 0 and (r["edit"] == "material change" or
+                                             (s3 is not None and r["edit"] == "source move"))) else None
                 ax.bar(xb, v, width=w * 0.9, color=col, hatch=hatch, edgecolor="white", linewidth=0,
                        label=lab if e == 0 else None, zorder=3)
                 ax.text(xb, v * 1.12, _fmt_s(v), ha="center", va="bottom", fontsize=9, color="#333333")
@@ -350,10 +364,15 @@ def figure_f2(out):
         ax.set_title(title, loc="left", fontsize=15, color="#222222")
     axes[0].set_ylabel("wall-clock seconds (log scale)")
     ur = out["update_rate_hz"]
-    fig.text(0.06, 0.035, "Single-listener update rate: network {:.0f} Hz, cached-mode physics {:.0f} Hz.  "
-                 "Hatched = network never trained on materials (latency only, accuracy UNTESTED)."
-                 .format(ur["network_601"], ur["physics_cached"]), fontsize=11.5,
-                 color="#444444")
+    note = ("Single-listener update rate: network {:.0f} Hz, cached-mode physics {:.0f} Hz.  Hatched = latency only:\n"
+            "  material change -- the network was never trained on materials (accuracy untested)."
+            .format(ur["network_601"], ur["physics_cached"]))
+    if s3 is not None:
+        note += ("\n  source move -- every corpus has one source; at a second source R0's unseen r falls {:.2f} -> {:.2f} "
+                 "(25-100 Hz, S-3){}.".format(
+                     s3["raw"]["25-100"]["src1"], s3["raw"]["25-100"]["src2"],
+                     "" if s3m is None else ", physics stays {:.2f}".format(s3m["raw"]["25-100"]["src2"])))
+    fig.text(0.06, 0.075, note, fontsize=11, color="#444444", va="top", linespacing=1.45)
     h, l_ = axes[0].get_legend_handles_labels()
     fig.legend(h, l_, loc="upper left", bbox_to_anchor=(0.055, 0.895), ncol=4, frameon=False, fontsize=12)
     fig.text(0.01, 0.965, "F2 -- latency by edit type: cached-mode physics wins listener / source / material edits; "
@@ -361,7 +380,7 @@ def figure_f2(out):
     fig.text(0.01, 0.925, "Room {} ({} grid points). Network: R0 @120K, fp32, {}. Physics and FDTD: one CPU node "
              "(Xeon E5-2680 v4). Medians of 20 runs.".format(out["room"], out["n_grid"], out["gpu"]),
              va="top", fontsize=11.5, color="#555555")
-    fig.subplots_adjust(left=0.06, right=0.985, top=0.80, bottom=0.14, wspace=0.08)
+    fig.subplots_adjust(left=0.06, right=0.985, top=0.80, bottom=0.165, wspace=0.08)
     Path("outputs/p4_9/meeting").mkdir(parents=True, exist_ok=True)
     fig.savefig("outputs/p4_9/meeting/F2_latency.png", facecolor="white")
 

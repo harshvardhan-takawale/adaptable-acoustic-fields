@@ -28,6 +28,47 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (late night) — S-3: the network does not generalise to a moved source; S-4: the faster GPU build is exact and 1.33x faster; S-1 interim: one-room training reaches 0.91-0.94 at 200-300 Hz
+
+**Headline:** Every room the network has trained on had its sound source at the same spot. When we move the source in the unseen test rooms, the network's accuracy below 100 Hz drops from 0.47 to 0.17. That is no better than leaving its old-source answer unchanged, and worse than reusing the true field from the old position (0.36). Physics does not care where the source is (0.98 at both positions). Separately, a recompiled GPU library gives identical results and trains 1.33x faster. In an early read (pre-registered read pending), the same network trained on one room alone reaches 0.91-0.94 at 200-300 Hz on that room, against 0.58-0.65 for the shared 1000-room model. So the renderer is not what limits 200-300 Hz.
+
+- **S-3 (D181 E8, D182(b); descriptive, no pass rule): a second source position, 16 frozen unseen rooms.**
+  - Setup: same dense receivers; off-lattice (Rule 11); raw field; second minus original source, paired bootstrap over rooms.
+  - The second source is (L - 0.5, 1.6), or (L/2, 1.0) when that is blocked; the original is (0.5, 1.6).
+
+  | field | 25-100 Hz | 100-200 Hz | 200-300 Hz |
+  |---|---|---|---|
+  | m1 physics | 0.978 -> 0.978; +0.001 [-0.001, +0.003] | 0.972 -> 0.969; -0.003 [-0.006, -0.000] | 0.960 -> 0.960; -0.000 [-0.003, +0.003] |
+  | R0 @120K | 0.468 -> **0.172**; -0.295 [-0.390, -0.205] | 0.380 -> **0.077**; -0.303 [-0.347, -0.259] | 0.371 -> **0.055**; -0.316 [-0.363, -0.270] |
+  | S2 @120K | 0.501 -> **0.386**; -0.115 [-0.182, -0.041] | 0.419 -> **0.193**; -0.226 [-0.264, -0.186] | 0.404 -> **0.155**; -0.249 [-0.275, -0.220] |
+
+  - LSD (dB): R0 5.3 / 5.7 / 5.4 -> 8.5 / 7.7 / 6.9; S2 5.1 / 5.5 / 5.2 -> 7.1 / 7.3 / 6.0; m1 0.9-1.1 at both sources. The projected field reads the same (in `src2.md`).
+  - **Reference fields (Rule 12), scored against the second-source truth:**
+    - R0's *original*-source render: 0.174 / 0.031 / 0.052.
+    - The original-source *truth*, a field that ignores the move: 0.357 / 0.204 / 0.210.
+    - R0 at the new source is no better than not moving the source at 25-100 and 200-300 Hz. It is below the "ignore the move" truth in every band.
+    - S2 is the only network field to reach that reference, at 25-100 Hz (0.386 vs 0.357).
+  - By family (25-100 Hz, original -> second): R0 U 0.481 -> 0.158, C3 0.454 -> 0.186; S2 U 0.510 -> 0.417, C3 0.491 -> 0.355.
+  - **Reading:**
+    - Every corpus fixes the source at (0.5, 1.6), so the network's source input has never varied in training.
+    - F2's source-move latency row is now hatched: latency only, accuracy failing.
+    - Caveat: these rooms are already out of family, so two shifts compound. An in-family second-source test would isolate the source shift.
+    - The remedy is source-diverse corpora (S-5, next round).
+- **S-4 (D181 E8, c5): tinycudann built for sm_86/89 (separate env `aaf_sm89`; `aaf` untouched). Parity HOLDS.**
+  - R0 @120K on the 15 in-family dense rooms reads 0.9185 / 0.7009 / 0.5818 in both envs. Delta +0.0000 in every band (bar 0.003); max relative field difference 3.9e-6.
+  - Training throughput (R0's recipe, 300 steps, same A5000): 0.761 -> 0.573 s/it (**1.33x**).
+  - Adoption is a P4-10 decision (E8). No P4-9 arm switches environments.
+- **S-1 interim (D185; the pre-registered read is at 10K, and its fit jobs are queued):** R0's recipe trained from scratch on ONE training room, 4K steps, scored on that room's off-lattice receivers.
+
+  | room (D185) | R0 @120K, shared over 1000 rooms | S-1 @4K, this room only |
+  |---|---|---|
+  | lowest 200-300 Hz fit (L6.16_W4.56_d0.34_w0.48) | 0.952 / 0.712 / **0.581**; LSD 200-300 4.0 dB | 0.993 / 0.952 / **0.911**; 1.5 dB |
+  | median fit (L5.74_W4.78_d0.62_w2.32) | 0.955 / 0.779 / **0.645**; 3.8 dB | 0.995 / 0.957 / **0.937**; 1.3 dB |
+
+  - Already **+0.33 / +0.29** at 200-300 Hz, against D185's +0.10 bar for "not the renderer cap". The 10K read and the convergence check (a rise of more than 0.03 from 4K -> extend to 20K) follow.
+
+Links: [src2.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/src2.md) · [F2_latency.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F2_latency.png) · [latency.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/latency.md) · [s4_parity.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/s4_parity.md) · [S1lo_4K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/train_offlat_fit/S1lo_4K.json) · [S1med_4K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_5/train_offlat_fit/S1med_4K.json)
+
 ## 2026-11-22 (night) — I7: sparse-measurement grounding (Step 1) -> F1; P1 fails, P2 holds, P3 fails; NMF-P passes its kill read
 
 **Headline:** With 32 microphone measurements in an unseen room, briefly fine-tuning part of the network lifts its accuracy from 0.49 to 0.81 below 100 Hz. Even when the network only knows the room's bounding box it reaches 0.80, where physics given the same box gets 0.41. But a simple geometry-free method, wave-equation interpolation between the measurements, does better still once it has 16 or more measurements (0.95 at 32). The network's edge over it exists only with very few measurements (8) and above 100 Hz.

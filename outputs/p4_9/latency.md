@@ -15,3 +15,5 @@ Room: L5.54_W5.28_d1.42_w1.52.h5 (3753 grid points). Network = R0 @120K on NVIDI
 **A 2D FDTD on a GPU:** ~0.1-0.3 s (ESTIMATE, not measured: ~7e4 air nodes x 61440 steps = 4.5e9 node updates at 15-50 G updates/s on one GPU).
 
 Reading (labelled, D181 E5): with cached modes, physics answers listener, source and material edits faster than the network; the network's latency case is the GEOMETRY edit, where physics must re-solve.
+
+**Accuracy caveat on the network's source-move row (S-3, `outputs/p4_9/src2.md`):** every corpus uses one source position; at a second source R0's unseen r falls 0.468 -> 0.172 / 0.380 -> 0.077 / 0.371 -> 0.055 (25-100 / 100-200 / 200-300 Hz). Its source-move latency is real, its accuracy is not.

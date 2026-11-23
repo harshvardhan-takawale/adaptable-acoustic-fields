@@ -1,0 +1,10 @@
+{
+ "env": "aaf",
+ "gpu": "NVIDIA RTX A5000",
+ "cc": [
+  8,
+  6
+ ],
+ "tcnn_file": "/fs/nexus-scratch/htakawal/miniconda3/envs/aaf/lib/python3.8/site-packages/tinycudann/__init__.py",
+ "n_rooms": 15
+}
