@@ -4,7 +4,7 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**Last updated**: **P4-9 Day 1-2 (2026-11-23, 00:50; D180-D193): I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14 (NMF), I5, 150K reads in; extensions X1, X1b, X2, X3a in (D189-D193); arm RCP training; S2X / DIR-G training, RCP queued.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Last updated**: **P4-9 Day 1-2 (2026-11-23, 00:50; D180-D193): I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14 (NMF), I5, 150K reads in; DIR E2 fails (D188); extensions X1, X1b, X2, X3a in (D189-D193); DIR-G and arm RCP training; S2X / DIR-G training, RCP queued.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 * **P4-8 closed:** S2 @120K FAILS its UF test by 0.009 (UF 0.501, HF 0.502; under-exposed, fit 0.523 vs R0 0.645). R0 @120K remains the meeting model until S2X's 240K read.
 * **P4-9 (D180 spec + D181 amendments A1-A15, edits E1-E8, clarifications c1-c6):** Q-A network vs physics with matched information; Q-B NMF (staged behind feasibility gates); Q-C directional output (omni-field gradient primary; arms CTL / DIR / DIR-G); Q-D physics gates. A result is reported about every half-day.
@@ -18,6 +18,12 @@ Manager re-orientation doc. Optimized for catching up in 5 minutes after time aw
     * Arm RCP (CTL + swaps only, p 0.25) is training on tron; S1 / S2 / C2 are read at 150K (~07:00).
   * **X2 (D190): a coarse physics re-solve dominates the network's FULL-ROOM render after a geometry edit.** Faster AND more accurate in every band: 10 cm / 350 Hz takes 0.38 s on one CPU for unseen 0.972 / 0.913 / 0.759, against the network's 32.1 s on a GPU for 0.468 / 0.380 / 0.371; 14 of 15 configurations dominate. No configuration dominates for ONE listener (12 ms). F2's "the network's case is the geometry edit" should read "the single-listener geometry edit, under ~0.3 s". Solve time grows 0.3 s (300 Hz) -> 3.2 s (600) -> 62 s (1 kHz) -> > 30 min (2 kHz): the network's latency case lies at high frequency and in 3-D. F7.
   * **X3 (D191, D193):** moving the source via reciprocity swaps. Zero-training pre-check AFAM vs G2; arm RCP = CTL + swaps p 0.25 (tron); a new in-family second-source set (15 rooms); the network's reciprocity gap.
+* **I11 part 1, DIR @150K: E2 FAILS under D188 (0 of 3 bands).**
+  * DIR's best readout is the projected omni gradient, 0.947 / 0.852 / 0.808, against CTL's 0.945 / 0.849 / 0.806 (+0.002 / +0.003 / +0.002, bar +0.05).
+  * The literal reading passes 3 of 3, which is exactly the projection trap D188 closed.
+  * The direction loss lifts DIR's own per-ray readout by +0.086 / +0.032 / +0.014, still below CTL's projected gradient.
+  * C2 HOLDS (HF +0.003; UF +0.004 / -0.006 / -0.006). C3 does not hold.
+  * DIR-G is read at 150K (~07:00). If it also fails, E2's fallback is recorded: first-order direction comes from the field without directional supervision.
 * **150K reads:** S2X @150K HF 0.510 / UF 0.496 (S2 @120K 0.502 / 0.501; HF +0.007 [+0.002, +0.012]). The 240K bar needs HF 0.56; the current slope projects ~0.53 (labelled extrapolation; read 1 at 180K). CTL @150K final: HF 0.583 / UF 0.467, flat vs R0. Its train-room fit rises (0.645 -> 0.670) while held-out does not.
 * **I5 (0c) directional zero-shot:** R0 @120K already predicts direction: projected-field gradient Re rho 0.943 / 0.844 / 0.803 in-family, 0.651 / 0.625 / 0.624 unseen (spec expected < 0.3); per-ray D 0.835 / 0.795 / 0.780; raw-FD 0.848 / 0.739 / 0.747. E3 unit test passes. **D188 — please confirm or override before the 150K read:** E2's 'CTL omni-gradient readout' = CTL's BETTER omni readout (raw-FD or projected) per band; read literally, R0 passes E2 against itself via the projection alone (+0.095 / +0.106 / +0.056, CIs > 0). Literal reading reported beside it.
 * **Trajectory @140K (interim):** CTL HF 0.582 / UF 0.466, DIR 0.585 / 0.471, DIR-G @130K 0.578 / 0.473 (R0 0.582 / 0.468): directional terms cost nothing on the omni field; E2 read at 150K.

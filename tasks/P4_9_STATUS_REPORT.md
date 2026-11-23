@@ -28,6 +28,31 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-23 (02:45) — I11 part 1: DIR @150K — E2 FAILS under D188 (0 of 3); directional training sharpens the per-ray readout but does not beat the omni field's own gradient; C2 holds
+
+**Headline:** Training the model with an explicit direction loss (DIR) made its built-in direction readout better: +0.09 below 100 Hz. But the best direction estimate available WITHOUT that training, the gradient of the ordinary sound field after physical projection, was already as good or better. DIR's best readout beats the untrained control's best by only +0.002-0.003, far below the +0.05 bar. So far, first-order direction comes from a good omnidirectional field, not from directional supervision. The direction loss costs nothing on ordinary accuracy. DIR-G, the second directional arm, reads at ~07:00.
+
+In-family 15 (decides), Re rho vs FDTD grad p / (jk), receivers >= 0.5 m from the source, paired per-room bootstrap:
+
+| band | DIR's best readout (level) | CTL's best omni readout (D188 bar) | DIR - bar [95% CI] | unseen 16 |
+|---|---|---|---|---|
+| 25-100 Hz | projected gradient (0.947) | projected gradient (0.945) | +0.002 [+0.001, +0.003] | +0.008 [+0.004, +0.011] |
+| 100-200 Hz | projected gradient (0.852) | projected gradient (0.849) | +0.003 [+0.001, +0.005] | -0.001 [-0.004, +0.001] |
+| 200-300 Hz | projected gradient (0.808) | projected gradient (0.806) | +0.002 [+0.001, +0.003] | -0.003 [-0.007, +0.000] |
+
+- **E2 (D188, primary): FAILS, 0 of 3 bands** (bar +0.05 with CI > 0).
+- **E2 literal reading (CTL bar = raw finite-difference gradient only, labelled): passes 3 of 3.** This is the trap D188 recorded before the read: the projection alone clears the literal bar (R0 passes against itself, I5).
+- **What the direction loss did (descriptive):**
+  - DIR's per-ray readout minus CTL's per-ray readout: in-family +0.086 [+0.079, +0.093] / +0.032 [+0.030, +0.034] / +0.014 [+0.013, +0.015]; unseen +0.090 / +0.032 / +0.009.
+  - It improved the readout it supervises. Even so, DIR's per-ray readout stays below CTL's projected gradient: in-family -0.023 / -0.016 / -0.009, CIs < 0.
+- **C2 (no harm): HOLDS.**
+  - DIR - CTL: HF +0.003 [+0.002, +0.005]; UF +0.004 [-0.002, +0.010] / -0.006 [-0.011, -0.002] / -0.006 [-0.009, -0.003]; every point at or above -0.02.
+  - Levels (Rule 12): DIR HF 0.587, UF 0.471 / 0.369 / 0.367; CTL HF 0.583, UF 0.467 / 0.376 / 0.373.
+- **C3 (exploratory): does not hold** (UF 25-100 Hz +0.004 [-0.002, +0.010]).
+- **Next:** DIR-G's 150K checkpoint is due ~03:30; the watcher renders it (~2.5 h) and scores it against CTL. If DIR-G also fails, E2's fallback applies: first-order direction is recorded as coming from the field without directional supervision. F4 (first-order maps) follows DIR-G.
+
+Links: [e2_read.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/e2_read.md) · [directional_zero_shot.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/directional_zero_shot.md) · [e2_read.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/e2_read.json)
+
 ## 2026-11-23 (02:30) — X2 (D190): after a geometry edit, a coarse physics re-solve beats the network's full-room render on BOTH speed and accuracy; the network keeps only the single-listener case -> F7
 
 **Headline:** The network's one clear speed advantage was the geometry edit: change the room, and it renders a listener in 12 ms where a full physics re-solve took ~55 s. But that re-solve was built to reproduce the simulator exactly, not to be fast. Re-solved on a 10 cm grid with modes to 350 Hz, physics recomputes the WHOLE room in 0.4 s on one CPU, scoring r 0.97 / 0.91 / 0.76 on unseen rooms. The network takes 32 s on a GPU to render the room at 0.47 / 0.38 / 0.37. A 6 cm grid gives 0.98 / 0.95 / 0.89 in 1 s. So for full-room rendering in 2-D at <= 300 Hz, physics is faster AND more accurate. The network keeps one case: a single listener needed within ~0.3 s of an edit. Physics cost climbs steeply with frequency (0.3 s at 300 Hz, 3 s at 600 Hz, 62 s at 1 kHz, > 30 min at 2 kHz), so the network's speed case lies at high frequency and in 3-D, which it does not cover yet.

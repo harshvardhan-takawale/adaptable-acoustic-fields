@@ -1,6 +1,6 @@
 # Chunk P4-9 — physics as structure, directional output, sparse grounding: RESULTS (live)
 
-**Status (2026-11-23, 00:50): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14, I5, 150K reads (S2X interim, CTL final) in; extensions X1, X1b, X2, X3a (D189-D193) in; arm RCP training; DIR E2 / C2 / C3 next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
+**Status (2026-11-23, 00:50): pre-registered (D180-D181); Day 0 done (D182); I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14, I5, 150K reads (S2X interim, CTL final) in; DIR E2 / C2 / C3 in (E2 fails); extensions X1, X1b, X2, X3a (D189-D193) in; DIR-G and arm RCP training; DIR E2 / C2 / C3 next.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 
 **Questions.** Q-A: where does the network beat physics (update speed, approximate inputs, sparse measurements)? Q-B: does physics help as structure (learned modes, NMF)? Q-C: can the model output direction, and does directional supervision change omni accuracy? Q-D: does any field-level physics residual target the unseen-family failure?
 
@@ -63,6 +63,13 @@ Sections below are filled as each step lands.
 **2c NMF N1 / N2 (I14): both FAIL.** NMF @30K 0.848 in-family / 0.451 unseen; NMF-P 0.828 / 0.438 (N1 bars 0.90 / 0.60). NMF-P - NMF on unseen -0.013 [-0.034, +0.007] (N2 needs >= +0.03). NMF - R0 on unseen -0.016 [-0.061, +0.031]; NMF - S2 -0.050 [-0.093, -0.002]. References: R0 0.918 / 0.468, S2 0.501 unseen, m1 0.978. Oracle decomposition (D187): with exact shapes + NMF k 0.544 / 0.484, NMF shapes + exact k 0.475 / 0.413, all exact 0.983 / 0.974 -> errors interact, neither half named. F5: in both median unseen rooms NMF has no counterpart of true mode 2 (the first width mode). [readings.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/readings.json) · [oracle.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/nmf/oracle.md) · [F5](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F5_nmf_modes.png).
 
 **2c NMF kill read (I13): passes** after the NaN fix (D186): in-family off-lattice r at 25-100 Hz 0.796 at 10K (>= 0.70), 0.840 at 20K; R0 0.918 on the same rooms. Unseen r pending.
+
+**2b DIR @150K (I11 part 1): E2 FAILS under D188 (0 of 3).**
+* DIR's best readout (projected gradient) 0.947 / 0.852 / 0.808 against CTL's 0.945 / 0.849 / 0.806: +0.002 / +0.003 / +0.002.
+* The literal reading passes 3 of 3, which is the projection trap D188 recorded.
+* The direction loss lifts DIR's own per-ray readout +0.086 / +0.032 / +0.014 over CTL's, still below CTL's projected gradient.
+* C2 HOLDS (HF +0.003; UF +0.004 / -0.006 / -0.006). C3 does not hold.
+* DIR-G is read at 150K (~07:00).
 
 **2b interim @130K:** CTL HF 0.575, UF 0.464; DIR HF 0.576, UF 0.471 (R0 @120K: 0.582 / 0.468). **@140K:** CTL HF 0.582, UF 0.466; DIR HF 0.585, UF 0.471; DIR-G @130K HF 0.578, UF 0.473. The directional terms cost nothing on the omni field so far; E2 / C2 / C3 are read at 150K.
 
