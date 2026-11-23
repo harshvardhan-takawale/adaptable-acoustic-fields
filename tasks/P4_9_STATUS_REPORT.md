@@ -28,6 +28,28 @@ A training-trajectory figure (S2X, CTL, DIR, DIR-G vs step, with R0 / S2 referen
 
 ---
 
+## 2026-11-22 (late night, 5) — 150K reads: S2X @150K (interim) and CTL @150K (final) -> F0
+
+**Headline:** The unseen-room specialist S2 is being trained longer (S2X). After 30K extra steps it is slightly better on known shapes (0.510, up from 0.502) and unchanged on unseen rooms (0.496). To become the meeting model at 240K it needs 0.56 on known shapes. On its current pace that looks out of reach, but the first pre-registered read is at 180K. The plain continuation of R0 (CTL) finished flat: more steps on the same corpus do not move either number.
+
+| model (read) | in-family test r 25-100 / 100-200 / 200-300 Hz (HF = 200-300) | unseen UF 25-100 / 100-200 / 200-300 Hz | train-room fit 200-300 Hz |
+|---|---|---|---|
+| R0 @120K (meeting model) | 0.918 / 0.701 / **0.582** | **0.468** / 0.380 / 0.371 | 0.645 |
+| S2 @120K | 0.908 / 0.652 / **0.502** | **0.501** / 0.419 / 0.404 | 0.523 |
+| **S2X @150K** | 0.906 / 0.656 / **0.510** | **0.496** / 0.417 / 0.402 | 0.533 |
+| **CTL @150K** (final) | 0.920 / 0.708 / **0.583** | **0.467** / 0.376 / 0.373 | 0.670 |
+
+- **S2X @150K - S2 @120K:** HF +0.007 [+0.002, +0.012]; UF -0.005 [-0.009, -0.000] / -0.003 / -0.002.
+- **S2X @150K - R0 @120K:** HF -0.072 [-0.082, -0.062]; UF +0.029 [+0.016, +0.043] / +0.037 / +0.031.
+- **S2X's pre-registered test at 240K** (2a): HF >= 0.56 AND UF >= 0.49.
+  - UF holds now (0.496).
+  - HF needs +0.050 more. The 120K -> 150K slope is +0.008 per 30K, restart dip included. At that slope HF would reach about 0.53 at 240K. This is an extrapolation, labelled, and not a verdict.
+  - Read 1 at 180K shows whether the slope steepens once the warm-up / restart transient is past.
+- **CTL @150K - R0 @120K:** HF +0.002 [-0.003, +0.006]; UF -0.001 [-0.003, +0.002] / -0.004 / +0.002. CTL is the reference for DIR / DIR-G, whose E2 / C2 / C3 reads follow.
+- Train-room fit at 200-300 Hz keeps rising (CTL 0.645 -> 0.670 over 30K) while held-out HF does not. More steps fit the training rooms better without transferring. This is relevant to Q25: exposure buys fit, not generalisation.
+
+Links: [F0_trajectory.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/meeting/F0_trajectory.png) · [S2X_150K unseen](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/unseen/S2X_150K.json) · [CTL_150K unseen](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_8/unseen/CTL_150K.json)
+
 ## 2026-11-22 (night, 4) — I5: directional output zero-shot — R0 already predicts sound direction (0.94 / 0.84 / 0.80 in family), far above the spec's expected < 0.3; D188 fixes E2's bar before the 150K read
 
 **Headline:** Without ever being trained on direction, the current model already predicts which way sound travels through each point of the room. Its directional estimate correlates 0.94 (below 100 Hz) to 0.80 (200-300 Hz) with the true acoustic gradient in known room shapes, and 0.62-0.65 in unseen rooms. The spec expected below 0.3. Direction mostly comes for free from a good omnidirectional field. The directional training arms, read at 150K, must beat this, not zero.
