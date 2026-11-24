@@ -1,8 +1,8 @@
 # P4-10 progress board
 
-Built 2026-11-24 14:08 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 14:10 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1SM: step 144400 at 0.83 s/step, next read 145000 at about 14:16 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1SM: step 144400 at 0.83 s/step, next read 145000 at about 14:18 ET (posted within 1 h of it)
 
 **Running jobs:** aaf_backstop x1, aaf_autopub x1, aaf_r1sm x1
 
