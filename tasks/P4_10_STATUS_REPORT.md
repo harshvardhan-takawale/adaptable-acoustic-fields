@@ -3,6 +3,22 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (22:46) — R1's RS3 (reciprocity) FAILS; the four R1 verdicts are complete: RS1, RS2, RS3 fail, RC1 holds
+
+**Headline:** When the model renders the field with the receiver and the source swapped, R1's accuracy drops from 0.909 / 0.683 / 0.571 to 0.759 / 0.344 / 0.222 (25-100 / 100-200 / 200-300 Hz, known rooms). The bar was "no more than 0.05 below the normal render". R1's swapped-render accuracy is the same as the swap-only model's (RCP, 0.758 / 0.343 / 0.227), so training on four source positions per room improved moved sources but not reciprocity beyond what the swaps gave. The plain models (R0, CTL) are far worse (0.17 / 0.05 / 0.03).
+
+| model | in-family 15: normal / swapped (25-100, 100-200, 200-300 Hz) | unseen 16: normal / swapped |
+|---|---|---|
+| R1 @150K | 0.909 / 0.759, 0.683 / 0.344, 0.571 / 0.222 | 0.506 / 0.465, 0.409 / 0.289, 0.399 / 0.238 |
+| RCP @150K | 0.920 / 0.758, 0.705 / 0.343, 0.582 / 0.227 | 0.478 / 0.434, 0.385 / 0.290, 0.379 / 0.229 |
+| CTL @150K | 0.920 / 0.170, 0.708 / 0.050, 0.583 / 0.034 | 0.467 / 0.121, 0.376 / 0.052, 0.373 / 0.028 |
+| R0 @120K | 0.918 / 0.167, 0.701 / 0.050, 0.582 / 0.027 | 0.468 / 0.122, 0.380 / 0.054, 0.371 / 0.027 |
+
+- **RS3 (swapped >= normal - 0.05, in family, every band): FAILS.** Off-lattice interior receivers, r against the same truth (D193's measure).
+- R1's verdict file now carries all four rules: RS1 FAILS, RS2 FAILS, RS3 FAILS, RC1 HOLDS, extension not triggered, base = R1 (Q28).
+
+Links: [verdict_R1_150K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1_150K.md)
+
 ## 2026-11-23 (22:24) — R1's D1, D2 and A8 at its final checkpoint: the decay problem is unchanged (slightly worse), mode shifts are similar to R0's
 
 **Headline:** R1's sound dies away about as fast as R0's: in known rooms the early decay time is 14% / 24% / 30% off (63 / 125 / 250 Hz) against R0's 13% / 23% / 28%, with a noise floor near -27 to -35 dB, so the source fix did not touch this. How well R1 predicts the shift of resonance frequencies after an edit is much the same as R0's, except in new rooms, where wall and uniform-stretch edits are now better (slopes 0.65 and 0.51 against 0.29 and 0.36); the other rows (all in-family, axis-stretch and notch) differ from R0 by at most 0.11 (the largest: Wall in-family, 0.60 against 0.71).

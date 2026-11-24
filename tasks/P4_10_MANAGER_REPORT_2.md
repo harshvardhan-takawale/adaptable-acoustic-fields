@@ -3,7 +3,7 @@
 This replaces the state and questions in [report 1](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT.md) (its questions are answered: D201). All links are full raw URLs. Numbers were read from files for this report; times come from `date`. Nothing here changes a pre-registered bar.
 
 **Where things stand in five lines:**
-- **R1 (the source fix) finished at 150K and is the base model** under your Q28 rule. It fails RS1 and RS2, passes RC1 (no harm), and is not extended.
+- **R1 (the source fix) finished at 150K and is the base model** under your Q28 rule. It fails RS1, RS2 and RS3, passes RC1 (no harm), and is not extended.
 - **R1-M (materials) is the first model that responds to a material change:** EDT edit slope 0.48 in-family and 0.74 unseen at +10K (R0 and R1 read about -0.2 to 0.0). It passes its learning check; the harm kill is not triggered.
 - **R1-S (stretched rooms) is ahead of R1 on stretch edits by a little, with no harm;** SS1 and the extension are judged at its final read, due next.
 - **R1-P (the physics penalty) failed its gate and is not launched.** R1-C is closed, as you ruled.
@@ -15,7 +15,7 @@ Live log: [status report](https://raw.githubusercontent.com/harshvardhan-takawal
 
 | what | state |
 |---|---|
-| R1 | finished at 150,000 steps; final reads done except RS3 (reciprocity) and the one-time confirmation read (Q32), both running |
+| R1 | finished at 150,000 steps; RS3 done; only the one-time confirmation read (Q32) is still running |
 | R1-S | 149,600 of 150,000; final read starts by itself |
 | R1-M | 135,000 of 150,000 (its 135K read launches by itself) |
 | R1-P, R1-C | not running (gate failed; closed) |
@@ -28,7 +28,7 @@ Live log: [status report](https://raw.githubusercontent.com/harshvardhan-takawal
 | **RS1, strict** (all six in-family gaps <= 0.10) | **FAILS.** Second source 0.203 / 0.373 / 0.372 [0.163-0.247, 0.321-0.427, 0.339-0.410]; third 0.128 / 0.238 / 0.250 |
 | **RS2** (unseen moved r >= ignore + 0.05, every band and source) | **FAILS** in one of six cells: second source at 200-300 Hz, -0.010 [-0.038, +0.017]. The others are +0.181 / +0.069 (second) and +0.222 / +0.082 / +0.084 (third) |
 | **RC1** (HF and each UF band >= CTL @150K - 0.02) | **HOLDS.** HF 0.571 against 0.583 (-0.013 [-0.019, -0.007]); UF 0.506 / 0.409 / 0.399 against 0.467 / 0.376 / 0.373 |
-| **RS3** (swapped render >= normal - 0.05) | pending (running) |
+| **RS3** (swapped render >= normal - 0.05) | **FAILS** (added 22:46): in-family normal / swapped 0.909 / 0.759, 0.683 / 0.344, 0.571 / 0.222; unseen 0.506 / 0.465, 0.409 / 0.289, 0.399 / 0.238. R1's swapped accuracy equals RCP's (0.758 / 0.343 / 0.227): swaps set it |
 | **Extension (Q27; same 8 lite rooms)** | **not triggered**: worst gap 0.366 (needs <= 0.15); mean fell 0.0127 from +20K (needs >= 0.02) |
 | **Q28 base model** | **R1** (fallback to R0 not triggered: lite third-source r 0.792 / 0.435 / 0.315, up from 0.748 / 0.407 / 0.283; HF cost 0.013, limit 0.04) |
 
@@ -100,7 +100,7 @@ SS1's bar (+0.05 in 2 of 3 bands at +30K) is not met at +20K. Unseen +20K: +0.02
 
 1. R1-S's final read (150K): SS1, SC1 and the extension rule; R1 continues only if R1-S extends (matched reference).
 2. R1-M reads at 135K to 150K (MM1, MM2, MC1 at 150K). D1, D2 and A8 for R1-S and R1-M at their final checkpoints.
-3. RS3 and R1's one-time confirmation read, then the final R1 verdict update.
+3. R1's one-time confirmation read.
 4. The source-move diagnostic (wall clearance; 32 FDTD runs) after the final reads, as you ruled. F1 (R0's scorecard), then F3-F7.
 5. Daily digest at 09:00 ET; the results doc and `CONTEXT_FOR_MANAGER.md` entry at the end.
 
@@ -110,6 +110,6 @@ SS1's bar (+0.05 in 2 of 3 bands at +30K) is not met at +20K. Unseen +20K: +0.02
 
 - **Q33 (Amisha):** the meeting date.
 - **A question for you (not a default, nothing is changed): MM2's bar.** It compares the edited |EDT error| with the model's own unedited error plus 5 points. R1-M's unedited error is 26-33%, so MM2 passes while the absolute error stays far above the JNDs. Do you want a second, absolute criterion (for example edited |EDT error| <= 18%), or is "editing adds no error" the only claim MM2 should support? My recommendation: keep MM2 as written and state the absolute level beside it. Either way, changing it after R1-M's numbers exist would be a post-hoc change, so it would be descriptive only.
-- **How to present R1 at the meeting.** It is the base by your rule, but RS1 and RS2 fail. The claim I would support is "moved sources are far better than before, not solved" with the table in section 2. Tell me if you want a different wording.
+- **How to present R1 at the meeting.** It is the base by your rule, but RS1, RS2 and RS3 fail. The claim I would support is "moved sources are far better than before, not solved" with the table in section 2. Tell me if you want a different wording.
 
 Report 1 and the full question texts: [OPEN_QUESTIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/OPEN_QUESTIONS.md) · [P4_10_MANAGER_REPORT.md](https://github.com/harshvardhan-takawale/adaptable-acoustic-fields/blob/main/tasks/P4_10_MANAGER_REPORT.md)

@@ -7,5 +7,8 @@ Extension rule (lite): worst 0.366 (<= 0.15?), mean 0.2550 against 0.2677 at R1_
 RS2 (unseen, moved r >= ignore + 0.05 in every band, both sources): **FAILS**
 - second: moved r minus ignore: 0.181 [0.109, 0.249]; 0.069 [0.025, 0.113]; -0.010 [-0.038, 0.017]
 - third: moved r minus ignore: 0.222 [0.136, 0.313]; 0.082 [0.052, 0.116]; 0.084 [0.058, 0.111]
+RS3 (swapped >= normal - 0.05, in family): **FAILS**
+- in_family15: normal / swapped 0.909/0.759; 0.683/0.344; 0.571/0.222
+- unseen16: normal / swapped 0.506/0.465; 0.409/0.289; 0.399/0.238
 RC1 (HF and each UF band >= CTL @150K - 0.02): **HOLDS**; HF 0.571 vs 0.583, delta -0.013 [-0.019, -0.007]; UF 25-100 0.506 vs 0.467; 100-200 0.409 vs 0.376; 200-300 0.399 vs 0.373
 Q28 fallback to R0: False
