@@ -5,7 +5,7 @@
 
 ## 2026-11-24 (02:54) — I22 (R1-M +30K, the full scorecard): better material edits than any other model, but on the full set still below "ignore the edit"; other edits level with R1
 
-**Headline:** The full scorecard of the materials arm is in (675 cells). On wall-absorption edits R1-M scores 0.894 / 0.713 / 0.618 (25-100 / 100-200 / 200-300 Hz) in known rooms, against 0.749 / 0.567 / 0.476 for R1, and its pattern-of-change score is four to five times R1's. **But "ignore the edit" still scores 0.911 / 0.891 / 0.880 on the same full set, so R1-M is below it in every band.** (The earlier reads on 8 lite rooms had it above at the lowest band; the full set does not.) On all other edit families it is level with R1.
+**Headline:** The full scorecard of the materials arm is in (675 cells). On wall-absorption edits R1-M scores 0.894 / 0.713 / 0.618 (25-100 / 100-200 / 200-300 Hz) in known rooms, against 0.749 / 0.567 / 0.476 for R1, and its pattern-of-change score (r_delta) is 4.7 to 7.8 times R1's in known rooms. **But "ignore the edit" still scores 0.911 / 0.891 / 0.880 on the same full set, so R1-M is below it in every band.** (The earlier reads on 8 lite rooms had it above at the lowest band; the full set does not.) On all other edit families it is level with R1.
 
 R1-M @150K, off-lattice, full set (15 in-family, 16 unseen rooms), edited-field r (25-100 / 100-200 / 200-300 Hz), "ignore the edit" beside:
 
@@ -25,7 +25,7 @@ R1-M @150K, off-lattice, full set (15 in-family, 16 unseen rooms), edited-field 
 | Source (both) | unseen | 0.550 / 0.330 / 0.262 | 0.546 / 0.321 / 0.246 | 0.344 / 0.246 / 0.209 | 0.478 / 0.381 / 0.329 (0.469 / 0.367 / 0.317) |
 
 - **Reading of the material row:** a correct edit and no edit score about the same on the edited-field measure here because the absorption change moves the field only a little (the r_delta column is the measure of whether the change itself is predicted: R1-M 0.442 / 0.180 / 0.122 in family against R1's 0.094 / 0.023 / 0.017, and its g_delta is 1.51 / 1.12 / 1.06, above 1 in every band, so R1-M's edited render is closer to the truth than its unedited one). The decay-time slope (I21, MM1) is 0.54 of the true amount with Pearson 0.95.
-- **Other families:** level with R1 in known rooms (within 0.01), and better by 0.02-0.03 on unseen stretch and wall edits.
+- **Other families:** level with R1 in known rooms (within 0.011 in edited-field r), and better by 0.008 to 0.026 on unseen stretch and wall edits.
 - R1-M's MM1, MM2 and MC1 verdicts are in I21. D1, D2 and A8 for R1-M follow.
 
 Links: [scorecard_R1M_full.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1M_full.md) · [scorecard_R1M_full.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1M_full.json) · [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
