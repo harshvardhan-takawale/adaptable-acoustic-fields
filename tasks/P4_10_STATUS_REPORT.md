@@ -3,6 +3,26 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (19:36) — I8 (R1 +20K, all lite families): the moved source keeps improving in every band, but more slowly above 100 Hz; the +20K baseline for R1's extension rule is now recorded
+
+**Headline:** After 20K of 30K steps, R1 reaches 0.771 / 0.432 / 0.308 (25-100 / 100-200 / 200-300 Hz) at the clean third source in known rooms, up from 0.748 / 0.407 / 0.283 at +15K; the second source at 0.668 / 0.272 / 0.192. The worst of its six gaps to its own static accuracy is 0.391 (second source, 100-200 Hz), and the mean of the six has fallen from 0.295 at +10K to 0.268. RS1 asks for every gap at most 0.10, at +30K.
+
+Off-lattice; lite set (8 in-family, 8 unseen rooms); frozen scorer; 190/190 cells. Reference levels: static r 0.904 / 0.663 / 0.558 in-family, 0.537 / 0.443 / 0.402 unseen; "ignore the move" beside each row.
+
+| set, source | edited r | gap (+10K gap) | ignore the move |
+|---|---|---|---|
+| in-family, second | 0.668 / 0.272 / 0.192 | 0.236 / 0.391 / 0.366 (0.312 / 0.390 / 0.347) | 0.336 / 0.197 / 0.249 |
+| in-family, third | 0.771 / 0.432 / 0.308 | 0.133 / 0.231 / 0.249 (0.187 / 0.264 / 0.269) | 0.285 / 0.231 / 0.177 |
+| unseen, second | 0.559 / 0.269 / 0.193 | -0.023 / 0.174 / 0.208 (0.008 / 0.202 / 0.204) | 0.381 / 0.229 / 0.229 |
+| unseen, third | 0.554 / 0.376 / 0.288 | -0.017 / 0.066 / 0.113 (0.000 / 0.080 / 0.148) | 0.314 / 0.276 / 0.200 |
+
+- **Extension-rule baseline, recorded now (D201 Q27):** at +20K the six in-family gaps are 0.236 / 0.391 / 0.366 (second) and 0.133 / 0.231 / 0.249 (third); worst 0.391, mean 0.2677. R1 is extended past +30K only if, at +30K, the worst is <= 0.15 AND the mean has fallen by >= 0.02 (to <= 0.2477). At today's worst gap the first condition is far off; nothing is decided before the +30K read.
+- **R1's second source at 200-300 Hz (0.192) is still below "ignore the move" (0.249), in-family; unseen the same source is 0.193 against 0.229.**
+- **Other families, in-family, edited r, R1 @140K (R0 @120K beside):** Stretch-U 0.758 / 0.524 / 0.407 (0.761 / 0.532 / 0.417), Stretch-A 0.817 / 0.584 / 0.481 (0.819 / 0.595 / 0.488), Wall 0.895 / 0.639 / 0.544 (0.909 / 0.655 / 0.555), Notch 0.899 / 0.656 / 0.543 (0.914 / 0.678 / 0.559). The gap to R0 on these shrank from +10K.
+- **Pending:** static HF / UF at 140K (speckle analysis still running); posted as its own entry.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [F2_trajectories.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/F2_trajectories.png)
+
 ## 2026-11-23 (19:14) — R0's Material decay re-scored with the D201 / D202 definitions (replaces the P-e line); R1's and R1-S's lite cells too
 
 **Headline:** We re-measured how much the models change their decay time when a wall's absorption changes, now using EDT (decay over the first 10 dB), because T30 on model fields reads a noise floor. R0 does not respond at all: EDT edit slope -0.04 (a correct model reads near 1), Pearson -0.26. The edit makes R0's decay error larger, from 23% in unedited rooms to 38% in edited ones (the bar for R1-M is at most +5 points; R0 and the source-fix model are the reference).
