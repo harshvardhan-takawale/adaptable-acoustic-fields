@@ -5,7 +5,7 @@
 
 ## 2026-11-23 (22:24) — R1's D1, D2 and A8 at its final checkpoint: the decay problem is unchanged (slightly worse), mode shifts are similar to R0's
 
-**Headline:** R1's sound dies away about as fast as R0's: in known rooms the early decay time is 14% / 24% / 30% off (63 / 125 / 250 Hz) against R0's 13% / 23% / 28%, with a noise floor near -27 to -35 dB, so the source fix did not touch this. How well R1 predicts the shift of resonance frequencies after an edit is much the same as R0's, except in new rooms, where wall and stretch edits are now better.
+**Headline:** R1's sound dies away about as fast as R0's: in known rooms the early decay time is 14% / 24% / 30% off (63 / 125 / 250 Hz) against R0's 13% / 23% / 28%, with a noise floor near -27 to -35 dB, so the source fix did not touch this. How well R1 predicts the shift of resonance frequencies after an edit is much the same as R0's, except in new rooms, where wall and uniform-stretch edits are now better (slopes 0.65 and 0.51 against 0.29 and 0.36); the other three (in-family and axis-stretch) are level with R0 or within 0.1.
 
 **D1 (decay on the original rooms, off-lattice receivers at least 1 m from the source; EDT error = median relative error, bias signed):**
 
