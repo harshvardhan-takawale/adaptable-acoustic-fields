@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 14:40 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 14:49 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1SM: step 146600 at 0.83 s/step, next read 150000 at about 15:28 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1SM: step 147400 at 0.83 s/step, next read 150000 at about 15:25 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_backstop x1, aaf_autopub x1, aaf_unseen_ev x1, aaf_r1sm x1
+**Running jobs:** aaf_backstop x1, aaf_autopub x1, aaf_r1sm x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
