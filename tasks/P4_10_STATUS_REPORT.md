@@ -3,6 +3,23 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (12:59) — R1-SM +15K (descriptive, lite cells): material response close to R1-M's, stretch a little behind R1-S
+
+**Headline:** After 15K of 30K steps the combined model's change in decay rate with wall absorption is 0.55 (Pearson 0.80) in known rooms (R1-M 0.61 (Pearson 0.84)) and 0.79 (Pearson 0.82) in new ones (R1-M 0.77 (Pearson 0.83)). Third source 0.753 / 0.420 / 0.296 against R1's 0.748 / 0.407 / 0.283. Stretch pattern of the change 0.795 / 0.531 / 0.331 in known rooms. No verdict before +30K. Static accuracy (HF and UF) for this checkpoint follows.
+
+| lite cells | R1-SM | parent | difference [95% CI], 25-100 / 100-200 / 200-300 Hz |
+|---|---|---|---|
+| stretch, known rooms | 0.795 / 0.531 / 0.331 | R1-S 0.808 / 0.546 / 0.347 | -0.013 [-0.020, -0.007] / -0.015 [-0.020, -0.011] / -0.016 [-0.021, -0.012] |
+| stretch, known rooms | not scored | | |
+| stretch, new rooms | 0.383 / 0.289 / 0.220 | R1-S 0.373 / 0.288 / 0.225 | +0.010 [-0.004, +0.022] / +0.001 [-0.009, +0.013] / -0.005 [-0.018, +0.005] |
+| stretch, new rooms | not scored | | |
+| third source, known rooms | 0.753 / 0.420 / 0.296 | R1 0.748 / 0.407 / 0.283 | +0.004 [-0.014, +0.023] / +0.013 [+0.004, +0.023] / +0.013 [+0.006, +0.020] |
+| second source, known rooms | 0.628 / 0.281 / 0.199 | R1 0.620 / 0.266 / 0.180 | +0.008 [-0.009, +0.027] / +0.016 [+0.004, +0.028] / +0.020 [+0.000, +0.044] |
+| material edited accuracy, known rooms | 0.901 / 0.725 / 0.649 | R1-M 0.913 / 0.742 / 0.649 | -- |
+
+- Checkpoint ready 12:00; renders and scores done 12:15 on the cluster; posted 12:59. The login node lost its mount of the scratch disk (conda, corpora, scores) between 11:58 and 12:51, so the analysis had to run on a compute node that still sees it; nothing was lost and no run stopped.
+- Numbers: [R1SM_135K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/R1SM_135K.md). +20K about 13:13.
+
 ## 2026-11-24 (11:56) — E-E (D220, descriptive; corrected 11:58): R1's moved-source accuracy follows training-source coverage, in every band, moderately; no band is singled out
 
 **Headline:** We placed R1's source at 160 new positions (20 in each of 8 known rooms, at least 0.5 m from walls) and compared its accuracy with how many training sources lie near each position. Accuracy rises with coverage in every band (Spearman +0.32 to +0.45 over the 160 positions; +0.33 to +0.56 as a mean within-room rank correlation). Coverage and distance to the nearest wall go together here (rank correlation 0.56 to 0.66), so I also controlled for clearance, after seeing the first numbers. **[Corrected 11:58: this entry first said the link holds above 100 Hz and is weak at 25-100 Hz. That came from a partial correlation POOLED over rooms, which mixes room-to-room differences into it. The within-room version (ranks centred per room, the safer reading with 20 positions per room) gives the opposite band pattern: +0.31 to +0.37 at 25-100 Hz, +0.15 to +0.25 at 100-200, +0.10 to +0.12 at 200-300. Positive in every band both ways; the two versions disagree on which band carries the link, so no band is named.]** Found by the second session and recomputed by me. This does not show that coverage is the cause: positions, rooms and clearance were not varied independently.
