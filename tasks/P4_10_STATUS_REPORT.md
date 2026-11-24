@@ -3,6 +3,47 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (02:52) — E1, E2, E3 (D206 / D207): decay — the single-room models get the decay right, the shared model does not; reciprocal averaging is not a candidate; the late floor is mostly not room-common
+
+**Headline:** (E1) Models trained on one room each reproduce that room's resonance widths exactly (ratio 1.00 in both rooms) and its decay times to within 0-2%, while R1, one model for 1000 rooms, is 1.7 times too broad in its own training rooms and 25-31% too fast in decay (125-250 Hz). By the reading written before the numbers, the broadening comes from sharing one model across rooms. (E2) Averaging the normal and swapped renders does not improve moved sources above 100 Hz and costs the original source, so it is not a P4-11 candidate. (E3) The models' late floor is a common-to-the-room component only at 63 Hz (2-3 times the truth's), not at 125-250 Hz.
+
+### E1. Decay: fit or transfer? (17 rooms, dense off-lattice truth simulated anew; the room's own source)
+
+| group | rooms | width ratio model / truth | peaks matched | EDT error 63 / 125 / 250 Hz | floor model / truth, dB |
+|---|---|---|---|---|---|
+| **S-1 models, in their own rooms** (single-room models, 10K steps) | 2 | **1.00** (0.9996, 0.9965; 11 of 11 peaks) | 11 of 11 | **0% / 1% / 2%** | -36 / -72, -34 / -75, -31 / -36 |
+| R1, the 2 S-1 rooms | 2 | 1.40 (1.34, 1.46) | 7 of 11 | 13% / 26% / 30% | -36 / -72, -30 / -75, -27 / -36 |
+| **R1, 15 random training rooms** | 15 | **1.73 [1.53, 1.94]** | 36 of 63 | 12% / 25% / 31% | -35 / -72, -29 / -77, -26 / -41 |
+| R1, the 15 in-family TEST rooms | 13 | 1.40 | 33 of 65 | 14% / 24% / 30% | -35 / -71, -29 / -78, -27 / -40 |
+
+- **Pre-set reading (D207):** S-1 at the truth's width (<= 1.15): yes (1.00). R1's training rooms still broad (>= 1.30): yes (1.73). So the broadening comes from sharing one model across rooms (Q25), not from the loss or the representation, which the single-room models have too.
+- **Caveats.** (1) S-1 is 2 rooms, each with 5-6 matched peaks, and each trained for 10K steps with about 83 times R0's per-room exposure (D185): sharing and exposure per room are not separated here, which is Q25's open part. (2) R1's training rooms match only 36 of 63 truth peaks within 3 Hz (57%; per-room 1-4 peaks), so each room's ratio rests on few peaks (per-room values 1.06 to 2.46). (3) The S-1 floor is still -31 to -36 dB, similar to R1's; R1's is -26 to -35 (the truth's is -41 to -77): single-room training does not remove the late floor.
+- R1 is broad in its own training rooms, so this is not a transfer problem; the training rooms (mean 1.73) are no better than the in-family test rooms (1.40), which are a different room family.
+
+### E2. Reciprocal averaging on R1 (zero training; Source cells, all 31 rooms; frozen scorer)
+
+| position (all 31 rooms) | (a) normal | (b) swapped | (c) average of the two | (c) - (a), 25-100 / 100-200 / 200-300 Hz |
+|---|---|---|---|---|
+| second source | 0.619 / 0.291 / 0.199 | 0.634 / 0.289 / 0.185 | 0.654 / 0.326 / 0.176 | +0.035 [+0.024, +0.047] / +0.036 [+0.019, +0.052] / -0.023 [-0.035, -0.013] |
+| third source | 0.663 / 0.406 / 0.306 | 0.615 / 0.340 / 0.247 | 0.669 / 0.386 / 0.242 | +0.005 [-0.000, +0.011] / -0.019 [-0.024, -0.015] / -0.064 [-0.069, -0.059] |
+| original source (no-harm check) | 0.701 / 0.541 / 0.482 | 0.607 / 0.316 / 0.230 | 0.691 / 0.480 / 0.389 | -0.010 [-0.020, +0.001] / -0.062 [-0.078, -0.045] / -0.093 [-0.110, -0.077] |
+
+- **Pre-registered reading (D206 / D207): averaging is a P4-11 candidate: NO.** No gain at the third source above 100 Hz (it loses 0.019 and 0.064), and the original source loses more than 0.01 in two of three bands. Averaging helps the second source below 200 Hz (+0.035) but not above; the two renders differ too much at high frequency.
+
+### E3. Is the late floor common to the room? (in-family 15, octaves 63 / 125 / 250 Hz, last 0.3 s of a 1.5 s window)
+
+| | 63 Hz: model / truth ratio | 125 Hz | 250 Hz |
+|---|---|---|---|
+| R0 @120K | 0.084 / 0.039 (2.2) | 0.025 / 0.038 (0.6) | 0.012 / 0.018 (0.7) |
+| R1 @150K | 0.093 / 0.039 (2.4) | 0.030 / 0.038 (0.8) | 0.021 / 0.018 (1.2) |
+| R1-S @150K | 0.125 / 0.039 (3.2) | 0.030 / 0.038 (0.8) | 0.021 / 0.018 (1.2) |
+| R1-M @150K | 0.121 / 0.039 (3.1) | 0.040 / 0.038 (1.0) | 0.018 / 0.018 (1.0) |
+
+- The ratio is the energy of the receiver-mean signal in the late window over the mean per-receiver energy (1 = the same signal at every receiver; 1 / N, about 0.0003 here, for independent noise). **The models' ratio is clearly above the truth's only at 63 Hz (2-3 times);** at 125 and 250 Hz it is 0.6 to 1.2 times the truth's. So at 63 Hz part of the floor is common to the room (a structural component); at 125-250 Hz the late floor is mostly per-receiver noise with no excess common part over the truth.
+- The 0d hint (the single-radius mean-value residual, removed by the constant-cancelling form) is therefore most relevant near 63 Hz.
+
+Links: [E1 report](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/e1/report.md) · [E2 report](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/e2/report.md) · [E3 report](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/e3/report.md) · scripts [E1](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_10_e1_decay.py), [E2](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_10_e2_recip_avg.py), [E3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_10_e3_floor.py)
+
 ## 2026-11-24 (02:46) — I21 (R1-M +30K, the final Material cells; the full card follows): MM1 FAILS (slope 0.54, not 0.8), MM2 and MC1 HOLD, no extension
 
 **Headline:** The arm trained on per-wall absorption (R1-M) finished its 30K steps. When a wall's absorption is changed, its decay time changes in the right direction and in strict proportion (Pearson 0.95), but by only 0.54 of the true amount in known rooms and 0.66 in new ones; the bar asks for 0.8 to 1.2. It adds no decay error beyond its own baseline and does no harm at the original material, so those two rules hold. R1-M is not extended. R0 and R1 read about 0.0 (no response) on the same measure.
