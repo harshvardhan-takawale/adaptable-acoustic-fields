@@ -1,4 +1,4 @@
-# Presentation report for the manager (built 2026-11-24 11:56 ET; meeting 2026-11-24 about 16:00 ET)
+# Presentation report for the manager (built 2026-11-24 11:58 ET; meeting 2026-11-24 about 16:00 ET)
 
 For the manager building the deck. It lists a proposed slide order, the figures with raw links, slide-ready numbers, the approved wording, what is final or provisional, and what must not be said. **The result numbers are read from JSON at build time** (times, ranks and schedules are text) by `scripts/p4_10_presentation_report.py`; rebuild it after new reads land. Triples are 25-100 / 100-200 / 200-300 Hz; accuracy r is the off-lattice score from the frozen scorer (spatial correlation of the sound-level map). "Known rooms" = the 15 in-family test rooms; "new rooms" = the frozen 16 unseen rooms.
 
@@ -137,7 +137,7 @@ R1-P(t) (R1 plus the penalty) against its matched control R1-ctl after 2.5K of 1
 | R1-SM +5K and +10K | FINAL (descriptive); the +10K harm check follows | posted in the live log |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |
 | P-1 (R1-P(t) and control) | FINAL: stopped at +2.5K by its stop rule | posted in the live log |
-| E-E (source coverage) | FINAL (descriptive): accuracy follows training coverage, weakly at 25-100 Hz once clearance is controlled | posted in the live log |
+| E-E (source coverage) | FINAL (descriptive): accuracy follows training coverage in every band; the pooled and within-room versions disagree on which band carries it once clearance is controlled | posted in the live log |
 | R1-SM's +30K verdict | after the meeting | about 15:30 |
 
 Cluster note: about 134 nodes were down this morning, so some reads land later than the schedule; nothing was lost. This report can be rebuilt at any time: `python scripts/p4_10_presentation_report.py`.
