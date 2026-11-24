@@ -58,7 +58,7 @@ def m1(POS=POS, room=SHOW, tag="", fs=(50, 125), note=None, ranks_key="V2|R1|thi
                     badge(ax, "r = {:.2f}".format(s["r_at_{}Hz".format(f)]))
                     meta["panels"]["{}|{}".format(k, LONG[who])] = s
         colorbar(fig, im)
-        fig.suptitle(("Second example, the median room: " if tag else "") + "Moving the source: three ways to train it, {} Hz".format(f), fontsize=20, x=0.02, ha="left", y=0.975, fontweight="bold")
+        fig.suptitle(("Second example, the median room: moving the source, three ways to train it, {} Hz" if tag else "Moving the source: three ways to train it, {} Hz").format(f), fontsize=20, x=0.02, ha="left", y=0.975, fontweight="bold")
         sel = note or "{} on R1's third-source accuracy at {} Hz".format(rk(R, ranks_key + A.BAND_OF[f]), A.BAND_OF[f])
         cp = "Maps: full grid (truth FDTD 2 cm, models 4 cm). r = off-lattice accuracy at that frequency, never read from the map. In-family (held-out) room {}; {}.\nSource-family accuracy over the 15 in-family rooms at 25-100 Hz: R0 {:.3f}, RCP {:.3f}, R1 {:.3f}.".format(
             room, sel, fam["R0_120K"][0], fam["RCP_150K"][0], fam["R1_150K"][0])
@@ -335,6 +335,7 @@ def m4():
     from scripts.p4_10_md_m4 import B50, PICK, spec
     from scripts.p4_10_scorecard import PRED, TRUTH, cid, stored, db, colr, on_lattice as onl
     pk = json.loads(PICK.read_text())
+    ebr = json.loads(Path("outputs/p4_10/eb/report.json").read_text())["families"]["Source|third"]["bands"]["25-100"]["C"]
     room, c = spec()
     base = stored(c)
     d = np.load(ROOT / "pred" / "m4.npz")
@@ -377,10 +378,11 @@ def m4():
     fig.text(0.045, 0.70, "source at the\noriginal place", rotation=90, ha="center", va="center", fontsize=16, fontweight="bold")
     fig.text(0.045, 0.36, "source at the\nthird place", rotation=90, ha="center", va="center", fontsize=16, fontweight="bold")
     fig.suptitle("Measure a new room with 32 microphones, then move the source, 50 Hz", fontsize=20, x=0.02, ha="left", y=0.965, fontweight="bold")
-    cp = ("R1-M, unseen room {} (the {}th lowest of {} by R1-M's zero-shot accuracy, {:.2f} at 25-100 Hz), first draw. r = off-lattice accuracy at 50 Hz, the 32 microphones left out for every method. KRR: the 32 original measurements interpolated (it cannot know the move). Maps: truth 2 cm, models 4 cm.").format(
-        room, pk["rank_from_lowest"], pk["of"], pk["zero_shot_static_r_25-100"])
+    cp = ("R1-M, unseen room {} (the {}th lowest of {} by R1-M's zero-shot accuracy, {:.2f} at 25-100 Hz), first draw. r = off-lattice accuracy at 50 Hz, the 32 microphones left out for every method. KRR: the 32 original measurements interpolated (it cannot know the move). Maps: truth 2 cm, models 4 cm. Over all 16 unseen rooms, moving the source after capture scores below the zero-shot move at 25-100 Hz ({:.2f} against {:.2f}, E-B), the same order as here.").format(
+        room, pk["rank_from_lowest"], pk["of"], pk["zero_shot_static_r_25-100"], ebr["cap_edit"][0], ebr["zero_edit"][0])
     caption(fig, cp)
     meta["caption"] = cp
+    meta["E-B_source_third_25-100"] = {"captured_then_moved": ebr["cap_edit"], "zero_shot": ebr["zero_edit"]}
     save(fig, "M4_capture_then_move", meta)
 
 

@@ -1,0 +1,38 @@
+{
+ "figure": "M4",
+ "room": "UL6.36_W5.44_NEd2.18w2.16x0.00_NWd1.72w1.42x0.00",
+ "frequency_hz": 50,
+ "source_original": [
+  0.5,
+  1.6
+ ],
+ "source_third": [
+  3.4,
+  2.66
+ ],
+ "r_at_50Hz": {
+  "zero|orig": 0.11982463300228119,
+  "cap|orig": 0.6549862623214722,
+  "zero|third": 0.6066089272499084,
+  "cap|third": 0.12313847243785858,
+  "krr|third": 0.11284089088439941
+ },
+ "ranks": {
+  "zero_shot_static_rank_from_lowest": 8,
+  "of": 16,
+  "value": 0.4739275276660919
+ },
+ "caption": "R1-M, unseen room UL6.36_W5.44_NEd2.18w2.16x0.00_NWd1.72w1.42x0.00 (the 8th lowest of 16 by R1-M's zero-shot accuracy, 0.47 at 25-100 Hz), first draw. r = off-lattice accuracy at 50 Hz, the 32 microphones left out for every method. KRR: the 32 original measurements interpolated (it cannot know the move). Maps: truth 2 cm, models 4 cm. Over all 16 unseen rooms, moving the source after capture scores below the zero-shot move at 25-100 Hz (0.42 against 0.55, E-B), the same order as here.",
+ "E-B_source_third_25-100": {
+  "captured_then_moved": [
+   0.4153416476522883,
+   0.36578957450886573,
+   0.46742563340036825
+  ],
+  "zero_shot": [
+   0.5548993597428004,
+   0.5080892262049018,
+   0.6019727683936557
+  ]
+ }
+}
