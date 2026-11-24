@@ -6,81 +6,15 @@ Asker: agent that wrote it. Owner: who can answer (manager, user, or "research c
 
 ---
 
-### Q11 — How to close the last 0.55 dB to the 2 dB modal target? *(refined in Chunk 3.7)*
-
-**Asker**: chunk-3.5+ agent. **Owner**: manager / research call.
-
-**Status as of Chunk 3.7**: substantially de-mystified, and partly answered. The 2 dB modal target is NOT yet met on any single L, but the gap is now 0.28-0.81 dB depending on L (was 1.5+ dB through Chunk 3.6) — and the mechanism is identified.
-
-**Headline progress**: Chunk 3.7's I1 denser-training sweep (`D1_dense15`, 15 rooms at 0.2 m vs the original 7 at 0.5 m) drops modal-regime zero-shot LSD from 3.51 to **2.55 dB** averaged over the 6 unseen L. Per-L: 2.81 (L=3.25), 2.58 (3.75), 2.69 (4.25), 2.63 (4.75), **2.33 (5.25)**, **2.28 (5.75)** — at the upper-half L's the model is within 0.3 dB of the target.
-
-**Mechanism identified**: Chunk 3.7 Track I gives a clean partial ordering of the bottleneck. The 3.5 dB modal ceiling from Chunk 3.6 was:
-- NOT info-bound — Chunk 3.7 I3 (n_obs=32 via chunked inner loop) gives modal 3.53 dB, unchanged from C2 + B6's 3.51.
-- NOT capacity-bound (in the FiLM-output-LoRA direction) — Chunk 3.7 I2 (rank-8 LoRA additive correction at decoder output) gives 3.35 dB, marginally better but well short of D1.
-- DATA-DENSITY-BOUND — Chunk 3.7 I1 (denser sweep) breaks the ceiling by ~1 dB.
-
-So more interpolation anchors smooth the latent-to-spectrum mapping the decoder learns, without changing the architecture.
-
-**Concrete experimental paths still on the table (ranked by expected gain / cost)**:
-
-1. **Push I1 further — denser sweep at 0.1 m and/or extended range** (cheapest, highest-prior). D1's lower-L gap (modal 2.81 at L=3.25) is mostly the boundary effect of having the 3.0 m endpoint. Adding training rooms at L = 2.6, 2.8 m and/or halving the spacing to 0.1 m (∼30 rooms covering [3.0, 5.8]) is the cleanest test of "modal LSD scales with training density". Cost: 12-15 new ISM rooms (~10 min) + 1 retrain (~3 h).
-2. **Wider decoder** (n_levels=18 or sigma_encoder_dim=512). D1's val LSD 2.37 dB (vs 7-room C2's 1.43) suggests the same 8-D-latent + 14-bit HashGrid is now over-saturated by 15 rooms. Widening should lift both in-distribution and zero-shot. Cost: ~3 h.
-3. **True hyper-network conditioning**: replace static FiLM with a small MLP that takes z and emits the weights of a per-room signal-branch decoder. Architectural risk + ~3-5× training cost. Cost: ~1 day implementation + 1 retrain.
-4. **Modal-regime-only model**: drop diffuse training and target just 0-250 Hz. With D1 already at 2.55, a simpler model on the modal band might cleanly hit 2 dB.
-
-This question can close definitively once (1) or (2) lands the 2 dB target. If neither does, the door re-opens for (3). *Status update Chunk P2-1: this question is now Phase-1 history; Phase 2 runs are 3D and the 2 dB modal target is reinterpreted in the new 3D modal-density regime (see Q12, Q14).*
-
----
-
-### Q12 — Is the 3D HashGrid 18/16/1.38 the right starting capacity for P2-2 multi-room conditioning?
-
-**Asker**: Chunk P2-1 agent. **Owner**: P2-2 manager / research call.
-
-**P2-1 status (single-room overfit, 5 rooms)**: Capacity is **roughly right**. All 5 de-risk rooms converged 6-7 dB → 1.3-1.8 dB val LSD over 15K iters; modal MAE 0.61-1.18 Hz on f<f_Schroeder (well under the 3 Hz spec target). No early plateau. P2-2 inherits these defaults (D23). P2-2 runs a d=16 vs d=32 hedge (D29) to test whether the latent table — not the HashGrid — is the binding capacity constraint. This question closes when the M1/M2 in-distribution val LSD comparison lands in CHUNK_P2_2_RESULTS.md.
-
-If multi-room M1 in-distribution val LSD > 2.5 dB and M2 (d=32) is meaningfully lower, the latent dim is the lever — P2-3 should adopt d=32 (or larger). If both reach similar LSD, d=16 is preferred for downstream analysis.
-
-**CLOSED (P2-2.5, 2026-06-06)** — capacity is NOT the wall; **per-iter coverage / total compute is**. The P2-2.5 diagnostic (DECISIONS.md D34) showed: the 10-room set fits to ~1.0-1.8 dB (runs A & C), and the 45-room set improved P2-2 M1's 6.16 → 2.61 dB purely from 8× coverage + 60K iters (run B) — all at the *same* `latent_dim=16` / HashGrid 18/16/1.38 / FiLM. The HashGrid/latent capacity is right; **do not widen**. (Note: P2-2's batch=4 ceiling was itself partly a GPU-misallocation artifact — M1/M2 silently ran on an 11 GB 2080 Ti via a bare `--gres=gpu:1`; CLUSTER_INFO.md now documents naming the GPU type.) P2-3 lever = scale compute (eff-batch 64, n_pts 32, 80-100K iters on A6000+DDP), not architecture.
-
----
-
-### Q13 — ISM `max_order=12` tail truncation tolerance (was 17, revised in P2-1)
-
-**Asker**: Chunk P2-1 agent. **Owner**: research call after Phase 2 evals.
-
-**Status update**: D6 was revised in P2-1 from `max_order=17` to `max_order=12` (the budget check showed 17 gave 30+ min/room while the modal sum was Python-bound). At cap=12 the IR covers ~175 ms (3.5× the 50 ms early window). P2-1's signal-level eval showed late-corr 0.94-0.98 across de-risk rooms — the structure is captured, but **T20/T30 deltas blow up to 1.7-3.4 s** because the ISM ground-truth itself is truncated past ~175 ms.
-
-**P2-2 deliberately defers EDC/T20/T30 calibration** (per spec). P2-2 will report late-corr and env-corr as the late-field metrics; EDC-derived T20/T30 are flagged "not yet calibrated" wherever they appear.
-
-This question closes in Phase 3 with a deliberate ISM+ray-tracing hybrid pass that produces well-calibrated ground-truth EDCs.
-
----
-
-### Q14 — Reinterpreting the 2 dB modal target in 3D
-
-**Asker**: Chunk P2-1 agent. **Owner**: research call (manager + user).
-
-**P2-1 outcome**: Modal density turned out to be ~11× higher than 2D in the 0-250 Hz band (P2-1 §5: 136 distinct modes on the box-center room vs ~12 in 2D). Per-band LSD also **inverts direction** in 3D — 0-250 Hz is the HARDEST band (2.1 dB on box-center single-room), 1000-2000 Hz the easiest (1.3 dB).
-
-**P2-2 adopted answer (c)**: signal-level magnitude correlation ≥ 0.9 in 0-500 Hz on ≥ 5/8 unseen test rooms. Matches Dolby's stated language; relevant for downstream applications. Modal LSD is reported as supporting (not pass/fail).
-
-**STILL OPEN (status as of P2-2.5, 2026-06-06)** — pending a valid P2-3 zero-shot run. P2-2's zero-shot hit 0/8 (mag corr 0.47-0.64), but that result is **not informative for Q14** because P2-2's *in-distribution* fit never converged (val LSD 6.16 dB; the model couldn't reconstruct even training rooms — see P2-2.5: the cause was coverage/compute + a GPU-misallocation, not the target metric). The target-metric question only becomes answerable once P2-3 trains a model that fits in-distribution (P2-2.5 shows that's reachable: ~1 dB on 10 rooms, 2.6 dB→ on 45 rooms) and THEN runs zero-shot. Carry forward the three candidate framings: (a) modal LSD ≤ 2 dB on f<f_Schroeder; (b) modal LSD ≤ 2 dB on a fixed 0-100/0-250 Hz band; (c) signal-level mag corr ≥ 0.9 in 0-500 Hz on ≥ 5/8 rooms (Dolby's language). **Decide in P2-3 once real zero-shot numbers exist.**
-
-**UPDATE (P2-3, 2026-06-09)** — real zero-shot numbers now exist on a *converged* model (P3, in-dist 2.169 dB): **0/8 rooms, mag corr 0.20-0.28** (full spectrum). The target metric (c) is **not met**, but P2-3 showed *why*, and it is **not a metric-definition issue** — it is **training-set coverage**: the 45-room model memorizes and does not interpolate to unseen geometry (proven invariant to the test-time procedure across init/λ; see CHUNK_P2_3_RESULTS.md + DECISIONS D38). So Q14 stays open but is **reframed**: the metric choice is moot until zero-shot actually generalizes; that requires P2-4 (more rooms and/or explicit (L,W,H) conditioning). Re-evaluate the metric once P2-4 produces a model whose zero-shot is in a meaningful range.
-
-**UPDATE (P2-4, 2026-07-04)** — zero-shot is now in a **meaningful, climbing range** and lever (1) (densification) is validated: on the frozen interior test set, known-geometry zero-shot mag corr scales **0.273→0.461 full / 0.409→0.811 modal** as rooms 45→250 (CHUNK_P2_4_RESULTS.md). The modal band (0–250 Hz) at 250 rooms is **0.811 — 76% of the way to the 0.938 training-density ceiling and still climbing**, so a modal-band framing of the target is within reach of pure densification (rough extrapolation ~0.9 modal near ~400–500 rooms), while the **full-band** metric (0.461) lags and is far from any ≥0.9 target. Q14 stays open pending P3-1: (a) does explicit (L,W,H) conditioning hit the modal target with fewer rooms; (b) settle whether pass/fail is modal-band (near-reachable) or full-band (far). Note all P2-4 points are fixed-budget lower bounds (in-dist LSD degraded 2.17→4.30 dB as exposure/room fell). *(Correction, see P2-4b below: these are NOT conservative floors — the mag-corr numbers are inflated by the convergence/blur confound.)*
-
-**UPDATE (P2-4b, 2026-07-06)** — the P2-4 curve is confound-corrected (CHUNK_P2_4b_RESULTS.md + CONFOUND_CHECK.md). Coverage genuinely helps at matched convergence, but **~⅔ of the raw P2-4 mag-corr climb was the convergence/blur confound** (full-band raw +0.188 = 68% blur + 32% coverage; modal +0.402 = 72% / 28%). So the "0.811 modal, 76% of the gap, ~0.9 near 400–500 rooms" reading **overstated it**: the genuine matched-convergence modal coverage effect is **+0.113** (not +0.402), and pure densification alone will reach any ≥0.9 target **much more slowly** than the raw curve implied — *and* 250 rooms already can't converge at fixed capacity (capacity plateau ~4.3 dB). This **reframes the metric decision toward geometry conditioning (P3-1)** rather than densification as the route to the target. Q14 resolves once P3-1 shows whether explicit (L,W,H) conditioning clears a modal-band mag-corr / LSD target at matched convergence with tractable room counts.
-
-**UPDATE (P3-1 in progress, 2026-07-14)** — data-only, no verdict yet; matched-convergence comparison not run (dense L checkpoints removed under the disk quota; G+ still training). Three arms under a band-limited 0–300 Hz protocol on the frozen 15-room interior test set. In-dist val LSD: L 0.72 dB (40K iters), G 1.14 dB (28K), G+ 2.02 dB (iter 10,900, ongoing). Zero-shot modal placement recall@250: L 0.104, G 0.101, G+ 0.164/0.114/0.089 at ckpt 2K/6K/11K; recall@300: L 0.075, G 0.075, G+ 0.129/0.084/0.069. G+ learned resonance weight w by ckpt: 0.03/0.14/0.35/0.41/0.34 (1K/2K/4K/6K/11K); per-room, G+ recall@250 is lower at 6K than 2K for 14/15 rooms. Numbers: `outputs/p3_1/HEADTOHEAD.md`, `tasks/CHUNK_P3_1_RESULTS.md`. Q14 stays open pending the matched-convergence comparison and G+ convergence.
-
----
-
 (Q1 ray sampling, Q2 frequency grid, Q3 L sweep, Q4 latent dim, Q5 cluster partition, Q6 vendoring, Q7 pyroomacoustics 2D sanity, Q8 geometric attenuation, Q9 modal-degeneracy convention, Q10 HashGrid resize have been resolved; see `DECISIONS.md`.)
+
 
 (P2-1's first budget check failed at per-room wall 2034.7s; resolved in-chunk by vectorizing `modal_rir_3d` to a single complex matmul and lowering `MAX_ORDER_CAP` from 17 → 12. Re-run wall 23.6s/room — see DECISIONS.md D6 revised.)
 
----
+
+## Resolved by the manager on 2026-11-23 (D201; removed from this file, 2026-11-23 (19:11))
+
+Q11, Q13, Q14 (superseded: Phase 1-2 ISM and 3D targets), Q12 (already closed), Q16 (the FDTD's locally reacting per-edge walls, D199), Q18 (headline = per-band r and LSD from 25 Hz; floored LSD retired), Q21 (closed with R1-C), Q23 (density closed in P4-9), Q26-Q32 (see D201 and D202). Full texts with resolutions: [tasks/P4_10_RULINGS.md](tasks/P4_10_RULINGS.md). Kept open: Q15 (maintenance: the grep the manager asked for is clean, no P4-10 metric calls the three functions), Q17 (deferred to the P4-11 join spec), Q24 (standing, for 3D), Q25 (leading P4-11 candidate together with the decay work), Q33.
 
 ### Q15 — Three latent bugs in shared evaluation code, deliberately isolated rather than fixed (P3-2)
 
@@ -96,15 +30,9 @@ This question closes in Phase 3 with a deliberate ISM+ray-tracing hybrid pass th
 
 ---
 
-### Q16 — Does wall-selective editing survive a wave-based (Kuttruff) absorption law? (P3-2)
-
-P3-2's ground truth is pyroomacoustics ISM, whose angle-independent reflection coefficient gives `gamma ~ cos(theta)` and therefore **no grazing-incidence absorption**: an axial mode is damped only by the wall pair it bounces between, and measured selectivity is ~29:1 (D48; `dAIC = 73` favouring the ray law over Kuttruff). A real locally-reacting wall follows Kuttruff, where every wall sits at a pressure antinode of every mode, giving only **~2:1** selectivity and **no invariant family**.
-
-So P3-2 can support *"the model learns the simulator's per-wall law"* and cannot, on its own evidence, support *"wall-selective editing works in real rooms"*. **Open question for the manager**: is the 2:1 regime the target worth pursuing (a materially harder learning problem, since the edit signal is ~15x weaker relative to the non-edited family), and if so should it be approached by (a) a wave-based / FEM 2D solver, (b) pyroomacoustics with `ray_tracing=True` and angle-dependent materials, or (c) measured RIRs? This decides whether P3-3 is "scale the same claim to 3D" or "re-establish the claim under realistic wall physics". Nothing in P3-2 needs to change to keep this option open — the Kuttruff law is already implemented and reported alongside every prediction.
-
----
-
 ### Q17 — Should the SEALED room get its own conditioning channel, or stay out of the training set? (P3-3-FAST Track 2b)
+
+*(Manager, 2026-11-23, D201: deferred to the P4-11 join spec.)*
 
 Track 2b's edit axis is a doorway width `a`, and `a = 0` is **not** the small-aperture limit: a sealed one-node divider disconnects room B exactly, so `H_B == 0` and the inter-room level difference is `-inf` (FT-B). The conditioning coordinate `sqrt(a)/2` sends both a vanishing doorway and a sealed wall to 0, so the arm **cannot** represent the discontinuity: the two inputs are identical and the two targets are not.
 
@@ -117,65 +45,6 @@ The dataset therefore builds and keeps the 26 sealed rooms (20 train domains + 6
 **What resolving it requires**: only (b) changes the arm, and it must be decided *before* the Track 2b model is trained, since the cond_dim is baked into the checkpoint. Nothing in the dataset needs to change either way — the sealed rooms are on disk under all three options.
 
 ---
-
-### Q18 — The reported "floored LSD" measures the near-DC term, not the modal content. What should the headline accuracy number be? (P3-3-FAST Track A2)
-
-**Asker**: FIG-5 demo-figure agent (2026-08-18). **Owner**: manager.
-
-`scripts/p3_3fast_floored_lsd.py` was introduced to answer a fair objection — 97.3% of in-band bins sit more than 40 dB below their config's own peak, so plain LSD averages over deep nulls nobody hears — and it reports **0.703 dB** at a -40 dB floor against **5.460 dB** raw (iter 30000, all 120 Track A test configs).
-
-**The floor does not select what the docstring says it selects.** In this FDTD corpus each config's peak cell is the **bin-0 (0,0) compliance term**, which measures ~**+63 dB** receiver-RMS against ~**+17 dB** for the strongest actual room mode — a **46 dB** gap. A floor set 40 dB below the per-config peak therefore keeps only **bins 0-12 (0-6 Hz)** and reports the model's fit to the near-DC term. It is not "error on the content that carries the physics"; it is "error below the first mode".
-
-Measured on the FIG-5 geometry, an LSD taken over the **27 baseline modal-peak bins** across all 64 receivers is **7.00-7.28 dB** — i.e. *worse* than raw, not better. That is consistent with the other FIG-5 finding: the model reproduces the receiver-averaged spectrum and the in-band energy response to an edit (recovery 0.895-1.187) while getting the **spatial mode shape wrong** (GT-vs-prediction spatial correlation at the plotted (1,0) mode is reported per panel on the figure).
-
-**The question**: which number goes on the slide, and what does the corpus need?
-* **(a) keep raw LSD as the headline** and drop the floored value entirely — defensible, but it does average over nulls and it is not comparable to P3-2b's ~1.0 dB for the reason already recorded (dynamic-range mismatch, D59e).
-* **(b) replace the peak-relative floor with a MODE-relative one** — floor referenced to the strongest local maximum rather than to the global peak, which is what the floor was meant to do. Cheap: one line in `p3_3fast_floored_lsd.py`, then re-run.
-* **(c) exclude the sub-first-mode band from the metric entirely** (e.g. report 0-300 Hz above `c/2L`), making every LSD a modal-band number by construction.
-* **(d) investigate the (0,0) term itself** — 46 dB above the modal content is large enough that it may be a property of the excitation/deconvolution choice in `aaf/sim/fdtd_2d.py` rather than of the room, in which case the corpus, not the metric, is what should change.
-
-**What resolving it requires**: (b) and (c) are metric-only and need no new simulation. (d) needs one diagnostic run on a single config comparing `H_complex` against `H_deconv`. Nothing downstream is blocked — the figure quotes all three LSDs side by side with the caveat printed — but every accuracy claim in the meeting pack depends on which one is called "the" LSD.
-
-### Q21 — Does the renderer need a geometry-aware occlusion term? *(P4-3: substantially ANSWERED, negatively — kept open only for the narrow residue)*
-
-**Asker**: P4-2 agent. **Owner**: manager / research call.
-
-P4-2 asked this after Gate 2 failed on all four arms with sigma ~ 1.0. P4-3 ran two of the three
-proposed options and the answer is clearer than expected.
-
-**Option (b), more data — RUN, and it WORKS.** Arm D added 32 training shapes in the thin
-`d_hat` band and nothing else. The U-shaped accuracy curve is **gone** (amplitude 0.2185 ->
-0.0752, shallow half +0.7017 -> +0.8893), **Gate 2 PASSES** at 0.8021, and sigma stays at
-**0.93-1.04** — the baseline's value. So the shallow-notch weakness was a DATA problem and is
-separable from the mechanism question (D75).
-
-**Option (c), inject the mechanism — RUN, and it FAILS.** Arm S learns a real occluder that
-GENERALIZES: volume-sampling the removed corner on unseen shapes reads **8.08** against the
-baseline's 1.04, held by a hinge that was active in only 3 of 300 logged checkpoints. And it is
-the **worst arm in the phase** — in-slab 0.7329 (below the 0.7483 baseline), sweep mean +0.5906,
-worse at all 20 depths (D77).
-
-**So a learned occluder is neither necessary (D passes without one) nor sufficient (S has one and
-fails).** That is strong evidence against option (a), the renderer rewrite, as the next move --
-it was predicated on occlusion being the binding constraint, and a model that demonstrably
-represents occlusion is the worst one measured.
-
-**What remains open, narrowly.** Arm S supervised sigma in the notch VOLUME; the clipped ray
-probe shows the contrast is absent on the grazing path the renderer actually integrates along
-(1.09 vs 8.08, D74d). A sigma supervision targeted **on the occlusion path** is a different and
-untested experiment, and is the only version of option (c) that has not been falsified. It is
-cheap — the same auxiliary term with points sampled along receiver->source rays instead of
-uniformly in the corner. Until that is run, "injecting occlusion does not help" is established
-for volume supervision and merely likely for path supervision.
-
-### Q23 — What should the "8x" point of the receiver-density sweep be? *(P4-5, D126; the manager's call)*
-
-The sweep (manager item 7) is 1x / 2x / 4x / 8x at matched iterations, off-lattice metrics. 1x, 2x and 4x are all subsets of the 0.06 m lattice (nested). **8x = 6,400 receivers per room does not fit on that lattice**: the in-room candidate pool is 4,621 points in the smallest training room (6,480 in the first room checked; up to ~9.2k in the largest). Options:
-* **(a) "Full lattice"**: every in-room 0.06 m point, 4.6k-9.2k receivers, i.e. 5.8x-11.5x, varying by room size. Keeps the lattice structure; density is not uniform across rooms.
-* **(b) 8x on a 0.03 m lattice**: uniform 8x, but 3 of every 4 new points are off the 0.06 m lattice. That mixes density with B6's lattice-breaking, so the sweep would no longer vary density alone.
-* **(c) 8x capped at the pool**: 6,400 where possible and the full pool below that; nearly uniform, with a small-room deficit.
-
-All three need the trainer to STREAM targets instead of preloading them (8x is 7.7 GB of preload against B4's 3.85 GB, which already needed a 48 GB card, D103). That is an engineering change to `aaf/train/multi_room_2d_mat.py` with its own behavioural test (Rule 8: streaming must be bit-identical to preloading on a small corpus). The FDTD re-simulation is cheap (~0.9 CPU-h per 250 rooms, D93). **Recommendation: (a) if the deliverable is "how dense must a lattice survey be"; (c) if it is a clean doubling curve.** Not started pending the choice.
 
 ### Q24 — With a per-room modal solve at r 0.96-0.99, what is the INR for? *(P4-7 m1, D170(f); the manager's call)*
 
@@ -204,24 +73,4 @@ m1 found that the solver's own operator, solved once per room in a modal basis (
 
 The S-4 build (1.33x throughput; score parity <= 7.2e-6, but fp16 MLPs and training never compared -- D194) could make these cheaper from P4-10.
 
-### Q26 — Is amendment A7 (how T30 is measured) accepted, so that R1-M may launch? *(P4-10, D197; the manager's call; R1-M is HELD until it is answered)*
-
-**Why it needs an answer:** D197 says A7 "needs the manager's OK before R1-M launches", because it changes how MM2 (median |T30 error| <= 15%) is measured; MM1's decay-rate slope uses the same T30. No OK is on record.
-
-**What A7 does:** a 10 Hz cosine taper on each octave band, a record of at most 1.5 s, onset-shifted. Cells whose TRUTH does not reach -35 dB inside that window are dropped and counted, and the 250 Hz octave is clipped at 300 Hz. T20 is reported beside T30. Without it, a raw band mask on the 2 s record reads T20 of 16-43 s; with it, shape 1000 reads T30 0.841 / 0.711 / 0.721 s against physics 0.842 / 0.695 / 0.692. **The choice that could favour the model is dropping cells**, so the dropped count must sit beside every MM1 / MM2 number.
-
-**Process slip:** R1-M (job 8542917) was launched without this OK and trained from 18:07 to 18:10 on 2026-11-23. It was requeued in held state at 18:10:23, before any checkpoint or read. The smoke run also preceded the OK. R0's posted Material decay numbers (P-e: slope -0.11, Pearson -0.64) already use A7's definition and stand or fall with it.
-
-**Options:** (a) accept A7: `scontrol release 8542917`, and R1-M starts again from step 0; (b) change the T30 definition: re-score R0's Material decay, then release; (c) drop R1-M: cancel the job. Training itself does not use T30, so (a) and (b) give the same weights; only the bars' measurement differs.
-
-**Update to Q26 (2026-11-23 (18:36)): my recommendation to accept A7 is withdrawn.** A7 was checked on truth fields only. On R0's fields in the ORIGINAL, unedited rooms the model's impulse response sits on a flat late floor (about -43 dB at 125 Hz, -38 to -40 dB at 250 Hz from 0.5 s on; 3 in-family lite rooms, 1 in 25 receivers), so T30 measures the floor (8 in-family lite rooms, 1 in 40 receivers): truth / R0 room-medians 0.699 / 2.161 s at 125 Hz, 0.781 / 5.336 s at 250 Hz; T20 is 43-59% too short and EDT 15-28% off (63 Hz: T30 34%, T20 35% off). MM2's 15% bar is therefore missed before any edit, and R0's posted decay slope (-0.11, Pearson -0.64) is not a clean material response. A7 dropped 0 cell-bands. See Q26 in the report below for the options.
-
-Full texts, with evidence, options and the default I follow if there is no answer, are in [tasks/P4_10_MANAGER_REPORT.md](tasks/P4_10_MANAGER_REPORT.md), section 4:
-
-### Q27 — How is RS1 (six gaps) read at +30K, and what does its extension rule mean? *(manager's call; needed before R1's read, about 21:20 ET on 2026-11-23)*
-### Q28 — If RS1 fails or holds only in some bands, which model is the base for P4-11 and the meeting: R0, S2X or R1? *(manager's call)*
-### Q29 — Does the manager override CLAUDE.md rule 10 for R1-C? *(manager's call; held until then)*
-### Q30 — Is R1-P still wanted, with A9 / A10 / A13 as amended? 0d is not written. *(manager's call)*
-### Q31 — Confirm training AND scoring in `aaf` (A3 says scoring in `aaf_sm89`; the code scores in `aaf`). *(manager's call)*
-### Q32 — May the 16-room confirmation set be used for R1? D181 c6 said "scored once". *(manager's call)*
 ### Q33 — When is the meeting? *(user / manager)*

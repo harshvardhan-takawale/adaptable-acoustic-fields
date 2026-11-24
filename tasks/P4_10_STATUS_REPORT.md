@@ -3,6 +3,18 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (19:11) — Rulings received and recorded (D201); R1-M released; the decay metric is re-registered (D202); R1's other edits are slightly below R0 at +10K
+
+**Headline:** The manager answered Q26-Q32 (D201, recorded 19:05 before R1's +30K read). The materials arm (R1-M) was released and started training at 19:08:31. Decay is now measured from EDT, not T30, on model fields, and the rule for leaving out receivers whose own floor swamps the decay is written down (D202) before any R1-M number exists.
+
+- **Read of the rulings:** RS1 strict (all six gaps <= 0.10), extension for R1 only if the worst gap <= 0.15 and the mean fell by >= 0.02 from +20K to +30K; SS1 pooled over the two stretch families; R1 at its final read is the base for P4-11 and the meeting, with R0 as the fixed fallback; R1-C closed (rule 10 stands); R1-P kept at lowest priority with a collapse monitor; train AND score in `aaf` (A3's text, which said scoring in `aaf_sm89`, was wrong and is corrected by D201). Confirmation set: R1 scored once at its final checkpoint. Meeting date (Q33): Amisha will answer.
+- **R0's Material decay (re-scored with D202):** the job array is queued; its numbers replace the P-e decay line when they land. The old line (slope -0.11, Pearson -0.64) is withdrawn as a material response.
+- **Board:** Table C (scorecard headline per model, in-family lite rooms), the next-read ETA and the F2 trajectories figure now exist (they were missing from the contract's list).
+- **A fact for Q28, not a verdict:** at +10K R1's other edits are slightly below R0's on the same 8 in-family lite rooms: Wall 0.888 / 0.624 / 0.536 (R0 0.909 / 0.655 / 0.555), Notch 0.895 / 0.647 / 0.533 (0.914 / 0.678 / 0.559), Stretch-U 0.749 / 0.518 / 0.402 (0.761 / 0.532 / 0.417), Stretch-A 0.807 / 0.575 / 0.476 (0.819 / 0.595 / 0.488). D201's fallback looks at the source cells and HF, not at these; the final read shows whether the cost persists.
+- **Q15 check:** no P4-10 metric calls the three old functions (grep clean).
+
+Links: [D201 / D202 in DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md) · [P4_10_RULINGS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_RULINGS.md) · [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [F2_trajectories.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/F2_trajectories.png)
+
 ## 2026-11-23 (18:48) — I7 (static accuracy, R1 +15K and R1-S +10K): R1's cost at the original source is shrinking but still over RC1's limit; R1-S does no harm
 
 **Headline:** R1's accuracy at the original source in known rooms is 0.028 below the plain continuation (CTL @150K) at 200-300 Hz, down from 0.033 at +10K. The no-harm rule (RC1, judged at +30K) allows 0.02. R1 is ahead in unseen rooms in every band. R1-S, the stretched-room arm, is level with R1 at the same step at the original source and passes its +10K harm check.

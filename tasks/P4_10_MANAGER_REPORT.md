@@ -1,3 +1,5 @@
+**Answered: Q26-Q32 by the manager's rulings (D201, recorded 19:05). Q33 is open (meeting date). See [P4_10_RULINGS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_RULINGS.md). The text below is the question list as sent; its section 3 items 1-2 stand.**
+
 # P4-10 report for the manager (2026-11-23 18:36 EST, 2026-11-23)
 
 You cannot see the repo from here, so this page carries the numbers, and every link is a full raw URL. Times come from `date`; numbers are read from JSON on disk. Nothing here changes a pre-registered bar.
