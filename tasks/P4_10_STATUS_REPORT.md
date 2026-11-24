@@ -3,6 +3,43 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (11:32) — P-1 (D218), +2.5K read: the stop rule TRIGGERS on HF; R1-P(t) is cancelled at 11:30 (R1-ctl keeps running)
+
+**Headline:** The mean-value penalty lowers the wave-equation residual as intended, but it costs accuracy and makes the decay worse. After 2.5K of 10K steps R1-P(t) (R1 plus the penalty) reads HF 0.534 against R1-ctl's 0.572, a difference of -0.038 with its interval entirely below zero, and below the control in 15 of 15 known rooms. The pre-registered stop rule (HF or any UF band more than 0.02 below the control, interval entirely below zero) triggers, so the watcher cancelled the arm. I recomputed HF from the stored renders with the frozen scorer, outside the reader: 0.534 and 0.572, the same. The unseen-room accuracy is unchanged in two bands and 0.008 lower in the third.
+
+**Expectation against result (D217, manager):**
+
+| expected | result at +2.5K |
+|---|---|
+| the residual falls toward the truth's | holds: raw residual over the truth 4.80 to 3.90 (25-100 Hz), 2.31 to 1.60 (100-200), 2.35 to 1.79 (200-300) |
+| static r within 0.01 of the control | fails: HF -0.038 [-0.048, -0.029]; UF within 0.008 |
+| raw direction improves most at 25-100 Hz | holds at 25-100 Hz (+0.016) and not above: 200-300 Hz is -0.010 |
+| EDT does not change | fails: EDT error is worse at every octave, 14.6% to 17.2% (63 Hz), 24.3% to 33.4% (125), 29.3% to 53.6% (250) |
+| whether the 63 Hz room-common energy and the floor fall is the open question | both rise: room-common energy 0.085 to 0.112 (truth 0.039; 2.2 to 2.9 times the truth's), floor -35.0 to -30.4 dB at 63 Hz, -29.4 to -24.5 at 125 Hz, -27.1 to -22.9 at 250 Hz |
+
+- **So the 63 Hz offset is not a pure one the penalty removes (the note's question).** The penalty sees about 4% of a constant; the floor rose by 4 to 5 dB in all three octaves.
+- **Bypass check (held-out centres against training-rule centres in training rooms):** all ratios at or below 0.92 (bar 1.5): no sign of memorising the training centres.
+- **Limits.** One read, one seed, a 10K run stopped at 5% of its steps beyond the first checkpoint; 2 centres per step (18 renders, the most that stays under the 60% overhead); weight fixed at 2.05 (20% of the step-0 loss). The +5K checkpoint of both arms exists (the arm was stopped at 156.2K) but has not been read: the rule ends the arm at the triggering read. The "bit for bit at weight 0" test covers the first-step loss and the random streams, not the parameters (hash-grid gradients are not reproducible).
+- **Reading for the next variant (not a P4-10 change):** the manager's note says the next variant, if any, would use a radius of 1.2/k at low frequency; on this read that would not be a small extension: the penalty already costs HF and raises the floor.
+
+Full read:
+
+- Static: HF 0.534 vs 0.572, -0.0379 [-0.0476, -0.0285]; UF 25-100 0.508 vs 0.507, +0.0008 [-0.0076, +0.0090]; UF 100-200 0.408 vs 0.409, -0.0015 [-0.0089, +0.0067]; UF 200-300 0.391 vs 0.400, -0.0081 [-0.0145, -0.0012]
+- Mean-value residual 25-100 Hz (single radius, held-out centres, 15 rooms): truth 0.0074; raw R1-P(t) 0.0290 vs R1-ctl 0.0356 (difference -0.0067 [-0.0087, -0.0047]); raw over truth 3.90 vs 4.80
+- Mean-value residual 100-200 Hz (single radius, held-out centres, 15 rooms): truth 0.0369; raw R1-P(t) 0.0592 vs R1-ctl 0.0852 (difference -0.0260 [-0.0313, -0.0206]); raw over truth 1.60 vs 2.31
+- Mean-value residual 200-300 Hz (single radius, held-out centres, 15 rooms): truth 0.0301; raw R1-P(t) 0.0537 vs R1-ctl 0.0707 (difference -0.0169 [-0.0212, -0.0126]); raw over truth 1.79 vs 2.35
+- Band-limited residual over the truth's at 25-100 Hz: R1-P(t) 2.77, R1-ctl 2.89 (100-200: 1.25 / 1.83; 200-300: 1.23 / 1.69; 0d for R0 was 2.78 at 25-100)
+- Late floor common to the room at 63 Hz (E3): level R1-P(t) 0.1116 vs R1-ctl 0.0850 (truth 0.0386; difference +0.0267 [+0.0128, +0.0405]); model / truth as a ratio of the means (the published E3 form; R1 2.4) 2.89 vs 2.20; mean of room ratios 3.96 vs 3.06
+- D1 63 Hz: EDT error 17.2% vs 14.6% (difference +2.59% [+1.80%, +3.37%]); floor -30.4 vs -35.0 dB (difference +4.60 [+4.19, +4.99])
+- D1 125 Hz: EDT error 33.4% vs 24.3% (difference +9.06% [+7.82%, +10.37%]); floor -24.5 vs -29.4 dB (difference +4.87 [+4.67, +5.09])
+- D1 250 Hz: EDT error 53.6% vs 29.3% (difference +24.27% [+23.29%, +25.15%]); floor -22.9 vs -27.1 dB (difference +4.23 [+3.93, +4.51])
+- Raw finite-difference direction (in-family, h = 4 cm, Re rho): 25-100 Hz 0.845 vs 0.829 (+0.0162 [+0.0133, +0.0189]); 100-200 Hz 0.730 vs 0.726 (+0.0037 [-0.0002, +0.0076]); 200-300 Hz 0.724 vs 0.734 (-0.0101 [-0.0146, -0.0059])
+- Bypass check (held-out test-room centres / training-rule centres in 15 training rooms; <= 1.5x): 25-100 Hz R1-P(t) 0.68 (R1-ctl 0.79); 100-200 Hz R1-P(t) 0.56 (R1-ctl 0.55); 200-300 Hz R1-P(t) 0.92 (R1-ctl 0.71)
+
+- Stop rule (HF or any UF band more than 0.02 below R1-ctl with the CI entirely below zero): **TRIGGERED** ['HF']
+
+Links: [pt/report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/pt/report.md) · [read_152K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/pt/read_152K.md) · [read_152K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/pt/read_152K.json)
+
 ## 2026-11-24 (10:25) — R1-SM (the combined model) +5K, first read (descriptive): it keeps R1-M's material response and R1's moved source, and is a little behind R1-S on stretches
 
 **Headline:** After 5K of 30K steps the combined model (R1 plus stretched rooms plus wall materials) reads the same as each of its parents at the same step, with one small shortfall. Its change in decay rate with wall absorption is 0.37 (Pearson 0.61) in known rooms against R1-M's 0.36 (Pearson 0.59) and 0.59 (Pearson 0.66) against 0.60 (Pearson 0.68) in new ones. Its moved third source is 0.655 / 0.357 / 0.217 against R1's 0.648 / 0.342 / 0.202. On stretch edits it is 0.763 / 0.498 / 0.317 against R1-S's 0.771 / 0.520 / 0.323 (25-100 / 100-200 / 200-300 Hz), -0.022 in the middle band. The bars (CS1, CM1, CSrc1, CN1) are judged at +30K on the full set, after the meeting; nothing here says the gains add.
