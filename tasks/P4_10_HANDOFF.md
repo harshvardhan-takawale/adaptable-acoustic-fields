@@ -8,7 +8,7 @@ The user asked for work to continue if the SSH connection breaks. This page says
 | R1 training, to 150K | job 8539621; `outputs/p4_10/arms/R1` |
 | R1-S training, to 150K | job 8540809; `outputs/p4_10/arms/R1S` |
 | R1-M training, to 150K | job 8542917; `outputs/p4_10/arms/R1M` (started 19:08:31 on 2026-11-23) |
-| reads at every 5K checkpoint | login-node watchers, PIDs 1575656 (R1), 1575657 (R1S), 1646590 (R1M), detached (parent 1); logs `logs/p4_10_watch_<ARM>.log`. UMIACS may kill login-node processes at any time |
+| reads at every 5K checkpoint | login-node watchers, PIDs 1730074 (R1S), 1730075 (R1M) (R1 watcher retired: its 150K read was launched by the agent at 21:19), detached (parent 1); logs `logs/p4_10_watch_<ARM>.log`. UMIACS may kill login-node processes at any time |
 | **backstop for those watchers** | Slurm job 8543973 (`scripts/p4_10_backstop.sh`): launches a read if a checkpoint is > 45 min old and nobody launched it; log `logs/p4_10_backstop.log` |
 | R1-P gate 0d | chain 8543903 (FDTD array) -> 8543925 (R0 render) -> 8543926 (score) -> `outputs/p4_10/r1p_0d/report.md` |
 | board rebuild | a Slurm job after every scored read, writes `outputs/p4_10/progress/` (it does NOT commit or push) |

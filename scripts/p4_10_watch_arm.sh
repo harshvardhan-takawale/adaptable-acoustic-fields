@@ -11,7 +11,9 @@ for ITER in 125000 130000 135000 140000 145000 150000; do
   [ "$ITER" -lt "${START:-125000}" ] && continue
   K=$((ITER / 1000))K; NAME=${ARM}_$K; CK=outputs/p4_10/arms/$ARM/$(printf 'ckpt_iter%07d.pt' "$ITER")
   until [ -f "$CK" ]; do
-    squeue -h -n aaf_${ARM,,} 2>/dev/null | grep -q . || { echo "$(date '+%H:%M') FAILED $ARM: no training job and no $CK"; sleep 600; }
+    if ! squeue -h -n aaf_${ARM,,} 2>/dev/null | grep -q .; then      # the job may end seconds before the checkpoint is visible over NFS:
+      sleep 120; [ -f "$CK" ] || echo "$(date '+%H:%M') FAILED $ARM: no training job and no $CK"
+    fi
     sleep 60
   done
   a=$(stat -c %s "$CK"); sleep 60; until [ "$a" = "$(stat -c %s "$CK")" ]; do a=$(stat -c %s "$CK"); sleep 30; done
