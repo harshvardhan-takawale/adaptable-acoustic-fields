@@ -3,6 +3,27 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (22:49) — R1's one-time confirmation read (P4-9 set, D201 Q32): R1 beats R0 in every band, beats S2X only at 25-100 Hz
+
+**Headline:** On the 16 new rooms that no model was tuned on, R1 scores 0.644 / 0.469 / 0.416 (25-100 / 100-200 / 200-300 Hz) against R0's 0.607 / 0.447 / 0.400 and S2X's 0.605 / 0.466 / 0.430. R1 is ahead of R0 by 0.037 / 0.022 / 0.015 (all intervals above zero), ahead of S2X by 0.039 at the lowest band and level with it above. This read was run once, at R1's final checkpoint, as pre-registered; no P4-10 choice is made from it.
+
+Off-lattice, raw, unseen rooms (8 U + 8 C3), manifest sha 688e319f18f6dd32 (frozen before any score), same protocol as the S2X / R0 reads of 18:54; paired bootstrap over rooms (10k, seed 20261013).
+
+| | 25-100 Hz | 100-200 Hz | 200-300 Hz |
+|---|---|---|---|
+| R1 @150K | 0.644 | 0.469 | 0.416 |
+| S2X @240K (reference level) | 0.605 | 0.466 | 0.430 |
+| R0 @120K (reference level) | 0.607 | 0.447 | 0.400 |
+| **R1 - R0** | +0.037 [+0.020, +0.055] | +0.022 [+0.008, +0.039] | +0.015 [+0.006, +0.024] |
+| **R1 - S2X** | +0.039 [+0.022, +0.057] | +0.003 [-0.012, +0.016] | -0.014 [-0.041, +0.009] |
+| S2X - R0 | -0.002 [-0.012, +0.008] | +0.020 [+0.003, +0.037] | +0.029 [+0.008, +0.052] |
+
+- Rooms where R1 is better than R0: 13 / 12 / 11 of 16; than S2X: 14 / 8 / 7 of 16.
+- By family (R1 / R0 / S2X): U 0.662 / 0.459 / 0.452, 0.643 / 0.447 / 0.445, 0.636 / 0.464 / 0.461; C3 0.626 / 0.479 / 0.379, 0.570 / 0.447 / 0.356, 0.573 / 0.469 / 0.399.
+- The frozen-set picture was R1 ahead of S2X at 25-100 Hz (0.506 against 0.495) and level or below at higher bands, so the fresh rooms agree.
+
+Links: [R1_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/confirm/R1_150K.json)
+
 ## 2026-11-23 (22:46) — R1's RS3 (reciprocity) FAILS; the four R1 verdicts are complete: RS1, RS2, RS3 fail, RC1 holds
 
 **Headline:** When the model renders the field with the receiver and the source swapped, R1's accuracy drops from 0.909 / 0.683 / 0.571 to 0.759 / 0.344 / 0.222 (25-100 / 100-200 / 200-300 Hz, known rooms). The bar was "no more than 0.05 below the normal render". R1's swapped-render accuracy is the same as the swap-only model's (RCP, 0.758 / 0.343 / 0.227), so training on four source positions per room improved moved sources but not reciprocity beyond what the swaps gave. The plain models (R0, CTL) are far worse (0.17 / 0.05 / 0.03).
