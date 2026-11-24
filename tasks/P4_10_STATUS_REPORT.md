@@ -3,6 +3,24 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (03:24) — I24 (source-clearance diagnostic, D209): the second source lags because it sits 0.5 m from a wall; R1's moved-source gap falls steadily with clearance
+
+**Headline:** We placed R1's source along the same line at 0.5, 0.75, 1.0 and 1.5 m from the east wall in 8 known rooms. Its accuracy loss against its own original-room accuracy shrinks as the source moves away from the wall: 0.20 / 0.37 / 0.37 at 0.5 m (25-100 / 100-200 / 200-300 Hz), 0.11 / 0.22 / 0.27 at 1.5 m. The 0.5 m value matches the second source's gap at R1's final read (0.20 / 0.37 / 0.37) and the 1.0-1.5 m values are close to the third source's (0.13 / 0.24 / 0.25), so the second source's lag is mostly wall clearance, not the position being "more moved".
+
+| clearance from the east wall (y = 1.6) | R1's r (25-100 / 100-200 / 200-300 Hz) | gap to its static r at the original source (0.909 / 0.670 / 0.566) |
+|---|---|---|
+| 0.50 m | 0.712 / 0.305 / 0.200 | +0.197 [+0.144, +0.255] / +0.365 [+0.290, +0.439] / +0.366 [+0.330, +0.412] |
+| 0.75 m | 0.762 / 0.427 / 0.220 | +0.147 [+0.123, +0.172] / +0.242 [+0.183, +0.310] / +0.346 [+0.301, +0.403] |
+| 1.00 m | 0.787 / 0.484 / 0.272 | +0.122 [+0.106, +0.137] / +0.186 [+0.161, +0.210] / +0.294 [+0.268, +0.324] |
+| 1.50 m | 0.797 / 0.446 / 0.293 | +0.112 [+0.098, +0.127] / +0.223 [+0.187, +0.257] / +0.272 [+0.251, +0.294] |
+
+- 8 in-family lite rooms x 4 clearances (32 pairs, none skipped); dense FDTD truth at the room's own dense receivers; 10k paired bootstrap over rooms. The read is descriptive.
+- **What the training data holds:** the MS corpus's 4000 training sources have a nearest-wall distance of mean 1.03 m and median 0.96 m: 1408 in 0.5-0.75 m, 681 in 0.75-1.0 m, 1222 in 1.0-1.5 m, 581 in 1.5-2.0 m and 104 beyond; 4 sit at 0.500 m (a rounding edge, checked: all 0.500000 to six decimals). Only 500 rooms (the C500 sources at (0.5, 1.6)) have the original source at exactly 0.5 m from the west wall. Near-wall sources are present but a minority (1412 of 4000 at 0.75 m or less).
+- **Caution on the causal claim:** clearance here is varied along one line at one height in 8 rooms; it is a strong correlate of the gap, and the second source's 0.5 m clearance is consistent with its lag, but the training distribution of clearances is not varied, so nothing separates "R1 is worse near walls" from "the corpus has fewer near-wall sources". An experiment that varied the training clearances would.
+- The 200-300 Hz gap stays above 0.27 even at 1.5 m; the third source in the final read has 0.250.
+
+Links: [src-clearance report](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/srcclear/report.md) · [json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/srcclear/report.json) · [plan](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/p4_10/src_clearance.json)
+
 ## 2026-11-24 (02:59) — R1-M's D1, D2 and A8 at its final checkpoint: its unedited decay is a little worse than R1's; mode-shift slopes are similar
 
 **Headline:** R1-M's sound decays too fast by 18% / 25% / 34% in known rooms (63 / 125 / 250 Hz), a little worse than R1's 14% / 24% / 30%, and its peaks are 1.47 times as broad as the truth (R1 1.40). So learning materials did not fix the decay problem; the original rooms got slightly worse. Mode-shift slopes after edits are similar to the other arms'.
