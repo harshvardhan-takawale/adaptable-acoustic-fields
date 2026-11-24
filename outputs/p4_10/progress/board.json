@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 14:39",
+ "built": "2026-11-24 14:40",
  "arms": {
   "R1": [
    {
@@ -4162,30 +4162,44 @@
    "where": "(Priority)"
   },
   {
+   "job": "aaf_ci",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "1:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_speckle_an",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
    "job": "aaf_backstop",
    "state": "RUNNING",
-   "elapsed": "4:50:45",
+   "elapsed": "4:52:24",
    "limit": "14:00:00",
    "where": "gammagpu00"
   },
   {
    "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "5:19:12",
+   "elapsed": "5:20:51",
    "limit": "9:00:00",
    "where": "gammagpu14"
   },
   {
    "job": "aaf_unseen_ev",
    "state": "RUNNING",
-   "elapsed": "15:22",
+   "elapsed": "17:01",
    "limit": "3:00:00",
    "where": "gammagpu00"
   },
   {
    "job": "aaf_r1sm",
    "state": "RUNNING",
-   "elapsed": "6:12:04",
+   "elapsed": "6:13:43",
    "limit": "1-00:00:00",
    "where": "tron61"
   }
