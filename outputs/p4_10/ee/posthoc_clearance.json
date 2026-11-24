@@ -1,0 +1,18 @@
+{
+ "note": "post hoc, not pre-registered: within-room rank correlations over 160 positions (8 rooms x 20)",
+ "density_vs_clearance_spearman": 0.6574155410259812,
+ "bands": {
+  "25-100": {
+   "density": 0.559984996351985,
+   "clearance": 0.45928923894886603
+  },
+  "100-200": {
+   "density": 0.45016926839041366,
+   "clearance": 0.4096465126100735
+  },
+  "200-300": {
+   "density": 0.3710041631304453,
+   "clearance": 0.4123731017461057
+  }
+ }
+}

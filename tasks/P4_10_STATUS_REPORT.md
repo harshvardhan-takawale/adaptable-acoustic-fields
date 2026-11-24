@@ -3,6 +3,23 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (11:56) — E-E (D220, descriptive): R1's moved-source accuracy follows training-source coverage, moderately; above 100 Hz this is not just wall clearance
+
+**Headline:** We placed R1's source at 160 new positions (20 in each of 8 known rooms, at least 0.5 m from walls) and compared its accuracy with how many training sources lie near each position. Accuracy rises with coverage in every band (Spearman +0.32 to +0.45 over the 160 positions; +0.33 to +0.56 as a mean within-room rank correlation). Coverage and distance to the nearest wall go together here (rank correlation 0.56 to 0.66), so I also controlled for clearance, after seeing the first numbers: the link stays moderate above 100 Hz (+0.30 to +0.40) and is weak at 25-100 Hz (+0.17 to +0.23). This does not show that coverage is the cause: positions, rooms and clearance were not varied independently.
+
+| band | Spearman, all 160 positions, sources within 0.3 / 0.5 / 1.0 m | mean within-room Spearman | partial, controlling clearance (post hoc) |
+|---|---|---|---|
+| 25-100 | +0.36 / +0.35 / +0.39 | +0.51 / +0.56 / +0.51 | +0.21 / +0.17 / +0.23 |
+| 100-200 | +0.39 / +0.45 / +0.37 | +0.40 / +0.45 / +0.38 | +0.32 / +0.40 / +0.30 |
+| 200-300 | +0.32 / +0.35 / +0.35 | +0.33 / +0.37 / +0.35 | +0.32 / +0.37 / +0.37 |
+
+- 8 known rooms, 20 positions each on 2 cm nodes; truth by FDTD at each room's own dense receivers (off-lattice). Training sources counted in absolute coordinates over all 1000 rooms (4000 sources); positions relative to walls are therefore mixed, as D220 says. Counts within 0.3 m: median 48 (range 4 to 76).
+- The 160 positions are not independent (20 share a room), so the p-values near zero overstate the evidence; the within-room correlations (20 points each) are the safer reading.
+- **How it fits the clearance note (I24, corrected):** clearance itself ranks with accuracy at +0.36 / +0.23 / +0.11 (25-100 / 100-200 / 200-300 Hz), so it is strongest at the lowest band, where coverage explains little beyond it.
+- For the manager: Q36's (c) is answered descriptively: yes, accuracy follows coverage above 100 Hz; a test that varies coverage with clearance held fixed is the next experiment, not a P4-10 one.
+
+Links: [ee/report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/ee/report.md) · [partial_posthoc.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/ee/partial_posthoc.json)
+
 ## 2026-11-24 (11:43) — R1-SM +10K (descriptive, lite cells): it keeps each parent's gain at this step; the harm check follows
 
 **Headline:** After 10K of 30K steps the combined model is still level with its parents at the same step. Material response 0.47 (Pearson 0.81) in known rooms (R1-M 0.48 (Pearson 0.78)) and 0.70 (Pearson 0.80) in new ones (R1-M 0.74 (Pearson 0.79)); third source 0.727 / 0.410 / 0.281 (R1 0.713 / 0.391 / 0.279); stretch pattern of the change 0.797 / 0.522 / 0.331 (R1-S 0.801 / 0.539 / 0.341; 0.762 / 0.532 / 0.333 for R1). It is below R1-S by 0.017 in the middle band in known rooms, interval below zero, so CS1 (at least R1-S minus 0.01 in every band, at +30K) is not met at this step in that band. No verdict before +30K.

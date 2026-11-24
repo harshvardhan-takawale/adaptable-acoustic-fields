@@ -185,7 +185,7 @@ R1-P(t) (R1 plus the penalty) against its matched control R1-ctl after 2.5K of 1
 | R1-SM +5K and +10K | FINAL (descriptive); the +10K harm check follows | posted in the live log |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |
 | P-1 (R1-P(t) and control) | FINAL: stopped at +2.5K by its stop rule | posted in the live log |
-| E-E (source coverage) | truth done, renders only on spare GPUs | if it runs |
+| E-E (source coverage) | FINAL (descriptive): accuracy follows training coverage, weakly at 25-100 Hz once clearance is controlled | posted in the live log |
 | R1-SM's +30K verdict | after the meeting | about 15:30 |
 
 Cluster note: about 134 nodes were down this morning, so some reads land later than the schedule; nothing was lost. This report can be rebuilt at any time: `python scripts/p4_10_presentation_report.py`.
