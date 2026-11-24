@@ -3,6 +3,17 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (19:42) — R1-P's gate (0d) FAILS: R1-P will not be launched (D205)
+
+**Headline:** We tested, without training, whether a physics-based penalty could improve the model's fields: the mean-value identity for waves says a field's average over a small circle equals a known multiple of its centre value. The model's raw field breaks this identity only 1.3 to 1.5 times as much as its smoothed (band-limited) version, not the 3 times the pre-registered gate requires, so the planned penalty would have almost nothing to remove. R1-P is not launched.
+
+- **Truth residual (FDTD, code check):** 0.0074 / 0.0369 / 0.0301 (25-100 / 100-200 / 200-300 Hz), all at most 0.05 on the means: the check holds and the single-radius form is the one the rule selects. (Worst room at 100-200 Hz is 0.058.)
+- **R0 raw vs truth:** 0.0307 / 0.0803 / 0.0632, about 2 to 4 times truth. **R0 band-limited:** 0.0206 / 0.0633 / 0.0464.
+- **Gate 1, R0 band-limited at most 2 times truth:** 2.78 / 1.71 / 1.54; fails at 25-100 Hz. **Gate 2, R0 raw at least 3 times band-limited:** 1.49 / 1.27 / 1.36; fails in every band (raw minus band-limited is above zero, +0.010 [+0.007, +0.013], +0.017 [+0.011, +0.023], +0.017 [+0.014, +0.020], but far from 3x).
+- **The two-radius form is reported for information only** (the gate would use it only if the truth's single-radius residual had exceeded 0.05); its truth residual is numerically zero, so ratios to truth are not meaningful there.
+
+Links: [report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/r1p_0d/report.md) · [report.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/r1p_0d/report.json) · [D204 / D205](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md)
+
 ## 2026-11-23 (19:36) — I8 (R1 +20K, all lite families): the moved source keeps improving in every band, but more slowly above 100 Hz; the +20K baseline for R1's extension rule is now recorded
 
 **Headline:** After 20K of 30K steps, R1 reaches 0.771 / 0.432 / 0.308 (25-100 / 100-200 / 200-300 Hz) at the clean third source in known rooms, up from 0.748 / 0.407 / 0.283 at +15K; the second source at 0.668 / 0.272 / 0.192. The worst of its six gaps to its own static accuracy is 0.391 (second source, 100-200 Hz), and the mean of the six has fallen from 0.295 at +10K to 0.268. RS1 asks for every gap at most 0.10, at +30K.

@@ -23,7 +23,7 @@ Posting status entries, commit / push, the pre-registered verdicts, extensions, 
 4. **Q28 base rule:** R1 is the base unless, on the lite set, its final third-source r is more than 0.03 below its +15K value (0.748 / 0.407 / 0.283) in any band, or its HF cost against CTL @150K exceeds 0.04; then R0. An arm that passes its primary and no-harm bar becomes the base.
 5. **R1 on the P4-9 confirmation set (16 rooms, sha 688e319f18f6dd32): ONCE, at R1's final checkpoint (after the extension question is settled), beside S2X @240K and R0 @120K.** `scripts/p4_9_confirm_eval.py`.
 6. **R1-M:** MM1 = EDT edit slope [0.8, 1.2], Pearson >= 0.8; MM2 = edited |EDT error| <= its own unedited + 5 points; MC1; learning check at +10K (slope >= 0.3). `scripts/p4_10_scorecard.py` (`material_mm`).
-7. **R1-P:** launch only if 0d passes, on the first GPU free after R1-M; needs a mean-value training mode (not written), the collapse monitor (D201 Q30: field spatial std over stencil centres / R1's, in [0.8, 1.25], else stop) and A9 / A13.
+7. **R1-P: NOT launched** (gate 0d failed, D205). Its mean-value mode is not built.
 8. **After final reads:** D1 (EDT, masked T20, floor per octave on original rooms: R0, CTL, RCP, S2X, R1, R1-S), D2 (half-power linewidths of the first 25-100 Hz peaks, A8 code, model vs truth), the source-move diagnostic (8 lite rooms, y = 1.6, 0.5 / 0.75 / 1.0 / 1.5 m from the east wall, 32 FDTD runs), F1 and the A8 mode-shift slope (before F3-F7).
 9. **Daily digest at 09:00 ET** at the top of the status report: 3-5 plain sentences plus the board's Table B.
 10. Docs at the end: `CONTEXT_FOR_MANAGER.md` P4-10 entry, `tasks/CHUNK_P4_10_RESULTS.md`, a D-entry for the MS / STR / MAT draws, FIGURE_MANIFEST.
