@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 15:21 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 15:30 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1SM: step 149600 at 0.83 s/step, next read 150000 at about 15:27 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** none running
 
-**Running jobs:** aaf_backstop x1, aaf_autopub x1, aaf_r1sm x1
+**Running jobs:** aaf_autopub x1, aaf_sc_R1SM_150K x8
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -115,6 +115,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1SM_135K | pending | | | |
 | R1SM_140K | 0.555 | 0.524 / 0.423 / 0.407 | -0.006 [-0.013, -0.000] | +0.026 [+0.015, +0.036] |
 | R1SM_145K | 0.562 | 0.529 / 0.427 / 0.408 | -0.007 [-0.014, -0.000] | +0.024 [+0.014, +0.036] |
+| R1SM_150K | pending | | | |
 
 MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8), in-family primary; MM2 margin = median |EDT error| edited - unedited, points (bar <= +5):
 

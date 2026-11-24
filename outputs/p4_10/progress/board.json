@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 15:21",
+ "built": "2026-11-24 15:30",
  "arms": {
   "R1": [
    {
@@ -4180,6 +4180,50 @@
      }
     },
     "stretch": {}
+   },
+   {
+    "name": "R1SM_150K",
+    "step": 150000,
+    "static": null,
+    "material": {
+     "test": {
+      "pooled": {},
+      "bands": {},
+      "mm": {
+       "n_cells": 0,
+       "n_missing_decay": 0,
+       "bands": {},
+       "EDT": null,
+       "T20": null,
+       "level_change": null,
+       "edt_err_edit_med": NaN,
+       "edt_err_orig_med": NaN,
+       "MM2_margin_pts": NaN,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 0,
+       "n_receiver_bands_valid": 0
+      }
+     },
+     "unseen": {
+      "pooled": {},
+      "bands": {},
+      "mm": {
+       "n_cells": 0,
+       "n_missing_decay": 0,
+       "bands": {},
+       "EDT": null,
+       "T20": null,
+       "level_change": null,
+       "edt_err_edit_med": NaN,
+       "edt_err_orig_med": NaN,
+       "MM2_margin_pts": NaN,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 0,
+       "n_receiver_bands_valid": 0
+      }
+     }
+    },
+    "stretch": {}
    }
   ]
  },
@@ -4192,25 +4236,123 @@
    "where": "(Priority)"
   },
   {
-   "job": "aaf_backstop",
-   "state": "RUNNING",
-   "elapsed": "5:33:05",
-   "limit": "14:00:00",
-   "where": "gammagpu00"
+   "job": "aaf_unseen_ev",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_p4_5_eval",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_fit",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "2:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_board",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_ss_R1SM_150K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "2:00:00",
+   "where": "(Dependency)"
   },
   {
    "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "6:01:32",
+   "elapsed": "6:10:14",
    "limit": "9:00:00",
    "where": "gammagpu14"
   },
   {
-   "job": "aaf_r1sm",
+   "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "6:54:24",
-   "limit": "1-00:00:00",
-   "where": "tron61"
+   "elapsed": "0:16",
+   "limit": "40:00",
+   "where": "gammagpu06"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "2:06",
+   "limit": "40:00",
+   "where": "vulcan34"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "2:06",
+   "limit": "40:00",
+   "where": "vulcan34"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "2:06",
+   "limit": "40:00",
+   "where": "vulcan34"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "2:06",
+   "limit": "40:00",
+   "where": "tron56"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "2:06",
+   "limit": "40:00",
+   "where": "tron60"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "2:06",
+   "limit": "40:00",
+   "where": "tron47"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "2:06",
+   "limit": "40:00",
+   "where": "clip14"
   }
  ],
  "table_c": {
