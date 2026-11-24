@@ -1,18 +1,19 @@
 {
- "note": "post hoc, not pre-registered: within-room rank correlations over 160 positions (8 rooms x 20)",
- "density_vs_clearance_spearman": 0.6574155410259812,
- "bands": {
-  "25-100": {
-   "density": 0.559984996351985,
-   "clearance": 0.45928923894886603
-  },
-  "100-200": {
-   "density": 0.45016926839041366,
-   "clearance": 0.4096465126100735
-  },
-  "200-300": {
-   "density": 0.3710041631304453,
-   "clearance": 0.4123731017461057
-  }
+ "note": "post hoc, not pre-registered. 160 positions (8 rooms x 20). Partial rank correlations of R1's accuracy with MS source density, controlling wall clearance; within-room (ranks centred per room) beside the pooled version in partial_posthoc.json",
+ "density_vs_clearance_spearman": {
+  "n03": 0.5634872399144435,
+  "n05": 0.6574155410259812,
+  "n10": 0.636521525520752
+ },
+ "within_room_partial": {
+  "25-100|n03": 0.3263399319702743,
+  "100-200|n03": 0.19979820117512506,
+  "200-300|n03": 0.10448983558599846,
+  "25-100|n05": 0.3722417655061148,
+  "100-200|n05": 0.24560084619767528,
+  "200-300|n05": 0.11789509815883534,
+  "25-100|n10": 0.30933320009250176,
+  "100-200|n10": 0.14651405210421659,
+  "200-300|n10": 0.11090322942312332
  }
 }
