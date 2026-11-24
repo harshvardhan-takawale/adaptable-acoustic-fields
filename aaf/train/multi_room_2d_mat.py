@@ -1403,6 +1403,7 @@ class P32Trainer:
         T = torch.from_numpy(T).to(dev)
         rep_s = (u_s < float(cfg.p410_str_p)).to(dev) if self._str is not None else torch.zeros(B, dtype=torch.bool, device=dev)
         rep_m = (u_m < float(cfg.p410_mat_p)).to(dev) if self._mat is not None else torch.zeros(B, dtype=torch.bool, device=dev)
+        rep_m = rep_m & ~rep_s                       # D212 (R1-SM): MAT only on the non-STR rows; a no-op when either corpus is off
         if self._str is not None and bool(rep_s.any()):
             V = 2 * ci + k.to(dev)
             sl = slot.to(dev)

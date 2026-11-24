@@ -211,3 +211,48 @@ def test_step_runs_and_loss_is_finite(tmp_path):
     a = _trainer(tmp_path, "b", p410_ms_dir=str(d), p410_row_jitter=True, p49_recip_p=0.25)
     m = a._step_fn(1)
     assert np.isfinite(m["loss"]) and 0.0 <= m["recip_frac"] <= 1.0
+
+
+@GPU
+def test_combined_arm_rows_are_each_owner_arms_rows(tmp_path):
+    """R1-SM (D212). MAT off = R1-S bit for bit; STR off = R1-M bit for bit; both on: STR rows are R1-S's, the MAT rows (never STR)
+    are R1-M's, the rest R1's -- no row mixes a stretched room with the base room's material tokens or target."""
+    base = _trainer(tmp_path, "a")
+    d = _ms(tmp_path, base)
+    sd, md = _variants(tmp_path, base, "str"), _variants(tmp_path, base, "mat")
+    del base
+    kw = dict(p410_ms_dir=str(d), p410_row_jitter=True, p49_recip_p=0.25)
+    S, M = dict(p410_str_dir=str(sd), p410_str_p=0.25), dict(p410_mat_dir=str(md), p410_mat_p=0.5)
+    arms = {"r1": _trainer(tmp_path, "r1", **kw), "s": _trainer(tmp_path, "s", **kw, **S), "m": _trainer(tmp_path, "m", **kw, **M),
+            "sm": _trainer(tmp_path, "sm", **kw, **S, **M)}
+    arms["sm_matoff"] = _trainer(tmp_path, "smo", **kw, p410_mat_dir=str(md), p410_mat_p=0.0, **S)
+    arms["sm_stroff"] = _trainer(tmp_path, "soo", **kw, p410_str_dir=str(sd), p410_str_p=0.0, **M)
+    n = {"str": 0, "mat": 0, "both_drawn": 0, "plain": 0}
+    for _ in range(25):
+        bs = {k: a._p49_batch() for k, a in arms.items()}
+        for mb in range(len(bs["r1"])):
+            rows, u = {}, None
+            for k, a in arms.items():
+                ci, ri = bs[k][mb]
+                assert torch.equal(ci, bs["r1"][mb][0]) and torch.equal(ri, bs["r1"][mb][1])
+                if k == "sm":
+                    st = a._p410_gens["var"].get_state()
+                    u = (torch.rand(ci.numel(), generator=a._p410_gens["var"]), torch.rand(ci.numel(), generator=a._p410_gens["var"]))
+                    a._p410_gens["var"].set_state(st)
+                rows[k] = a._p410_rows(ci, ri, {})
+            for x, y in zip(rows["sm_matoff"], rows["s"]):
+                assert torch.equal(x, y)
+            for x, y in zip(rows["sm_stroff"], rows["m"]):
+                assert torch.equal(x, y)
+            is_s, is_m = (u[0] < 0.25), (u[1] < 0.5) & ~(u[0] < 0.25)
+            n["both_drawn"] += int(((u[0] < 0.25) & (u[1] < 0.5)).sum())
+            for i in range(len(is_s)):
+                own = "s" if is_s[i] else "m" if is_m[i] else "r1"
+                n["str" if is_s[i] else "mat" if is_m[i] else "plain"] += 1
+                for x, y in zip(rows["sm"], rows[own]):
+                    assert torch.equal(x[i], y[i]), (own, i)
+                if own != "r1":                                   # not vacuous: the owner's row differs from R1's
+                    assert not torch.equal(rows["sm"][4][i], rows["r1"][4][i])
+    assert min(n.values()) > 5, n
+    for k in arms["r1"]._p410_gens:
+        assert torch.equal(arms["r1"]._p410_gens[k].get_state(), arms["sm"]._p410_gens[k].get_state()), k
