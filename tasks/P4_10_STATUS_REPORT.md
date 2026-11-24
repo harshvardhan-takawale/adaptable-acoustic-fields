@@ -18,7 +18,7 @@
 | material response (slope), known / new | 0.47 / 0.70 | R1-M 0.48 / 0.74; R1 -0.17 | -- |
 | material edited accuracy, known rooms | 0.896 / 0.708 / 0.644 | R1-M 0.901 / 0.716 / 0.649; R1 0.687 / 0.493 / 0.401 | -- |
 
-- **Harm kill (D211: HF or any UF band more than 0.05 below R1 at the same step with the CI entirely below -0.02): not decided yet.** g2dense and unseen for this checkpoint are running; posted as soon as they land.
+- **Harm kill (D211: HF or any UF band more than 0.05 below R1 at the same step with the CI entirely below -0.02): HF does not trigger it** (added 11:45: R1-SM 0.541 against R1 0.550 at +10K, -0.010 [-0.015, -0.004], recomputed from the cached renders; R1's value equals the published 0.550). The unseen-room bands (UF) are still running.
 - The checkpoint was ready at 10:51; this is posted 52 minutes later (no GPU started until 11:29: my own P-1 jobs had filled the 500-job limit, then the scheduler was slow; see the 11:10 notes in the handoff).
 - Numbers: [R1SM_130K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/R1SM_130K.md). +15K about 12:03.
 
