@@ -1,8 +1,8 @@
 # P4-10 progress board
 
-Built 2026-11-24 14:10 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 14:18 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1SM: step 144400 at 0.83 s/step, next read 145000 at about 14:18 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1SM: step 145000 at 0.83 s/step, next read 150000 at about 15:28 ET (posted within 1 h of it)
 
 **Running jobs:** aaf_backstop x1, aaf_autopub x1, aaf_r1sm x1
 
@@ -114,6 +114,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1SM_130K | 0.541 | 0.515 / 0.421 / 0.401 | -0.010 [-0.015, -0.004] | +0.023 [+0.014, +0.032] |
 | R1SM_135K | pending | | | |
 | R1SM_140K | 0.555 | 0.524 / 0.423 / 0.407 | -0.006 [-0.013, -0.000] | +0.026 [+0.015, +0.036] |
+| R1SM_145K | pending | | | |
 
 MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8), in-family primary; MM2 margin = median |EDT error| edited - unedited, points (bar <= +5):
 

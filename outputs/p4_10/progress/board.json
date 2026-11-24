@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 14:10",
+ "built": "2026-11-24 14:18",
  "arms": {
   "R1": [
    {
@@ -3902,17 +3902,54 @@
       }
      }
     }
+   },
+   {
+    "name": "R1SM_145K",
+    "step": 145000,
+    "static": null,
+    "material": {
+     "test": {
+      "pooled": {},
+      "bands": {},
+      "mm": {
+       "n_cells": 0,
+       "n_missing_decay": 0,
+       "bands": {},
+       "EDT": null,
+       "T20": null,
+       "level_change": null,
+       "edt_err_edit_med": NaN,
+       "edt_err_orig_med": NaN,
+       "MM2_margin_pts": NaN,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 0,
+       "n_receiver_bands_valid": 0
+      }
+     },
+     "unseen": {
+      "pooled": {},
+      "bands": {},
+      "mm": {
+       "n_cells": 0,
+       "n_missing_decay": 0,
+       "bands": {},
+       "EDT": null,
+       "T20": null,
+       "level_change": null,
+       "edt_err_edit_med": NaN,
+       "edt_err_orig_med": NaN,
+       "MM2_margin_pts": NaN,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 0,
+       "n_receiver_bands_valid": 0
+      }
+     }
+    },
+    "stretch": {}
    }
   ]
  },
  "queue": [
-  {
-   "job": "aaf_smread2",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "10:00",
-   "where": "(Priority)"
-  },
   {
    "job": "aaf_pool_R1SM_140K",
    "state": "PENDING",
@@ -3921,23 +3958,107 @@
    "where": "(Priority)"
   },
   {
+   "job": "aaf_unseen_ev",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_p4_5_eval",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "3:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_fit",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "2:00:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_poolscore_R1SM_145K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "2:30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pool_R1SM_145K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pool_R1SM_145K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pool_R1SM_145K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pool_R1SM_145K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pool_R1SM_145K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pool_R1SM_145K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
    "job": "aaf_backstop",
    "state": "RUNNING",
-   "elapsed": "4:21:51",
+   "elapsed": "4:30:17",
    "limit": "14:00:00",
    "where": "gammagpu00"
   },
   {
    "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "4:50:18",
+   "elapsed": "4:58:44",
    "limit": "9:00:00",
    "where": "gammagpu14"
   },
   {
    "job": "aaf_r1sm",
    "state": "RUNNING",
-   "elapsed": "5:43:10",
+   "elapsed": "5:51:36",
    "limit": "1-00:00:00",
    "where": "tron61"
   }
