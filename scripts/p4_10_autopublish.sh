@@ -27,7 +27,11 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- $p 2>/dev/null && br
 say "autopublish started on $(hostname) job ${SLURM_JOB_ID:-none}; stale after ${STALE}s; until $END"
 while [ "$(date +%H:%M)" \< "$END" ]; do
   age=$(( $(date +%s) - $(stat -c %Y $HB 2>/dev/null || echo 0) ))
-  if [ "$age" -gt "$STALE" ]; then say "heartbeat ${age}s old: publishing"; publish; fi
+  if [ "$age" -gt "$STALE" ]; then
+    LK=logs/.p4_10_autopub_lock                                  # two copies may run (Slurm and login node): one publishes at a time
+    [ -d $LK ] && [ $(( $(date +%s) - $(stat -c %Y $LK) )) -gt 900 ] && rmdir $LK 2>/dev/null
+    if mkdir $LK 2>/dev/null; then say "heartbeat ${age}s old: publishing"; publish; rmdir $LK; fi
+  fi
   sleep $INTERVAL
 done
 say "end of day $END reached"
