@@ -1,0 +1,30 @@
+{
+ "figure": "M5",
+ "room": "L5.36_W4.34_d1.88_w1.40",
+ "case": "show_p11",
+ "frequency_hz": 50,
+ "source": [
+  2.94,
+  2.16
+ ],
+ "numbers": {
+  "R1": {
+   "energy_flow_direction_agreement_mean_cosine": 0.5041817804376935,
+   "median_angle_deg": 31.646519428821847,
+   "n_rx": 2820
+  },
+  "R0": {
+   "energy_flow_direction_agreement_mean_cosine": -0.29997654782563427,
+   "median_angle_deg": 125.24388633282646,
+   "n_rx": 2820
+  }
+ },
+ "ranks": {
+  "rank": 12,
+  "of": 15,
+  "value": 0.7561889886856079,
+  "median_room": "L5.68_W4.22_d1.42_w1.84",
+  "median_value": 0.7834620475769043
+ },
+ "caption": "Arrows: direction of the steady energy flow (unit length). Truth: FDTD, 2 cm. Model: gradient of the band-limited field. Direction agreement = mean cosine over off-lattice receivers at least 0.5 m from the source. In-family (held-out) room L5.36_W4.34_d1.88_w1.40; showcase ranks 12 of 15 on R1's third-source accuracy at 25-100 Hz (the direction agreement itself has no 15-room rank: no per-room truth gradients exist for a moved source)."
+}
