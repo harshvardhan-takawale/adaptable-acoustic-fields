@@ -1,0 +1,52 @@
+{
+ "room": "L5.36_W4.34_d1.88_w1.40",
+ "rule": "first in-family room of the manifest; bins at 50 and 200 Hz; colour = level minus the truth's 99th percentile of that column (dB)",
+ "truth|second|50Hz": {
+  "corr_of_magnitude_with_truth": 0.9999999999999998
+ },
+ "R0|second|50Hz": {
+  "corr_of_magnitude_with_truth": 0.32338520117129327
+ },
+ "RCP|second|50Hz": {
+  "corr_of_magnitude_with_truth": 0.38241065188135986
+ },
+ "R1|second|50Hz": {
+  "corr_of_magnitude_with_truth": 0.8617161253859614
+ },
+ "truth|second|200Hz": {
+  "corr_of_magnitude_with_truth": 1.0
+ },
+ "R0|second|200Hz": {
+  "corr_of_magnitude_with_truth": 0.0874661649455558
+ },
+ "RCP|second|200Hz": {
+  "corr_of_magnitude_with_truth": 0.1932080258485295
+ },
+ "R1|second|200Hz": {
+  "corr_of_magnitude_with_truth": 0.26286949482323574
+ },
+ "truth|third|50Hz": {
+  "corr_of_magnitude_with_truth": 1.0
+ },
+ "R0|third|50Hz": {
+  "corr_of_magnitude_with_truth": 0.26191083461151315
+ },
+ "RCP|third|50Hz": {
+  "corr_of_magnitude_with_truth": 0.6817256759517687
+ },
+ "R1|third|50Hz": {
+  "corr_of_magnitude_with_truth": 0.9458560426372405
+ },
+ "truth|third|200Hz": {
+  "corr_of_magnitude_with_truth": 1.0
+ },
+ "R0|third|200Hz": {
+  "corr_of_magnitude_with_truth": -0.0338099654072745
+ },
+ "RCP|third|200Hz": {
+  "corr_of_magnitude_with_truth": 0.21198382707672345
+ },
+ "R1|third|200Hz": {
+  "corr_of_magnitude_with_truth": 0.40795052854626385
+ }
+}
