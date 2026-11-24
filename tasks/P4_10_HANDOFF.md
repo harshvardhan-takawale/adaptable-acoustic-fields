@@ -29,5 +29,6 @@ Posting status entries, commit / push, the pre-registered verdicts, extensions, 
 10. Docs at the end: `CONTEXT_FOR_MANAGER.md` P4-10 entry, `tasks/CHUNK_P4_10_RESULTS.md`, a D-entry for the MS / STR / MAT draws, FIGURE_MANIFEST.
 
 ## Cautions
+* Failed-job checks must use `sacct -S <start> -E now -X -s FAILED,TIMEOUT,OUT_OF_MEMORY,NODE_FAIL`: a state filter without `-E now` prints nothing, so an empty list is not evidence (found 2026-11-23 21:24, after the sweeps before then had been using the blind form; a correct 12 h query showed no FAILED jobs except the R1 reciprocity run).
 * Do not re-launch a read that already has a watcher log line. Kill processes by PID / job id only. Do not delete corpora or the dense sets. Commit or push only text, code, configs, JSON, and PNGs under the .gitignore allowlist (`outputs/p4_10/**/*.png` is allowed).
 * R1-C is closed. CLAUDE.md rule 10 is unchanged. Nothing about the meeting date is known (Q33 is open: the user answers).
