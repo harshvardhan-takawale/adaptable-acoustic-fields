@@ -1,0 +1,2 @@
+- Cluster: many nodes (legacy, cml23, gammagpu) went down this morning; truth runs and renders were resubmitted. No result was lost.
+- R1-SM trains to +30K after the meeting; its verdict is not in this pack.

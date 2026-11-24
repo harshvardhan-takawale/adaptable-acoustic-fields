@@ -19,7 +19,7 @@ launched() {  # NAME ARM -> 0 if a read of NAME was already launched by anyone
   return 1
 }
 scan() {
-  for spec in "R1:Source" "R1S:StretchU+StretchA" "R1M:Material"; do
+  for spec in ${SPECS:-"R1:Source" "R1S:StretchU+StretchA" "R1M:Material"}; do
     ARM=${spec%%:*}; LF=${spec#*:}
     for ITER in 125000 130000 135000 140000 145000 150000; do
       NAME=${ARM}_$((ITER/1000))K; CK=outputs/p4_10/arms/$ARM/$(printf 'ckpt_iter%07d.pt' $ITER)
@@ -36,7 +36,7 @@ scan() {
     done
   done
 }
-done_all() { for a in R1 R1S R1M; do launched ${a}_150K $a || return 1; done; return 0; }
+done_all() { for a in ${DONE_ARMS:-R1 R1S R1M}; do launched ${a}_150K $a || return 1; done; return 0; }
 [ "${DRY:-0}" = 1 ] && { scan; exit 0; }
 say "backstop started on $(hostname), job ${SLURM_JOB_ID:-none}"
 while true; do scan; if done_all; then say "every arm has its 150K read launched; exiting"; wait; exit 0; fi; sleep $INTERVAL; done

@@ -1,20 +1,21 @@
-# P4-10 handoff (written 2026-11-23 19:25 ET) -- read first if a new session takes over
+# P4-10 handoff (rewritten 2026-11-24 09:14 ET, meeting day) -- read first if a new session takes over
 
-The user asked for work to continue if the SSH connection breaks. This page says what runs by itself, what does not, and what to do next. Rules in force: D195 (spec, `tasks/P4_10_SPEC.md`), D197 (amendments), **D201 (manager rulings, `tasks/P4_10_RULINGS.md`)**, D202 (decay metrics), D203 (P4-11 confirmation set, not scored), D204 (R1-P 0d). Live log: `tasks/P4_10_STATUS_REPORT.md`.
+The user asked (2026-11-24 morning) that work not stop if the connection breaks. Instructions in force: `tasks/P4_10_MEETING_DAY.md` (D211), `tasks/P4_10_PHYSICS_ADDON.md` (D217). **Hard cut-off 14:30 ET; launch nothing new after 12:30 except reads already scheduled. Meeting about 16:00 ET.** Designs: D212 (R1-SM), D213 (V1-V5), D214 (E-B), D215 (E-C), D216 (V6-V8, V3d), D218 (P-1, when written), D219 (P-2), D220 (E-E). Live log: `tasks/P4_10_STATUS_REPORT.md`.
 
-## State at 2026-11-24 03:26 ET: no training run is in progress
+## What runs by itself (Slurm, independent of any session)
+* **R1-SM** training, job 8555361 (tron, requeue): +5K ... +30K checkpoints at 125K ... 150K; +30K is due about 15:30.
+* **R1-SM reads**: detached watcher on the login node (`scripts/p4_10_watch_arm.sh R1SM`, log `logs/p4_10_watch_R1SM.log`), and the **backstop job `aaf_backstop`** (launches any read the watcher missed 30 min after its checkpoint; log `logs/p4_10_backstop.log`). Each read ends with a board rebuild.
+* **Dead-man publisher `aaf_autopub`** (`scripts/p4_10_autopublish.sh`): does nothing while `logs/p4_10_heartbeat` is younger than 50 min; after that it rebuilds `outputs/p4_10/meeting/MEETING_PACK.md` (marked unreviewed), commits an allowlist of result files and pushes, every 10 min until 17:00. **A live session should `touch logs/p4_10_heartbeat` whenever it works.**
+* **E-B, E-C, P-2, P-1** were built by forked agents that were told to chain their remaining steps as Slurm jobs (names aaf_eb*, aaf_ec*, aaf_p2*, aaf_pt*). P-1's reads run from a watcher job. E-E's truth runs: `aaf_eefd`; its renders (`scripts/p4_10_ee_coverage.py --render --idx 0..7`, GPU) start only if a GPU is free before 12:30.
 
-All arms are final (R1, R1-S, R1-M at 150K); no arm was extended; R1-P's gate (0d) failed (D205) and R1-C is closed. Verdicts: `outputs/p4_10/verdict_R1_150K.md`, `verdict_R1S_150K.md`, `verdict_R1M_150K.md`. All reads, E1 / E2 / E3, the source-clearance diagnostic, D1 / D2 / A8 for every final model and the one-time R1 confirmation read are posted (status report, newest first; summary `tasks/CHUNK_P4_10_RESULTS.md`).
-
-**Nothing more runs by itself** (the backstop job exited; the read watchers finished). In-session timers die with the session (cron ids in the session: the tick and the 08:43 digest).
-
-## To do (in order)
-1. **Daily digest at 09:00 ET on 2026-11-24** at the top of `tasks/P4_10_STATUS_REPORT.md`: 3-5 plain sentences the user can forward plus Table B (the arms' verdicts).
-2. **Figures: done** (F1, F2, F3, F4, F5, F7 in `outputs/p4_10/meeting/` and `outputs/p4_10/progress/F2_trajectories.png`; F6 void; `outputs/p4_10/meeting/FIGURE_MANIFEST.md`). Remaining only if asked: a capture-then-edit step (2f, lowest priority).
-3. **Manager-facing**: `tasks/P4_10_MANAGER_REPORT_3.md` (final results and decisions) and `tasks/CHUNK_P4_10_RESULTS.md` (written). Open: Q34-Q38 (manager, P4-11), Q33 (meeting date, the user's answer), Q24, Q25, Q17, Q15.
-4. If the manager asks for anything after the final report, treat it as a new D-entry before running numbers.
+## To do, in order (what still needs an agent)
+1. Post each result as it lands (status report, newest first; a read within one hour of its checkpoint): R1-SM +5K (about 09:42), +10K (about 11:00), +15K, +20K, +25K (descriptive; the +25K read is marked after the cut-off). **Kill check at +10K**: the standard harm rule against R1. The +30K verdict (CS1, CM1, CSrc1, CN1; D211) is after the meeting.
+2. E-B (CE1), E-C (trajectories), P-2 (audit), P-1 (reads, stop rule) as they finish; figures `EB_capture_then_edit`, `EC_exposure`, `P2_how_physical`. Look at every PNG before posting.
+3. **MEETING_PACK.md by 14:30**: `python scripts/p4_10_meeting_pack.py` (reads every number from JSON; add lines to `outputs/p4_10/meeting/PACK_NOTES.md` for anything that failed, in one line each; add takeaways for E-B / E-C / P-2 / P-1 in the script). Commit, push, check links return 200.
+4. After the meeting: R1-SM's +30K full scorecard, D1, D2, A8, verdict (`CS1`, `CM1`, `CSrc1`, `CN1`); `CONTEXT_FOR_MANAGER.md` and a results entry (Rule 1); OPEN_QUESTIONS if anything is undecided.
 
 ## Cautions
-* Failed-job checks must use `sacct -S <start> -E now -X -s FAILED,TIMEOUT,OUT_OF_MEMORY,NODE_FAIL`: a state filter without `-E now` prints nothing, so an empty list is not evidence (found 2026-11-23 21:24, after the sweeps before then had been using the blind form; a correct query of the day shows four setup failures at 13:12-14:28 (manifest builder, unit test, two R1 smoke runs, all fixed before R1 launched) and the R1 reciprocity run at 21:21). A `tail` on the output hid the older ones.
-* Do not re-launch a read that already has a watcher log line. Kill processes by PID / job id only. Do not delete corpora or the dense sets. Commit or push only text, code, configs, JSON, and PNGs under the .gitignore allowlist (`outputs/p4_10/**/*.png` is allowed).
-* R1-C is closed. CLAUDE.md rule 10 is unchanged. Nothing about the meeting date is known (Q33 is open: the user answers).
+* Do not edit `aaf/train/multi_room_2d_mat.py` while R1-SM may requeue (it re-imports the file); P-1's code is in `aaf/train/p410_pt.py`.
+* `sacct` failure checks need `-S <start> -E now -X -s FAILED,TIMEOUT,OUT_OF_MEMORY,NODE_FAIL`; many nodes (legacy*, legacygpu*, cml23, gammagpu02-06/09) failed this morning: exclude them.
+* Kill by job id or PID only (never `pkill -f`). Do not delete corpora or the dense sets. Never force-push. Gates that say "needs the manager" are real.
+* Do not claim (meeting): clearance explains the second source; material edits beat the original room's true field; geometry edits transfer to new rooms; R1-SM's gains add before its verdict; anything real-time except a single listener (12 ms); "12-34% too fast" for all of the decay (EDT only).

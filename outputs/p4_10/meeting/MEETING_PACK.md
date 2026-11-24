@@ -1,0 +1,64 @@
+# MEETING PACK (built 2026-11-24 09:14 ET)
+
+Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at build time. Triples are 25-100 / 100-200 / 200-300 Hz; r is the off-lattice accuracy from the frozen scorer. **This copy was built automatically by a Slurm job and has not been reviewed by the agent.**
+
+## 1. Figures
+
+- **V1 Stretching a room (known room)** [V1_stretch_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1_stretch_50Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1_stretch_50Hz.json)) · [V1_stretch_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1_stretch_125Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1_stretch_125Hz.json)): R1-S follows a uniform stretch from 0.90 to 1.10: r at 50 Hz 0.85 / 0.80 / 0.89 / 0.96 / 0.95; at 125 Hz 0.50 / 0.56 / 0.38 / 0.56 / 0.84.
+- **V1 animation** [V1_stretch_animation](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1_stretch_animation.mp4) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1_stretch_animation.json)): Nine stretch factors, truth and R1-S side by side (MP4 and GIF).
+- **V1 backup, a room type never seen in training** [V1u_stretch_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_50Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_50Hz.json)) · [V1u_stretch_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_125Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_125Hz.json)): In the unseen median room the stretch is not predicted at 50 Hz (r 0.03 / 0.13 / 0.10 / 0.15 / 0.23) and weakly at 125 Hz (r 0.46 / 0.39 / 0.57 / 0.56 / 0.39).
+- **V2 Moving the source (known room)** [V2_source_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2_source_50Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2_source_50Hz.json)) · [V2_source_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2_source_125Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2_source_125Hz.json)): R1 follows the source along the line, R0 does not: 50 Hz R1 0.96 / 0.89 / 0.87 / 0.70 / 0.81 / 0.83 (R0 0.93 / 0.07 / 0.62 / 0.58 / 0.34 / -0.05); 125 Hz R1 0.40 / 0.54 / 0.55 / 0.43 / 0.47 / 0.58 (R0 0.39 / -0.14 / 0.27 / 0.12 / -0.04 / -0.15).
+- **V2 second example (median room, 125 Hz)** [V2m_source_median_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2m_source_median_125Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2m_source_median_125Hz.json)): The showcase ranks 3 of 15 here, so the median room is shown: R1 0.80 / 0.61 / 0.53 / 0.53 / 0.49 / 0.43 (R0 0.80 / 0.10 / 0.21 / 0.31 / 0.09 / 0.02).
+- **V2 backup, unseen room** [V2u_source_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_50Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_50Hz.json)) · [V2u_source_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_125Hz.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_125Hz.json)): Unseen median room: R1 at 50 Hz 0.10 / -0.14 / 0.64 / 0.29 / 0.23 / 0.17; at 125 Hz 0.56 / 0.40 / 0.09 / 0.38 / 0.53 / 0.46.
+- **V2 animation** [V2_source_animation](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2_source_animation.mp4) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2_source_animation.json)): Twelve source positions, truth, R1 and R0 (MP4 and GIF).
+- **V3 (a, b) Decay rate against wall absorption** [V3ab_decay_rate_vs_absorption](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V3ab_decay_rate_vs_absorption.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V3ab_decay_rate_vs_absorption.json)): At 125 Hz, all walls from 0.10 to 0.50: truth 0.98 to 3.25 1/s, R1-M 1.65 to 3.33, R1 1.71 to 1.44; R1-M tracks the truth at high absorption and decays too fast at low absorption (one room).
+- **V3 (c) Early energy decay** [V3c_early_decay](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V3c_early_decay.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V3c_early_decay.json)): With absorption 0.50 R1-M's early decay follows the truth; with 0.10 it decays too fast.
+- **V3 (d) The materials scatter** [V3d_mm1_scatter](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V3d_mm1_scatter.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V3d_mm1_scatter.json)): Over all 180 known-room cell-bands R1-M's change in decay rate is 0.54 of the true one (Pearson 0.95); the bar was 0.8 to 1.2.
+- **V4 The listener's walk** [V4_walk_original](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V4_walk_original.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V4_walk_original.json)) · [V4_walk_stretched](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V4_walk_stretched.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V4_walk_stretched.json)): R1's accuracy in the room is 0.869 / 0.629 / 0.564 (original) and 0.906 / 0.688 / 0.563 (stretched by 1.10), 25-100 / 100-200 / 200-300 Hz.
+- **V5 Where the energy flows** [V5_energy_flow](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V5_energy_flow.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V5_energy_flow.json)): R1's energy-flow direction agrees with the truth's 0.78 at 50 Hz and 0.42 at 100 Hz (mean cosine; the showcase ranks 10 and 14 of 15; median room 0.83 and 0.71).
+- **V6 Why decay is off** [V6_why_decay_is_off](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V6_why_decay_is_off.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V6_why_decay_is_off.json)): In one room the one-room model's resonances are 1.00 times the truth's width and its early decay is right; the shared model's are 1.34 times the width. Both keep a late floor.
+- **V7 The late floor under standard compensation** [V7_late_floor](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V7_late_floor.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V7_late_floor.json)): Removing the late floor does not fix R1's decay at 125 Hz: EDT error 24% to 24%, T20 57% to 61%, T30 514% to 55% (only T30's artefact goes away). The one-room models pass the same method.
+- **V8 Scorecards** [V8_scorecards](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V8_scorecards.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V8_scorecards.json)): Largest gains over R0 this round: Source and Material; 'ignore the edit' still beats this round's model for Material everywhere.
+
+PDF copies sit beside every PNG. Figures of 2026-11-24 00:00-04:00 (F1, F2, F3, F4, F5, F7) are in the [manifest](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/FIGURE_MANIFEST.md); F3, F4 and F5 are superseded by V1-V4 (the lattice gaps in F3 / F4 are gone).
+
+## 2. Numbers
+
+| number | value | source |
+|---|---|---|
+| R1, moved source in known rooms, second position (ignoring the move) | 0.705 / 0.309 / 0.199 (0.311 / 0.211 / 0.247) | verdict_R1_150K.json |
+| R1, moved source in known rooms, third position (ignoring the move) | 0.780 / 0.445 / 0.321 (0.298 / 0.223 / 0.183) | verdict_R1_150K.json |
+| R1, gap to its own original-position accuracy, third source (bar 0.10) | 0.128 / 0.238 / 0.250 | verdict_R1_150K.json |
+| R1, unseen rooms, third source (ignoring the move) | 0.554 / 0.369 / 0.292 (0.332 / 0.287 / 0.208) | verdict_R1_150K.json |
+| R1, swapped render against normal (known rooms; 25-100 Hz) | 0.76 against 0.91 | verdict_R1_150K.json |
+| R1-S minus R1, stretch pattern of the change, known rooms (bar +0.05 in 2 bands) | +0.032 [+0.018, +0.047] / +0.017 [+0.010, +0.025] / +0.012 [+0.007, +0.018] | verdict_R1S_150K.json |
+| R1-M, change in decay rate (1/EDT): slope, Pearson (known / new rooms; bar 0.8 to 1.2) | 0.54, 0.95 / 0.66, 0.94 | verdict_R1M_150K.json |
+| R1-M, EDT error edited against its own unedited (known / new) | 22.5% vs 24.6% / 29.0% vs 29.4% | verdict_R1M_150K.json |
+| Stretch-U accuracy, known rooms: R1-S (R0) | 0.863 / 0.629 / 0.522 (0.833 / 0.606 / 0.493) | scorecard_R1S_full.json, scorecard_R0_full.json |
+| Stretch-U accuracy, new rooms: R1-S (R0) | 0.492 / 0.409 / 0.389 (0.402 / 0.325 / 0.304) | the same files |
+| Material accuracy, known rooms: R1-M (R1); ignore the edit | 0.894 / 0.713 / 0.618 (0.749 / 0.567 / 0.476); 0.911 / 0.891 / 0.880 | scorecard_R1M_full.json, scorecard_R1_full.json |
+| Resonance width / truth: one-room models (2 rooms), R1 in 15 training rooms | 1.00; 1.73 [1.53, 1.94] | e1/report.json |
+| EDT error 63 / 125 / 250 Hz: one-room models; R1 in 15 training rooms | 0.4% / 1.1% / 2.2%; 12% / 25% / 31% | e1/report.json |
+| R1 decay error at 125 Hz, in-family, after removing the late floor: EDT / T20 (before) | 24% / 61% (24% / 57%) | v7/report.json |
+| Confirmation set (16 fresh unseen rooms): R0 | 0.607 / 0.447 / 0.400 | p4_9/confirm/R0_120K.json |
+| Confirmation set (16 fresh unseen rooms): S2X | 0.605 / 0.466 / 0.430 | p4_9/confirm/S2X_240K.json |
+| Confirmation set (16 fresh unseen rooms): R1 | 0.644 / 0.469 / 0.416 | p4_9/confirm/R1_150K.json |
+| R1 on the frozen unseen set (16) | 0.506 / 0.409 / 0.399 | verdict_R1M_150K.json (reference column) |
+| R1 no-harm at the original source, HF (CTL @150K) | 0.571 (0.583), -0.013 [-0.019, -0.007] | verdict_R1_150K.json |
+| Single-listener render time after a geometry edit (network, one A5000) -- the only real-time claim | 12 ms | outputs/p4_9/latency.json |
+
+## 3. Do not claim
+
+- that clearance explains the second source;
+- that material edits beat the original room's true field;
+- that geometry edits transfer to new rooms (unseen pattern of change <= 0.33; notches not predicted);
+- that R1-SM's gains add, before its +30K verdict (about 15:30 ET);
+- that anything renders in real time except single listeners (12 ms);
+- that decay is 12-34% too fast: that is the early decay only; R1's T20 is 33-61% off after the late floor is removed;
+- that R1-P was launched: the pre-registered arm is not (D205); P-1 today is an exploratory re-registration (D217).
+
+## 4. Failed or not finished
+
+- Cluster: many nodes (legacy, cml23, gammagpu) went down this morning; truth runs and renders were resubmitted. No result was lost.
+- R1-SM trains to +30K after the meeting; its verdict is not in this pack.
+- Not finished at build time: E-B Capture then edit; E-C Per-room training against decay; P-2 How physical are our fields?
