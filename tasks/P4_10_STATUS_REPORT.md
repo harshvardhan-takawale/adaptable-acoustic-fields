@@ -15,7 +15,7 @@
 | unseen, +20K -> +25K | 0.75 (0.84) -> 0.79 (0.83) | 0.49 / 0.60 / 0.59 | 26.8% vs 30.9% (-4.1 points) | 0.643 / 0.579 / 0.527 (0.898 / 0.854 / 0.828) | 0.294 / 0.155 / 0.095 | 1.15 / 1.03 / 1.05 |
 
 - T20 is dropped in 84% of receiver-bands (123724 of 146689 in-family) and is not used.
-- Its static read at 145K is still running; the +30K read follows.
+- **Static (added 01:47, a minute past the one-hour mark), against R1 @145K:** HF 0.563 against 0.569: -0.006 [-0.012, +0.000]; UF 0.528 / 0.427 / 0.403 against 0.505 / 0.409 / 0.397: +0.022 [+0.011, +0.034] / +0.018 [+0.011, +0.025] / +0.006 [-0.005, +0.016]. MC1 is judged at +30K.
 
 Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
 
