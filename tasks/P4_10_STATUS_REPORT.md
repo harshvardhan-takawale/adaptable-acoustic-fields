@@ -5,7 +5,7 @@
 
 ## 2026-11-24 (12:59) — R1-SM +15K (descriptive, lite cells): material response close to R1-M's, stretch a little behind R1-S
 
-**Headline:** After 15K of 30K steps the combined model's change in decay rate with wall absorption is 0.55 (Pearson 0.80) in known rooms (R1-M 0.61 (Pearson 0.84)) and 0.79 (Pearson 0.82) in new ones (R1-M 0.77 (Pearson 0.83)). Third source 0.753 / 0.420 / 0.296 against R1's 0.748 / 0.407 / 0.283. Stretch pattern of the change 0.795 / 0.531 / 0.331 in known rooms. No verdict before +30K. Static accuracy (HF and UF) for this checkpoint follows.
+**Headline:** After 15K of 30K steps the combined model's change in decay rate with wall absorption is 0.55 (Pearson 0.80) in known rooms (R1-M 0.61 (Pearson 0.84)) and 0.79 (Pearson 0.82) in new ones (R1-M 0.77 (Pearson 0.83)). Third source 0.753 / 0.420 / 0.296 against R1's 0.748 / 0.407 / 0.283. Stretch pattern of the change 0.795 / 0.531 / 0.331 in known rooms, against R1-S's 0.808 / 0.546 / 0.347: below it by 0.013 / 0.015 / 0.016, every interval below zero, so past the 0.01 that CS1 allows at +30K. If that stays, CS1 fails (it is judged only at +30K on the full set). The material response is 0.06 below R1-M's in known rooms. No verdict before +30K. Static accuracy (HF and UF) for this checkpoint follows.
 
 | lite cells | R1-SM | parent | difference [95% CI], 25-100 / 100-200 / 200-300 Hz |
 |---|---|---|---|
