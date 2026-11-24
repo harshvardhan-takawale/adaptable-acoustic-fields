@@ -3,6 +3,23 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (20:48) — I11 (R1-S +20K, all lite families, the first read matched to R1's step): stretch edits better than R1 by 0.043 / 0.013 / 0.009; the extension baseline is recorded
+
+**Headline:** At the same training step (+20K), R1-S, which also trains on stretched rooms, predicts stretch edits better than R1 in every band (pattern-of-change r_delta +0.043 / +0.013 / +0.009 at 25-100 / 100-200 / 200-300 Hz, all three intervals above zero). The bar, read at +30K, is +0.05 in at least two bands: no band reaches it yet, and the lowest band is the closest. On everything else the two models are level, and on the materials cells R1-S is slightly below R1 at 100-200 Hz.
+
+Off-lattice, lite rooms (8 in-family, 8 unseen), 190/190 cells, paired per room, bootstrap 10k. Stretch-U and Stretch-A pooled per room (SS1's reading, D201 Q27).
+
+| stretch r_delta | R1-S @140K | R1 @140K | R1-S - R1 [95% CI] |
+|---|---|---|---|
+| in-family (SS1) | 0.814 / 0.551 / 0.353 | 0.771 / 0.538 / 0.344 | +0.043 [+0.020, +0.066] / +0.013 [+0.004, +0.022] / +0.009 [+0.004, +0.014] |
+| unseen | 0.382 / 0.288 / 0.229 | 0.353 / 0.269 / 0.213 | +0.029 [+0.017, +0.043] / +0.019 [+0.016, +0.022] / +0.016 [+0.005, +0.027] |
+
+- **Extension-rule baseline (D201 Q27), recorded now:** band-mean in-family difference at +20K is +0.0215 (by band, best first: +0.0425, +0.0130, +0.0092; at +10K it was +0.018). R1-S is extended past +30K only if, at +30K, the second-best band's difference is >= 0.00 AND the band-mean difference has risen by >= 0.02 (to >= 0.0415). Nothing is decided before that read.
+- **By family (in-family, edited r, R1-S - R1):** Stretch-U +0.060 / +0.035 / +0.055, Stretch-A +0.049 / +0.014 / +0.030 (r_delta: Stretch-U +0.042 / +0.018 / +0.019, Stretch-A +0.043 / +0.008 / -0.001); Wall -0.000 / -0.003 / +0.002, Notch +0.001 / -0.002 / +0.000, Source (second and third pooled) +0.010 / +0.006 / +0.007, Material -0.004 / -0.014 [-0.028, -0.002] / -0.000.
+- **Pending:** R1-S's static HF / UF at 140K and R1's at 145K. R1-S's no-harm rule (SC1) is judged at +30K against R1 at the same step.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [P4_10_R1S.yaml](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/sweep_2d_mat/P4_10_R1S.yaml)
+
 ## 2026-11-23 (20:34) — I10 (R1 +25K, source cells) and A8 (mode-shift slopes, R0, and lite sets of R1 and R1-S)
 
 **Headline:** After 25K of 30K steps R1's moved-source accuracy at the clean third source in known rooms is 0.784 / 0.425 / 0.306 (25-100 / 100-200 / 200-300 Hz), against 0.771 / 0.432 / 0.308 at +20K, and the mean of its six gaps is 0.264 (0.268 at +20K, 0.288 at +15K). The worst gap is 0.377 (second source, 100-200 Hz); the bar is 0.10 in every band at +30K. Separately, R0 predicts how room edits shift resonance frequencies about right for wall moves (slope 0.71) and stretches (0.54-0.65), and not for notches (0.25): the model moves the modes, but by too little.
