@@ -3,6 +3,33 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (23:40) — I18 (R1-S +30K, the full scorecard): R1-S is ahead of R1 in every edit family but material, and of R0 on every stretch and wall cell
+
+**Headline:** The full scorecard of the stretched-room arm is scored. At the same training step R1-S is ahead of R1 in every family except material (where it is level): on stretch edits 0.863 / 0.629 / 0.522 against 0.825 / 0.599 / 0.492 in known rooms (25-100 / 100-200 / 200-300 Hz), and the wall and source cells gain a little too. It is ahead of the original model R0 in stretch and wall edits in both room sets. The pre-registered primary (SS1) still fails, because its bar is on the pattern-of-change score, where the gain is 0.03 to 0.02 and not 0.05.
+
+R1-S @150K against R1 @150K and R0 @120K, off-lattice, full set (15 in-family, 16 unseen rooms); edited-field r and r_delta (25-100 / 100-200 / 200-300 Hz):
+
+| family | set | R1-S | R1 | R0 | R1-S r_delta (R1) |
+|---|---|---|---|---|---|
+| Stretch-U | in-family | 0.863 / 0.629 / 0.522 | 0.825 / 0.599 / 0.492 | 0.833 / 0.606 / 0.493 | 0.828 / 0.590 / 0.492 (0.801 / 0.573 / 0.478) |
+| Stretch-U | unseen | 0.492 / 0.409 / 0.389 | 0.442 / 0.356 / 0.340 | 0.402 / 0.325 / 0.304 | 0.325 / 0.264 / 0.308 (0.287 / 0.230 / 0.278) |
+| Stretch-A | in-family | 0.872 / 0.633 / 0.527 | 0.832 / 0.609 / 0.494 | 0.835 / 0.613 / 0.495 | 0.788 / 0.552 / 0.328 (0.751 / 0.536 / 0.317) |
+| Stretch-A | unseen | 0.499 / 0.410 / 0.396 | 0.461 / 0.373 / 0.359 | 0.416 / 0.347 / 0.327 | 0.301 / 0.199 / 0.163 (0.267 / 0.180 / 0.149) |
+| Wall | in-family | 0.899 / 0.667 / 0.565 | 0.891 / 0.658 / 0.557 | 0.900 / 0.673 / 0.562 | 0.732 / 0.491 / 0.454 (0.721 / 0.486 / 0.448) |
+| Wall | unseen | 0.505 / 0.417 / 0.401 | 0.483 / 0.392 / 0.372 | 0.438 / 0.363 / 0.347 | 0.244 / 0.175 / 0.245 (0.218 / 0.158 / 0.223) |
+| Notch | in-family | 0.905 / 0.682 / 0.561 | 0.906 / 0.681 / 0.560 | 0.917 / 0.697 / 0.568 | 0.617 / 0.310 / 0.213 (0.614 / 0.310 / 0.209) |
+| Notch | unseen | 0.512 / 0.419 / 0.411 | 0.503 / 0.409 / 0.399 | 0.464 / 0.380 / 0.372 | 0.077 / 0.023 / 0.018 (0.077 / 0.022 / 0.018) |
+| Source (both) | in-family | 0.755 / 0.383 / 0.266 | 0.743 / 0.377 / 0.260 | 0.231 / 0.083 / 0.044 | 0.783 / 0.520 / 0.409 (0.776 / 0.518 / 0.405) |
+| Source (both) | unseen | 0.547 / 0.328 / 0.250 | 0.546 / 0.321 / 0.246 | 0.212 / 0.110 / 0.062 | 0.473 / 0.378 / 0.326 (0.469 / 0.367 / 0.317) |
+| Material | in-family | 0.749 / 0.558 / 0.484 | 0.749 / 0.567 / 0.476 | 0.772 / 0.583 / 0.469 | 0.091 / 0.026 / 0.020 (0.094 / 0.023 / 0.017) |
+| Material | unseen | 0.455 / 0.385 / 0.397 | 0.447 / 0.376 / 0.373 | 0.428 / 0.357 / 0.347 | 0.045 / -0.002 / 0.002 (0.044 / -0.001 / -0.006) |
+
+- **Reading the table:** R1-S beats R1 in stretch and wall edits in both room sets in every band (stretch edited r by 0.03 to 0.05; wall by about 0.01-0.03), and is level on notch, source and material. The SS1 bar asks for +0.05 in r_delta: the in-family gain is 0.03 in the lowest band (pooled Stretch-U and Stretch-A r_delta +0.032 / +0.017 / +0.012).
+- **R1-S's MM1 / MM2 on its material cells (it has no material training):** EDT slope 0.01 in-family and 0.00 unseen; MM2 margin +11.8 points in-family: as for R1.
+- Ignoring the edit still beats both models in the notch, material and unseen wall / stretch-A cells listed in I15.
+
+Links: [scorecard_R1S_full.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1S_full.md) · [scorecard_R1S_full.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1S_full.json)
+
 ## 2026-11-23 (23:33) — I17 (R1-S +30K, the final read of the stretched-room arm): SS1 FAILS, SC1 HOLDS, no extension; no arm is extended
 
 **Headline:** The arm that trains on stretched rooms (R1-S) finished its 30K steps. It predicts stretch edits a little better than R1 at the same step, in every band, but not by the +0.05 in two bands the pre-registration asks for: +0.032 / +0.017 / +0.012 (25-100 / 100-200 / 200-300 Hz) in known rooms, every interval above zero. Its accuracy at the original source is unchanged, so it does no harm. Its gain did not grow enough in the last 10K steps to extend the run, and no other arm extends either, so R1 stays at 150K.
@@ -18,7 +45,7 @@ Off-lattice, full set (15 in-family and 16 unseen rooms), Stretch-U and Stretch-
 - **SC1 (HF and each UF band >= R1 - 0.02): HOLDS.** HF 0.572 against 0.571: +0.001 [-0.003, +0.004].
 - **Extension rule (D201 Q27; 8 lite rooms):** second-best band +0.0225 (>= 0.00, met), band mean +0.0304 against +0.0215 at +20K: rise +0.0089, needs +0.02: **not triggered.** R1 is therefore not continued either.
 - **Base model (Q28): stays R1.** R1-S fails its primary, so it does not become the base (Q28: an arm must pass its primary and its no-harm bar).
-- **Against R0 in known rooms** R1-S is not ahead above 100 Hz (at +15K -0.013 / -0.017); that comparison is at 135K, not at the final read.
+- **Against R0 in known rooms: see I18 for the final read** (at +15K the r_delta of R1-S was below R0's above 100 Hz; at the final read it is not, and its edited accuracy on stretch cells is above R0's in every band).
 
 Links: [verdict_R1S_150K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1S_150K.md) · [verdict_R1S_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1S_150K.json)
 
