@@ -1,4 +1,4 @@
-# MEETING PACK (built 2026-11-24 10:25 ET)
+# MEETING PACK (built 2026-11-24 11:33 ET)
 
 Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at build time. Triples are 25-100 / 100-200 / 200-300 Hz; r is the off-lattice accuracy from the frozen scorer.
 
@@ -21,6 +21,8 @@ Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at buil
 - **V8 Scorecards** [V8_scorecards](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V8_scorecards.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V8_scorecards.json)): Largest gains over R0 this round: Source and Material; 'ignore the edit' still beats this round's model for Material everywhere.
 - **E-C Per-room training against decay (two rooms)** [EC_exposure](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EC_exposure.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EC_exposure.json)): Fine-tuning R1 on one room takes the resonance width from 1.40 to 1.04 times the truth after 120 steps; R0 @120K stays at 1.44.
 - **E-B Capture then edit** [EB_capture_then_edit](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.json)): 16 of 16 rooms: CE1 StretchU fails; Wall holds; Material holds; but a captured model with no edit already scores 0.55 (Wall) on the survival scale, and interpolating the microphones scores as high on Wall and Material (see section 4 of the presentation report).
+- **P-1 figure: the physics penalty, stopped by its pre-set rule** [P1F_physics_penalty](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P1F_physics_penalty.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P1F_physics_penalty.json)): The mean-value penalty lowers the wave-equation residual (25-100 Hz 4.80 to 3.90 times the truth's) but costs accuracy at 200-300 Hz (0.534 against 0.572); the run was stopped at its first read.
+- **M5 Energy flow with the source moved (50 Hz)** [M5_energy_flow_moved_source](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/M5_energy_flow_moved_source.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/M5_energy_flow_moved_source.json)): With the source at the third position R1's energy-flow direction agrees with the truth's 0.50 (mean cosine; median angle 32 degrees), R0's -0.30 (125 degrees).
 - **P-2 How physical are our fields?** [P2_how_physical](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P2_how_physical.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P2_how_physical.json)): Energy before the direct sound is 1.04 to 1.11 times the simulation's (R0, R1, R1-S, R1-M); the revisit condition of 2 times is not met. The swap test costs R1 0.15 to 0.35 of accuracy in known rooms; the wave-equation error is several times the simulation's at low frequency.
 
 PDF copies sit beside every PNG. Figures of 2026-11-24 00:00-04:00 (F1, F2, F3, F4, F5, F7) are in the [manifest](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/FIGURE_MANIFEST.md); F3, F4 and F5 are superseded by V1-V4 (the lattice gaps in F3 / F4 are gone).
@@ -58,7 +60,8 @@ PDF copies sit beside every PNG. Figures of 2026-11-24 00:00-04:00 (F1, F2, F3, 
 - that R1-SM's gains add, before its +30K verdict (about 15:30 ET);
 - that anything renders in real time except single listeners (12 ms);
 - that decay is 12-34% too fast: that is the early decay only; R1's T20 is 33-61% off after the late floor is removed;
-- that R1-P was launched: the pre-registered arm is not (D205); P-1 today is an exploratory re-registration (D217).
+- that R1-P was launched: the pre-registered arm is not (D205); P-1 today was an exploratory re-registration (D217) and was stopped at +2.5K by its stop rule (HF 0.534 against 0.572);
+- that the physics penalty helps: it lowers the residual but costs accuracy and worsens the decay.
 
 ## 4. Failed or not finished
 

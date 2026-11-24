@@ -19,7 +19,7 @@
 
 - **So the 63 Hz offset is not a pure one the penalty removes (the note's question).** The penalty sees about 4% of a constant; the floor rose by 4 to 5 dB in all three octaves.
 - **Bypass check (held-out centres against training-rule centres in training rooms):** all ratios at or below 0.92 (bar 1.5): no sign of memorising the training centres.
-- **Limits.** One read, one seed, a 10K run stopped at 5% of its steps beyond the first checkpoint; 2 centres per step (18 renders, the most that stays under the 60% overhead); weight fixed at 2.05 (20% of the step-0 loss). The +5K checkpoint of both arms exists (the arm was stopped at 156.2K) but has not been read: the rule ends the arm at the triggering read. The "bit for bit at weight 0" test covers the first-step loss and the random streams, not the parameters (hash-grid gradients are not reproducible).
+- **Limits.** One read, one seed; the arm was cancelled at step 156.2K, 6.2K of its 10K steps; 2 centres per step (18 renders, the most that stays under the 60% overhead); weight fixed at 2.05 (20% of the step-0 loss). The +5K checkpoint of both arms exists (the arm was stopped at 156.2K) but has not been read: the rule ends the arm at the triggering read. The "bit for bit at weight 0" test covers the first-step loss and the random streams, not the parameters (hash-grid gradients are not reproducible).
 - **Reading for the next variant (not a P4-10 change):** the manager's note says the next variant, if any, would use a radius of 1.2/k at low frequency; on this read that would not be a small extension: the penalty already costs HF and raises the floor.
 
 Full read:

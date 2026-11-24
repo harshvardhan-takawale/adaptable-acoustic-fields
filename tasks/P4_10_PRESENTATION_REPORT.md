@@ -1,4 +1,4 @@
-# Presentation report for the manager (built 2026-11-24 10:25 ET; meeting 2026-11-24 about 16:00 ET)
+# Presentation report for the manager (built 2026-11-24 11:33 ET; meeting 2026-11-24 about 16:00 ET)
 
 For the manager building the deck. It lists a proposed slide order, the figures with raw links, slide-ready numbers, the approved wording, what is final or provisional, and what must not be said. **The result numbers are read from JSON at build time** (times, ranks and schedules are text) by `scripts/p4_10_presentation_report.py`; rebuild it after new reads land. Triples are 25-100 / 100-200 / 200-300 Hz; accuracy r is the off-lattice score from the frozen scorer (spatial correlation of the sound-level map). "Known rooms" = the 15 in-family test rooms; "new rooms" = the frozen 16 unseen rooms.
 
@@ -27,7 +27,9 @@ Status labels: **FINAL** (scored, verdict recorded), **PROVISIONAL** (a later pa
 | 8 | How much training per room fixes it | [EC_exposure](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EC_exposure.png) | Fine-tuning R1 on one room: width 1.40 at the start, 1.04 after 120 steps (4,320 rows in all); the shared models read 1.21 to 1.50. | FINAL (two rooms, one seed) |
 | 9 | Capture, then edit | [EB_capture_then_edit](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.png) | See section 4 before using it: this one needs care. | FINAL, 16 of 16 rooms |
 | 10 | How physical are the fields? | [P2_how_physical](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P2_how_physical.png) | Causality: the models' energy before the direct sound is 1.06, 1.11, 1.08, 1.04 times the truth's (R0, R1, R1-S, R1-M); the revisit condition (2 times) is not met. Swapping source and listener costs R1 0.15 to 0.35 of accuracy (R0 0.55 to 0.75). The wave-equation error is 4 to 5 times the simulation's at 25-100 Hz (raw). | FINAL |
-| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. At +5K it reads the same as its parents: material response slope 0.37 (R1-M 0.36), third source 0.655 / 0.357 / 0.217 (R1 0.648 / 0.342 / 0.202), stretch pattern of the change 0.763 / 0.498 / 0.317 (R1-S 0.771 / 0.520 / 0.323). Not a verdict. A mean-value penalty (P-1) is an exploratory re-registration running today. | PENDING |
+| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. At +5K it reads the same as its parents: material response slope 0.37 (R1-M 0.36), third source 0.655 / 0.357 / 0.217 (R1 0.648 / 0.342 / 0.202), stretch pattern of the change 0.763 / 0.498 / 0.317 (R1-S 0.771 / 0.520 / 0.323). Not a verdict. A mean-value penalty (P-1) was an exploratory re-registration: its stop rule triggered at the first read (see section 5b). | P-1 FINAL, R1-SM running |
+| 12 | Source-moved energy flow | [M5_energy_flow_moved_source](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/M5_energy_flow_moved_source.png) | At 50 Hz with the source at the third position R1's energy-flow direction agrees with the truth's 0.50 (median angle 32 degrees), R0's -0.30 (125 degrees). At this position the source radiates little at 50 Hz, so most arrows are circulating energy. | FINAL |
+| 13 | Adding physics to training | [P1F_physics_penalty](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P1F_physics_penalty.png) | The penalty lowers the wave-equation error but costs accuracy and worsens decay; stopped by its own rule (section 5b). | FINAL |
 | backup | A new room type | [V1u_stretch_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_50Hz.png), [V1u_stretch_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_125Hz.png); [V2u_source_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_50Hz.png), [V2u_source_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_125Hz.png); median room [V2m_source_median_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2m_source_median_125Hz.png) | The stretch is not predicted at 50 Hz in the unseen room (r 0.03 / 0.13 / 0.10 / 0.15 / 0.23) and weakly at 125 Hz (0.46 / 0.39 / 0.57 / 0.56 / 0.39). | FINAL |
 
 The showcase room is L5.36_W4.34_d1.88_w1.40; on this round's metrics it ranks 11th to 13th of 15 on most, 3rd on one (moved source, 100-200 Hz; the median room is shown beside it) and 10th / 14th on energy flow. It is not a best case. Every figure is 16:9, 14 pt or more, with a PDF and a JSON beside the PNG.
@@ -93,6 +95,10 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 - **Reciprocity (complete, 4 models):** swapped against normal accuracy in known rooms at 25-100 Hz: R0 0.17 against 0.92; R1 0.76 against 0.91. At 200-300 Hz R1 is 0.22 against 0.57.
 - **Wave equation (complete, 4 models):** the mean-value residual, times the truth's, raw: R0 4.1, R1 4.8, R1-S 4.7, R1-M 4.9 at 25-100 Hz. R0 is 4.1, 2.2 and 2.1 times the truth's (raw, three bands); band-limited 2.8, 1.7, 1.5.
 
+## 5b. P-1, the mean-value penalty (FINAL: stopped at +2.5K, D217 / D218)
+
+R1-P(t) (R1 plus the penalty) against its matched control R1-ctl after 2.5K of 10K steps: accuracy HF 0.534 against 0.572 (-0.038; below the control in 15 of 15 known rooms); the pre-registered stop rule triggered and the arm was cancelled. The wave-equation residual fell (raw, over the truth: 4.80 to 3.90 at 25-100 Hz), but the early-decay error rose at every octave (63 / 125 / 250 Hz: 15 / 24 / 29% to 17 / 33 / 54%) and the late floor rose. **For the collaborator who asked: the penalty was tried, it reduces the physics error, and it hurts accuracy and decay at this strength.** The expected lever for the 63 Hz floor did not show. One read, one seed.
+
 ## 6. Wording that is approved
 
 - **R1:** "Moved sources are far better than before, not solved." (D206)
@@ -108,8 +114,10 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 - that R1-SM's gains add, before its +30K verdict (about 15:30 ET);
 - that anything renders in real time except single listeners (12 ms);
 - that decay is 12-34% too fast: that is the early decay only; R1's T20 is 33-61% off after the late floor is removed;
-- that R1-P was launched: the pre-registered arm is not (D205); P-1 today is an exploratory re-registration (D217).
+- that R1-P was launched: the pre-registered arm is not (D205); P-1 today was an exploratory re-registration (D217) and was stopped at +2.5K by its stop rule (HF 0.534 against 0.572);
+- that the physics penalty helps: it lowers the residual but costs accuracy and worsens the decay.
 - that capture-then-edit works in general (section 4);
+- that the physics penalty helps (it was stopped; section 5b);
 - that decay is fixed, or that removing the floor fixes it (V7);
 - that the showcase room is typical of new room types (the unseen backup pictures are much worse).
 
@@ -123,7 +131,7 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 | P-2 | FINAL | posted in the live log |
 | R1-SM +5K | FINAL (descriptive) | posted in the live log |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |
-| P-1 (R1-P(t) and control) | training, first checkpoint about 10:17 | +10K read about 13:30 to 13:50 |
+| P-1 (R1-P(t) and control) | FINAL: stopped at +2.5K by its stop rule | posted in the live log |
 | E-E (source coverage) | truth done, renders only on spare GPUs | if it runs |
 | R1-SM's +30K verdict | after the meeting | about 15:30 |
 

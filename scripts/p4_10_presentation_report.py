@@ -44,6 +44,18 @@ wall_cap = eb["families"]["Wall|L+0.3"]["bands"]["25-100"]
 mat_cap = eb["families"]["Material|all0.30"]["bands"]["25-100"]
 fl = lambda f, b="25-100": eb["families"][f]["bands"][b]["C"]  # noqa: E731
 smr = J("outputs/p4_10/progress/R1SM_125K.json")
+def ptnum():
+    import re
+    t = Path("outputs/p4_10/pt/read_152K.md").read_text()
+    g = lambda pat: [float(x) for x in re.search(pat, t).groups()]  # noqa: E731
+    hf = g(r"HF ([\d.]+) vs ([\d.]+), ([-+][\d.]+)")
+    raw = [g(r"raw over truth ([\d.]+) vs ([\d.]+)")[i] for i in (0, 1)]
+    ed = {o: g(r"D1 " + o + r" Hz: EDT error ([\d.]+)% vs ([\d.]+)%") for o in ("63", "125", "250")}
+    return {"HF": hf, "raw": raw, "edt_pt": [ed[o][0] for o in ("63", "125", "250")], "edt_ctl": [ed[o][1] for o in ("63", "125", "250")]}
+
+
+pt = ptnum()
+m5 = J(M / "M5_energy_flow_moved_source.json")["numbers"]
 EBS = "FINAL, 16 of 16 rooms" if not eb["missing_rooms"] and not eb["partial_rooms"] else "PROVISIONAL, {} of 16 rooms".format(eb["n_rooms"])
 fam = {"Stretch-U 1.10": "StretchU|1.10", "Wall +0.3 m": "Wall|L+0.3", "All walls 0.30": "Material|all0.30", "Longest wall 0.50": "Material|long0.50", "Source moved": "Source|third"}
 
@@ -90,7 +102,9 @@ Status labels: **FINAL** (scored, verdict recorded), **PROVISIONAL** (a later pa
 | 8 | How much training per room fixes it | {L('EC_exposure')} | Fine-tuning R1 on one room: width {ecw('0 steps (R1 @150K)', 'c'):.2f} at the start, {ecw('120 steps', 'c'):.2f} after 120 steps ({ecr('120 steps', 'c')} rows in all); the shared models read {min(ecw(k) for k in ('R0 @20K', 'R0 @30K', 'R0 @60K', 'R0 @90K', 'R0 @120K', 'CTL @150K', 'R1 @150K', 'S2X @240K (2000 rooms)')):.2f} to {max(ecw(k) for k in ('R0 @20K', 'R0 @30K', 'R0 @60K', 'R0 @90K', 'R0 @120K', 'CTL @150K', 'R1 @150K', 'S2X @240K (2000 rooms)')):.2f}. | FINAL (two rooms, one seed) |
 | 9 | Capture, then edit | {L('EB_capture_then_edit')} | See section 4 before using it: this one needs care. | {EBS} |
 | 10 | How physical are the fields? | {L('P2_how_physical')} | Causality: the models' energy before the direct sound is {cau['pooled']['R0_120K']['ratio_of_means']:.2f}, {cau['pooled']['R1_150K']['ratio_of_means']:.2f}, {cau['pooled']['R1S_150K']['ratio_of_means']:.2f}, {cau['pooled']['R1M_150K']['ratio_of_means']:.2f} times the truth's (R0, R1, R1-S, R1-M); the revisit condition (2 times) is not met. Swapping source and listener costs R1 0.15 to 0.35 of accuracy (R0 0.55 to 0.75). The wave-equation error is 4 to 5 times the simulation's at 25-100 Hz (raw). | FINAL |
-| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. At +5K it reads the same as its parents: material response slope {smr['material|R1SM|test']['slope']:.2f} (R1-M {smr['material|R1M|test']['slope']:.2f}), third source {t3(smr['third_source_vs_R1']['arm'])} (R1 {t3(smr['third_source_vs_R1']['ref'])}), stretch pattern of the change {t3([smr['stretch_vs_R1S|test']['level'][b] for b in B])} (R1-S {t3([smr['stretch_vs_R1S|test']['ref_level'][b] for b in B])}). Not a verdict. A mean-value penalty (P-1) is an exploratory re-registration running today. | PENDING |
+| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. At +5K it reads the same as its parents: material response slope {smr['material|R1SM|test']['slope']:.2f} (R1-M {smr['material|R1M|test']['slope']:.2f}), third source {t3(smr['third_source_vs_R1']['arm'])} (R1 {t3(smr['third_source_vs_R1']['ref'])}), stretch pattern of the change {t3([smr['stretch_vs_R1S|test']['level'][b] for b in B])} (R1-S {t3([smr['stretch_vs_R1S|test']['ref_level'][b] for b in B])}). Not a verdict. A mean-value penalty (P-1) was an exploratory re-registration: its stop rule triggered at the first read (see section 5b). | P-1 FINAL, R1-SM running |
+| 12 | Source-moved energy flow | {L('M5_energy_flow_moved_source')} | At 50 Hz with the source at the third position R1's energy-flow direction agrees with the truth's {m5['R1']['energy_flow_direction_agreement_mean_cosine']:.2f} (median angle {m5['R1']['median_angle_deg']:.0f} degrees), R0's {m5['R0']['energy_flow_direction_agreement_mean_cosine']:.2f} ({m5['R0']['median_angle_deg']:.0f} degrees). At this position the source radiates little at 50 Hz, so most arrows are circulating energy. | FINAL |
+| 13 | Adding physics to training | {L('P1F_physics_penalty')} | The penalty lowers the wave-equation error but costs accuracy and worsens decay; stopped by its own rule (section 5b). | FINAL |
 | backup | A new room type | {L('V1u_stretch_unseen_50Hz')}, {L('V1u_stretch_unseen_125Hz')}; {L('V2u_source_unseen_50Hz')}, {L('V2u_source_unseen_125Hz')}; median room {L('V2m_source_median_125Hz')} | The stretch is not predicted at 50 Hz in the unseen room (r {strip_r('V1u_stretch_unseen_50Hz', 'R1-S')}) and weakly at 125 Hz ({strip_r('V1u_stretch_unseen_125Hz', 'R1-S')}). | FINAL |
 
 The showcase room is L5.36_W4.34_d1.88_w1.40; on this round's metrics it ranks 11th to 13th of 15 on most, 3rd on one (moved source, 100-200 Hz; the median room is shown beside it) and 10th / 14th on energy flow. It is not a best case. Every figure is 16:9, 14 pt or more, with a PDF and a JSON beside the PNG.
@@ -133,6 +147,10 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 - **Reciprocity (complete, 4 models):** swapped against normal accuracy in known rooms at 25-100 Hz: R0 {rec['R0_120K']['in_family15']['25-100']['swapped'][0]:.2f} against {rec['R0_120K']['in_family15']['25-100']['normal'][0]:.2f}; R1 {rec['R1_150K']['in_family15']['25-100']['swapped'][0]:.2f} against {rec['R1_150K']['in_family15']['25-100']['normal'][0]:.2f}. At 200-300 Hz R1 is {rec['R1_150K']['in_family15']['200-300']['swapped'][0]:.2f} against {rec['R1_150K']['in_family15']['200-300']['normal'][0]:.2f}.
 - **Wave equation (complete, 4 models):** the mean-value residual, times the truth's, raw: R0 {res['bands']['25-100']['R0_120K|raw']['over_truth']:.1f}, R1 {res['bands']['25-100']['R1_150K|raw']['over_truth']:.1f}, R1-S {res['bands']['25-100']['R1S_150K|raw']['over_truth']:.1f}, R1-M {res['bands']['25-100']['R1M_150K|raw']['over_truth']:.1f} at 25-100 Hz. R0 is {res['bands']['25-100']['R0_120K|raw']['over_truth']:.1f}, {res['bands']['100-200']['R0_120K|raw']['over_truth']:.1f} and {res['bands']['200-300']['R0_120K|raw']['over_truth']:.1f} times the truth's (raw, three bands); band-limited {res['bands']['25-100']['R0_120K|proj']['over_truth']:.1f}, {res['bands']['100-200']['R0_120K|proj']['over_truth']:.1f}, {res['bands']['200-300']['R0_120K|proj']['over_truth']:.1f}.
 
+## 5b. P-1, the mean-value penalty (FINAL: stopped at +2.5K, D217 / D218)
+
+R1-P(t) (R1 plus the penalty) against its matched control R1-ctl after 2.5K of 10K steps: accuracy HF {pt['HF'][0]:.3f} against {pt['HF'][1]:.3f} ({pt['HF'][2]:+.3f}; below the control in 15 of 15 known rooms); the pre-registered stop rule triggered and the arm was cancelled. The wave-equation residual fell (raw, over the truth: {pt['raw'][1]:.2f} to {pt['raw'][0]:.2f} at 25-100 Hz), but the early-decay error rose at every octave (63 / 125 / 250 Hz: {pt['edt_ctl'][0]:.0f} / {pt['edt_ctl'][1]:.0f} / {pt['edt_ctl'][2]:.0f}% to {pt['edt_pt'][0]:.0f} / {pt['edt_pt'][1]:.0f} / {pt['edt_pt'][2]:.0f}%) and the late floor rose. **For the collaborator who asked: the penalty was tried, it reduces the physics error, and it hurts accuracy and decay at this strength.** The expected lever for the 63 Hz floor did not show. One read, one seed.
+
 ## 6. Wording that is approved
 
 - **R1:** "Moved sources are far better than before, not solved." (D206)
@@ -144,6 +162,7 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 
 """ + "\n".join("- " + x for x in NOT_CLAIM) + f"""
 - that capture-then-edit works in general (section 4);
+- that the physics penalty helps (it was stopped; section 5b);
 - that decay is fixed, or that removing the floor fixes it (V7);
 - that the showcase room is typical of new room types (the unseen backup pictures are much worse).
 
@@ -157,7 +176,7 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 | P-2 | FINAL | posted in the live log |
 | R1-SM +5K | FINAL (descriptive) | posted in the live log |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |
-| P-1 (R1-P(t) and control) | training, first checkpoint about 10:17 | +10K read about 13:30 to 13:50 |
+| P-1 (R1-P(t) and control) | FINAL: stopped at +2.5K by its stop rule | posted in the live log |
 | E-E (source coverage) | truth done, renders only on spare GPUs | if it runs |
 | R1-SM's +30K verdict | after the meeting | about 15:30 |
 
