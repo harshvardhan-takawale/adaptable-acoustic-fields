@@ -3,6 +3,33 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (02:54) — I22 (R1-M +30K, the full scorecard): better material edits than any other model, but on the full set still below "ignore the edit"; other edits level with R1
+
+**Headline:** The full scorecard of the materials arm is in (675 cells). On wall-absorption edits R1-M scores 0.894 / 0.713 / 0.618 (25-100 / 100-200 / 200-300 Hz) in known rooms, against 0.749 / 0.567 / 0.476 for R1, and its pattern-of-change score is four to five times R1's. **But "ignore the edit" still scores 0.911 / 0.891 / 0.880 on the same full set, so R1-M is below it in every band.** (The earlier reads on 8 lite rooms had it above at the lowest band; the full set does not.) On all other edit families it is level with R1.
+
+R1-M @150K, off-lattice, full set (15 in-family, 16 unseen rooms), edited-field r (25-100 / 100-200 / 200-300 Hz), "ignore the edit" beside:
+
+| family | set | R1-M | R1 | ignore the edit | R1-M r_delta (R1) |
+|---|---|---|---|---|---|
+| **Material** | in-family | **0.894 / 0.713 / 0.618** | 0.749 / 0.567 / 0.476 | 0.911 / 0.891 / 0.880 | 0.442 / 0.180 / 0.122 (0.094 / 0.023 / 0.017) |
+| **Material** | unseen | **0.558 / 0.483 / 0.460** | 0.447 / 0.376 / 0.373 | 0.921 / 0.897 / 0.884 | 0.199 / 0.112 / 0.071 (0.044 / -0.001 / -0.006) |
+| Stretch-U | in-family | 0.827 / 0.599 / 0.494 | 0.825 / 0.599 / 0.492 | 0.410 / 0.171 / 0.119 | 0.796 / 0.562 / 0.473 (0.801 / 0.573 / 0.478) |
+| Stretch-U | unseen | 0.461 / 0.382 / 0.347 | 0.442 / 0.356 / 0.340 | 0.440 / 0.153 / 0.103 | 0.296 / 0.249 / 0.281 (0.287 / 0.230 / 0.278) |
+| Stretch-A | in-family | 0.834 / 0.608 / 0.499 | 0.832 / 0.609 / 0.494 | 0.514 / 0.250 / 0.281 | 0.747 / 0.522 / 0.309 (0.751 / 0.536 / 0.317) |
+| Stretch-A | unseen | 0.477 / 0.394 / 0.368 | 0.461 / 0.373 / 0.359 | 0.544 / 0.255 / 0.255 | 0.270 / 0.193 / 0.150 (0.267 / 0.180 / 0.149) |
+| Wall | in-family | 0.888 / 0.651 / 0.554 | 0.891 / 0.658 / 0.557 | 0.735 / 0.421 / 0.233 | 0.713 / 0.471 / 0.440 (0.721 / 0.486 / 0.448) |
+| Wall | unseen | 0.499 / 0.410 / 0.380 | 0.483 / 0.392 / 0.372 | 0.752 / 0.413 / 0.213 | 0.225 / 0.166 / 0.229 (0.218 / 0.158 / 0.223) |
+| Notch | in-family | 0.901 / 0.672 / 0.557 | 0.906 / 0.681 / 0.560 | 0.885 / 0.715 / 0.534 | 0.602 / 0.301 / 0.207 (0.614 / 0.310 / 0.209) |
+| Notch | unseen | 0.520 / 0.424 / 0.407 | 0.503 / 0.409 / 0.399 | 0.916 / 0.760 / 0.624 | 0.074 / 0.023 / 0.019 (0.077 / 0.022 / 0.018) |
+| Source (both) | in-family | 0.733 / 0.380 / 0.271 | 0.743 / 0.377 / 0.260 | 0.305 / 0.217 / 0.215 | 0.768 / 0.516 / 0.411 (0.776 / 0.518 / 0.405) |
+| Source (both) | unseen | 0.550 / 0.330 / 0.262 | 0.546 / 0.321 / 0.246 | 0.344 / 0.246 / 0.209 | 0.478 / 0.381 / 0.329 (0.469 / 0.367 / 0.317) |
+
+- **Reading of the material row:** a correct edit and no edit score about the same on the edited-field measure here because the absorption change moves the field only a little (the r_delta column is the measure of whether the change itself is predicted: R1-M 0.442 / 0.180 / 0.122 in family against R1's 0.094 / 0.023 / 0.017, and its g_delta is 1.51 / 1.12 / 1.06, above 1 in every band, so R1-M's edited render is closer to the truth than its unedited one). The decay-time slope (I21, MM1) is 0.54 of the true amount with Pearson 0.95.
+- **Other families:** level with R1 in known rooms (within 0.01), and better by 0.02-0.03 on unseen stretch and wall edits.
+- R1-M's MM1, MM2 and MC1 verdicts are in I21. D1, D2 and A8 for R1-M follow.
+
+Links: [scorecard_R1M_full.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1M_full.md) · [scorecard_R1M_full.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1M_full.json) · [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-24 (02:52) — E1, E2, E3 (D206 / D207): decay — the single-room models get the decay right, the shared model does not; reciprocal averaging is not a candidate; the late floor is mostly not room-common
 
 **Headline:** (E1) Models trained on one room each reproduce that room's resonance widths exactly (ratio 1.00 in both rooms) and its decay times to within 0-2%, while R1, one model for 1000 rooms, is 1.7 times too broad in its own training rooms and 25-31% too fast in decay (125-250 Hz). By the reading written before the numbers, the broadening comes from sharing one model across rooms. (E2) Averaging the normal and swapped renders does not improve moved sources above 100 Hz and costs the original source, so it is not a P4-11 candidate. (E3) The models' late floor is a common-to-the-room component only at 63 Hz (2-3 times the truth's), not at 125-250 Hz.
