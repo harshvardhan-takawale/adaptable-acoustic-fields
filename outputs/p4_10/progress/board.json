@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 16:22",
+ "built": "2026-11-24 16:31",
  "arms": {
   "R1": [
    {
@@ -4252,56 +4252,28 @@
   {
    "job": "aaf_unseen_ev",
    "state": "RUNNING",
-   "elapsed": "3:37",
+   "elapsed": "12:48",
    "limit": "3:00:00",
    "where": "vulcan34"
   },
   {
-   "job": "aaf_oof",
+   "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "7:26",
-   "limit": "3:00:00",
-   "where": "tron46"
+   "elapsed": "7:11:45",
+   "limit": "9:00:00",
+   "where": "gammagpu14"
   },
   {
-   "job": "aaf_g2dense",
+   "job": "aaf_speckle_an",
    "state": "RUNNING",
-   "elapsed": "9:20",
+   "elapsed": "1:01",
    "limit": "3:00:00",
    "where": "gammagpu09"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "15:07",
-   "limit": "40:00",
-   "where": "gammagpu04"
-  },
-  {
-   "job": "aaf_sc_R1SM_150K",
-   "state": "RUNNING",
-   "elapsed": "15:07",
-   "limit": "40:00",
-   "where": "gammagpu04"
-  },
-  {
-   "job": "aaf_autopub",
-   "state": "RUNNING",
-   "elapsed": "7:02:34",
-   "limit": "9:00:00",
-   "where": "gammagpu14"
-  },
-  {
-   "job": "aaf_fit",
-   "state": "RUNNING",
-   "elapsed": "1:37",
-   "limit": "2:00:00",
-   "where": "vulcan33"
-  },
-  {
-   "job": "aaf_sc_R1SM_150K",
-   "state": "RUNNING",
-   "elapsed": "1:37",
+   "elapsed": "10:48",
    "limit": "40:00",
    "where": "gammagpu00"
   }
