@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 15:30",
+ "built": "2026-11-24 15:31",
  "arms": {
   "R1": [
    {
@@ -4236,6 +4236,13 @@
    "where": "(Priority)"
   },
   {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(Priority)"
+  },
+  {
    "job": "aaf_unseen_ev",
    "state": "PENDING",
    "elapsed": "0:00",
@@ -4271,13 +4278,6 @@
    "where": "(Priority)"
   },
   {
-   "job": "aaf_sc_R1SM_150K",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "40:00",
-   "where": "(Priority)"
-  },
-  {
    "job": "aaf_board",
    "state": "PENDING",
    "elapsed": "0:00",
@@ -4294,63 +4294,63 @@
   {
    "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "6:10:14",
+   "elapsed": "6:11:40",
    "limit": "9:00:00",
    "where": "gammagpu14"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "0:16",
+   "elapsed": "1:42",
    "limit": "40:00",
    "where": "gammagpu06"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "2:06",
+   "elapsed": "3:32",
    "limit": "40:00",
    "where": "vulcan34"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "2:06",
+   "elapsed": "3:32",
    "limit": "40:00",
    "where": "vulcan34"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "2:06",
+   "elapsed": "3:32",
    "limit": "40:00",
    "where": "vulcan34"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "2:06",
+   "elapsed": "3:32",
    "limit": "40:00",
    "where": "tron56"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "2:06",
+   "elapsed": "3:32",
    "limit": "40:00",
    "where": "tron60"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "2:06",
+   "elapsed": "3:32",
    "limit": "40:00",
    "where": "tron47"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "2:06",
+   "elapsed": "3:32",
    "limit": "40:00",
    "where": "clip14"
   }
