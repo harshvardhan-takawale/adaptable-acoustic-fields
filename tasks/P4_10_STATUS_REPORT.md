@@ -17,7 +17,7 @@
 
 - **Extension baseline (D208, registered before this read's numbers were used for any decision):** slope 0.53, Pearson 0.77. Nothing is extended before +30K.
 - **Other edits, in-family, R1-M / R1 at the same step:** Stretch-U 0.759 / 0.530 / 0.421 against 0.758 / 0.524 / 0.407, Stretch-A 0.816 / 0.579 / 0.484 (0.817 / 0.584 / 0.481), Wall 0.889 / 0.630 / 0.541 (0.895 / 0.639 / 0.544), Notch 0.894 / 0.648 / 0.540 (0.899 / 0.656 / 0.543), Source 0.707 / 0.354 / 0.256 (0.720 / 0.352 / 0.250).
-- **Pending:** its static HF / UF at 140K.
+- **Static (added 00:46; six minutes past the one-hour mark, its analysis jobs finished late), against R1 @140K:** HF 0.557 against 0.561: -0.004 [-0.008, +0.000]; UF 0.524 / 0.422 / 0.399 against 0.498 / 0.407 / 0.393: +0.026 [+0.014, +0.038] / +0.015 [+0.007, +0.022] / +0.006 [-0.005, +0.017]. MC1 is judged at +30K.
 
 Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [D208 in DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md)
 
