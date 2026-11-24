@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 09:14",
+ "built": "2026-11-24 10:24",
  "arms": {
   "R1": [
    {
@@ -1087,7 +1087,7 @@
           "n": 16
          },
          "T20": {
-          "slope": 0.6479820392306485,
+          "slope": 0.6479820392306483,
           "pearson": 0.5090287660656697,
           "n": 4
          }
@@ -1107,7 +1107,7 @@
         "n": 48
        },
        "T20": {
-        "slope": 0.19379385151864825,
+        "slope": 0.19379385151864836,
         "pearson": 0.13261535923571435,
         "n": 20
        },
@@ -1286,7 +1286,7 @@
           "n": 16
          },
          "T20": {
-          "slope": 0.19158778983748184,
+          "slope": 0.19158778983748206,
           "pearson": 0.17433167912390002,
           "n": 14
          }
@@ -1480,7 +1480,7 @@
           "n": 16
          },
          "T20": {
-          "slope": -1.5393790685810471,
+          "slope": -1.5393790685810467,
           "pearson": -0.8157766630496874,
           "n": 6
          }
@@ -1683,7 +1683,7 @@
           "n": 16
          },
          "T20": {
-          "slope": -0.7945397482143717,
+          "slope": -0.7945397482143712,
           "pearson": -0.6681707051193505,
           "n": 12
          }
@@ -1964,7 +1964,7 @@
           "n": 16
          },
          "T20": {
-          "slope": -0.3669504024636429,
+          "slope": -0.366950402463643,
           "pearson": -0.4681998754026924,
           "n": 12
          }
@@ -1976,7 +1976,7 @@
           "n": 16
          },
          "T20": {
-          "slope": 0.18201783841740293,
+          "slope": 0.182017838417403,
           "pearson": 0.47625449597504377,
           "n": 6
          }
@@ -2714,512 +2714,592 @@
     }
    }
   ],
-  "R1SM": []
+  "R1SM": [
+   {
+    "name": "R1SM_125K",
+    "step": 125000,
+    "static": null,
+    "gap": {
+     "test": {
+      "second": {
+       "25-100": [
+        0.3531063199043274,
+        0.2467724855057895,
+        0.46115490067750203
+       ],
+       "100-200": [
+        0.3622556161135435,
+        0.300401547877118,
+        0.4228502791374922
+       ],
+       "200-300": [
+        0.3686818601563573,
+        0.3300550475018099,
+        0.4156806217506528
+       ]
+      },
+      "third": {
+       "25-100": [
+        0.2185603715479374,
+        0.16958816051483155,
+        0.27708057351410387
+       ],
+       "100-200": [
+        0.25383254513144493,
+        0.20989836994558572,
+        0.2932564663700759
+       ],
+       "200-300": [
+        0.30956851318478584,
+        0.2915189918130636,
+        0.32682973849587144
+       ]
+      }
+     },
+     "unseen": {
+      "second": {
+       "25-100": [
+        0.0837534498423338,
+        -0.05409521930851041,
+        0.21419282625429328
+       ],
+       "100-200": [
+        0.20894778007641435,
+        0.12306393025210127,
+        0.29111648483667524
+       ],
+       "200-300": [
+        0.22440876650216524,
+        0.13333719689399004,
+        0.3223897593707079
+       ]
+      },
+      "third": {
+       "25-100": [
+        0.03369385562837124,
+        -0.043905675411224365,
+        0.1239059753715992
+       ],
+       "100-200": [
+        0.08447669073939323,
+        0.025214461609721184,
+        0.14220412075519562
+       ],
+       "200-300": [
+        0.16480732895433903,
+        0.12467631893232466,
+        0.2100917436182499
+       ]
+      }
+     }
+    },
+    "material": {
+     "test": {
+      "pooled": {
+       "slope": 0.36949823127979897,
+       "pearson": 0.6111615449640623,
+       "n": 48
+      },
+      "bands": {
+       "63": {
+        "slope": 0.6909601214521625,
+        "pearson": 0.8183714050969207,
+        "n": 16
+       },
+       "125": {
+        "slope": 0.8679365580503444,
+        "pearson": 0.7926693235266828,
+        "n": 16
+       },
+       "250": {
+        "slope": 0.5357875723935589,
+        "pearson": 0.8468395047364495,
+        "n": 16
+       }
+      },
+      "mm": {
+       "n_cells": 16,
+       "n_missing_decay": 0,
+       "bands": {
+        "63": {
+         "EDT": {
+          "slope": 0.6909601214521625,
+          "pearson": 0.8183714050969207,
+          "n": 16
+         },
+         "T20": {
+          "slope": 0.5924363394896666,
+          "pearson": 0.5313312754450973,
+          "n": 16
+         }
+        },
+        "125": {
+         "EDT": {
+          "slope": 0.8679365580503444,
+          "pearson": 0.7926693235266828,
+          "n": 16
+         },
+         "T20": null
+        },
+        "250": {
+         "EDT": {
+          "slope": 0.5357875723935589,
+          "pearson": 0.8468395047364495,
+          "n": 16
+         },
+         "T20": null
+        }
+       },
+       "EDT": {
+        "slope": 0.36949823127979897,
+        "pearson": 0.6111615449640623,
+        "n": 48
+       },
+       "T20": {
+        "slope": 0.5924363394896666,
+        "pearson": 0.5313312754450973,
+        "n": 16
+       },
+       "level_change": {
+        "slope": 0.38237118623755745,
+        "pearson": 0.4369780296811964,
+        "n": 48
+       },
+       "edt_err_edit_med": 0.2267510478485376,
+       "edt_err_orig_med": 0.2717963327985254,
+       "MM2_margin_pts": -0.045045284949987774,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 145189,
+       "n_receiver_bands_valid": 146689
+      }
+     },
+     "unseen": {
+      "pooled": {
+       "slope": 0.5934764022012551,
+       "pearson": 0.6643260165521889,
+       "n": 48
+      },
+      "bands": {
+       "63": {
+        "slope": 0.4116667770948515,
+        "pearson": 0.4038400285378711,
+        "n": 16
+       },
+       "125": {
+        "slope": 0.7421257074278377,
+        "pearson": 0.7529368328730323,
+        "n": 16
+       },
+       "250": {
+        "slope": 0.37886409397948717,
+        "pearson": 0.5052562671766695,
+        "n": 16
+       }
+      },
+      "mm": {
+       "n_cells": 16,
+       "n_missing_decay": 0,
+       "bands": {
+        "63": {
+         "EDT": {
+          "slope": 0.4116667770948515,
+          "pearson": 0.4038400285378711,
+          "n": 16
+         },
+         "T20": {
+          "slope": 0.20486166470745287,
+          "pearson": 0.22960795325886482,
+          "n": 16
+         }
+        },
+        "125": {
+         "EDT": {
+          "slope": 0.7421257074278377,
+          "pearson": 0.7529368328730323,
+          "n": 16
+         },
+         "T20": null
+        },
+        "250": {
+         "EDT": {
+          "slope": 0.37886409397948717,
+          "pearson": 0.5052562671766695,
+          "n": 16
+         },
+         "T20": null
+        }
+       },
+       "EDT": {
+        "slope": 0.5934764022012551,
+        "pearson": 0.6643260165521889,
+        "n": 48
+       },
+       "T20": {
+        "slope": 0.2381699289514907,
+        "pearson": 0.24859227055736338,
+        "n": 17
+       },
+       "level_change": {
+        "slope": 0.41707500186736707,
+        "pearson": 0.604986026928267,
+        "n": 48
+       },
+       "edt_err_edit_med": 0.2774254948955629,
+       "edt_err_orig_med": 0.32936296868857895,
+       "MM2_margin_pts": -0.051937473793016053,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 126618,
+       "n_receiver_bands_valid": 129438
+      }
+     }
+    },
+    "stretch": {}
+   }
+  ]
  },
  "queue": [
   {
-   "job": "aaf_ebs",
-   "state": "COMPLETING",
-   "elapsed": "0:30",
+   "job": "aaf_oof",
+   "state": "PENDING",
+   "elapsed": "0:00",
    "limit": "1:00:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_ebs",
-   "state": "COMPLETING",
-   "elapsed": "0:30",
-   "limit": "1:00:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_ebs",
-   "state": "COMPLETING",
-   "elapsed": "0:30",
-   "limit": "1:00:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "COMPLETING",
-   "elapsed": "0:31",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_p2q",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "40:00",
    "where": "(Priority)"
   },
   {
-   "job": "aaf_p2q",
+   "job": "aaf_pool_R1SM_125K",
    "state": "PENDING",
    "elapsed": "0:00",
-   "limit": "40:00",
+   "limit": "30:00",
    "where": "(Priority)"
   },
   {
-   "job": "aaf_p2q",
+   "job": "aaf_pool_R1SM_125K",
    "state": "PENDING",
    "elapsed": "0:00",
-   "limit": "40:00",
+   "limit": "30:00",
    "where": "(Priority)"
   },
   {
-   "job": "aaf_v5c",
+   "job": "aaf_speckle_an",
    "state": "PENDING",
    "elapsed": "0:00",
-   "limit": "40:00",
+   "limit": "3:00:00",
    "where": "(Priority)"
   },
   {
-   "job": "aaf_p2r",
+   "job": "aaf_pool_R1SM_125K",
    "state": "PENDING",
    "elapsed": "0:00",
-   "limit": "50:00",
-   "where": "(BeginTime)"
+   "limit": "30:00",
+   "where": "(Priority)"
   },
   {
-   "job": "aaf_ebf",
+   "job": "aaf_pool_R1SM_125K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_in_l40",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_in_a6",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_in_a5",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_in_a4",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_tr_a6",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_tr_a5",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_tr_a4",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_un_2080",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_un_l40",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_un_a6",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_un_a5",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_un_a4",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_in_2080",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_in_l40",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_in_a6",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_in_a5",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_in_a4",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_tr_2080",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_tr_l40",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_tr_a6",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_tr_a5",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_tr_a4",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_un_2080",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_un_l40",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_un_a6",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_un_a5",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_un_a4",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1pt_152K_in_2080",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_tr_2080",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_pt_r1ctl_152K_tr_l40",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_eesc",
    "state": "PENDING",
    "elapsed": "0:00",
    "limit": "30:00",
    "where": "(Dependency)"
   },
   {
-   "job": "aaf_eba",
+   "job": "aaf_eerd",
    "state": "PENDING",
    "elapsed": "0:00",
-   "limit": "30:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_ebs",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "1:00:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "1:30:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_ptwtest",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "5:00",
+   "limit": "40:00",
    "where": "(Priority)"
   },
   {
-   "job": "aaf_p2fin",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "1:00:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_p2fill",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "40:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_p2fill",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "40:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_p2fill",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "40:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_p2fill",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "50:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_p2fill",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "50:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_p2fill",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "50:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_ebs",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "1:00:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_ebs",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "1:00:00",
-   "where": "(Dependency)"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "2:00:00",
-   "where": "(Priority)"
-  },
-  {
-   "job": "aaf_eb",
+   "job": "aaf_p4_5_eval",
    "state": "RUNNING",
-   "elapsed": "11:03",
-   "limit": "2:00:00",
-   "where": "tron15"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "RUNNING",
-   "elapsed": "11:03",
-   "limit": "2:00:00",
-   "where": "tron28"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "RUNNING",
-   "elapsed": "16:33",
-   "limit": "2:00:00",
-   "where": "cml19"
-  },
-  {
-   "job": "aaf_ebs",
-   "state": "RUNNING",
-   "elapsed": "1:16",
+   "elapsed": "2:04",
    "limit": "1:00:00",
-   "where": "brigid16"
+   "where": "tron46"
   },
   {
-   "job": "aaf_ebs",
+   "job": "aaf_fit",
    "state": "RUNNING",
-   "elapsed": "1:16",
+   "elapsed": "4:06",
    "limit": "1:00:00",
-   "where": "brigid17"
+   "where": "tron46"
   },
   {
-   "job": "aaf_ebs",
+   "job": "aaf_ptwatch",
    "state": "RUNNING",
-   "elapsed": "1:16",
-   "limit": "1:00:00",
-   "where": "brigid17"
+   "elapsed": "11:53",
+   "limit": "12:00:00",
+   "where": "cml36"
   },
   {
    "job": "aaf_backstop",
    "state": "RUNNING",
-   "elapsed": "1:16",
+   "elapsed": "35:37",
    "limit": "14:00:00",
-   "where": "tron65"
+   "where": "gammagpu00"
   },
   {
-   "job": "aaf_p2r",
+   "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "50:00",
-   "where": "tron28"
+   "elapsed": "1:04:04",
+   "limit": "9:00:00",
+   "where": "gammagpu14"
   },
   {
-   "job": "aaf_eefd",
+   "job": "aaf_unseen_ev",
    "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_eefd",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "quics00"
-  },
-  {
-   "job": "aaf_p2q",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "tron07"
-  },
-  {
-   "job": "aaf_p2q",
-   "state": "RUNNING",
-   "elapsed": "5:09",
-   "limit": "40:00",
-   "where": "tron09"
-  },
-  {
-   "job": "aaf_p2r",
-   "state": "RUNNING",
-   "elapsed": "7:11",
-   "limit": "50:00",
-   "where": "tron42"
-  },
-  {
-   "job": "aaf_ec",
-   "state": "RUNNING",
-   "elapsed": "12:45",
-   "limit": "1:30:00",
-   "where": "vulcan44"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "RUNNING",
-   "elapsed": "14:39",
-   "limit": "2:00:00",
-   "where": "tron23"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "RUNNING",
-   "elapsed": "14:39",
-   "limit": "2:00:00",
-   "where": "tron19"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "RUNNING",
-   "elapsed": "14:39",
-   "limit": "2:00:00",
-   "where": "tron41"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "RUNNING",
-   "elapsed": "18:28",
-   "limit": "2:00:00",
-   "where": "cml25"
-  },
-  {
-   "job": "aaf_eb",
-   "state": "RUNNING",
-   "elapsed": "18:28",
-   "limit": "2:00:00",
-   "where": "cml17"
-  },
-  {
-   "job": "aaf_pttest",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "40:00",
-   "where": "(Resources)"
-  },
-  {
-   "job": "aaf_ptbench",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "30:00",
-   "where": "(Priority)"
+   "elapsed": "14:52",
+   "limit": "1:10:00",
+   "where": "tron53"
   },
   {
    "job": "aaf_r1sm",
    "state": "RUNNING",
-   "elapsed": "47:05",
+   "elapsed": "1:56:56",
    "limit": "1-00:00:00",
    "where": "tron61"
+  },
+  {
+   "job": "aaf_r1ctl",
+   "state": "RUNNING",
+   "elapsed": "57:36",
+   "limit": "6:00:00",
+   "where": "tron48"
+  },
+  {
+   "job": "aaf_r1pt",
+   "state": "RUNNING",
+   "elapsed": "1:00:46",
+   "limit": "6:00:00",
+   "where": "tron56"
+  },
+  {
+   "job": "aaf_score_R1SM_125K",
+   "state": "RUNNING",
+   "elapsed": "2:52",
+   "limit": "45:00",
+   "where": "tron62"
+  },
+  {
+   "job": "aaf_gather_R1SM_125K",
+   "state": "RUNNING",
+   "elapsed": "2:52",
+   "limit": "45:00",
+   "where": "tron67"
   }
  ],
  "table_c": {
@@ -3260,6 +3340,19 @@
      "25-100": 0.855681624263525,
      "100-200": 0.6062257084995508,
      "200-300": 0.41710761841386557
+    },
+    "n_rooms": 8
+   },
+   "R1SM_125K": {
+    "edited_r": {
+     "25-100": 0.782328886911273,
+     "100-200": 0.5283196037635207,
+     "200-300": 0.4352303445339203
+    },
+    "r_delta": {
+     "25-100": 0.7988893613219261,
+     "100-200": 0.5352652501314878,
+     "200-300": 0.3630434921942651
     },
     "n_rooms": 8
    },
@@ -3314,6 +3407,19 @@
      "25-100": 0.7879819460213184,
      "100-200": 0.5351954083889723,
      "200-300": 0.31901580188423395
+    },
+    "n_rooms": 8
+   },
+   "R1SM_125K": {
+    "edited_r": {
+     "25-100": 0.8260908722877502,
+     "100-200": 0.5670743230730295,
+     "200-300": 0.47719770949333906
+    },
+    "r_delta": {
+     "25-100": 0.7266272455453873,
+     "100-200": 0.46144419629126787,
+     "200-300": 0.27069024834781885
     },
     "n_rooms": 8
    },
@@ -3479,6 +3585,19 @@
     },
     "n_rooms": 8
    },
+   "R1SM_125K": {
+    "edited_r": {
+     "25-100": 0.5873084645718336,
+     "100-200": 0.3027245430275798,
+     "200-300": 0.18695406569167972
+    },
+    "r_delta": {
+     "25-100": 0.6629785392433405,
+     "100-200": 0.44963618740439415,
+     "200-300": 0.35873573645949364
+    },
+    "n_rooms": 8
+   },
    "R0_120K": {
     "edited_r": {
      "25-100": 0.22917930921539664,
@@ -3530,6 +3649,19 @@
      "25-100": 0.15152611664962023,
      "100-200": 0.038026737805921584,
      "200-300": 0.012634654674911872
+    },
+    "n_rooms": 8
+   },
+   "R1SM_125K": {
+    "edited_r": {
+     "25-100": 0.8563034869730473,
+     "100-200": 0.6643928810954094,
+     "200-300": 0.6068766005337238
+    },
+    "r_delta": {
+     "25-100": 0.42248938605189323,
+     "100-200": 0.14767730981111526,
+     "200-300": 0.07439339876873419
     },
     "n_rooms": 8
    },

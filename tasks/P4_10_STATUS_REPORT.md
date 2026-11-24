@@ -3,6 +3,38 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (10:25) — R1-SM (the combined model) +5K, first read (descriptive): it keeps R1-M's material response and R1's moved source, and is a little behind R1-S on stretches
+
+**Headline:** After 5K of 30K steps the combined model (R1 plus stretched rooms plus wall materials) reads the same as each of its parents at the same step, with one small shortfall. Its change in decay rate with wall absorption is 0.37 (Pearson 0.61) in known rooms against R1-M's 0.36 (Pearson 0.59) and 0.59 (Pearson 0.66) against 0.60 (Pearson 0.68) in new ones. Its moved third source is 0.655 / 0.357 / 0.217 against R1's 0.648 / 0.342 / 0.202. On stretch edits it is 0.763 / 0.498 / 0.317 against R1-S's 0.771 / 0.520 / 0.323 (25-100 / 100-200 / 200-300 Hz), -0.022 in the middle band. The bars (CS1, CM1, CSrc1, CN1) are judged at +30K on the full set, after the meeting; nothing here says the gains add.
+
+| lite cells (8 rooms) | R1-SM | parent | difference [95% CI], 25-100 / 100-200 / 200-300 Hz |
+|---|---|---|---|
+| stretch pattern of the change, known rooms | 0.763 / 0.498 / 0.317 | R1-S 0.771 / 0.520 / 0.323 | -0.008 [-0.022, +0.002] / -0.022 [-0.028, -0.015] / -0.006 [-0.012, -0.002] |
+| stretch pattern of the change, new rooms | 0.353 / 0.268 / 0.204 | R1-S 0.339 / 0.259 / 0.204 | +0.014 [+0.004, +0.023] / +0.008 [-0.002, +0.019] / +0.000 [-0.013, +0.012] |
+| third source, known rooms | 0.655 / 0.357 / 0.217 | R1 0.648 / 0.342 / 0.202 | +0.007 [-0.020, +0.033] / +0.015 [+0.005, +0.026] / +0.014 [-0.001, +0.033] |
+| second source, known rooms | 0.520 / 0.249 / 0.157 | R1 0.539 / 0.241 / 0.152 | -0.019 [-0.046, +0.010] / +0.007 [+0.000, +0.014] / +0.006 [-0.006, +0.018] |
+| material response (slope), known / new | 0.37 / 0.59 | R1-M 0.36 / 0.60 | -- |
+| material edited accuracy, known rooms | 0.856 / 0.664 / 0.607 | R1-M 0.874 / 0.688 / 0.614 | -- |
+
+- HF and UF follow (the static jobs are on tron; g2dense is done, unseen is running). Posted 15 minutes before the one-hour mark. Pooled over GPU types because the P6000 nodes are down and scavenger is slow (the checkpoint was ready at 09:41).
+- Numbers: [R1SM_125K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/R1SM_125K.md) · [board](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). Next: +10K about 10:52, with the standard harm rule against R1.
+
+## 2026-11-24 (10:25) — P-2 (D219): the physics audit; the Kramers-Kronig revisit condition is not met; no arm is reciprocal above 100 Hz; the wave-equation error is several times the simulation's at low frequency
+
+**Headline:** We checked three physical laws on the fields of R0, R1, R1-S and R1-M in the 15 known rooms. Energy before the direct sound is within 4 to 11% of the simulation's for every model, against a revisit condition of 2 times, so there is no reason to add INFER's Kramers-Kronig term. Swapping source and listener costs R0 0.55 to 0.75 of accuracy and R1 0.15 to 0.35; no arm meets RS3's 0.05 in known rooms. The models' wave-equation error is 4 to 5 times the simulation's at 25-100 Hz and about 2 times above.
+
+| constraint | truth | R0 | R1 | R1-S | R1-M |
+|---|---|---|---|---|---|
+| wave equation, raw, times the truth (25-100 / 100-200 / 200-300) | 1 | 4.1x / 2.2x / 2.1x | 4.8x / 2.3x / 2.4x | 4.7x / 2.3x / 2.2x | 4.9x / 2.2x / 2.3x |
+| wave equation, band-limited | 1 | 2.8x / 1.7x / 1.5x | 3.0x / 1.9x / 1.7x | 3.1x / 1.8x / 1.6x | 3.0x / 1.6x / 1.4x |
+| reciprocity: swapped accuracy, known rooms (normal) | -- | 0.167 / 0.050 / 0.027 (0.918 / 0.701 / 0.582) | 0.759 / 0.344 / 0.222 (0.909 / 0.683 / 0.571) | 0.766 / 0.351 / 0.237 (0.908 / 0.682 / 0.572) | 0.744 / 0.343 / 0.254 (0.904 / 0.672 / 0.568) |
+| causality: energy before the direct sound / direct energy | 0.109 [0.099, 0.118] | 0.115 (1.06x) | 0.120 (1.11x) | 0.117 (1.08x) | 0.113 (1.04x) |
+
+- **Revisit condition (D217):** met only if the model is at least 2 times the truth with the interval of (model - 2 x truth) above zero. For every model the interval is below zero (R1 -0.097 [-0.106, -0.089]). **Not met.** The model's excess over the truth (0.4 to 1.2% of the direct energy) has an interval above zero for every model, but the truth's own level (0.11) is the band limit's ringing: the test cannot see a non-causal part below about 10% of the direct energy. Say "not met", not "causal".
+- Band-limiting removes part of the wave-equation excess, but the low band stays about 3 times the truth's. R1-S and R1-M equal R1 to within about 0.02 in reciprocity.
+- Definitions and checks: D219 (one amendment before any number: the onset check uses the envelope maximum, since a 10% threshold crosses at the window's own edge under band-limiting; on the truth the arrival is +0.84 ms from predicted, within the 3 ms rule). All 15 rooms, 1473 to 2186 receivers at 3 m or more. Tests: `tests/test_p4_10_causality.py`.
+- Figure: [P2_how_physical](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P2_how_physical.png) ([pdf](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P2_how_physical.pdf), [json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P2_how_physical.json)). Report: [p2/report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/p2/report.md).
+
 ## 2026-11-24 (10:21) — E-B (D214): capture then edit, final (16 of 16 rooms): CE1 holds for Wall and Material and fails for Stretch, and the pass mostly reflects the capture, not the edit
 
 **Headline:** We measured each of the 16 unseen rooms with 32 microphones, fitted R1-M to them (M2), then edited. Capturing lifts accuracy a lot before any edit (0.52 to 0.82 at 25-100 Hz on the original room). Editing afterwards adds little for a wall move and for materials, and more for a stretch. The pre-registered test (survival at least 0.5 at 25-100 Hz) holds for Wall (0.75) and all walls 0.30 (0.64) and fails for Stretch-U (0.11). **But a captured model with no edit scores 0.55 (Wall) and 0.53 (Material) on the same scale, so both passes would be met without editing.**

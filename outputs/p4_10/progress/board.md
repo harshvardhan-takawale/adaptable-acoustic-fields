@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 09:14 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 10:24 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1SM: step 123200 at 0.84 s/step, next read 125000 at about 09:39 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1SM: step 128000 at 0.84 s/step, next read 130000 at about 10:52 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_eb x8, aaf_ebs x3, aaf_backstop x1, aaf_p2r x2, aaf_eefd x28, aaf_p2q x2, aaf_ec x1, aaf_r1sm x1
+**Running jobs:** aaf_p4_5_eval x1, aaf_fit x1, aaf_ptwatch x1, aaf_backstop x1, aaf_autopub x1, aaf_unseen_ev x1, aaf_r1sm x1, aaf_r1ctl x1, aaf_r1pt x1, aaf_score_R1SM_125K x1, aaf_gather_R1SM_125K x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -110,6 +110,21 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 
 | read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
 |---|---|---|---|---|
+| R1SM_125K | pending | | | |
+
+MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8), in-family primary; MM2 margin = median |EDT error| edited - unedited, points (bar <= +5):
+
+| read | set | EDT slope | Pearson | cell-bands | T20 slope | MM2 edited / unedited | dropped |
+|---|---|---|---|---|---|---|---|
+| R1SM_125K | in-family | 0.37 | 0.61 | 48 | 0.59 | 23% / 27% (-4.5) | 0 cells-bands; 145189 of 146689 rx-bands (T20 floor) |
+| R1SM_125K | unseen | 0.59 | 0.66 | 48 | 0.24 | 28% / 33% (-5.2) | 0 cells-bands; 126618 of 129438 rx-bands (T20 floor) |
+
+Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
+
+| read | source | 25-100 | 100-200 | 200-300 |
+|---|---|---|---|---|
+| R1SM_125K | second | 0.353 [0.247, 0.461] | 0.362 [0.300, 0.423] | 0.369 [0.330, 0.416] |
+| R1SM_125K | third | 0.219 [0.170, 0.277] | 0.254 [0.210, 0.293] | 0.310 [0.292, 0.327] |
 
 ## Table C -- latest read per model, in-family lite rooms: edited r / r_delta (25-100 / 100-200 / 200-300 Hz)
 
@@ -118,10 +133,12 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | StretchU | R1_150K | 8 | 0.760 / 0.530 / 0.419 | 0.806 / 0.579 / 0.393 |
 | StretchU | R1M_150K | 8 | 0.768 / 0.534 / 0.425 | 0.808 / 0.571 / 0.393 |
 | StretchU | R1S_150K | 8 | 0.826 / 0.579 / 0.475 | 0.856 / 0.606 / 0.417 |
+| StretchU | R1SM_125K | 8 | 0.782 / 0.528 / 0.435 | 0.799 / 0.535 / 0.363 |
 | StretchU | R0_120K | 8 | 0.761 / 0.532 / 0.417 | 0.816 / 0.588 / 0.405 |
 | StretchA | R1_150K | 8 | 0.818 / 0.590 / 0.484 | 0.737 / 0.518 / 0.307 |
 | StretchA | R1M_150K | 8 | 0.820 / 0.588 / 0.493 | 0.734 / 0.500 / 0.302 |
 | StretchA | R1S_150K | 8 | 0.874 / 0.614 / 0.522 | 0.788 / 0.535 / 0.319 |
+| StretchA | R1SM_125K | 8 | 0.826 / 0.567 / 0.477 | 0.727 / 0.461 / 0.271 |
 | StretchA | R0_120K | 8 | 0.819 / 0.595 / 0.488 | 0.756 / 0.530 / 0.323 |
 | Wall | R1_150K | 8 | 0.899 / 0.645 / 0.548 | 0.719 / 0.472 / 0.434 |
 | Wall | R1M_150K | 8 | 0.895 / 0.638 / 0.550 | 0.709 / 0.460 / 0.431 |
@@ -134,10 +151,12 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | Source | R1_150K | 8 | 0.752 / 0.370 / 0.257 | 0.782 / 0.505 / 0.396 |
 | Source | R1M_150K | 8 | 0.740 / 0.375 / 0.273 | 0.769 / 0.504 / 0.404 |
 | Source | R1S_150K | 8 | 0.765 / 0.376 / 0.264 | 0.789 / 0.505 / 0.402 |
+| Source | R1SM_125K | 8 | 0.587 / 0.303 / 0.187 | 0.663 / 0.450 / 0.359 |
 | Source | R0_120K | 8 | 0.229 / 0.074 / 0.034 | 0.497 / 0.380 / 0.297 |
 | Material | R1_150K | 8 | 0.691 / 0.507 / 0.428 | 0.146 / 0.031 / 0.005 |
 | Material | R1M_150K | 8 | 0.922 / 0.762 / 0.683 | 0.581 / 0.242 / 0.171 |
 | Material | R1S_150K | 8 | 0.688 / 0.488 / 0.444 | 0.152 / 0.038 / 0.013 |
+| Material | R1SM_125K | 8 | 0.856 / 0.664 / 0.607 | 0.422 / 0.148 / 0.074 |
 | Material | R0_120K | 8 | 0.719 / 0.518 / 0.407 | 0.101 / 0.032 / 0.008 |
 
 ![F2 trajectories](F2_trajectories.png)

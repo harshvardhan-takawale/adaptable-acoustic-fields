@@ -1,4 +1,4 @@
-# Presentation report for the manager (built 2026-11-24 10:21 ET; meeting 2026-11-24 about 16:00 ET)
+# Presentation report for the manager (built 2026-11-24 10:25 ET; meeting 2026-11-24 about 16:00 ET)
 
 For the manager building the deck. It lists a proposed slide order, the figures with raw links, slide-ready numbers, the approved wording, what is final or provisional, and what must not be said. **The result numbers are read from JSON at build time** (times, ranks and schedules are text) by `scripts/p4_10_presentation_report.py`; rebuild it after new reads land. Triples are 25-100 / 100-200 / 200-300 Hz; accuracy r is the off-lattice score from the frozen scorer (spatial correlation of the sound-level map). "Known rooms" = the 15 in-family test rooms; "new rooms" = the frozen 16 unseen rooms.
 
@@ -26,8 +26,8 @@ Status labels: **FINAL** (scored, verdict recorded), **PROVISIONAL** (a later pa
 | 7 | Why decay is off | [V6_why_decay_is_off](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V6_why_decay_is_off.png); [V7_late_floor](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V7_late_floor.png) | One room: the one-room model matches the truth's resonances and early decay; the shared one blurs them. Removing the late floor does not fix R1's decay at 125 Hz (EDT 24% to 24%, T20 57% to 61%). | FINAL |
 | 8 | How much training per room fixes it | [EC_exposure](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EC_exposure.png) | Fine-tuning R1 on one room: width 1.40 at the start, 1.04 after 120 steps (4,320 rows in all); the shared models read 1.21 to 1.50. | FINAL (two rooms, one seed) |
 | 9 | Capture, then edit | [EB_capture_then_edit](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.png) | See section 4 before using it: this one needs care. | FINAL, 16 of 16 rooms |
-| 10 | How physical are the fields? | figure PENDING | Causality is done: the models' energy before the direct sound is 1.06, 1.11, 1.08, 1.04 times the truth's (R0, R1, R1-S, R1-M); the revisit condition (2 times) is not met. | PARTLY FINAL |
-| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. A mean-value penalty (P-1) is an exploratory re-registration running today. | PENDING |
+| 10 | How physical are the fields? | [P2_how_physical](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/P2_how_physical.png) | Causality: the models' energy before the direct sound is 1.06, 1.11, 1.08, 1.04 times the truth's (R0, R1, R1-S, R1-M); the revisit condition (2 times) is not met. Swapping source and listener costs R1 0.15 to 0.35 of accuracy (R0 0.55 to 0.75). The wave-equation error is 4 to 5 times the simulation's at 25-100 Hz (raw). | FINAL |
+| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. At +5K it reads the same as its parents: material response slope 0.37 (R1-M 0.36), third source 0.655 / 0.357 / 0.217 (R1 0.648 / 0.342 / 0.202), stretch pattern of the change 0.763 / 0.498 / 0.317 (R1-S 0.771 / 0.520 / 0.323). Not a verdict. A mean-value penalty (P-1) is an exploratory re-registration running today. | PENDING |
 | backup | A new room type | [V1u_stretch_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_50Hz.png), [V1u_stretch_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_125Hz.png); [V2u_source_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_50Hz.png), [V2u_source_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_125Hz.png); median room [V2m_source_median_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2m_source_median_125Hz.png) | The stretch is not predicted at 50 Hz in the unseen room (r 0.03 / 0.13 / 0.10 / 0.15 / 0.23) and weakly at 125 Hz (0.46 / 0.39 / 0.57 / 0.56 / 0.39). | FINAL |
 
 The showcase room is L5.36_W4.34_d1.88_w1.40; on this round's metrics it ranks 11th to 13th of 15 on most, 3rd on one (moved source, 100-200 Hz; the median room is shown beside it) and 10th / 14th on energy flow. It is not a best case. Every figure is 16:9, 14 pt or more, with a PDF and a JSON beside the PNG.
@@ -87,11 +87,11 @@ Pre-registered test CE1 (survival >= 0.5 at 25-100 Hz): Stretch-U 1.10: survival
 
 A safe sentence if the slide is used: "Capturing a new room with 32 microphones raises its accuracy a lot before any edit (0.52 to 0.82 on the original room). Editing afterwards adds +0.06 (wall) and +0.03 (materials) to the captured model and +0.17 for a stretch, which the zero-shot edit nearly matches; a moved source gets worse than zero-shot." (25-100 Hz)
 
-## 5. Physics audit (P-2): what is complete
+## 5. Physics audit (P-2, FINAL)
 
 - **Causality (complete, 15 rooms, 4 models; FINAL):** energy before the direct sound over the direct-sound energy: truth 0.109; R0 0.115, R1 0.120, R1-S 0.117, R1-M 0.113. The revisit condition for the Kramers-Kronig term (model at least 2 times the truth, with its interval above zero) is **not met by any model**. Limit: the truth's own level (0.11) is the band limit's own pre-ringing, so the test cannot see non-causality smaller than that.
-- **Reciprocity (complete for R0 and R1; PROVISIONAL for R1-S and R1-M):** swapped against normal accuracy in known rooms at 25-100 Hz: R0 0.17 against 0.92; R1 0.76 against 0.91. At 200-300 Hz R1 is 0.22 against 0.57.
-- **Wave equation (complete for R0 only so far):** R0's mean-value residual is 4.1, 2.2 and 2.1 times the truth's (raw); band-limited 2.8, 1.7, 1.5. R1, R1-S and R1-M are still partial.
+- **Reciprocity (complete, 4 models):** swapped against normal accuracy in known rooms at 25-100 Hz: R0 0.17 against 0.92; R1 0.76 against 0.91. At 200-300 Hz R1 is 0.22 against 0.57.
+- **Wave equation (complete, 4 models):** the mean-value residual, times the truth's, raw: R0 4.1, R1 4.8, R1-S 4.7, R1-M 4.9 at 25-100 Hz. R0 is 4.1, 2.2 and 2.1 times the truth's (raw, three bands); band-limited 2.8, 1.7, 1.5.
 
 ## 6. Wording that is approved
 
@@ -120,8 +120,8 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 | V1-V8, V3(d), V5 caption redraw | FINAL (V5 re-draw queued) | now |
 | E-C | FINAL | posted in the live log at 09:31 |
 | E-B | FINAL, 16 of 16 rooms | posted in the live log |
-| P-2 | causality final; reciprocity and wave equation partly | GPU queue |
-| R1-SM +5K | training reached 125K at 09:39; read in the queue | by 10:40 at risk |
+| P-2 | FINAL | posted in the live log |
+| R1-SM +5K | FINAL (descriptive) | posted in the live log |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |
 | P-1 (R1-P(t) and control) | training, first checkpoint about 10:17 | +10K read about 13:30 to 13:50 |
 | E-E (source coverage) | truth done, renders only on spare GPUs | if it runs |
