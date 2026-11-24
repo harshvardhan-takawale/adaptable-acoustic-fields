@@ -23,10 +23,11 @@ ap.add_argument("--max-hours", type=float, default=9.0)
 A = ap.parse_args()
 HERE = Path("/fs/nexus-projects/multimodal_recon/adaptable-acoustic-fields")
 os.chdir(HERE)
-SCR = Path("/fs/nexus-scratch/htakawal/aaf_p410/pt")
-OUT = Path("outputs/p4_10/pt")
+SCR = Path(os.environ.get("P410_PT_SCR", "/fs/nexus-scratch/htakawal/aaf_p410/pt"))
+OUT = Path(os.environ.get("P410_PT_OUT", "outputs/p4_10/pt"))
+REHEARSAL = bool(os.environ.get("P410_PT_FAKE"))          # R1 @150K stands in for both arms; never cancels anything
 ARMS = ("R1PT", "R1CTL")
-STEPS = {"152K": 152500, "155K": 155000, "157K": 157500, "160K": 160000}
+STEPS = json.loads(os.environ.get("P410_PT_STEPS", "{\"152K\": 152500, \"155K\": 155000, \"157K\": 157500, \"160K\": 160000}"))
 MAX_TRIES = 4
 
 
@@ -42,7 +43,6 @@ def excluded():
 
 
 EXC = excluded()
-GPU = ["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--exclude=" + EXC, "--cpus-per-task=2"]
 TRIES = {}
 
 
@@ -50,30 +50,68 @@ def log(*a):
     print(time.strftime("%H:%M"), *a, flush=True)
 
 
+QSNAP = set()
+
+
+def snapshot():
+    """job names in the queue, once per pass (a per-name squeue would be ~40 calls per pass)"""
+    _, out, _ = sh("squeue", "-u", os.environ.get("USER", "htakawal"), "-h", "-o", "%j")
+    QSNAP.clear()
+    QSNAP.update(out.split())
+
+
 def queued(name):
-    _, out, _ = sh("squeue", "-u", os.environ.get("USER", "htakawal"), "-h", "-o", "%j %T")
-    return sum(1 for ln in out.splitlines() if ln.split() and ln.split()[0] == name)
+    return name in QSNAP
 
 
-def submit(name, args, cmd, script, array=None):
-    """one stage; a name already in the queue is never resubmitted; failures are retried up to MAX_TRIES"""
-    if queued(name):
-        return False
-    k = TRIES.get(name, 0)
-    if k >= MAX_TRIES:
-        log("FAILED", name, "gave up after", k, "submissions")
-        return False
-    TRIES[name] = k + 1
-    c = ["sbatch", "--parsable", "--job-name=" + name] + args + (["--array=" + array] if array else []) + ["--export=ALL,CMD=" + cmd, script]
+POOLS = {                                              # partition arguments, chunk of receivers per render (GPU memory); several GPU types, short time limits so backfill can place them
+    "a4": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtxa4000:1"], 16),
+    "a5": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtxa5000:1"], 24),
+    "a6": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtxa6000:1"], 32),
+    "l40": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:l40s:1"], 32),
+    "2080": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtx2080ti:1"], 6),
+    "tron": (["--partition=tron", "--account=nexus", "--qos=high", "--gres=gpu:rtxa5000:1"], 24)}
+KINDS = {"in": 15, "un": 16, "tr": 1}
+
+
+def pools_now():
+    """the tron slot is R1-SM's until 11:40 (and R1-ctl frees one about 11:36)"""
+    t = time.localtime()
+    return ("tron",) if (t.tm_hour * 60 + t.tm_min) >= 10 * 60 + 40 else (), ("a4", "a5", "a6", "l40", "2080")
+
+
+def miss_kind(n, kind):
+    f = lambda i: SCR / kind / ("{}__{:02d}.npz".format(n, i) if kind != "tr" else "{}.npz".format(n))  # noqa: E731
+    return [i for i in range(KINDS[kind]) if not f(i).exists()]
+
+
+def pooled(tag, kind, n, ck):
+    miss = miss_kind(n, kind)
+    arr = ",".join(map(str, miss))
+    tron, small = pools_now()
+    for pool in small + tron:
+        name = "{}_{}_{}".format(tag, kind, pool)
+        if queued(name) or TRIES.get(name, 0) >= MAX_TRIES:
+            continue
+        TRIES[name] = TRIES.get(name, 0) + 1
+        part, chunk = POOLS[pool]
+        c = ["sbatch", "--parsable", "--job-name=" + name, "--exclude=" + EXC, "--time=00:30:00", "--mem=20G", "--cpus-per-task=2", "--array=" + arr + ("%2" if pool == "tron" else "%8")] + part + [
+            "--export=ALL,P410_CHUNK={},CMD=scripts/p4_10_pt_read.py --task {}={} --kind {} --idx @".format(chunk, n, ck, kind), "scripts/slurm/p4_10_gpu.sh"]
+        if A.dry_run:
+            log("DRY", " ".join(c)[:300])
+            continue
+        rc, out, err = sh(*c)
+        if rc:
+            log("FAILED submit", name, err.strip()[:160])
+        else:
+            log("submitted", name, out.strip(), "rooms", arr)
+
+
+def cancel_done(tag, kind):
     if A.dry_run:
-        log("DRY", " ".join(c))
-        return True
-    rc, out, err = sh(*c)
-    if rc:
-        log("FAILED submit", name, err.strip()[:200])
-        return False
-    log("submitted", name, out.strip())
-    return True
+        return
+    for pool in POOLS:
+        sh("scancel", "-u", os.environ.get("USER", "htakawal"), "-n", "{}_{}_{}".format(tag, kind, pool))
 
 
 def ckpt(arm, it):
@@ -95,13 +133,7 @@ def settled(it):
     return ok
 
 
-def stage_files(n):
-    return {"dense": Path("outputs/p4_5/gate2_dense/cache/{}__track_p4_5_testdense.npz".format(n)), "unseen": Path("outputs/p4_8/unseen/{}.json".format(n)),
-            "speckle": Path("outputs/p4_5/speckle/{}.json".format(n)), "extra": SCR / "extra" / (n + ".npz")}
-
-
-def missing_dirs(n):
-    return [i for i in range(15) if not (SCR / "dir" / "{}__{:02d}.npz".format(n, i)).exists()]
+DONE_LOGGED = set()
 
 
 def read_step(k, it):
@@ -111,37 +143,32 @@ def read_step(k, it):
     if not settled(it):
         return False
     ready = True
-    for a in ARMS:
+    for a in ("R1PT",) if REHEARSAL else ARMS:
         n, ck = "{}_{}".format(a, k), str(ckpt(a, it))
-        f = stage_files(n)
         tag = "aaf_pt_{}_{}".format(a.lower(), k)
-        if not f["dense"].exists():
-            ready = False
-            submit(tag + "_dense", GPU + ["--gres=gpu:rtxa5000:1", "--time=02:00:00", "--mem=32G"], "scripts/p4_5_gate2_dense.py --checkpoint {} --name {}".format(ck, n), "scripts/slurm/p4_5_gpu.sh")
-        if not f["unseen"].exists():
-            ready = False
-            submit(tag + "_unseen", GPU + ["--gres=gpu:rtxa5000:1", "--time=02:00:00", "--mem=32G"], "scripts/p4_8_unseen_eval.py --items {}={}".format(n, ck), "scripts/slurm/p4_5_gpu.sh")
-        if f["dense"].exists() and not f["speckle"].exists():
-            ready = False
-            submit(tag + "_speckle", GPU + ["--gres=gpu:rtxa5000:1", "--time=02:00:00", "--mem=64G"], "scripts/p4_5_speckle.py --names {} --project".format(n), "scripts/slurm/p4_5_gpu.sh")
-        if f["dense"].exists() and not f["extra"].exists():
-            ready = False
-            submit(tag + "_extra", GPU + ["--gres=gpu:rtxa5000:1", "--time=02:00:00", "--mem=32G"], "scripts/p4_10_pt_read.py --extra {}={}".format(n, ck), "scripts/slurm/p4_10_gpu.sh")
-        if not f["speckle"].exists() or not f["extra"].exists():
-            ready = False
-        miss = missing_dirs(n)
-        if miss:
-            ready = False
-            if not queued(tag + "_dir"):
-                submit(tag + "_dir", GPU + ["--gres=gpu:rtxa4000:1", "--time=01:00:00", "--mem=14G"], "scripts/p4_10_pt_read.py --dir {}={} --idx @".format(n, ck), "scripts/slurm/p4_10_gpu.sh", ",".join(map(str, miss)))
+        for kind in KINDS:
+            if not miss_kind(n, kind):
+                if (n, kind) not in DONE_LOGGED:
+                    DONE_LOGGED.add((n, kind))
+                    log("stage done", n, kind)
+                    cancel_done(tag, kind)
+            else:
+                ready = False
+                pooled(tag, kind, n, ck)
     if not ready:
         return False
+    if REHEARSAL:                                                                   # the same renders stand for the control: every paired delta must be exactly zero
+        for kind in KINDS:
+            for f in (SCR / kind).glob("R1PT_{}*.npz".format(k)):
+                g = f.parent / f.name.replace("R1PT_", "R1CTL_")
+                if not g.exists():
+                    g.symlink_to(f)
     log("all outputs of", k, "exist; scoring")
     if A.dry_run:
         return True
-    rc, out, err = subprocess.run([sys.executable, "scripts/p4_10_pt_read.py", "--score", k], capture_output=True, text=True).returncode, None, None
-    if rc:
-        log("FAILED scoring", k)
+    q = subprocess.run([sys.executable, "scripts/p4_10_pt_read.py", "--score", k], capture_output=True, text=True)
+    if q.returncode:
+        log("FAILED scoring", k, q.stderr.strip()[-400:])
         return False
     return True
 
@@ -170,7 +197,9 @@ def stop_rule():
         if not p.exists():
             continue
         st = json.loads(p.read_text()).get("stop_rule_triggered") or []
-        if st and not (OUT / "STOPPED").exists():
+        if st and REHEARSAL:
+            log("rehearsal: the stop rule would trigger on", st)
+        elif st and not (OUT / "STOPPED").exists():
             msg = "stop rule triggered at {} (step {}): {} more than 0.02 below R1-ctl with the CI entirely below zero; R1-P(t) cancelled at {}".format(
                 k, STEPS[k], ", ".join(st), time.strftime("%H:%M ET"))
             _, out, _ = sh("squeue", "-u", os.environ.get("USER", "htakawal"), "-h", "-n", "aaf_r1pt", "-o", "%i")
@@ -188,6 +217,7 @@ def main():
     log("watcher on", os.uname().nodename, "dry" if A.dry_run else "", "exclude", len(EXC.split(",")), "nodes")
     while time.time() - t0 < A.max_hours * 3600:
         done = 0
+        snapshot()
         for k, it in STEPS.items():
             if (OUT / "STOPPED").exists() and not (OUT / "read_{}.json".format(k)).exists():
                 done += 1                                                           # the arm was stopped: later reads have no checkpoint pair

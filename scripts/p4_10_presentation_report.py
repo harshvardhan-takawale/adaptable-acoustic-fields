@@ -43,6 +43,7 @@ er = lambda m, f, gr: t3([sc[m]["{}|{}".format(f, gr)][m]["edited_r"][b][0] for 
 wall_cap = eb["families"]["Wall|L+0.3"]["bands"]["25-100"]
 mat_cap = eb["families"]["Material|all0.30"]["bands"]["25-100"]
 fl = lambda f, b="25-100": eb["families"][f]["bands"][b]["C"]  # noqa: E731
+EBS = "FINAL, 16 of 16 rooms" if not eb["missing_rooms"] and not eb["partial_rooms"] else "PROVISIONAL, {} of 16 rooms".format(eb["n_rooms"])
 fam = {"Stretch-U 1.10": "StretchU|1.10", "Wall +0.3 m": "Wall|L+0.3", "All walls 0.30": "Material|all0.30", "Longest wall 0.50": "Material|long0.50", "Source moved": "Source|third"}
 
 
@@ -86,7 +87,7 @@ Status labels: **FINAL** (scored, verdict recorded), **PROVISIONAL** (a later pa
 | 6 | Where the energy flows | {L('V5_energy_flow')} | Direction agreement {v5['numbers']['50Hz']['energy_flow_direction_agreement_mean_cosine']:.2f} at 50 Hz and {v5['numbers']['100Hz']['energy_flow_direction_agreement_mean_cosine']:.2f} at 100 Hz (mean cosine; the showcase ranks {v5['ranks']['rank_50']} and {v5['ranks']['rank_100']} of {v5['ranks']['of']}; median room {v5['ranks']['median_value_50']:.2f} and {v5['ranks']['median_value_100']:.2f}). | FINAL |
 | 7 | Why decay is off | {L('V6_why_decay_is_off')}; {L('V7_late_floor')} | One room: the one-room model matches the truth's resonances and early decay; the shared one blurs them. Removing the late floor does not fix R1's decay at 125 Hz (EDT {p(v7r['EDT_before'][0]):.0f}% to {p(v7r['EDT_after'][0]):.0f}%, T20 {p(v7r['T20_before'][0]):.0f}% to {p(v7r['T20_after'][0]):.0f}%). | FINAL |
 | 8 | How much training per room fixes it | {L('EC_exposure')} | Fine-tuning R1 on one room: width {ecw('0 steps (R1 @150K)', 'c'):.2f} at the start, {ecw('120 steps', 'c'):.2f} after 120 steps ({ecr('120 steps', 'c')} rows in all); the shared models read {min(ecw(k) for k in ('R0 @20K', 'R0 @30K', 'R0 @60K', 'R0 @90K', 'R0 @120K', 'CTL @150K', 'R1 @150K', 'S2X @240K (2000 rooms)')):.2f} to {max(ecw(k) for k in ('R0 @20K', 'R0 @30K', 'R0 @60K', 'R0 @90K', 'R0 @120K', 'CTL @150K', 'R1 @150K', 'S2X @240K (2000 rooms)')):.2f}. | FINAL (two rooms, one seed) |
-| 9 | Capture, then edit | {L('EB_capture_then_edit')} | See section 4 before using it: this one needs care. | PROVISIONAL ({eb['n_rooms']} of 16 rooms) |
+| 9 | Capture, then edit | {L('EB_capture_then_edit')} | See section 4 before using it: this one needs care. | {EBS} |
 | 10 | How physical are the fields? | figure PENDING | Causality is done: the models' energy before the direct sound is {cau['pooled']['R0_120K']['ratio_of_means']:.2f}, {cau['pooled']['R1_150K']['ratio_of_means']:.2f}, {cau['pooled']['R1S_150K']['ratio_of_means']:.2f}, {cau['pooled']['R1M_150K']['ratio_of_means']:.2f} times the truth's (R0, R1, R1-S, R1-M); the revisit condition (2 times) is not met. | PARTLY FINAL |
 | 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. A mean-value penalty (P-1) is an exploratory re-registration running today. | PENDING |
 | backup | A new room type | {L('V1u_stretch_unseen_50Hz')}, {L('V1u_stretch_unseen_125Hz')}; {L('V2u_source_unseen_50Hz')}, {L('V2u_source_unseen_125Hz')}; median room {L('V2m_source_median_125Hz')} | The stretch is not predicted at 50 Hz in the unseen room (r {strip_r('V1u_stretch_unseen_50Hz', 'R1-S')}) and weakly at 125 Hz ({strip_r('V1u_stretch_unseen_125Hz', 'R1-S')}). | FINAL |
@@ -108,7 +109,7 @@ More for the slides on decay and training per room (E1, E-C):
 
 Wording of E-C, draft for your edit: "In two rooms, about 1,000 to 2,000 extra training rows concentrated on one room bring the shared model's resonance widths to the right value; early decay takes several times longer. The same kind of rows spread over all rooms barely helps. Specialising costs a little on edits of that room."
 
-## 4. Read this before using the capture-then-edit slide (E-B, PROVISIONAL)
+## 4. Read this before using the capture-then-edit slide (E-B, {EBS})
 
 **Accuracy after the edit at 25-100 Hz, new rooms, same 32 microphones and receivers for every method:**
 
@@ -120,7 +121,8 @@ Pre-registered test CE1 (survival >= 0.5 at 25-100 Hz): {'; '.join(eb_line(n, fa
 1. **The same survival bar is passed without editing.** The captured model with no edit scores {wall_cap['not_edited_on_C']['value']:.2f} (Wall) and {mat_cap['not_edited_on_C']['value']:.2f} (all walls 0.30) on the same scale (a reading aid added after seeing the numbers, not pre-registered). So CE1 "holds" for Wall and Material mostly because capturing helps, not because the edit does. The edit's own contribution (captured-and-edited minus captured-not-edited) is {wall_cap['cap_edit_minus_cap_unedited_C'][0]:+.2f} (Wall) and {mat_cap['cap_edit_minus_cap_unedited_C'][0]:+.2f} (Material) at 25-100 Hz.
 2. **Interpolating the 32 microphones (KRR) scores as high as, or higher than, capture-then-edit on Wall and Material** (the true edit changes the field little there; ignoring the edit also scores {fl('Wall|L+0.3')['ignore'][0]:.2f} and {fl('Material|all0.30')['ignore'][0]:.2f}). Capture-then-edit is clearly better only where the edit moves the field a lot, i.e. Stretch ({fl('StretchU|1.10')['cap_edit'][0]:.2f} against {fl('StretchU|1.10')['cap_unedited'][0]:.2f} unedited and {fl('StretchU|1.10')['krr'][0]:.2f} interpolated at 25-100 Hz), and for Source it loses to the zero-shot edit ({fl('Source|third')['cap_edit'][0]:.2f} against {fl('Source|third')['zero_edit'][0]:.2f}).
 3. Zero-shot edit on Stretch ({fl('StretchU|1.10')['zero_edit'][0]:.2f}) is almost as good as capture-then-edit ({fl('StretchU|1.10')['cap_edit'][0]:.2f}), so the capture adds little there, and Stretch fails CE1.
-4. One of 16 rooms and some seeds are still missing.
+4. Decay after capture (both Material cells): the captured model's response to a material change is {eb['decay']['cap']['pooled']['slope']:.2f} of the true one (Pearson {eb['decay']['cap']['pooled']['pearson']:.2f}), against {eb['decay']['zero']['pooled']['slope']:.2f} ({eb['decay']['zero']['pooled']['pearson']:.2f}) zero-shot. The decay error falls ({p(eb['decay']['cap']['edt_err_edit_med']):.1f}% edited against {p(eb['decay']['cap']['edt_err_orig_med']):.1f}% unedited) but the response shrinks. These cover two magnitudes only: do not compare the zero-shot slope with MM1's.
+5. Capturing hurts the edit for Stretch above 100 Hz and for Source in every band (the uncaptured model is better).
 
 A safe sentence if the slide is used: "Capturing a new room with 32 microphones raises its accuracy a lot before any edit ({eb['static']['25-100']['zero_shot']:.2f} to {eb['static']['25-100']['captured']:.2f} on the original room). Editing afterwards adds {wall_cap['cap_edit_minus_cap_unedited_C'][0]:+.2f} (wall) and {mat_cap['cap_edit_minus_cap_unedited_C'][0]:+.2f} (materials) to the captured model and {eb['families']['StretchU|1.10']['bands']['25-100']['cap_edit_minus_cap_unedited_C'][0]:+.2f} for a stretch, which the zero-shot edit nearly matches; a moved source gets worse than zero-shot." (25-100 Hz)
 
@@ -150,7 +152,7 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 |---|---|---|
 | V1-V8, V3(d), V5 caption redraw | FINAL (V5 re-draw queued) | now |
 | E-C | FINAL | posted in the live log at 09:31 |
-| E-B | PROVISIONAL, {eb['n_rooms']} of 16 rooms | final when the last room lands |
+| E-B | {EBS} | posted in the live log |
 | P-2 | causality final; reciprocity and wave equation partly | GPU queue |
 | R1-SM +5K | training reached 125K at 09:39; read in the queue | by 10:40 at risk |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |

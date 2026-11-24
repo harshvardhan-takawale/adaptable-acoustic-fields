@@ -1,22 +1,23 @@
 """P4-10 P-1 reads (D217 / D218): R1-P(t) against R1-ctl at the same step. Arms live in outputs/p4_10/arms_pt/{R1PT,R1CTL}; NAME = ARM_stepK (152K 155K 157K 160K).
-  --extra NAME=CKPT       GPU, after the dense job: 0d residual (raw; band-limited from the dense lattice), bypass set -> scratch pt/extra/NAME.npz
-  --dir NAME=CKPT --idx I GPU: raw omni-FD gradient (h = 2 nodes) of in-family room I -> scratch pt/dir/NAME__I.npz
+  --task NAME=CK --kind in|un|tr --idx I   GPU, one room: in = dense lattice P, 0d points raw and band-limited, omni-FD gradient; un = unseen room; tr = 15 training-rule rooms
+                          -> scratch pt/{in,un,tr}/; skipped if the file exists; a lock keeps two GPU pools from rendering the same room
   --score STEPK           CPU: the six reads, paired over the 15 rooms (bootstrap 10k, seed 20261013) -> outputs/p4_10/pt/read_STEP.{json,md}
-Static HF / UF come from the standard report (p4_5_gate2_dense + speckle + p4_8_unseen_eval) through p4_8_primary_table.load / paired.
+Static HF / UF: the frozen per-bin Pearson of dB levels on off-lattice receivers of the in-family 15 and unseen 16 sets (the standard report's definition, verified in the rehearsal).
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 
-SCR = Path("/fs/nexus-scratch/htakawal/aaf_p410/pt")
-OUT = Path("outputs/p4_10/pt")
+SCR = Path(os.environ.get("P410_PT_SCR", "/fs/nexus-scratch/htakawal/aaf_p410/pt"))
+OUT = Path(os.environ.get("P410_PT_OUT", "outputs/p4_10/pt"))
 CK = "outputs/p4_10/arms_pt/{}/ckpt_iter{:07d}.pt"
 ARMS = ("R1PT", "R1CTL")
-STEPS = {"152K": 152500, "155K": 155000, "157K": 157500, "160K": 160000}
+STEPS = json.loads(os.environ.get("P410_PT_STEPS", "{\"152K\": 152500, \"155K\": 155000, \"157K\": 157500, \"160K\": 160000}"))      # the rehearsal sets its own label
 BAND = {"25-100": (50, 200), "100-200": (200, 400), "200-300": (400, 601)}
 B3 = list(BAND)
 SEED, NB = 20261013, 10000
@@ -66,59 +67,111 @@ def train_rooms():
     return [g[int(i)] for i in sorted(pick)]
 
 
-def extra(name, ck):
+def chunk_size():
+    return int(os.environ.get("P410_CHUNK", "16"))
+
+
+def claim(path):
+    """an output is written once: skip if it exists; an O_EXCL lock with stale takeover (40 min) keeps two GPU pools from rendering the same room at the same time"""
+    if path.exists():
+        return False
+    lk = SCR / "lock" / (path.parent.name + "__" + path.stem)
+    lk.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.close(os.open(lk, os.O_CREAT | os.O_EXCL))
+        return True
+    except FileExistsError:
+        import time
+        if time.time() - lk.stat().st_mtime > 2400:
+            lk.touch()
+            return True
+        return False
+
+
+def release(path):
+    lk = SCR / "lock" / (path.parent.name + "__" + path.stem)
+    if lk.exists():
+        lk.unlink()
+
+
+def save_npz(path, **kw):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.parent / "{}.{}.tmp.npz".format(path.stem, os.getpid())
+    np.savez(tmp, **kw)
+    os.replace(tmp, path)
+
+
+def in_family():
+    return test_rooms()
+
+
+PARTIAL = bool(os.environ.get("P410_PT_PARTIAL"))          # rehearsal only: score the rooms whose files exist (never a real read)
+
+
+def unseen_rooms():
+    from scripts.p4_8_unseen_eval import rooms
+    return rooms()[0]
+
+
+def read_h5(path):
     import h5py
-
-    from scripts.p4_10_0d_meanvalue import band_limited_at, distinct_sets, room_points
-    torch, dev, model, renderer = load_model(ck)
-    lat = np.load("outputs/p4_5/gate2_dense/cache/{}__track_p4_5_testdense.npz".format(name))
-    out = {}
-    for r in test_rooms():
-        st = np.load("outputs/p4_10/r1p_0d/fdtd/{}.npz".format(r["path"].stem))
-        P = st["P"]
-        with h5py.File(r["path"]) as f:
-            verts = [tuple(map(float, v)) for v in json.loads(f.attrs["verts"])]
-            L, W = float(f.attrs["L"]), float(f.attrs["W"])
-            keep = np.asarray(json.loads(f.attrs["lattice_keep"]), bool).reshape(64, 64)
-            rx = np.asarray(json.loads(f.attrs["receiver_pos"]), float)
-        M = P.reshape(-1, 2)
-        raw = render_pts(torch, dev, model, renderer, verts, L, W, (0.5, 1.6), M)
-        proj = band_limited_at(lat["P%d" % r["cache_i"]][:, :601], keep, L, W, rx, M)
-        out["raw__" + r["path"].stem] = raw.reshape(P.shape[:3] + (601,)).astype(np.complex64)
-        out["proj__" + r["path"].stem] = proj.reshape(P.shape[:3] + (601,)).astype(np.complex64)
-        out["sets"] = st["sets"]
-        print("extra", name, r["path"].stem, flush=True)
-    sets = distinct_sets()
-    for i, c in enumerate(train_rooms()):
-        verts = [tuple(map(float, v)) for v in c["verts"]]
-        L, W = max(v[0] for v in verts), max(v[1] for v in verts)
-        P = room_points({"L": L, "W": W, "verts": verts, "src": c["src"]}, 1000 + i, sets)
-        out["tr__{:02d}".format(i)] = render_pts(torch, dev, model, renderer, verts, L, W, tuple(c["src"]), P.reshape(-1, 2)).reshape(P.shape[:3] + (601,)).astype(np.complex64)
-    out["tr_files"] = np.array([c["filename"] for c in train_rooms()])
-    SCR.joinpath("extra").mkdir(parents=True, exist_ok=True)
-    tmp = SCR / "extra" / (name + ".tmp.npz")
-    np.savez_compressed(tmp, **out)
-    tmp.replace(SCR / "extra" / (name + ".npz"))
+    with h5py.File(path) as f:
+        return {"T": np.asarray(f["ism/H_complex"])[:, :601], "rx": np.asarray(json.loads(f.attrs["receiver_pos"]), float),
+                "verts": [tuple(map(float, v)) for v in json.loads(f.attrs["verts"])], "L": float(f.attrs["L"]), "W": float(f.attrs["W"])}
 
 
-def dir_room(name, ck, idx):
-    import h5py
-    torch, dev, model, renderer = load_model(ck)
-    r = test_rooms()[idx]
-    st = np.load("outputs/p4_9/fdtd_stencils/dense/{}.npz".format(r["path"].stem))
-    with h5py.File(r["path"]) as f:
-        rx = np.asarray(json.loads(f.attrs["receiver_pos"]), float)
-        verts = [tuple(map(float, v)) for v in json.loads(f.attrs["verts"])]
-        L, W = float(f.attrs["L"]), float(f.attrs["W"])
-    hx, hy = 2 * float(st["dxx"]), 2 * float(st["dxy"])
-    ok = np.nonzero((~on_lattice_(rx)) & (np.hypot(*(rx - np.array([0.5, 1.6])).T) >= 0.5))[0]
-    nb = [render_pts(torch, dev, model, renderer, verts, L, W, (0.5, 1.6), rx[ok] + d) for d in ([hx, 0], [-hx, 0], [0, hy], [0, -hy])]
-    G = np.stack([(nb[0] - nb[1]) / (2 * hx), (nb[2] - nb[3]) / (2 * hy)], axis=1)
-    SCR.joinpath("dir").mkdir(parents=True, exist_ok=True)
-    tmp = SCR / "dir" / "{}__{:02d}.tmp.npz".format(name, idx)
-    np.savez_compressed(tmp, G=G.astype(np.complex64), ok=ok, hx=hx, hy=hy)
-    tmp.replace(SCR / "dir" / "{}__{:02d}.npz".format(name, idx))
-    print("dir", name, r["path"].stem, len(ok), flush=True)
+def render_pts2(L_, verts, L, W, src, pts):
+    torch, dev, model, renderer = L_
+    return render_pts(torch, dev, model, renderer, verts, L, W, src, pts, chunk=chunk_size())
+
+
+def task(name, ck, kind, idx):
+    """one room's renders -> one npz; kinds: in (0-14), un (0-15), tr (0: the 15 training-rule rooms)"""
+    dst = SCR / kind / ("{}__{:02d}.npz".format(name, idx) if kind != "tr" else "{}.npz".format(name))
+    if not claim(dst):
+        print("skip", dst, flush=True)
+        return
+    try:
+        Lm = load_model(ck)
+        if kind == "in":
+            from scripts.p4_10_0d_meanvalue import band_limited_at
+            r = in_family()[idx]
+            h = read_h5(r["path"])
+            P = render_pts2(Lm, h["verts"], h["L"], h["W"], (0.5, 1.6), h["rx"])
+            st = np.load("outputs/p4_10/r1p_0d/fdtd/{}.npz".format(r["path"].stem))
+            X = st["P"]
+            M = X.reshape(-1, 2)
+            raw = render_pts2(Lm, h["verts"], h["L"], h["W"], (0.5, 1.6), M)
+            import h5py
+            with h5py.File(r["path"]) as f:
+                keep = np.asarray(json.loads(f.attrs["lattice_keep"]), bool).reshape(64, 64)
+            proj = band_limited_at(P.astype(np.complex64), keep, h["L"], h["W"], h["rx"], M)
+            fs = np.load("outputs/p4_9/fdtd_stencils/dense/{}.npz".format(r["path"].stem))
+            hx, hy = 2 * float(fs["dxx"]), 2 * float(fs["dxy"])
+            ok = np.nonzero((~on_lattice_(h["rx"])) & (np.hypot(*(h["rx"] - np.array([0.5, 1.6])).T) >= 0.5))[0]
+            ok = ok[::max(1, int(os.environ.get("P410_PT_DIRSTRIDE", "4")))]          # every 4th off-lattice receiver (>= 0.5 m from the source): the queue is saturated (D218 addendum); both arms share it
+            nb = [render_pts2(Lm, h["verts"], h["L"], h["W"], (0.5, 1.6), h["rx"][ok] + d) for d in ([hx, 0], [-hx, 0], [0, hy], [0, -hy])]
+            G = np.stack([(nb[0] - nb[1]) / (2 * hx), (nb[2] - nb[3]) / (2 * hy)], axis=1)
+            save_npz(dst, P=P.astype(np.complex64), raw=raw.reshape(X.shape[:3] + (601,)).astype(np.complex64), proj=proj.reshape(X.shape[:3] + (601,)).astype(np.complex64),
+                     G=G.astype(np.complex64), ok=ok, sets=st["sets"])
+        elif kind == "un":
+            c = unseen_rooms()[idx]
+            h = read_h5("data/track_p4_8_unseen/" + c.filename)
+            P = render_pts2(Lm, h["verts"], h["L"], h["W"], (0.5, 1.6), h["rx"])
+            save_npz(dst, P=P.astype(np.complex64))
+        else:
+            from scripts.p4_10_0d_meanvalue import distinct_sets, room_points
+            sets = distinct_sets()
+            out = {}
+            for i, c in enumerate(train_rooms()):
+                verts = [tuple(map(float, v)) for v in c["verts"]]
+                L, W = max(v[0] for v in verts), max(v[1] for v in verts)
+                X = room_points({"L": L, "W": W, "verts": verts, "src": c["src"]}, 1000 + i, sets)
+                out["tr__{:02d}".format(i)] = render_pts2(Lm, verts, L, W, tuple(c["src"]), X.reshape(-1, 2)).reshape(X.shape[:3] + (601,)).astype(np.complex64)
+            save_npz(dst, sets=np.array(sets), **out)
+        print("done", dst, flush=True)
+    finally:
+        release(dst)
 
 
 def on_lattice_(rx):
@@ -126,45 +179,75 @@ def on_lattice_(rx):
     return np.all(np.abs(k - np.round(k)) < 1e-6, axis=1)
 
 
-def e3_ratio(cache_name):
-    from scripts.p4_10_d1_decay import rooms_of
-    from scripts.p4_10_e3_floor import ratio
-    out = {"model": [], "truth": []}
-    for P, T, rx in rooms_of(cache_name, "test"):
-        sel = ~on_lattice_(rx) & (np.hypot(rx[:, 0] - 0.5, rx[:, 1] - 1.6) >= 1.0)
-        out["model"].append(ratio(np.asarray(P)[sel], "63")[0])
-        out["truth"].append(ratio(np.asarray(T)[sel], "63")[0])
-    return out
+def rows_in(name):
+    """per in-family room: P (model), T, rx, and the extra arrays"""
+    for i, r in enumerate(in_family()):
+        if PARTIAL and not (SCR / "in" / "{}__{:02d}.npz".format(name, i)).exists():
+            continue
+        z = np.load(SCR / "in" / "{}__{:02d}.npz".format(name, i))
+        h = read_h5(r["path"])
+        yield i, r, z, h
 
 
-def d1_rows(cache_name):
-    """per room and octave: EDT error (median), floor (dB) -- D1's definition (in-family)"""
+def band_r(P, T, rx):
+    s = ~on_lattice_(rx)
+    d = lambda x: 20 * np.log10(np.maximum(np.abs(x), 1e-30))  # noqa: E731
+    a, b = d(P[s]), d(T[s])
+    a, b = a - a.mean(0), b - b.mean(0)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        c = (a * b).sum(0) / np.sqrt((a * a).sum(0) * (b * b).sum(0))
+    return {k: float(np.nanmean(c[lo:hi])) for k, (lo, hi) in BAND.items()}
+
+
+def static_rows(name):
+    tr = {b: [] for b in B3}
+    uf = {b: [] for b in B3}
+    for i, r, z, h in rows_in(name):
+        v = band_r(z["P"], h["T"], h["rx"])
+        for b in B3:
+            tr[b].append(v[b])
+    for j, c in enumerate(unseen_rooms()):
+        if PARTIAL and not (SCR / "un" / "{}__{:02d}.npz".format(name, j)).exists():
+            continue
+        z = np.load(SCR / "un" / "{}__{:02d}.npz".format(name, j))
+        h = read_h5("data/track_p4_8_unseen/" + c.filename)
+        v = band_r(z["P"], h["T"], h["rx"])
+        for b in B3:
+            uf[b].append(v[b])
+    return {"test": tr, "uf": uf}
+
+
+def e3_d1(name):
+    """E3's 63 Hz ratio and D1's floor / EDT per room (in-family), from the per-room files"""
     from aaf.eval.octave_decay import decay_metrics, valid_mask
-    from scripts.p4_10_d1_decay import rooms_of
-    out = {b: {"EDT_err": [], "floor": [], "EDT_bias": []} for b in ("63", "125", "250")}
-    for P, T, rx in rooms_of(cache_name, "test"):
-        sel = np.nonzero(~on_lattice_(rx) & (np.hypot(rx[:, 0] - 0.5, rx[:, 1] - 1.6) >= 1.0))[0][::4]
-        for b in out:
-            t, m = decay_metrics(np.asarray(T)[sel], b), decay_metrics(np.asarray(P)[sel], b)
+    from scripts.p4_10_e3_floor import ratio
+    e = {"model": [], "truth": []}
+    d = {b: {"EDT_err": [], "floor": []} for b in ("63", "125", "250")}
+    for i, r, z, h in rows_in(name):
+        P, T, rx = np.asarray(z["P"]), h["T"], h["rx"]
+        far = np.hypot(rx[:, 0] - 0.5, rx[:, 1] - 1.6) >= 1.0
+        s = ~on_lattice_(rx) & far
+        e["model"].append(ratio(P[s], "63")[0])
+        e["truth"].append(ratio(T[s], "63")[0])
+        k = np.nonzero(s)[0][::4]
+        for b in d:
+            t, m = decay_metrics(T[k], b), decay_metrics(P[k], b)
             ok = valid_mask(t["t35"])
-            rel = (m["EDT"][ok] - t["EDT"][ok]) / np.maximum(t["EDT"][ok], 1e-6)
-            out[b]["EDT_err"].append(float(np.nanmedian(np.abs(rel))))
-            out[b]["EDT_bias"].append(float(np.nanmedian(rel)))
-            out[b]["floor"].append(float(np.nanmedian(m["floor_db"][ok])))
-    return out
+            d[b]["EDT_err"].append(float(np.nanmedian(np.abs(m["EDT"][ok] - t["EDT"][ok]) / np.maximum(t["EDT"][ok], 1e-6))))
+            d[b]["floor"].append(float(np.nanmedian(m["floor_db"][ok])))
+    return e, d
 
 
 def res_rows(name):
     from scripts.p4_10_0d_meanvalue import residuals
-    z = np.load(SCR / "extra" / (name + ".npz"))
-    sets = z["sets"]
     out = {"raw": [], "proj": [], "truth": [], "train": []}
-    for r in test_rooms():
+    for i, r, z, h in rows_in(name):
         t = np.load("outputs/p4_10/r1p_0d/fdtd/{}.npz".format(r["path"].stem))
-        out["truth"].append(residuals(t["H"], sets))
-        out["raw"].append(residuals(z["raw__" + r["path"].stem], sets))
-        out["proj"].append(residuals(z["proj__" + r["path"].stem], sets))
-    out["train"] = [residuals(z["tr__{:02d}".format(i)], sets) for i in range(N_TRAIN_ROOMS)]
+        out["truth"].append(residuals(t["H"], t["sets"]))
+        out["raw"].append(residuals(z["raw"], z["sets"]))
+        out["proj"].append(residuals(z["proj"], z["sets"]))
+    z = np.load(SCR / "tr" / (name + ".npz"))
+    out["train"] = [residuals(z["tr__{:02d}".format(i)], z["sets"]) for i in range(N_TRAIN_ROOMS)]
     return {k: {b: [x[b]["single"] for x in v] for b in B3} for k, v in out.items()}
 
 
@@ -174,11 +257,9 @@ def dir_rows(name):
     jk = 1j * k
     jk[0] = 1.0
     out = {b: [] for b in B3}
-    for i, r in enumerate(test_rooms()):
+    for i, r, z, h in rows_in(name):
         st = np.load("outputs/p4_9/fdtd_stencils/dense/{}.npz".format(r["path"].stem))
-        z = np.load(SCR / "dir" / "{}__{:02d}.npz".format(name, i))
-        ok = z["ok"]
-        T2 = np.stack([st["g2x"], st["g2y"]], axis=1)[ok] / jk
+        T2 = np.stack([st["g2x"], st["g2y"]], axis=1)[z["ok"]] / jk
         rr = rho(z["G"] / jk, T2)
         for b, (lo, hi) in BAND.items():
             out[b].append(float(np.mean(rr.real[lo:hi])))
@@ -186,19 +267,15 @@ def dir_rows(name):
 
 
 def score(stepk):
-    from scripts.p4_8_primary_table import load, paired
     step = STEPS[stepk]
     names = {a: "{}_{}".format(a, stepk) for a in ARMS}
     R = {"step": step, "reads": {}}
     L = ["# P-1 read at +{} steps (R1 @150K + {} ; R1-P(t) against R1-ctl at the same step)".format(step - 150000, step - 150000), ""]
-    a, c = load(names["R1PT"]), load(names["R1CTL"])
-    if a is None or c is None:
-        raise SystemExit("static report missing")
-    d = paired(a, c)
+    sa, sc = static_rows(names["R1PT"]), static_rows(names["R1CTL"])
     stop = []
-    hf = {"pt": a["test_r"]["200-300"], "ctl": c["test_r"]["200-300"], "delta": d["HF"]}
-    uf = {b: {"pt": a["uf"][b], "ctl": c["uf"][b], "delta": d["UF_" + b]} for b in B3}
-    R["reads"]["1_static"] = {"HF": hf, "UF": uf}
+    hf = {"pt": float(np.mean(sa["test"]["200-300"])), "ctl": float(np.mean(sc["test"]["200-300"])), "delta": boot(np.array(sa["test"]["200-300"]) - np.array(sc["test"]["200-300"]))}
+    uf = {b: {"pt": float(np.mean(sa["uf"][b])), "ctl": float(np.mean(sc["uf"][b])), "delta": boot(np.array(sa["uf"][b]) - np.array(sc["uf"][b]))} for b in B3}
+    R["reads"]["1_static"] = {"HF": hf, "UF": uf, "test_r": {b: {"pt": float(np.mean(sa["test"][b])), "ctl": float(np.mean(sc["test"][b]))} for b in B3}}
     L.append("1. Static: HF {:.3f} vs {:.3f}, {:+.4f} [{:+.4f}, {:+.4f}]; ".format(hf["pt"], hf["ctl"], *hf["delta"]) + "; ".join("UF {} {:.3f} vs {:.3f}, {:+.4f} [{:+.4f}, {:+.4f}]".format(b, uf[b]["pt"], uf[b]["ctl"], *uf[b]["delta"]) for b in B3))
     for nm, x in [("HF", hf["delta"])] + [("UF_" + b, uf[b]["delta"]) for b in B3]:
         if x[0] < -0.02 and x[2] < 0.0:
@@ -214,13 +291,15 @@ def score(stepk):
             b, rr[b]["truth"], rr[b]["pt_raw"][0], rr[b]["ctl_raw"][0], *rr[b]["pt_minus_ctl"], rr[b]["pt_raw_over_truth"], rr[b]["ctl_raw_over_truth"]))
     L.append("3. Band-limited residual over the truth's at 25-100 Hz: R1-P(t) {:.2f}, R1-ctl {:.2f} (100-200: {:.2f} / {:.2f}; 200-300: {:.2f} / {:.2f}; 0d for R0 was 2.78 at 25-100)".format(
         rr["25-100"]["pt_bl_over_truth"], rr["25-100"]["ctl_bl_over_truth"], rr["100-200"]["pt_bl_over_truth"], rr["100-200"]["ctl_bl_over_truth"], rr["200-300"]["pt_bl_over_truth"], rr["200-300"]["ctl_bl_over_truth"]))
-    e = {n: e3_ratio(names[n]) for n in ARMS}
+    ed = {n: e3_d1(names[n]) for n in ARMS}
+    e = {n: ed[n][0] for n in ARMS}
     e4 = {"pt": boot(np.array(e["R1PT"]["model"]) / np.array(e["R1PT"]["truth"])), "ctl": boot(np.array(e["R1CTL"]["model"]) / np.array(e["R1CTL"]["truth"])),
-          "pt_minus_ctl_ratio": boot(np.array(e["R1PT"]["model"]) - np.array(e["R1CTL"]["model"])), "pt_level": boot(e["R1PT"]["model"]), "ctl_level": boot(e["R1CTL"]["model"]), "truth_level": boot(e["R1PT"]["truth"])}
+          "pt_minus_ctl_ratio": boot(np.array(e["R1PT"]["model"]) - np.array(e["R1CTL"]["model"])), "pt_level": boot(e["R1PT"]["model"]), "ctl_level": boot(e["R1CTL"]["model"]), "truth_level": boot(e["R1PT"]["truth"]),
+          "pt_over_truth_of_means": float(np.mean(e["R1PT"]["model"]) / np.mean(e["R1PT"]["truth"])), "ctl_over_truth_of_means": float(np.mean(e["R1CTL"]["model"]) / np.mean(e["R1CTL"]["truth"]))}
     R["reads"]["2_3_residual"], R["reads"]["4_e3_63hz"] = rr, e4
-    L.append("4. Late floor common to the room at 63 Hz (E3): level R1-P(t) {:.4f} vs R1-ctl {:.4f} (truth {:.4f}; difference {:+.4f} [{:+.4f}, {:+.4f}]); mean of room ratios model/truth {:.2f} vs {:.2f}".format(
-        e4["pt_level"][0], e4["ctl_level"][0], e4["truth_level"][0], *e4["pt_minus_ctl_ratio"], e4["pt"][0], e4["ctl"][0]))
-    dd = {n: d1_rows(names[n]) for n in ARMS}
+    L.append("4. Late floor common to the room at 63 Hz (E3): level R1-P(t) {:.4f} vs R1-ctl {:.4f} (truth {:.4f}; difference {:+.4f} [{:+.4f}, {:+.4f}]); model / truth as a ratio of the means (the published E3 form; R1 2.4) {:.2f} vs {:.2f}; mean of room ratios {:.2f} vs {:.2f}".format(
+        e4["pt_level"][0], e4["ctl_level"][0], e4["truth_level"][0], *e4["pt_minus_ctl_ratio"], e4["pt_over_truth_of_means"], e4["ctl_over_truth_of_means"], e4["pt"][0], e4["ctl"][0]))
+    dd = {n: ed[n][1] for n in ARMS}
     d1 = {}
     for b in ("63", "125", "250"):
         d1[b] = {k: {"pt": float(np.mean(dd["R1PT"][b][k])), "ctl": float(np.mean(dd["R1CTL"][b][k])), "delta": boot(np.array(dd["R1PT"][b][k]) - np.array(dd["R1CTL"][b][k]))} for k in ("EDT_err", "floor")}
@@ -246,14 +325,12 @@ def score(stepk):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--extra", default=None)
-    ap.add_argument("--dir", default=None)
+    ap.add_argument("--task", default=None)
+    ap.add_argument("--kind", default="in")
     ap.add_argument("--idx", type=int, default=0)
     ap.add_argument("--score", default=None)
     a = ap.parse_args()
-    if a.extra:
-        extra(*a.extra.split("=", 1))
-    elif a.dir:
-        dir_room(*a.dir.split("=", 1), a.idx)
+    if a.task:
+        task(*a.task.split("=", 1), a.kind, a.idx)
     elif a.score:
         score(a.score)

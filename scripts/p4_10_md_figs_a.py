@@ -463,7 +463,7 @@ def v5():
     colorbar(fig, im)
     fig.suptitle("Where the sound energy flows, original source", fontsize=20, x=0.02, ha="left", y=0.965, fontweight="bold")
     fig.text(0.02, 0.885, "Arrows: direction of the steady energy flow (unit length). Truth: FDTD, 2 cm. Model: gradient of the band-limited field.", fontsize=14, color="#444444")
-    caption(fig, "Direction agreement = mean cosine between the two flows over off-lattice receivers at least 0.5 m from the source. Known room {}; rank {} of {} on this number at 50 Hz.".format(SHOW, meta["ranks"]["rank_50"], meta["ranks"]["of"]))
+    caption(fig, "Direction agreement = mean cosine between the two flows over off-lattice receivers at least 0.5 m from the source. Known room {}; rank {} of {} on this number at 50 Hz and {} at 100 Hz (median room {:.2f} and {:.2f}).".format(SHOW, meta["ranks"]["rank_50"], meta["ranks"]["of"], meta["ranks"]["rank_100"], meta["ranks"]["median_value_50"], meta["ranks"]["median_value_100"]))
     save(fig, "V5_energy_flow", meta)
 
 

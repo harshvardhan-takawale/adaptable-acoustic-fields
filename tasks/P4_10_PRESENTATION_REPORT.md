@@ -1,4 +1,4 @@
-# Presentation report for the manager (built 2026-11-24 09:58 ET; meeting 2026-11-24 about 16:00 ET)
+# Presentation report for the manager (built 2026-11-24 10:21 ET; meeting 2026-11-24 about 16:00 ET)
 
 For the manager building the deck. It lists a proposed slide order, the figures with raw links, slide-ready numbers, the approved wording, what is final or provisional, and what must not be said. **The result numbers are read from JSON at build time** (times, ranks and schedules are text) by `scripts/p4_10_presentation_report.py`; rebuild it after new reads land. Triples are 25-100 / 100-200 / 200-300 Hz; accuracy r is the off-lattice score from the frozen scorer (spatial correlation of the sound-level map). "Known rooms" = the 15 in-family test rooms; "new rooms" = the frozen 16 unseen rooms.
 
@@ -25,7 +25,7 @@ Status labels: **FINAL** (scored, verdict recorded), **PROVISIONAL** (a later pa
 | 6 | Where the energy flows | [V5_energy_flow](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V5_energy_flow.png) | Direction agreement 0.78 at 50 Hz and 0.42 at 100 Hz (mean cosine; the showcase ranks 10 and 14 of 15; median room 0.83 and 0.71). | FINAL |
 | 7 | Why decay is off | [V6_why_decay_is_off](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V6_why_decay_is_off.png); [V7_late_floor](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V7_late_floor.png) | One room: the one-room model matches the truth's resonances and early decay; the shared one blurs them. Removing the late floor does not fix R1's decay at 125 Hz (EDT 24% to 24%, T20 57% to 61%). | FINAL |
 | 8 | How much training per room fixes it | [EC_exposure](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EC_exposure.png) | Fine-tuning R1 on one room: width 1.40 at the start, 1.04 after 120 steps (4,320 rows in all); the shared models read 1.21 to 1.50. | FINAL (two rooms, one seed) |
-| 9 | Capture, then edit | [EB_capture_then_edit](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.png) | See section 4 before using it: this one needs care. | PROVISIONAL (15 of 16 rooms) |
+| 9 | Capture, then edit | [EB_capture_then_edit](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.png) | See section 4 before using it: this one needs care. | FINAL, 16 of 16 rooms |
 | 10 | How physical are the fields? | figure PENDING | Causality is done: the models' energy before the direct sound is 1.06, 1.11, 1.08, 1.04 times the truth's (R0, R1, R1-S, R1-M); the revisit condition (2 times) is not met. | PARTLY FINAL |
 | 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. A mean-value penalty (P-1) is an exploratory re-registration running today. | PENDING |
 | backup | A new room type | [V1u_stretch_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_50Hz.png), [V1u_stretch_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V1u_stretch_unseen_125Hz.png); [V2u_source_unseen_50Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_50Hz.png), [V2u_source_unseen_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2u_source_unseen_125Hz.png); median room [V2m_source_median_125Hz](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V2m_source_median_125Hz.png) | The stretch is not predicted at 50 Hz in the unseen room (r 0.03 / 0.13 / 0.10 / 0.15 / 0.23) and weakly at 125 Hz (0.46 / 0.39 / 0.57 / 0.56 / 0.39). | FINAL |
@@ -64,27 +64,28 @@ More for the slides on decay and training per room (E1, E-C):
 
 Wording of E-C, draft for your edit: "In two rooms, about 1,000 to 2,000 extra training rows concentrated on one room bring the shared model's resonance widths to the right value; early decay takes several times longer. The same kind of rows spread over all rooms barely helps. Specialising costs a little on edits of that room."
 
-## 4. Read this before using the capture-then-edit slide (E-B, PROVISIONAL)
+## 4. Read this before using the capture-then-edit slide (E-B, FINAL, 16 of 16 rooms)
 
 **Accuracy after the edit at 25-100 Hz, new rooms, same 32 microphones and receivers for every method:**
 
 | edit | zero-shot edit | captured, then edited | captured, not edited | interpolate the 32 mics | ignore the edit |
 |---|---|---|---|---|---|
-| Stretch-U 1.10 | 0.42 | 0.45 | 0.29 | 0.26 | 0.27 |
-| Wall +0.3 m | 0.49 | 0.73 | 0.67 | 0.74 | 0.76 |
-| All walls 0.30 | 0.63 | 0.83 | 0.81 | 0.88 | 0.89 |
-| Longest wall 0.50 | 0.56 | 0.81 | 0.79 | 0.89 | 0.90 |
-| Source moved | 0.55 | 0.39 | 0.28 | 0.33 | 0.34 |
+| Stretch-U 1.10 | 0.42 | 0.45 | 0.28 | 0.26 | 0.26 |
+| Wall +0.3 m | 0.51 | 0.73 | 0.67 | 0.74 | 0.76 |
+| All walls 0.30 | 0.64 | 0.84 | 0.80 | 0.88 | 0.89 |
+| Longest wall 0.50 | 0.58 | 0.81 | 0.80 | 0.89 | 0.90 |
+| Source moved | 0.55 | 0.42 | 0.27 | 0.32 | 0.33 |
 
-Pre-registered test CE1 (survival >= 0.5 at 25-100 Hz): Stretch-U 1.10: survival 0.13 [-0.02, 0.24] -> fails; Wall +0.3 m: survival 0.76 [0.69, 0.81] -> holds; All walls 0.30: survival 0.65 [0.58, 0.69] -> holds.
+Pre-registered test CE1 (survival >= 0.5 at 25-100 Hz): Stretch-U 1.10: survival 0.11 [-0.05, 0.22] -> fails; Wall +0.3 m: survival 0.75 [0.68, 0.80] -> holds; All walls 0.30: survival 0.64 [0.57, 0.69] -> holds.
 
 **Why this is not a headline yet:**
-1. **The same survival bar is passed without editing.** The captured model with no edit scores 0.58 (Wall) and 0.55 (all walls 0.30) on the same scale (a reading aid added after seeing the numbers, not pre-registered). So CE1 "holds" for Wall and Material mostly because capturing helps, not because the edit does. The edit's own contribution (captured-and-edited minus captured-not-edited) is +0.05 (Wall) and +0.03 (Material) at 25-100 Hz.
-2. **Interpolating the 32 microphones (KRR) scores as high as, or higher than, capture-then-edit on Wall and Material** (the true edit changes the field little there; ignoring the edit also scores 0.76 and 0.89). Capture-then-edit is clearly better only where the edit moves the field a lot, i.e. Stretch (0.45 against 0.29 unedited and 0.26 interpolated at 25-100 Hz), and for Source it loses to the zero-shot edit (0.39 against 0.55).
+1. **The same survival bar is passed without editing.** The captured model with no edit scores 0.55 (Wall) and 0.53 (all walls 0.30) on the same scale (a reading aid added after seeing the numbers, not pre-registered). So CE1 "holds" for Wall and Material mostly because capturing helps, not because the edit does. The edit's own contribution (captured-and-edited minus captured-not-edited) is +0.06 (Wall) and +0.03 (Material) at 25-100 Hz.
+2. **Interpolating the 32 microphones (KRR) scores as high as, or higher than, capture-then-edit on Wall and Material** (the true edit changes the field little there; ignoring the edit also scores 0.76 and 0.89). Capture-then-edit is clearly better only where the edit moves the field a lot, i.e. Stretch (0.45 against 0.28 unedited and 0.26 interpolated at 25-100 Hz), and for Source it loses to the zero-shot edit (0.42 against 0.55).
 3. Zero-shot edit on Stretch (0.42) is almost as good as capture-then-edit (0.45), so the capture adds little there, and Stretch fails CE1.
-4. One of 16 rooms and some seeds are still missing.
+4. Decay after capture (both Material cells): the captured model's response to a material change is 0.35 of the true one (Pearson 0.70), against 0.82 (0.85) zero-shot. The decay error falls (20.5% edited against 25.2% unedited) but the response shrinks. These cover two magnitudes only: do not compare the zero-shot slope with MM1's.
+5. Capturing hurts the edit for Stretch above 100 Hz and for Source in every band (the uncaptured model is better).
 
-A safe sentence if the slide is used: "Capturing a new room with 32 microphones raises its accuracy a lot before any edit (0.51 to 0.82 on the original room). Editing afterwards adds +0.05 (wall) and +0.03 (materials) to the captured model and +0.16 for a stretch, which the zero-shot edit nearly matches; a moved source gets worse than zero-shot." (25-100 Hz)
+A safe sentence if the slide is used: "Capturing a new room with 32 microphones raises its accuracy a lot before any edit (0.52 to 0.82 on the original room). Editing afterwards adds +0.06 (wall) and +0.03 (materials) to the captured model and +0.17 for a stretch, which the zero-shot edit nearly matches; a moved source gets worse than zero-shot." (25-100 Hz)
 
 ## 5. Physics audit (P-2): what is complete
 
@@ -118,7 +119,7 @@ A safe sentence if the slide is used: "Capturing a new room with 32 microphones 
 |---|---|---|
 | V1-V8, V3(d), V5 caption redraw | FINAL (V5 re-draw queued) | now |
 | E-C | FINAL | posted in the live log at 09:31 |
-| E-B | PROVISIONAL, 15 of 16 rooms | final when the last room lands |
+| E-B | FINAL, 16 of 16 rooms | posted in the live log |
 | P-2 | causality final; reciprocity and wave equation partly | GPU queue |
 | R1-SM +5K | training reached 125K at 09:39; read in the queue | by 10:40 at risk |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |

@@ -3,6 +3,28 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (10:21) — E-B (D214): capture then edit, final (16 of 16 rooms): CE1 holds for Wall and Material and fails for Stretch, and the pass mostly reflects the capture, not the edit
+
+**Headline:** We measured each of the 16 unseen rooms with 32 microphones, fitted R1-M to them (M2), then edited. Capturing lifts accuracy a lot before any edit (0.52 to 0.82 at 25-100 Hz on the original room). Editing afterwards adds little for a wall move and for materials, and more for a stretch. The pre-registered test (survival at least 0.5 at 25-100 Hz) holds for Wall (0.75) and all walls 0.30 (0.64) and fails for Stretch-U (0.11). **But a captured model with no edit scores 0.55 (Wall) and 0.53 (Material) on the same scale, so both passes would be met without editing.**
+
+Accuracy on the common receivers, 25-100 / 100-200 / 200-300 Hz, room means over 16 rooms and 3 draws; the 32 microphones removed for every method. Survival is on the edited room's own receivers.
+
+| edit | zero-shot edit | captured, then edited | captured, not edited | interpolate the 32 microphones (KRR) | ignore the edit | survival [95% CI] |
+|---|---|---|---|---|---|---|
+| Stretch-U 1.10 | 0.42 / 0.37 / 0.33 | 0.45 / 0.26 / 0.20 | 0.28 / 0.11 / 0.17 | 0.26 / 0.06 / 0.13 | 0.26 / 0.07 / 0.16 | 0.11 [-0.05, 0.22] / -0.66 [-0.88, -0.49] / -0.90 [-1.12, -0.68] |
+| Wall L+0.3 | 0.51 / 0.44 / 0.42 | 0.73 / 0.50 / 0.39 | 0.67 / 0.45 / 0.24 | 0.74 / 0.45 / 0.20 | 0.76 / 0.48 / 0.23 | 0.75 [0.68, 0.80] / 0.37 [0.28, 0.44] / -0.23 [-0.35, -0.12] |
+| Material, all walls 0.30 | 0.64 / 0.59 / 0.57 | 0.84 / 0.67 / 0.66 | 0.80 / 0.66 / 0.63 | 0.88 / 0.78 / 0.70 | 0.89 / 0.84 / 0.82 | 0.64 [0.57, 0.69] / 0.51 [0.43, 0.58] / 0.62 [0.53, 0.70] |
+| Material, longest wall 0.50 | 0.58 / 0.52 / 0.49 | 0.81 / 0.63 / 0.60 | 0.80 / 0.62 / 0.59 | 0.89 / 0.80 / 0.71 | 0.90 / 0.87 / 0.84 | 0.79 [0.74, 0.83] / 0.75 [0.70, 0.78] / 0.81 [0.76, 0.86] |
+| Source, third | 0.55 / 0.37 / 0.30 | 0.42 / 0.25 / 0.20 | 0.27 / 0.14 / 0.10 | 0.32 / 0.27 / 0.17 | 0.33 / 0.29 / 0.21 | -0.46 [-0.63, -0.32] / -0.82 [-0.96, -0.71] / -0.68 [-0.81, -0.57] |
+
+- **What the edit itself adds (captured and edited minus captured and not edited, 25-100 Hz):** Stretch +0.17, Wall +0.06, all walls 0.30 +0.03, longest wall 0.50 +0.02, Source +0.14.
+- **Below "ignore the edit":** both Material cells in every band, Wall at 25-100 Hz, Source above 100 Hz. **Above it:** Stretch in every band, Wall above 100 Hz, Source at 25-100 Hz.
+- **Interpolating the microphones does as well or better** than capture-then-edit on both Material cells in every band and ties it on Wall at 25-100 Hz. The manager's premise that interpolation cannot edit is right, but it hardly needs to here: the true Wall and Material edits move the field little (ignoring the edit scores 0.76 and 0.89).
+- **Capture hurts the edit** for Stretch above 100 Hz and for Source in every band: the zero-shot model is better there.
+- **Decay after capture** (both Material cells, 96 cell-bands): slope of the change in 1/EDT 0.35 (Pearson 0.70) against 0.82 (0.85) zero-shot; edited EDT error 20.5% (own unedited 25.2%). The error falls but the response shrinks. Two magnitudes only, so do not compare these with MM1's 0.66.
+- **Disclosure:** the "captured, not edited" reading on the survival scale is a reading aid added after the interim numbers were seen (not in D214; no bar was changed).
+- Checks: zero offset and unfitted heads reproduce the zero-shot render to 1e-8; plain renders equal the cached R1-M ones to 1e-8; the edited render differs from the unedited one in all five cells. Report: [eb/report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/eb/report.md). Figure: [EB_capture_then_edit](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.png) ([pdf](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.pdf), [json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.json)).
+
 ## 2026-11-24 (09:31) — E-C (D215): resonance widths come right after about 1,000-2,000 rows concentrated on one room; the shared models stay about 1.4 times too broad; training from scratch needs about 8 times R0's rows
 
 **Headline:** In the two S-1 rooms, fine-tuning R1 on one room makes its resonance widths right after about 1,000 to 1,900 extra training rows on that room (ratio 1.40 at the start, 1.14 after 960 rows, 1.04 after 1,920 rows). The shared models stay between about 1.2 and 1.5 at 480 to 2,400 rows per room: R0 1.44 at its 1,920 rows, CTL 1.42 at 2,400, S2X 1.39. A model trained on one room from scratch is not a fit of the room at R0's rows (accuracy 0.26), and first reaches the right width at 16,000 rows. Early decay is slower than the widths: at 250 Hz the error is 25% after 1,920 rows and 8% after 16,000. Editing costs a little as the model specialises.
