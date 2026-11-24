@@ -3,6 +3,24 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (21:59) — I13 (R1-M +10K, all lite families; R1-S +25K stretch): R1-M passes its learning check and its Material accuracy now exceeds "ignore the edit" at the lowest band
+
+**Headline:** After 10K of 30K steps R1-M changes its decay time with the wall absorption at 0.48 of the true amount in known rooms (Pearson 0.78) and 0.74 in new ones (a correct model reads near 1; the +30K bar is 0.8 to 1.2). **The pre-registered learning check (decay-rate slope at least 0.3 at +10K) passes.** Its field accuracy after a material edit is 0.901 / 0.716 / 0.649 (25-100 / 100-200 / 200-300 Hz), against 0.687 / 0.493 / 0.401 for R1 at the same step and 0.882 / 0.849 / 0.826 for "ignore the edit": it beats ignoring the edit at the lowest band only.
+
+**R1-M @130K (+10K), Material lite (16 in-family cells, 16 unseen; 48 cell-bands each; 0 cell-bands dropped):**
+
+| set | EDT slope (Pearson) | per octave 63 / 125 / 250 Hz | level-change slope | EDT error edited vs own unedited (MM2 margin) | edited r (ignore the edit) | r_delta | g_delta |
+|---|---|---|---|---|---|---|---|
+| in-family, +5K -> +10K | 0.36 (0.59) -> **0.48 (0.78)** | 0.66 / 0.76 / 0.40 | 0.32 (0.46) | 21.1% vs 26.3% (-5.2) | 0.901 / 0.716 / 0.649 (0.882 / 0.849 / 0.826) | 0.535 / 0.195 / 0.114 | 1.64 / 1.12 / 1.06 |
+| unseen, +5K -> +10K | 0.60 (0.68) -> **0.74 (0.79)** | 0.42 / 0.56 / 0.57 | 0.37 (0.63) | 26.9% vs 32.7% (-5.8) | 0.616 / 0.560 / 0.519 (0.898 / 0.854 / 0.828) | 0.257 / 0.135 / 0.073 | 1.16 / 1.05 / 1.04 |
+| R1 @130K in-family (reference) | -0.17 (-0.51) | -0.03 / -0.07 / -0.21 | 0.27 (0.25) | 37.2% vs 25.0% (+12.2) | 0.687 / 0.493 / 0.401 | 0.122 / 0.027 / -0.008 | 0.82 / 0.78 / 0.77 |
+
+- **MM2 margin** (edited minus own unedited, bar at most +5 points): -5.2 and -5.8, so the edit adds no decay error; the unedited level itself is 26-33%. T20 is dropped in about 95% of receiver-bands (139866 of 146689 in-family) and is not used.
+- **Harm kill (+10K, against R1 @130K): not judged yet**, the static HF / UF report is still running. On the other edit families R1-M is within 0.02 of R1 at the same step, in-family: Stretch-U 0.757 / 0.520 / 0.408 (R1 0.749 / 0.518 / 0.402), Stretch-A 0.813 / 0.565 / 0.473 (0.807 / 0.575 / 0.476), Wall 0.881 / 0.606 / 0.524 (0.888 / 0.624 / 0.536), Notch 0.885 / 0.626 / 0.528 (0.895 / 0.647 / 0.533), Source 0.646 / 0.329 / 0.237 (0.650 / 0.328 / 0.240).
+- **R1-S @145K (+25K), stretch cells (descriptive; the reference R1 is at 140K, a step behind):** r_delta in-family 0.823 / 0.557 / 0.364, +0.051 [+0.031, +0.072] / +0.019 [+0.004, +0.033] / +0.021 [+0.011, +0.030]; unseen 0.385 / 0.287 / 0.228, +0.032 / +0.018 / +0.016. The +30K read is the verdict.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (21:06) — I12 (R1-M +5K, first read; static reads of R1 +25K and R1-S +20K): the materials arm is the first model that answers a material change; R1's cost at the original source is now inside the no-harm limit
 
 **Headline:** R1-M, the arm trained with per-wall absorption labels, at its first checkpoint (+5K of 30K) already changes its decay time when a wall's absorption is changed: the EDT edit slope is 0.36 in known rooms and 0.60 in new ones, against about -0.1 to -0.2 for R0 and R1 (a correct model reads near 1; the bar, read at +30K, is 0.8 to 1.2). Separately, R1's accuracy at the original source in known rooms is 0.015 below the plain continuation at 200-300 Hz, inside RC1's limit of 0.020 for the first time, and it stays ahead in unseen rooms.
