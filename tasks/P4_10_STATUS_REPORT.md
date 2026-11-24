@@ -17,7 +17,7 @@
 | level-change slope (Pearson), descriptive | 0.45 (0.96) | 0.44 (0.96) |
 | T20 slope (kept receivers only; 129 of 180 cell-bands had a usable T20) | 0.17 (0.46); 429477 of 543192 receiver-bands dropped by the floor rule | 0.43 (0.81); 370742 of 505819 dropped |
 
-- **Reading of MM1:** the response is linear (Pearson 0.95) and about half the true size, in every octave. The shortfall is the same in unseen rooms.
+- **Reading of MM1:** the response is linear (Pearson 0.95) and about half the true size in every octave (0.48 to 0.58 in known rooms); in new rooms it is a little larger (0.66 pooled, 0.48 / 0.77 / 0.59 per octave).
 - **MM2 absolute levels and JNDs (manager's note, D206):** 22.5% in known rooms and 29.0% in new ones after the edit, against 5% (ISO 3382-1) and about 18% measured for a listener; the unedited error is of the same size, so this bar cannot show that the field is close to the truth.
 - **MC1 (no harm at alpha = 0.15, HF and each UF band >= R1 @150K - 0.02): HOLDS.** HF 0.568 against 0.571: -0.003 [-0.007, +0.001]; UF 0.522 / 0.429 / 0.407 against 0.506 / 0.409 / 0.399 (above in every band).
 - **Learning check (+10K) passed, harm kill not triggered (earlier reads). Extension reading (D208): not met** (lite slope 0.62, Pearson 0.85; the reading needs a slope of at least 0.75). R1 has not been extended either, so nothing is.
