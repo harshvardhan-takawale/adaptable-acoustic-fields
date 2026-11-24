@@ -5,7 +5,7 @@
 
 ## 2026-11-23 (22:17) — I15 (R1 +30K, the rest of the full scorecard; R1-M harm kill and R1-S static): R1 improves every new-room edit over R0 and keeps its known-room edits within 0.01-0.02 of R0's
 
-**Headline:** R1's full scorecard (675 cells, all six families) is scored. Compared with the original model R0, R1 does better on every edit family in new rooms (by 0.03 to 0.05 in edited-field accuracy on stretch, wall, notch and material, at 25-100 Hz), is within about 0.02 of R0 on geometry edits in known rooms, and is far better on source moves. Its decay behaviour under material edits is unchanged from R0, as expected: R1 saw no material labels. The materials arm R1-M does no harm at its first 10K steps.
+**Headline:** R1's full scorecard (675 cells, all six families) is scored. Compared with the original model R0, R1 does better on every edit family in new rooms (edited-field accuracy at 25-100 Hz up by 0.04 to 0.05 on stretch, wall and notch, 0.02 on material), is within 0.016 of R0 on geometry edits in known rooms, and is far better on source moves. Its decay behaviour under material edits is unchanged from R0, as expected: R1 saw no material labels. The materials arm R1-M does no harm at its first 10K steps.
 
 R1 @150K against R0 @120K, off-lattice, 15 in-family and 16 unseen rooms, edited-field r (25-100 / 100-200 / 200-300 Hz), "ignore the edit" beside:
 
@@ -24,7 +24,7 @@ R1 @150K against R0 @120K, off-lattice, 15 in-family and 16 unseen rooms, edited
 | Material | in-family | 0.749 / 0.567 / 0.476 | 0.772 / 0.583 / 0.469 | 0.911 / 0.891 / 0.880 | 0.094 / 0.023 / 0.017 (0.067 / 0.026 / 0.017) |
 | Material | unseen | 0.447 / 0.376 / 0.373 | 0.428 / 0.357 / 0.347 | 0.921 / 0.897 / 0.884 | 0.044 / -0.001 / -0.006 (0.027 / -0.006 / -0.000) |
 
-- **A caution read across the rows:** "ignore the edit" beats both models in several cells (Notch in both sets at 100-200 Hz in known rooms and everywhere unseen; Material in every band). Where it does, the model adds error in those cells. It is far below R1 on the source cells.
+- **Where "ignore the edit" still beats R1, the model adds error:** Notch, in-family at 100-200 Hz (0.715 against 0.681) and in every unseen band; Wall unseen at 25-100 and 100-200 Hz; Stretch-A unseen at 25-100 Hz (0.544 against 0.461); Material in every band of both sets; Stretch-U unseen at 25-100 Hz is level (0.440 against 0.442). On the source cells R1 is above ignoring the move in every band of both sets (in-family 0.743 / 0.377 / 0.260 against 0.305 / 0.217 / 0.215).
 - **R1's decay under material edits (MM1 / MM2 as re-registered), full set:** EDT slope 0.01 (Pearson 0.06) in-family, -0.05 unseen; MM2 margin +12.6 points in-family (edited 36.5% against 23.9% unedited), +7.3 unseen: as R0's (slope -0.04; margin +14.4). R1 was not trained on materials.
 - **R1-M @130K (+10K), harm kill: NOT triggered** (against R1 @130K): HF -0.010 [-0.014, -0.005], UF +0.017 [+0.006, +0.028] / +0.014 [+0.004, +0.025] / +0.003; levels HF 0.541, UF 0.509 / 0.413 / 0.396 (R1 @130K 0.550, 0.492 / 0.398 / 0.393). MC1's -0.02 limit is judged at +30K.
 - **R1-S @145K (+25K), static, against R1 @145K:** HF +0.000 [-0.004, +0.004], UF +0.003 / +0.009 / +0.006 (levels HF 0.569, UF 0.509 / 0.418 / 0.403). Descriptive.
