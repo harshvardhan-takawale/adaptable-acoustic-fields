@@ -3,6 +3,24 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (00:11) — I19 (R1-M +20K, all lite families): the material response holds at 0.53 in known rooms, 0.75 in new ones; its other edits are level with R1's
+
+**Headline:** After 20K of 30K steps R1-M changes its decay time with the wall absorption by 0.53 of the true amount in known rooms (Pearson 0.77) and 0.75 in new ones (Pearson 0.84), against 0.61 and 0.77 at +15K. The in-family number fell slightly; the two are the same size as the read-to-read scatter, so it is not yet a trend. Its accuracy after a material edit is 0.915 / 0.749 / 0.671 (25-100 / 100-200 / 200-300 Hz), above R1's 0.686 / 0.509 / 0.435 and above "ignore the edit" at 25-100 Hz only. Outside material edits it is level with R1 at the same step.
+
+**R1-M @140K, Material lite (16 in-family cells, 16 unseen; 48 cell-bands; D201 / D202; JNDs 5% ISO 3382-1, about 18% measured):**
+
+| set | EDT slope (Pearson) | per octave 63 / 125 / 250 Hz | EDT error edited vs own unedited (MM2 margin) | edited r (ignore the edit) | r_delta | g_delta |
+|---|---|---|---|---|---|---|
+| in-family | 0.53 (0.77) | 0.72 / 0.82 / 0.45 | 19.2% vs 24.8% (-5.6 points) | 0.915 / 0.749 / 0.671 (0.882 / 0.849 / 0.826) | 0.577 / 0.230 / 0.153 | 1.76 / 1.19 / 1.11 |
+| unseen | 0.75 (0.84) | 0.50 / 0.58 / 0.61 | 27.6% vs 30.9% (-3.3 points) | 0.638 / 0.573 / 0.531 (0.898 / 0.854 / 0.828) | 0.290 / 0.150 / 0.092 | 1.17 / 1.04 / 1.05 |
+| R1 @140K, in-family | -0.10 (-0.31) | -- | 38.4% vs 23.5% (+14.9) | 0.686 / 0.509 / 0.435 | 0.131 / 0.027 / -0.000 | 0.79 / 0.78 / 0.78 |
+
+- **Extension baseline (D208, registered before this read's numbers were used for any decision):** slope 0.53, Pearson 0.77. Nothing is extended before +30K.
+- **Other edits, in-family, R1-M / R1 at the same step:** Stretch-U 0.759 / 0.530 / 0.421 against 0.758 / 0.524 / 0.407, Stretch-A 0.816 / 0.579 / 0.484 (0.817 / 0.584 / 0.481), Wall 0.889 / 0.630 / 0.541 (0.895 / 0.639 / 0.544), Notch 0.894 / 0.648 / 0.540 (0.899 / 0.656 / 0.543), Source 0.707 / 0.354 / 0.256 (0.720 / 0.352 / 0.250).
+- **Pending:** its static HF / UF at 140K.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [D208 in DECISIONS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/DECISIONS.md)
+
 ## 2026-11-23 (23:40) — R1-S's D1, D2 and A8 at its final checkpoint: the decay is the same as R1's; the mode shifts are a little better on uniform stretches
 
 **Headline:** R1-S's sound decays too fast by the same amount as R1's and R0's (15% / 24% / 29% EDT error in known rooms at 63 / 125 / 250 Hz), so training on stretched rooms does not touch the decay problem. Its mode-shift slopes after an edit (0.69 for uniform stretches and 0.68 for walls in known rooms) are close to R1's (0.60 and 0.60) and to R0's (0.65 and 0.71).
