@@ -11,7 +11,7 @@ export LD_LIBRARY_PATH="${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}" PYTHONPATH=$PW
 N=$(python scripts/p4_10_scorecard.py --plan --families "$FAM" --lite --chunk $CHUNK 2>/dev/null | grep -oE '^[0-9]+ cells' | cut -d' ' -f1)
 T=$(( (N - 1) / CHUNK + 1 ))
 EX=legacy43,tron29,tron36,gammagpu02,gammagpu03,gammagpu04,gammagpu05,gammagpu06,gammagpu09,cml23
-for spec in "rtxa4000:16" "rtxa5000:16" "rtxa6000:24" "l40s:24" "rtx2080ti:6"; do
+for spec in "p6000:16" "rtxa4000:16" "rtxa5000:16" "rtxa6000:24" "l40s:24" "rtx2080ti:6"; do
   G=${spec%%:*}; P=${spec##*:}
   sbatch --parsable --array=0-$((T-1)) --exclude=$EX --partition=scavenger --account=scavenger --qos=scavenger --requeue --gres=gpu:$G:1 --time=00:30:00 --cpus-per-task=1 --mem=10G --job-name=aaf_pool_$NAME --export=ALL,P410_CHUNK=$P,CMD="scripts/p4_10_scorecard.py --render --model $NAME=$CK --families $FAM --lite --chunk $CHUNK --idx @" scripts/slurm/p4_10_gpu.sh >/dev/null || echo "submit failed for $G"
 done

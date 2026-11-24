@@ -38,7 +38,7 @@ def sh(*cmd):
 
 def excluded():
     _, out, _ = sh("sinfo", "-h", "-N", "-o", "%N")
-    bad = re.compile(r"^(legacy|cml23$|gammagpu0[2-6]$|gammagpu09$|quics00$|tron36$)")
+    bad = re.compile(r"^(legacy(?!gpu(1[89]|2[0-5])$)|cml23$|gammagpu0[2-6]$|gammagpu09$|quics00$|tron36$)")    # P6000 nodes legacygpu18-25 are back (D218 addendum 2)
     return ",".join(sorted({n for n in out.split() if bad.match(n)}))
 
 
@@ -68,7 +68,7 @@ POOLS = {                                              # partition arguments, ch
     "a4": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtxa4000:1"], 16),
     "a5": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtxa5000:1"], 24),
     "a6": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtxa6000:1"], 32),
-    "l40": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:l40s:1"], 32),
+    "p6": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:p6000:1"], 16),
     "2080": (["--partition=scavenger", "--account=scavenger", "--qos=scavenger", "--requeue", "--gres=gpu:rtx2080ti:1"], 6),
     "tron": (["--partition=tron", "--account=nexus", "--qos=high", "--gres=gpu:rtxa5000:1"], 24)}
 KINDS = {"in": 15, "un": 16, "tr": 1}
@@ -77,7 +77,7 @@ KINDS = {"in": 15, "un": 16, "tr": 1}
 def pools_now():
     """the tron slot is R1-SM's until 11:40 (and R1-ctl frees one about 11:36)"""
     t = time.localtime()
-    return ("tron",) if (t.tm_hour * 60 + t.tm_min) >= 10 * 60 + 40 else (), ("a4", "a5", "a6", "l40", "2080")
+    return ("tron",) if (t.tm_hour * 60 + t.tm_min) >= 10 * 60 + 40 else (), ("a4", "a5", "p6", "a6", "2080")
 
 
 def miss_kind(n, kind):
@@ -218,11 +218,20 @@ def main():
     while time.time() - t0 < A.max_hours * 3600:
         done = 0
         snapshot()
-        for k, it in STEPS.items():
+        active = 0
+        order = list(STEPS) if not REHEARSAL else list(STEPS)
+        if "160K" in order and "157K" in order and all(ckpt(a, STEPS["160K"]).exists() for a in ARMS):        # D218 addendum 2: +10K goes ahead of +7.5K once it exists
+            order = [k for k in order if k not in ("157K", "160K")] + ["160K", "157K"]
+        for k in order:
+            it = STEPS[k]
             if (OUT / "STOPPED").exists() and not (OUT / "read_{}.json".format(k)).exists():
                 done += 1                                                           # the arm was stopped: later reads have no checkpoint pair
                 continue
             n0 = (OUT / "read_{}.json".format(k)).exists()
+            if not n0 and active >= 2:                                                 # at most two unfinished steps in the queue
+                continue
+            if not n0:
+                active += 1 if all(ckpt(a, it).exists() for a in ARMS) else 0
             if read_step(k, it):
                 done += 1
                 if not n0:
