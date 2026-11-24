@@ -195,29 +195,50 @@ def score_cell(name, c, m1=True):
 
 
 def decay_cell(c, base, o, z, p):
-    """Octave-band decay (A7) on the Material cell's receivers: T0 / Te (truth before / after the edit), P0 / Pe (model).
-    Receivers: off-lattice, >= 1 m from the source, valid in BOTH truths. Per band: mean decay rate 1/T30 (1/s) of each field,
-    median |T30 error| / truth, median |EDT error| / truth, median |C50 error| dB (all vs the edited truth)."""
-    from aaf.eval.octave_decay import BANDS, decay_metrics, valid_mask
+    """Octave-band decay (A7, re-registered by D201 / D202) on the Material cell's receivers: T0 / Te (truth before / after the
+    edit), P0 / Pe (model, same edit). Receivers: off-lattice, >= 1 m from the source, valid in BOTH truths (truth EDC reaches
+    -35 dB 0.2 s before the gate ends). Per band, over the valid receivers:
+      rate_* = mean 1/EDT (1/s) per field -- MM1's quantity (T30 on model fields measures the late floor, not the decay);
+      edt_err_edit / edt_err_orig = median relative |EDT error| of Pe vs Te and of P0 vs T0 (MM2: the second is the unedited level);
+      t20_* = the same for T20, only over receivers whose T0, Te, P0 and Pe decays all clear their own floor (floor_mask, D202);
+      floor_db_* = median late floor of each field; dL_true / dL_pred = room-averaged level change of the edit (dB).
+    Truth T30 (T30_T0 / T30_Te) is kept as a truth descriptor only."""
+    from aaf.eval.octave_decay import BANDS, decay_metrics, floor_mask, valid_mask
     rx = base["rx"]
     src = np.array([0.5, 1.6])
     sel = ~on_lattice(rx) & (np.hypot(rx[:, 0] - src[0], rx[:, 1] - src[1]) >= 1.0)
     F = {"T0": base["H"][sel], "Te": z["Hd"][sel], "P0": o["P"][sel], "Pe": p["Pd"][sel]}
-    out = {"n_rx": int(sel.sum())}
-    for b in BANDS:
+    out = {"n_rx": int(sel.sum()), "version": "d202"}
+    for b, (flo, fhi) in BANDS.items():
         m = {k: decay_metrics(v, b) for k, v in F.items()}
         ok = valid_mask(m["T0"]["t35"]) & valid_mask(m["Te"]["t35"])
         e = {"n_valid": int(ok.sum())}
         for k in F:
-            T = m[k]["T30"]
-            e["rate_" + k] = float(np.nanmean(1.0 / T[ok])) if ok.any() else np.nan
-            e["T30_" + k] = float(np.nanmedian(T[ok])) if ok.any() else np.nan
+            E = m[k]["EDT"]
+            e["rate_" + k] = float(np.nanmean(1.0 / np.maximum(E[ok], 1e-6))) if ok.any() else np.nan
+            e["floor_db_" + k] = float(np.nanmedian(m[k]["floor_db"][ok])) if ok.any() else np.nan
+        for k in ("T0", "Te"):                                                      # truth T30 only (descriptor)
+            e["T30_" + k] = float(np.nanmedian(m[k]["T30"][ok])) if ok.any() else np.nan
         if ok.any():
-            t30 = np.abs(m["Pe"]["T30"] - m["Te"]["T30"]) / np.maximum(m["Te"]["T30"], 1e-6)
-            e["t30_err"] = float(np.nanmedian(t30[ok]))
-            e["edt_err"] = float(np.nanmedian((np.abs(m["Pe"]["EDT"] - m["Te"]["EDT"]) / np.maximum(m["Te"]["EDT"], 1e-6))[ok]))
-            e["c50_err_db"] = float(np.nanmedian(np.abs(m["Pe"]["C50"] - m["Te"]["C50"])[ok]))
-            e["t30_err_orig_model"] = float(np.nanmedian(np.abs(m["P0"]["T30"] - m["Te"]["T30"])[ok] / np.maximum(m["Te"]["T30"], 1e-6)[ok]))
+            rel = lambda a, t: np.abs(m[a]["EDT"] - m[t]["EDT"]) / np.maximum(m[t]["EDT"], 1e-6)  # noqa: E731
+            e["edt_err_edit"] = float(np.nanmedian(rel("Pe", "Te")[ok]))
+            e["edt_err_orig"] = float(np.nanmedian(rel("P0", "T0")[ok]))
+            fl = floor_mask(m["P0"]) & floor_mask(m["Pe"])
+            tv = ok & fl
+            e["n_t20_dropped"] = int(ok.sum() - tv.sum())                            # dropped by the model-floor rule, printed
+            e["n_t20"] = int(tv.sum())
+            for k in F:
+                T = m[k]["T20"]
+                e["t20rate_" + k] = float(np.nanmean(1.0 / np.maximum(T[tv], 1e-6))) if tv.any() else np.nan
+            if tv.any():
+                rel2 = lambda a, t: np.abs(m[a]["T20"] - m[t]["T20"]) / np.maximum(m[t]["T20"], 1e-6)  # noqa: E731
+                e["t20_err_edit"] = float(np.nanmedian(rel2("Pe", "Te")[tv]))
+                e["t20_err_orig"] = float(np.nanmedian(rel2("P0", "T0")[tv]))
+        lo, hi = int(round(flo / 0.5)), min(int(round(fhi / 0.5)), 600)              # band-level change over the octave's bins
+        lv = {k: 10 * np.log10(np.maximum((np.abs(F[k][:, lo:hi + 1]) ** 2).mean(1), 1e-30)) for k in F}
+        if ok.any():
+            e["dL_true"] = float((lv["Te"][ok] - lv["T0"][ok]).mean())
+            e["dL_pred"] = float((lv["Pe"][ok] - lv["P0"][ok]).mean())
         out[b] = e
     return out
 
@@ -243,6 +264,26 @@ def score(name, families, lite, idx=None, chunk=None, m1=True):
         print("scored", c["id"], flush=True)
 
 
+def redecay(name, idx=None, chunk=None):
+    """D201 / D202: recompute ONLY the decay block of already-scored Material cells (other fields unchanged; atomic write)."""
+    M = cells(["Material"], False)
+    if idx is not None:
+        M = M[idx * chunk:(idx + 1) * chunk]
+    for c in M:
+        dst = SC / name / (cid(c) + ".json")
+        if not dst.exists() or not (PRED / name / (cid(c) + ".npz")).exists():
+            continue
+        row = json.loads(dst.read_text())
+        if row.get("decay", {}).get("version") == "d202":
+            continue
+        z, p = np.load(TRUTH / (cid(c) + ".npz")), np.load(PRED / name / (cid(c) + ".npz"))
+        base = stored(c)
+        o = np.load(PRED / name / "orig" / (c["room"] + ".npz"))
+        row["decay"] = decay_cell(c, base, o, z, p)
+        write_json_atomic(dst, row)
+        print("redecay", c["id"], flush=True)
+
+
 # ------------------------------------------------------------------------------------------- aggregation
 def source_gap(name, lite=False, groups=("test", "unseen")):
     """moved-source gap per magnitude: {group: {mag: {room: {band: orig r - moved r}}}} (R1's primary metric, RS1)."""
@@ -256,12 +297,22 @@ def source_gap(name, lite=False, groups=("test", "unseen")):
     return out
 
 
-def material_slope(name, lite=False, group="test"):
-    """decay-rate edit slope (MM1): over every Material cell of the group, the regression of the predicted change in mean
-    1/T30 (Pe - P0) on the true change (Te - T0), per octave band and pooled, with Pearson; NaN cells (truth too long for
-    the gate) are dropped and counted."""
-    pts = {b: [] for b in ("63", "125", "250")}
-    n_drop = 0
+def _slope(pts):
+    """least-squares slope of the predicted on the true change, Pearson, n (None if fewer than 4 pairs)"""
+    v = np.array([q for q in pts if np.isfinite(q[0]) and np.isfinite(q[1])], float)
+    if len(v) < 4 or np.ptp(v[:, 0]) == 0:
+        return None
+    return {"slope": float(np.polyfit(v[:, 0], v[:, 1], 1)[0]), "pearson": float(np.corrcoef(v[:, 0], v[:, 1])[0, 1]), "n": len(v)}
+
+
+def material_mm(name, lite=False, group="test"):
+    """MM1 / MM2 as re-registered (D201 / D202): over the Material cells of the group and the 63 / 125 / 250 Hz octaves,
+      MM1 = regression slope / Pearson of the change in mean 1/EDT (predicted on true), pooled;
+      T20 slope beside it (masked; dropped receiver counts); MM2 = median |EDT error| edited vs the unedited level;
+      level-change slope (descriptive). Dropped counts are always reported."""
+    out = {"n_cells": 0, "n_missing_decay": 0, "bands": {}}
+    edt, t20, lvl, edit_e, orig_e = [], [], [], [], []
+    drop_rx, n_rx_valid, drop_band = 0, 0, 0
     for c in cells(["Material"], lite):
         if c["group"] != group:
             continue
@@ -269,26 +320,41 @@ def material_slope(name, lite=False, group="test"):
         if not f.exists():
             continue
         d = json.loads(f.read_text()).get("decay", {})
-        for b in pts:
+        out["n_cells"] += 1
+        if d.get("version") != "d202":
+            out["n_missing_decay"] += 1
+            continue
+        for b in ("63", "125", "250"):
             e = d.get(b, {})
-            t, p = e.get("rate_Te", np.nan) - e.get("rate_T0", np.nan), e.get("rate_Pe", np.nan) - e.get("rate_P0", np.nan)
-            if np.isfinite(t) and np.isfinite(p):
-                pts[b].append((t, p))
-            else:
-                n_drop += 1
-    out = {"n_dropped_cells_bands": n_drop, "bands": {}}
-    allt, allp = [], []
-    for b, v in pts.items():
-        if len(v) >= 4:
-            x, y = np.array(v).T
-            allt += list(x)
-            allp += list(y)
-            sl, ic = np.polyfit(x, y, 1)
-            out["bands"][b] = {"slope": float(sl), "pearson": float(np.corrcoef(x, y)[0, 1]), "n": len(v)}
-    if len(allt) >= 4:
-        x, y = np.array(allt), np.array(allp)
-        out["pooled"] = {"slope": float(np.polyfit(x, y, 1)[0]), "pearson": float(np.corrcoef(x, y)[0, 1]), "n": len(allt)}
+            edt.append((e.get("rate_Te", np.nan) - e.get("rate_T0", np.nan), e.get("rate_Pe", np.nan) - e.get("rate_P0", np.nan)))
+            t20.append((e.get("t20rate_Te", np.nan) - e.get("t20rate_T0", np.nan), e.get("t20rate_Pe", np.nan) - e.get("t20rate_P0", np.nan)))
+            lvl.append((e.get("dL_true", np.nan), e.get("dL_pred", np.nan)))
+            edit_e.append(e.get("edt_err_edit", np.nan))
+            orig_e.append(e.get("edt_err_orig", np.nan))
+            n_rx_valid += e.get("n_valid", 0)
+            drop_rx += e.get("n_t20_dropped", 0)
+            if not np.isfinite(edt[-1][0]) or not np.isfinite(edt[-1][1]):
+                drop_band += 1
+            for nm, key in (("edt", edt), ("t20", t20)):
+                out["bands"].setdefault(b, {}).setdefault(nm, []).append(key[-1])
+    out["EDT"] = _slope(edt)                                        # MM1
+    out["T20"] = _slope(t20)                                        # reported beside, masked
+    out["level_change"] = _slope(lvl)                               # descriptive, JND 1 dB
+    for b, r in out["bands"].items():
+        r["EDT"], r["T20"] = _slope(r.pop("edt")), _slope(r.pop("t20"))
+    out["edt_err_edit_med"] = float(np.nanmedian(edit_e)) if edit_e else np.nan
+    out["edt_err_orig_med"] = float(np.nanmedian(orig_e)) if orig_e else np.nan      # this model's own unedited level
+    out["MM2_margin_pts"] = out["edt_err_edit_med"] - out["edt_err_orig_med"]
+    out["n_dropped_cells_bands"] = drop_band
+    out["n_t20_receiver_bands_dropped"] = drop_rx
+    out["n_receiver_bands_valid"] = n_rx_valid
     return out
+
+
+def material_slope(name, lite=False, group="test"):
+    """kept for the board: the MM1 numbers (pooled EDT slope / Pearson / n)"""
+    r = material_mm(name, lite, group)
+    return {"pooled": r["EDT"] if r["EDT"] else {}, "bands": {b: v["EDT"] for b, v in r["bands"].items() if v["EDT"]}, "mm": r}
 
 
 def boot(v):
@@ -353,11 +419,17 @@ def aggregate(models, families, lite, tag):
                 L.append("| m1 physics (reference) | {} | {} | -- |".format(g3("m1_r"), g3("m1_r_delta")))
             if fam == "Material":
                 for m in models:
-                    ms = material_slope(m, lite, g if g == "test" else "unseen")
-                    if "pooled" in ms:
-                        L.append("decay-rate edit slope (true -> predicted change in 1/T30) -- {}: {} (pooled over cells and octaves; Pearson {:.2f}, n {})".format(
-                            m, "{:.2f}".format(ms["pooled"]["slope"]), ms["pooled"]["pearson"], ms["pooled"]["n"]))
-                        rep["families"][key].setdefault(m, {})["material_slope"] = ms
+                    mm = material_mm(m, lite, g if g == "test" else "unseen")
+                    rep["families"][key].setdefault(m, {})["material_mm"] = mm
+                    e1 = mm["EDT"] or {"slope": np.nan, "pearson": np.nan, "n": 0}
+                    t1 = mm["T20"] or {"slope": np.nan, "pearson": np.nan, "n": 0}
+                    lv = mm["level_change"] or {"slope": np.nan, "pearson": np.nan, "n": 0}
+                    L.append("{}: MM1 EDT slope {:.2f} (Pearson {:.2f}, n {}); T20 slope {:.2f} (n {}; {} of {} receiver-bands dropped by the model-floor rule); "
+                             "MM2 |EDT error| edited {:.1%} vs unedited {:.1%} (margin {:+.1f} points); level-change slope {:.2f} (Pearson {:.2f}); "
+                             "{} cell-bands dropped".format(m, e1["slope"], e1["pearson"], e1["n"], t1["slope"], t1["n"],
+                                                             mm["n_t20_receiver_bands_dropped"], mm["n_receiver_bands_valid"],
+                                                             mm["edt_err_edit_med"], mm["edt_err_orig_med"], 100 * mm["MM2_margin_pts"],
+                                                             lv["slope"], lv["pearson"], mm["n_dropped_cells_bands"]))
             if fam in ("StretchU", "StretchA"):
                 L.append("| naive warp of the original truth | {} | -- | -- |".format(g3("warp_r")))
             L.append("")
@@ -369,7 +441,7 @@ def aggregate(models, families, lite, tag):
 
 def main():
     ap = argparse.ArgumentParser()
-    for k in ("--render", "--score", "--aggregate", "--plan"):
+    for k in ("--render", "--score", "--aggregate", "--plan", "--redecay"):
         ap.add_argument(k, action="store_true")
     ap.add_argument("--model", default="")
     ap.add_argument("--models", default="")
@@ -389,6 +461,8 @@ def main():
         render(name, ck, fam, a.lite, a.idx, a.chunk)
     elif a.score:
         score(a.model, fam, a.lite, a.idx, a.chunk, not a.no_m1)
+    elif a.redecay:
+        redecay(a.model, a.idx, a.chunk)
     elif a.aggregate:
         aggregate(a.models.split("+"), fam, a.lite, a.tag)
 

@@ -41,3 +41,20 @@ def test_slow_decay_is_flagged_invalid():
 def test_c50_orders_with_clarity():
     H_fast, H_slow = _field("125", 0.3), _field("125", 1.2)
     assert decay_metrics(H_fast, "125")["C50"][0] > decay_metrics(H_slow, "125")["C50"][0] + 2
+
+
+def test_floor_rule_drops_a_model_with_a_late_floor_and_keeps_a_clean_decay():
+    """D202: a clean decay keeps its receiver; the same decay plus a strong flat floor is dropped, a weak one is kept (the rule
+    is a threshold on the floor's share of the EDC at the -25 dB point), and EDT is read above the floor either way"""
+    from aaf.eval.octave_decay import floor_mask
+    rng = np.random.default_rng(1)
+    t = np.arange(NT) / FS
+    h = np.exp(-6.908 / 0.6 * t) * np.sin(2 * np.pi * 125 * t)                # T60 0.6 s, 125 Hz
+    H0 = np.fft.rfft(h)[:601][None]
+    m0 = decay_metrics(H0, "125")
+    noise = rng.normal(size=NT) * np.sqrt((h ** 2).mean())
+    strong = decay_metrics(np.fft.rfft(h + 0.10 * noise)[:601][None], "125")
+    weak = decay_metrics(np.fft.rfft(h + 0.01 * noise)[:601][None], "125")
+    assert floor_mask(m0)[0] and floor_mask(weak)[0] and not floor_mask(strong)[0]
+    assert m0["floor_db"][0] < weak["floor_db"][0] < strong["floor_db"][0]
+    assert abs(weak["EDT"][0] / m0["EDT"][0] - 1) < 0.05                     # EDT is read over 0 to -10 dB, above the floor

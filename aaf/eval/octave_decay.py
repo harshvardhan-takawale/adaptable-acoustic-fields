@@ -17,6 +17,7 @@ import numpy as np
 BANDS = {"63": (44.0, 88.0), "125": (88.0, 177.0), "250": (177.0, 300.0)}
 FS, NT = 600.0, 1200                                        # 2 s at 600 Hz
 GATE_S, EDGE_HZ = 1.5, 10.0
+FLOOR_S, FLOOR_MARGIN_DB = 0.3, 10.0   # D202: floor = mean power over the last 0.3 s; T20 is used only if the floor's EDC contribution at the -25 dB point is at least 10 dB below it
 
 
 def _taper(lo, hi):
@@ -75,10 +76,23 @@ def decay_metrics(H: np.ndarray, band: str) -> Dict[str, np.ndarray]:
     t35 = np.where(i35 < n_gate, t[np.minimum(i35, n_gate - 1)], np.nan)
     n50 = int(0.05 * FS)
     early, late = (seg[:, :n50] ** 2).sum(1), (seg[:, n50:] ** 2).sum(1)
+    t25 = np.array([np.argmax(L[r] <= -25.0) if (L[r] <= -25.0).any() else n_gate for r in range(R)])
+    p_late = (seg[:, n_gate - int(FLOOR_S * FS):] ** 2).mean(1)                         # late power, last FLOOR_S of the gate
+    e0 = np.maximum((seg ** 2).sum(1), 1e-300)
+    n_rem = np.maximum(n_gate - t25, 1)
+    floor_db = 10 * np.log10(np.maximum(p_late * n_gate / e0, 1e-12))                   # floor as an EDC level over the gate
+    margin = np.where(t25 < n_gate, -25.0 - 10 * np.log10(np.maximum(p_late * n_rem / e0, 1e-30)), np.nan)
     return {"T30": fit(-5.0, -35.0, 1.0), "EDT": fit(0.0, -10.0, 1.0), "T20": fit(-5.0, -25.0, 1.0),
-            "C50": 10 * np.log10(np.maximum(early, 1e-30) / np.maximum(late, 1e-30)), "t35": t35}
+            "C50": 10 * np.log10(np.maximum(early, 1e-30) / np.maximum(late, 1e-30)), "t35": t35,
+            "floor_db": floor_db, "t20_margin_db": margin}
 
 
 def valid_mask(t35: np.ndarray) -> np.ndarray:
     """receivers whose truth EDC reaches -35 dB at least 0.2 s before the gate ends (A7)"""
     return np.isfinite(t35) & (t35 <= GATE_S - 0.2)
+
+
+def floor_mask(m: Dict[str, np.ndarray]) -> np.ndarray:
+    """D202 (option a): receiver-bands whose own decay clears its late floor by >= 10 dB at the T20 end point (-25 dB), i.e.
+    the floor's contribution to the energy decay curve at that time is >= 10 dB below the curve. False where -25 dB is not reached."""
+    return np.isfinite(m["t20_margin_db"]) & (m["t20_margin_db"] >= FLOOR_MARGIN_DB)
