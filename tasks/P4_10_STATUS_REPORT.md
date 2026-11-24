@@ -3,6 +3,36 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (22:24) — R1's D1, D2 and A8 at its final checkpoint: the decay problem is unchanged (slightly worse), mode shifts are similar to R0's
+
+**Headline:** R1's sound dies away about as fast as R0's: in known rooms the early decay time is 14% / 24% / 30% off (63 / 125 / 250 Hz) against R0's 13% / 23% / 28%, with a noise floor near -27 to -35 dB, so the source fix did not touch this. How well R1 predicts the shift of resonance frequencies after an edit is much the same as R0's, except in new rooms, where wall and stretch edits are now better.
+
+**D1 (decay on the original rooms, off-lattice receivers at least 1 m from the source; EDT error = median relative error, bias signed):**
+
+| R1 @150K | 63 Hz: EDT error (bias) | 125 Hz | 250 Hz | floor, dB (63 / 125 / 250) |
+|---|---|---|---|---|
+| in-family | 14.1% (-13.8%) | 24.2% (-22.6%) | 29.6% (-28.8%) | -35 / -29 / -27 |
+| unseen | 23.4% (-22.7%) | 27.5% (-26.5%) | 30.3% (-29.2%) | -35 / -30 / -27 |
+| R0 @120K (in-family, for reference) | 12.6% (-12.1%) | 23.1% (-22.0%) | 28.3% (-27.7%) | -37 / -31 / -27 |
+
+T20 (kept only where the model's decay clears its floor): 192 of 11421 in-family receivers at 125 Hz and none at 250 Hz, so it is not reported.
+
+**D2 (half-power widths of the first 25-100 Hz peaks; 13 usable rooms for R1):** R1's peaks are 1.40 times as wide as the truth (2.91 Hz against 4.87 Hz medians; R0 1.50, CTL 1.48, RCP 1.49, S2X 1.50 on 14 rooms). **R1 matches fewer of the truth's peaks within 3 Hz (33 of 65, against R0's 43),** so the width comparison uses fewer peaks. The per-bin field error at 25-100 Hz is -14.6 dB for R1 (R0 -15.4 dB).
+
+**A8 (mode-shift slope, full geometry cells, 25-150 Hz; the 25-100 Hz reading is in the JSON; R0's on the same cells, pooled in the same way):**
+
+| | Stretch-U | Stretch-A | Wall | Notch |
+|---|---|---|---|---|
+| R1 in-family: slope (Pearson) | 0.60 (0.64) | 0.58 (0.63) | 0.60 (0.57) | 0.30 (0.30) |
+| R0 in-family | 0.65 (0.71) | 0.54 (0.56) | 0.71 (0.69) | 0.25 (0.22) |
+| R1 unseen | 0.51 (0.52) | 0.49 (0.45) | 0.65 (0.71) | -0.01 (-0.01) |
+| R0 unseen | 0.36 (0.39) | 0.50 (0.46) | 0.29 (0.36) | 0.04 (0.06) |
+
+- The mode shifts move the right way by about 0.5 to 0.7 of the true amount for stretch and wall edits, and hardly at all for notches. The matched pairs are 124 to 153 of 431-440 in-family truth peaks (R1), so the slopes describe the peaks that could be paired (see the caution in I10).
+- R1-M and R1-S join at their final checkpoints.
+
+Links: [d1/report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/d1/report.md) · [modes/d2.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/d2.json) · [a8_R1_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/a8_R1_150K.json)
+
 ## 2026-11-23 (22:17) — I15 (R1 +30K, the rest of the full scorecard; R1-M harm kill and R1-S static): R1 improves every new-room edit over R0 and keeps its known-room edits within 0.01-0.02 of R0's
 
 **Headline:** R1's full scorecard (675 cells, all six families) is scored. Compared with the original model R0, R1 does better on every edit family in new rooms (edited-field accuracy at 25-100 Hz up by 0.04 to 0.05 on stretch, wall and notch, 0.02 on material), is within 0.016 of R0 on geometry edits in known rooms, and is far better on source moves. Its decay behaviour under material edits is unchanged from R0, as expected: R1 saw no material labels. The materials arm R1-M does no harm at its first 10K steps.
