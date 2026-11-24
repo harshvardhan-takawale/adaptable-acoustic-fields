@@ -5,7 +5,7 @@
 
 ## 2026-11-23 (23:40) — I18 (R1-S +30K, the full scorecard): R1-S is ahead of R1 in every edit family but material, and of R0 on every stretch and wall cell
 
-**Headline:** The full scorecard of the stretched-room arm is scored. At the same training step R1-S is ahead of R1 in every family except material (where it is level): on stretch edits 0.863 / 0.629 / 0.522 against 0.825 / 0.599 / 0.492 in known rooms (25-100 / 100-200 / 200-300 Hz), and the wall and source cells gain a little too. It is ahead of the original model R0 in stretch and wall edits in both room sets. The pre-registered primary (SS1) still fails, because its bar is on the pattern-of-change score, where the gain is 0.03 to 0.02 and not 0.05.
+**Headline:** The full scorecard of the stretched-room arm is scored. At the same training step R1-S is ahead of R1 on stretch, wall and source edits and level with it on notch and material (within 0.01 in edited-field r): on stretch edits 0.863 / 0.629 / 0.522 against 0.825 / 0.599 / 0.492 in known rooms (25-100 / 100-200 / 200-300 Hz), and the wall and source cells gain a little too. It is ahead of the original model R0 on every stretch cell (both room sets) and on unseen walls; on walls in known rooms it is level with R0 (0.899 / 0.667 / 0.565 against 0.900 / 0.673 / 0.562). The pre-registered primary (SS1) still fails, because its bar is on the pattern-of-change score, where the gain over R1 is +0.032 / +0.017 / +0.012 and not 0.05.
 
 R1-S @150K against R1 @150K and R0 @120K, off-lattice, full set (15 in-family, 16 unseen rooms); edited-field r and r_delta (25-100 / 100-200 / 200-300 Hz):
 
@@ -24,7 +24,7 @@ R1-S @150K against R1 @150K and R0 @120K, off-lattice, full set (15 in-family, 1
 | Material | in-family | 0.749 / 0.558 / 0.484 | 0.749 / 0.567 / 0.476 | 0.772 / 0.583 / 0.469 | 0.091 / 0.026 / 0.020 (0.094 / 0.023 / 0.017) |
 | Material | unseen | 0.455 / 0.385 / 0.397 | 0.447 / 0.376 / 0.373 | 0.428 / 0.357 / 0.347 | 0.045 / -0.002 / 0.002 (0.044 / -0.001 / -0.006) |
 
-- **Reading the table:** R1-S beats R1 in stretch and wall edits in both room sets in every band (stretch edited r by 0.03 to 0.05; wall by about 0.01-0.03), and is level on notch, source and material. The SS1 bar asks for +0.05 in r_delta: the in-family gain is 0.03 in the lowest band (pooled Stretch-U and Stretch-A r_delta +0.032 / +0.017 / +0.012).
+- **Reading the table:** R1-S beats R1 in stretch edits in both room sets in every band (edited r by 0.02 to 0.05), in wall edits (by about 0.01 in known rooms and 0.02-0.03 in new ones) and slightly in source cells; it is level on notch and material (within 0.01). The SS1 bar asks for +0.05 in r_delta: the in-family gain is 0.03 in the lowest band (pooled Stretch-U and Stretch-A r_delta +0.032 / +0.017 / +0.012).
 - **R1-S's MM1 / MM2 on its material cells (it has no material training):** EDT slope 0.01 in-family and 0.00 unseen; MM2 margin +11.8 points in-family: as for R1.
 - Ignoring the edit still beats both models in the notch, material and unseen wall / stretch-A cells listed in I15.
 
