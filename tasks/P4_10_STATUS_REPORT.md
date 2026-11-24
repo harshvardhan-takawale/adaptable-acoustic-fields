@@ -5,7 +5,7 @@
 
 ## 2026-11-24 (09:01) — meeting figures V1, V2, V3, V4, V6, V7, V8 posted (D211, D213, D216)
 
-**Headline:** Seven of the eight meeting visuals are done (V5 is on a GPU). In the known showcase room the models follow a stretched room and a moved source well at 50 Hz and partly at 125 Hz. In the unseen backup room the stretch pictures at 50 Hz do not match the truth (r 0.03 to 0.23). The showcase room ranks 11 to 15 of 15 on most metrics, so it is not a best case.
+**Headline:** Seven of the eight meeting visuals are done (V5 is on a GPU). In the known showcase room the models follow a stretched room and a moved source well at 50 Hz and partly at 125 Hz. In the unseen backup room the stretch pictures at 50 Hz do not match the truth (r 0.03 to 0.23). The showcase room ranks 11th to 13th of 15 on five of the six metrics read so far and 3rd on the sixth (moved source, 100-200 Hz, where the median room is shown too), so it is not a best case.
 
 | figure | what it shows | the numbers printed on it |
 |---|---|---|
