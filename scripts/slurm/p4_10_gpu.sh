@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --requeue
-#SBATCH --exclude=legacy43,tron36
+#SBATCH --exclude=legacy43,tron36,gammagpu05
 #SBATCH --output=logs/slurm/%x-%A_%a.out
 #SBATCH --error=logs/slurm/%x-%A_%a.err
 set -euo pipefail

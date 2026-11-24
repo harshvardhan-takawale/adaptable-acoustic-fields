@@ -3,6 +3,23 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (09:00 ET digest; written 08:41) — daily digest
+
+Every P4-10 run from last night is finished, and the source-fix model (R1) stays the base model: it moves a sound source far better than before, but not to the standard we set. The stretched-room model (R1-S) predicts stretch edits a little better than R1 in every band (+0.032 / +0.017 / +0.012 in known rooms; the bar was +0.05 in two bands). The materials model (R1-M) is the first that responds to a change of wall absorption: right direction, nearly proportional (Pearson 0.95), about half the true size (slope 0.54; the bar was 0.8). Two models trained on a single room reproduce their rooms' resonance widths and early decay (EDT within 2%), and the shared model does not (width ratio 1.73 in its own training rooms), so that is where the next round starts. Today, a combined model (stretch plus materials) is training, its first read is due about 10:40, and the meeting figures are being made until 14:30.
+
+**Table B (arms' verdicts at 150K, known rooms unless marked):**
+
+| arm | primary | no harm | extended |
+|---|---|---|---|
+| R1 (4 sources, swaps) | RS1 FAILS (gaps second 0.203 / 0.373 / 0.372, third 0.128 / 0.238 / 0.250; bar 0.10), RS2 FAILS (1 of 6 cells), RS3 FAILS | RC1 HOLDS (HF 0.571 against 0.583) | no |
+| R1-S (+ stretched rooms) | SS1 FAILS (+0.032 / +0.017 / +0.012; bar +0.05 in 2 bands) | SC1 HOLDS (HF 0.572 against 0.571) | no |
+| R1-M (+ wall materials) | MM1 FAILS (slope 0.54, Pearson 0.95; unseen 0.66, 0.94; bar [0.8, 1.2]), MM2 HOLDS | MC1 HOLDS (HF 0.568 against 0.571) | no |
+| R1-P (physics penalty) | gate 0d FAILS, not launched | -- | -- |
+| R1-C (ray clipping) | closed | -- | -- |
+| R1-SM (stretch + materials) | running, verdict at +30K (about 15:30) | -- | -- |
+
+Links: [manager report 3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT_3.md) · [board](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [meeting-day plan](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MEETING_DAY.md)
+
 ## 2026-11-24 (07:56) — Correction to I24 and I21; manager report 3 written
 
 **Headline:** Last night's source-clearance entry (I24) said the second source lags because it is close to a wall. The measurements stand but that conclusion does not: the model's own original source sits equally close to a wall and is the most accurate of the positions tested. The materials entry (I21) said "decay time" where the measure is the decay rate (1 / EDT); the number (0.54 of the true change) is unchanged. No verdict changes.

@@ -27,6 +27,7 @@ def ref_of(arm, step):
 PRIMARY = {"R1": "in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)",
            "R1S": "r_delta on Stretch (lite) cells, in-family, paired vs R1 at the same step (bar: +0.05, CI > 0, >= 2 of 3 bands)",
            "R1M": "EDT decay-rate edit slope on Material (lite) cells, MM1 (D201/D202; bar: slope in [0.8, 1.2], Pearson >= 0.8)",
+           "R1SM": "R1-SM (D211): MM1 slope, stretch r_delta vs R1, third source vs R1; verdict (CS1, CM1, CSrc1, CN1) only at +30K",
            "R1C": "unseen UF 25-100 Hz, paired vs R1 (bar: +0.03, CI > 0)", "R1P": "raw fine-scale energy ratio at 200-300 Hz (<= 1.2x FDTD and <= 0.75x R1)"}
 
 
@@ -54,9 +55,9 @@ def arm_rows(arm):
         g = source_gap(name, lite=True)
         if g.get("test"):
             row["gap"] = {grp: {mag: {b: boot([v[b] for v in g[grp][mag].values()]) for b in B} for mag in g[grp]} for grp in g}
-        if arm == "R1M":
+        if arm in ("R1M", "R1SM"):
             row["material"] = {g: material_slope(name, True, g) for g in ("test", "unseen")}
-        if arm == "R1S":
+        if arm in ("R1S", "R1SM"):
             row["stretch"] = stretch_primary(name, ref_of(arm, it))
         rows.append(row)
     return rows
@@ -137,7 +138,7 @@ def f2(rows_by_arm):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    col = {"R1": "#2a78d6", "R1S": "#1baf7a", "R1M": "#c64f97", "CTL_150K": "#8a8a8a", "RCP_150K": "#eda100", "R0_120K": "#444444"}
+    col = {"R1": "#2a78d6", "R1S": "#1baf7a", "R1M": "#c64f97", "R1SM": "#7b5ea7", "CTL_150K": "#8a8a8a", "RCP_150K": "#eda100", "R0_120K": "#444444"}
     fig, ax = plt.subplots(2, 2, figsize=(13, 9), dpi=130, facecolor="white")
     hf, uf = ax[0, 0], ax[0, 1]
     pr, st = ax[1, 0], ax[1, 1]
@@ -150,9 +151,9 @@ def f2(rows_by_arm):
         if a == "R1" and g:
             pr.plot([x for x, _ in g], [float(np.mean(v)) for _, v in g], "-o", color=col["R1"], lw=2, ms=6, label="R1 (mean of the six gaps)")
         sr = [(r["step"] / 1000, r["stretch"]["test"]["delta"]) for r in rows if r.get("stretch", {}).get("test")]
-        if a == "R1S" and sr:
+        if a in ("R1S", "R1SM") and sr:
             for j, b in enumerate(B):
-                st.plot([x for x, _ in sr], [d[b][0] for _, d in sr], "-o", lw=2, ms=6, label="R1-S - R1, {} Hz".format(b))
+                st.plot([x for x, _ in sr], [d[b][0] for _, d in sr], "-o", lw=2, ms=6, label="{} - R1, {} Hz".format({"R1S": "R1-S", "R1SM": "R1-SM"}[a], b), ls="-" if a == "R1S" else "--")
     for nm in ("CTL_150K", "RCP_150K"):
         a0 = load(nm)
         if a0 is not None:
@@ -166,7 +167,7 @@ def f2(rows_by_arm):
     st.axhline(0.05, color="#b00020", ls="--", lw=1.4, label="SS1 bar")
     for a_, t, yl in ((hf, "In-family accuracy at 200-300 Hz (HF)", "r"), (uf, "Unseen-room accuracy at 25-100 Hz", "r"),
                       (pr, "R1: moved-source gap, mean of the six (lower is better)", "static r - moved r"),
-                      (st, "R1-S - R1 on stretch r_delta, per band", "r_delta difference")):
+                      (st, "R1-S (solid) and R1-SM (dashed) minus R1 on stretch r_delta", "r_delta difference")):
         a_.set_title(t, fontsize=11, loc="left")
         a_.set_xlabel("training step (thousands; warm start 120)", fontsize=9)
         a_.set_ylabel(yl, fontsize=9)

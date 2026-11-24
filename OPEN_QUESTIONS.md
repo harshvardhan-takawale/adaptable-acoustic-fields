@@ -73,24 +73,6 @@ m1 found that the solver's own operator, solved once per room in a modal basis (
 
 The S-4 build (1.33x throughput; score parity <= 7.2e-6, but fp16 MLPs and training never compared -- D194) could make these cheaper from P4-10.
 
-### Q33 — When is the meeting? *(user / manager)*
+## Resolved by the manager on 2026-11-24 (D211; removed from this file)
 
-### Q34 - What does P4-11 do first about decay and fit? *(manager; filed 2026-11-24 with tasks/P4_10_MANAGER_REPORT_3.md)*
-
-E1 (D207's reading): the two S-1 single-room models have the truth's peak width (ratio 1.00) and EDT error 0-2%; R1 is 1.73 [1.53, 1.94] in 15 of its own training rooms. Sharing and per-room exposure (about 83x) are not separated (Q25). In the in-family test rooms the ratio is 1.50 for R0 @120K, 1.48 for CTL @150K and 1.50 for S2X @240K. The S-1 models keep a late floor of -31 to -36 dB, so the floor is a second problem. Options: (a) eval-only, E1's read on R0 @30K / 60K / 90K / 120K and S-1 @4K; (b) wider decoder at R0's exposure; (c) per-room adapters; (d) fewer rooms; (e) a decay loss. Agent's recommendation: (a) first, then (b) or (c).
-
-### Q35 - Which model and training data does P4-11 start from? *(manager; filed 2026-11-24)*
-
-R1 is the base (D201 Q28). R1-S and R1-M fail their primaries but hold SC1 / MC1 and each does something R1 does not. Options: (a) R1 as is; (b) one combined MS + STR + MAT arm, 30K steps from R0, pre-registered against R1; (c) R1-S or R1-M as base. Agent's recommendation: (b). That the gains add is untested.
-
-### Q36 - Does P4-11 spend anything on the moved source? *(manager; filed 2026-11-24)*
-
-RS1-RS3 fail, E2 says averaging is not a candidate, and at 1.5 m from the wall the gap is still 0.112 / 0.223 / 0.272. Wall clearance is NOT shown to be the cause (the original source is also 0.5 m from a wall and is the most accurate position tested; I24 corrected). Options: (a) stop, use the approved wording; (b) more sources per room; (c) eval-only, moved-source r against distance to training-source positions; (d) a reciprocity loss. Agent's recommendation: (a) for the meeting, (c) before (b) or (d).
-
-### Q37 - R1-M's half-size material response: what next? And confirm or override D208 *(manager; filed 2026-11-24)*
-
-MM1: slope of the change in 1 / EDT 0.54 (Pearson 0.95) in-family, 0.66 (0.94) unseen, bar [0.8, 1.2]. D208 (the agent's reading of the extension rule, pending the manager) is not met: lite slope 0.62, needs 0.75. Options: (a) accept as a result; (b) more steps; (c) more or stronger material rows; (d) fold into the decay work. Agent's recommendation: (d).
-
-### Q38 - Meeting wording for R1-S, R1-M and E1; and 2f (capture-then-edit): run or drop? *(manager; filed 2026-11-24)*
-
-Proposed sentences are in tasks/P4_10_MANAGER_REPORT_3.md, section 8. Agent's recommendation: approve with the caveats as written, drop 2f unless the meeting needs a capture story.
+Q33 (meeting date: 2026-11-24, about 16:00 ET), Q34 (E-C, eval and small trainings; (b) and (c) wait for it), Q35 (R1-SM launched, pre-registered in D211), Q36 ((a) for the meeting, (c) as E-E), Q37 (D208 confirmed; folded into the decay work), Q38 (wording approved; 2f runs as E-B). Full texts of Q34-Q38: commit ec71f58, tasks/P4_10_MANAGER_REPORT_3.md. Still open: Q15, Q17, Q24, Q25.
