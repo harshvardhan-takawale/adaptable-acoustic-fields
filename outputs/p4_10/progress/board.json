@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 15:31",
+ "built": "2026-11-24 15:40",
  "arms": {
   "R1": [
    {
@@ -4294,63 +4294,105 @@
   {
    "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "6:11:40",
+   "elapsed": "6:20:28",
    "limit": "9:00:00",
    "where": "gammagpu14"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "1:42",
+   "elapsed": "3:15",
+   "limit": "40:00",
+   "where": "vulcan35"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "5:04",
+   "limit": "40:00",
+   "where": "gammagpu00"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "5:04",
+   "limit": "40:00",
+   "where": "gammagpu01"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "5:04",
+   "limit": "40:00",
+   "where": "gammagpu01"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "8:38",
+   "limit": "40:00",
+   "where": "vulcan33"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "8:38",
+   "limit": "40:00",
+   "where": "vulcan33"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "10:30",
    "limit": "40:00",
    "where": "gammagpu06"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:32",
+   "elapsed": "12:20",
    "limit": "40:00",
    "where": "vulcan34"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:32",
+   "elapsed": "12:20",
    "limit": "40:00",
    "where": "vulcan34"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:32",
+   "elapsed": "12:20",
    "limit": "40:00",
    "where": "vulcan34"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:32",
+   "elapsed": "12:20",
    "limit": "40:00",
    "where": "tron56"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:32",
+   "elapsed": "12:20",
    "limit": "40:00",
    "where": "tron60"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:32",
+   "elapsed": "12:20",
    "limit": "40:00",
    "where": "tron47"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:32",
+   "elapsed": "12:20",
    "limit": "40:00",
    "where": "clip14"
   }
