@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 02:54 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 07:54 (from JSON on disk; every read is a scored checkpoint).
 
 **Next reads (from each arm's training log):** none running
 
-**Running jobs:** aaf_a8_R1M x1
+**Running jobs:** none
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 

@@ -4,7 +4,9 @@
 
 Manager re-orientation doc. Optimized for catching up in 5 minutes after time away. Updated at the end of every chunk.
 
-**P4-10 RESULTS (2026-11-24 03:25 ET): [tasks/CHUNK_P4_10_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_10_RESULTS.md) (verdicts, artefacts, what is left); live log [P4_10_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_STATUS_REPORT.md). Headline: R1 (source fix) is the base and fails RS1-RS3 but RC1 holds; R1-S and R1-M do not pass their primaries (SS1 +0.032 / +0.017 / +0.012 at bar 0.05; MM1 slope 0.54 at bar 0.8); decay is too fast in every model and single-room models get it right (E1); R1-P and R1-C closed.**
+**P4-10 FINAL: start from [manager report 3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT_3.md) (final results, five decisions Q34-Q38; corrects the clearance claim of I24).**
+
+**P4-10 RESULTS (2026-11-24 03:25 ET): [tasks/CHUNK_P4_10_RESULTS.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/CHUNK_P4_10_RESULTS.md) (verdicts, artefacts, what is left); live log [P4_10_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_STATUS_REPORT.md). Headline: R1 (source fix) is the base and fails RS1-RS3 but RC1 holds; R1-S and R1-M do not pass their primaries (SS1 +0.032 / +0.017 / +0.012 at bar 0.05; MM1 slope of 1 / EDT 0.54 at bar 0.8); decay is too fast in every model and single-room models get it right (E1); R1-P and R1-C closed.**
 
 **Last updated**: **P4-9 Day 1-2 (2026-11-23, 00:50; D180-D193): I2, I9, I4, I1, I13, I3, I7, S-3, S-4, S-1, I14 (NMF), I5, 150K reads in; DIR E2 fails (D188); extensions X1, X1b, X2, X3a in (D189-D193); DIR-G and arm RCP training; S2X / DIR-G training, RCP queued.** Live log: [P4_9_STATUS_REPORT.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_9_STATUS_REPORT.md).
 

@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 02:54",
+ "built": "2026-11-24 07:54",
  "arms": {
   "R1": [
    {
@@ -2715,15 +2715,7 @@
    }
   ]
  },
- "queue": [
-  {
-   "job": "aaf_a8_R1M",
-   "state": "RUNNING",
-   "elapsed": "3:01",
-   "limit": "2:00:00",
-   "where": "legacy47"
-  }
- ],
+ "queue": [],
  "table_c": {
   "StretchU": {
    "R1_150K": {

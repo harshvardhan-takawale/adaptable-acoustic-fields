@@ -3,9 +3,18 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
-## 2026-11-24 (03:24) — I24 (source-clearance diagnostic, D209): the second source lags because it sits 0.5 m from a wall; R1's moved-source gap falls steadily with clearance
+## 2026-11-24 (07:56) — Correction to I24 and I21; manager report 3 written
 
-**Headline:** We placed R1's source along the same line at 0.5, 0.75, 1.0 and 1.5 m from the east wall in 8 known rooms. Its accuracy loss against its own original-room accuracy shrinks as the source moves away from the wall: 0.20 / 0.37 / 0.37 at 0.5 m (25-100 / 100-200 / 200-300 Hz), 0.11 / 0.22 / 0.27 at 1.5 m. The 0.5 m value matches the second source's gap at R1's final read (0.20 / 0.37 / 0.37) and the 1.0-1.5 m values are close to the third source's (0.13 / 0.24 / 0.25), so the second source's lag is mostly wall clearance, not the position being "more moved".
+**Headline:** Last night's source-clearance entry (I24) said the second source lags because it is close to a wall. The measurements stand but that conclusion does not: the model's own original source sits equally close to a wall and is the most accurate of the positions tested. The materials entry (I21) said "decay time" where the measure is the decay rate (1 / EDT); the number (0.54 of the true change) is unchanged. No verdict changes.
+
+- I24: the 0.5 m point is the second source itself (identical coordinates in all 8 rooms), and the original source is 0.5 m from the west wall with r 0.909 / 0.670 / 0.566 against 0.712 / 0.305 / 0.200 at 0.5 m from the east wall. The gap also does not fall at every step (100-200 Hz: 0.365, 0.242, 0.186, 0.223). What remains true: the gap is smaller away from the wall, and at 1.5 m it is still 0.112 / 0.223 / 0.272, above RS1's 0.10 in every band.
+- The same sentence is corrected in `tasks/CHUNK_P4_10_RESULTS.md`. The board was rebuilt (it still listed a finished job as running). Questions Q34-Q38 are filed.
+
+Links: [manager report 3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT_3.md) · [src-clearance report](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/srcclear/report.md)
+
+## 2026-11-24 (03:24, corrected 07:56) — I24 (source-clearance diagnostic, D209): R1's moved-source gap is smaller away from the wall; the diagnostic does not show that wall clearance is the cause
+
+**Headline:** We placed R1's source along the same line at 0.5, 0.75, 1.0 and 1.5 m from the east wall in 8 known rooms. Its accuracy loss against its own original-room accuracy shrinks as the source moves away from the wall: 0.20 / 0.37 / 0.37 at 0.5 m (25-100 / 100-200 / 200-300 Hz), 0.11 / 0.22 / 0.27 at 1.5 m. **[Corrected 07:56: this entry first said the second source lags because of its wall clearance. That does not follow. The 0.5 m point IS the second source (identical coordinates in all 8 rooms), so its agreement with the second source's gap is not independent evidence; the original source is also 0.5 m from a wall (west) and scores 0.909 / 0.670 / 0.566, so clearance alone cannot be the cause; and the 100-200 Hz gap is not steady (0.365, 0.242, 0.186, 0.223).]** Moving from 0.5 m to 1.5 m removes 0.085 / 0.142 / 0.094 of the gap, about what separates the second from the third source in the same rooms (0.080 / 0.131 / 0.115), but 0.112 / 0.223 / 0.272 remains at 1.5 m. Training coverage of source positions is an untested alternative.
 
 | clearance from the east wall (y = 1.6) | R1's r (25-100 / 100-200 / 200-300 Hz) | gap to its static r at the original source (0.909 / 0.670 / 0.566) |
 |---|---|---|
@@ -99,7 +108,7 @@ Links: [E1 report](https://raw.githubusercontent.com/harshvardhan-takawale/adapt
 
 ## 2026-11-24 (02:46) — I21 (R1-M +30K, the final Material cells; the full card follows): MM1 FAILS (slope 0.54, not 0.8), MM2 and MC1 HOLD, no extension
 
-**Headline:** The arm trained on per-wall absorption (R1-M) finished its 30K steps. When a wall's absorption is changed, its decay time changes in the right direction and in strict proportion (Pearson 0.95), but by only 0.54 of the true amount in known rooms and 0.66 in new ones; the bar asks for 0.8 to 1.2. It adds no decay error beyond its own baseline and does no harm at the original material, so those two rules hold. R1-M is not extended. R0 and R1 read about 0.0 (no response) on the same measure.
+**Headline:** The arm trained on per-wall absorption (R1-M) finished its 30K steps. When a wall's absorption is changed, its decay rate (1 / EDT, the quantity MM1 measures; this entry first said "decay time", corrected 07:56) changes in the right direction and nearly in proportion (Pearson 0.95), but by only 0.54 of the true amount in known rooms and 0.66 in new ones; the bar asks for 0.8 to 1.2. It adds no decay error beyond its own baseline and does no harm at the original material, so those two rules hold. R1-M is not extended. R0 and R1 read about 0.0 (no response) on the same measure.
 
 **R1-M @150K, full Material set (60 in-family cells, 64 unseen; 180 and 192 cell-bands; D201 / D202; off-lattice; no cell-bands dropped):**
 

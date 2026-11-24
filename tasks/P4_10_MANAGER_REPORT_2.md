@@ -1,5 +1,7 @@
 # P4-10 status for the manager, report 2 (2026-11-23 22:36 ET)
 
+**Superseded by [report 3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT_3.md) (2026-11-24): final results and the decisions needed. Kept as the document D206 answers.**
+
 This replaces the state and questions in [report 1](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT.md) (its questions are answered: D201). All links are full raw URLs. Numbers were read from files for this report; times come from `date`. Nothing here changes a pre-registered bar.
 
 **Where things stand in five lines:**

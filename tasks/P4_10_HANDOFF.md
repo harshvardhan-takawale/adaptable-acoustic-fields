@@ -11,7 +11,7 @@ All arms are final (R1, R1-S, R1-M at 150K); no arm was extended; R1-P's gate (0
 ## To do (in order)
 1. **Daily digest at 09:00 ET on 2026-11-24** at the top of `tasks/P4_10_STATUS_REPORT.md`: 3-5 plain sentences the user can forward plus Table B (the arms' verdicts).
 2. **Figures: done** (F1, F2, F3, F4, F5, F7 in `outputs/p4_10/meeting/` and `outputs/p4_10/progress/F2_trajectories.png`; F6 void; `outputs/p4_10/meeting/FIGURE_MANIFEST.md`). Remaining only if asked: a capture-then-edit step (2f, lowest priority).
-3. **Manager-facing**: `tasks/CHUNK_P4_10_RESULTS.md` (written), the OPEN_QUESTIONS items (Q24, Q25, Q33, Q17, Q15); Q33 (meeting date) is the user's answer.
+3. **Manager-facing**: `tasks/P4_10_MANAGER_REPORT_3.md` (final results and decisions) and `tasks/CHUNK_P4_10_RESULTS.md` (written). Open: Q34-Q38 (manager, P4-11), Q33 (meeting date, the user's answer), Q24, Q25, Q17, Q15.
 4. If the manager asks for anything after the final report, treat it as a new D-entry before running numbers.
 
 ## Cautions

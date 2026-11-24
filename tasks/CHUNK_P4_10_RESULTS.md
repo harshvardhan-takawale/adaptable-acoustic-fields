@@ -1,14 +1,14 @@
 # Chunk P4-10 — the editability scorecard, the source fix, and four single-change arms: RESULTS
 
-**Status (2026-11-24 03:25 ET): every planned read and diagnostic is done except the meeting figures (F1, F3-F7) and the daily digest. No run is in progress. The live log is `tasks/P4_10_STATUS_REPORT.md`; the rules are D195 (spec), D197 (amendments), D201 (rulings), D202 (decay), D206 (manager notes), D207 / D209 (diagnostic designs), D208 (R1-M extension reading).**
+**Status (2026-11-24 07:56 ET): every planned read, diagnostic and figure is done; only the daily digest is left. No run is in progress. Decisions needed: `tasks/P4_10_MANAGER_REPORT_3.md`. The live log is `tasks/P4_10_STATUS_REPORT.md`; the rules are D195 (spec), D197 (amendments), D201 (rulings), D202 (decay), D206 (manager notes), D207 / D209 (diagnostic designs), D208 (R1-M extension reading).**
 
 **Question.** Is the sound field editable in the model's latent space? Can the moved source be fixed (R1), and do stretched-room training (R1-S), per-wall materials (R1-M), a physics penalty (R1-P) or clipped rays (R1-C) help?
 
 **Answers so far (one line each).**
 * **The model is editable for geometry inside its training family, and much less outside it.** R0's stretch, wall and notch edits score 0.83 / 0.90 / 0.92 at 25-100 Hz in known rooms and 0.40 / 0.44 / 0.46 in new ones; it cannot move the source or change materials (I2).
-* **The source fix (R1) works partly.** A moved source in known rooms scores 0.71 / 0.31 / 0.20 at the second position and 0.78 / 0.45 / 0.32 at the third (ignoring the move: 0.31 / 0.21 / 0.25 and 0.30 / 0.22 / 0.18), but RS1, RS2 and RS3 FAIL and RC1 holds. It is the base model (D201 Q28). Second-source lag is mostly wall clearance (0.5 m; I24).
+* **The source fix (R1) works partly.** A moved source in known rooms scores 0.71 / 0.31 / 0.20 at the second position and 0.78 / 0.45 / 0.32 at the third (ignoring the move: 0.31 / 0.21 / 0.25 and 0.30 / 0.22 / 0.18), but RS1, RS2 and RS3 FAIL and RC1 holds. It is the base model (D201 Q28). The gap is smaller away from the wall, but wall clearance is not shown to be the cause (I24, corrected 07:56): the original source is also 0.5 m from a wall and is the most accurate position.
 * **R1-S (stretched rooms): SS1 FAILS, SC1 HOLDS, no extension.** Stretch edits better than R1 by +0.032 / +0.017 / +0.012 (bar 0.05 in two bands); ahead of R1 on stretch and wall, level on notch and material.
-* **R1-M (materials): MM1 FAILS on the slope (0.54 of the true decay change, Pearson 0.95; bar 0.8), MM2 and MC1 hold.** The first arm that responds to a material edit; on the full set its material-edit accuracy is below "ignore the edit" in every band.
+* **R1-M (materials): MM1 FAILS on the slope (0.54 of the true change in decay rate, 1 / EDT; Pearson 0.95; bar 0.8), MM2 and MC1 hold.** The first arm that responds to a material edit; on the full set its material-edit accuracy is below "ignore the edit" in every band.
 * **R1-P: its gate (0d) fails (D205), not launched. R1-C: closed (rule 10 stands, D201 Q29).**
 * **Decay is a model problem in every arm (12-34% too fast), and E1 points to sharing one model, not the loss or representation.** Single-room models reproduce decay widths (ratio 1.00) and EDT to 0-2%; R1 is 1.73 in its own training rooms (D207's reading).
 * **E2 (averaging normal and swapped renders): not a P4-11 candidate. E3: the late floor is common to the room only at 63 Hz.**
