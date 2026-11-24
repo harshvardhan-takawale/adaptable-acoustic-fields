@@ -3,6 +3,29 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (20:21) — D1 (D201), first four models: every trained model's sound dies away too fast in the original, unedited rooms, by the same amount; the cause is not yet known
+
+**Headline:** In the rooms as they are (no edit), R0, its plain continuation (CTL), the swap-only model (RCP) and the larger-corpus model (S2X) all decay faster than the truth: the early decay time (EDT, the first 10 dB) is 12% short at 63 Hz, 22% at 125 Hz and 28% at 250 Hz in known rooms; 21-22%, 25% and 28-29% in new rooms. (Listener threshold: 5% in ISO 3382-1, about 18% measured for EDT.) All four models sit on a noise floor near -27 to -38 dB, while the truth keeps falling (-71 dB at 63 Hz and -78 dB at 125 Hz); at 250 Hz the truth itself levels off at -40 dB, so T20 and T30 there are not usable for any model. Source moves, geometry edits and materials all inherit this. R1 and R1-S join at their final checkpoints.
+
+Off-lattice receivers at least 1 m from the source, every 4th; room median per octave, mean over rooms (bootstrap CI, 10k); 15 in-family, 16 unseen rooms. EDT error = median relative error, EDT bias = signed (negative = model too fast).
+
+| model | rooms | 63 Hz: EDT error (bias) | 125 Hz | 250 Hz | floor model, dB (63 / 125 / 250) |
+|---|---|---|---|---|---|
+| R0 @120K | in-family | 12.6% (-12.1%) | 23.1% (-22.0%) | 28.3% (-27.7%) | -37 / -31 / -27 |
+| R0 @120K | unseen | 22.6% (-21.6%) | 26.4% (-25.2%) | 29.1% (-27.8%) | -37 / -32 / -27 |
+| CTL @150K | in-family | 12.3% (-11.7%) | 21.9% (-21.0%) | 28.0% (-27.5%) | -38 / -32 / -29 |
+| CTL @150K | unseen | 21.9% (-20.9%) | 25.6% (-24.3%) | 29.3% (-28.1%) | -38 / -33 / -29 |
+| RCP @150K | in-family | 12.1% (-11.8%) | 22.5% (-21.5%) | 28.2% (-27.5%) | -37 / -32 / -28 |
+| RCP @150K | unseen | 22.4% (-21.6%) | 26.4% (-25.0%) | 29.9% (-28.6%) | -37 / -32 / -28 |
+| S2X @240K | in-family | 12.2% (-11.7%) | 22.7% (-21.3%) | 30.3% (-29.6%) | -37 / -32 / -28 |
+| S2X @240K | unseen | 21.1% (-19.8%) | 27.2% (-25.5%) | 30.5% (-29.4%) | -37 / -33 / -28 |
+
+- **T20 with the floor rule keeps few receivers** (125 Hz in-family: R0 1173 of 11421, CTL 2264; at 250 Hz 0-19 of 11157 per model, so it is not reported as a number).
+- **The four models differ by about 2 points or less at every octave in-family** and the same holds unseen, so training on more rooms (S2X) or swaps (RCP) does not change the decay.
+- **D2 (the mechanism, half-power linewidths of the first peaks in 25-100 Hz) is next.** The D160 standard report will carry D1 for every new arm's final checkpoint; R1, R1-S and R1-M run it at their final checkpoints.
+
+Links: [d1/report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/d1/report.md) · [d1/report.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/d1/report.json)
+
 ## 2026-11-23 (20:16) — I9 (R1-S +15K, stretch cells and static): stretch edits still improving; no matched R1 read at this step, so descriptive only
 
 **Headline:** After 15K of 30K steps, the arm that also trains on stretched rooms (R1-S) scores 0.808 / 0.546 / 0.347 (25-100 / 100-200 / 200-300 Hz) on stretch r_delta in known rooms, against 0.801 / 0.539 / 0.341 at +10K. R1 has no stretch cells at this step, so there is no paired comparison at the same step until +20K. Beside R1's neighbouring reads it is ahead by 0.037 to 0.046 in the lowest band and by 0.003 to 0.014 above. **Against R0, R1-S is not ahead in known rooms above 100 Hz (-0.013 and -0.017); part of its lead over R1 is R1's own shortfall against R0.**
