@@ -1,0 +1,426 @@
+{
+ "R0_120K": {
+  "rooms": [
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 3.16043791470108,
+    "model_width_hz": 7.691924983864118
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.3609238354851296,
+    "model_width_hz": 4.300929095069648
+   },
+   {
+    "n_peaks": 3,
+    "n_used": 2,
+    "truth_width_hz": 2.837950336060275,
+    "model_width_hz": 5.075036450395521
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.8670044065823177,
+    "model_width_hz": 7.948220270178601
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 3.051616547236881,
+    "model_width_hz": 4.068100397387191
+   },
+   {
+    "n_peaks": 6,
+    "n_used": 3,
+    "truth_width_hz": 2.4712426203474434,
+    "model_width_hz": 4.13389397193828
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 2.859796003395439,
+    "model_width_hz": 4.4262432712079764
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.5328427442189123,
+    "model_width_hz": 5.955041521965688
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 3.077958940342838,
+    "model_width_hz": 4.603954321733836
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 3.1979645544461266,
+    "model_width_hz": 3.5993731836264917
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.727147434411975,
+    "model_width_hz": 4.991578316411772
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 3,
+    "truth_width_hz": 2.906895313413637,
+    "model_width_hz": 5.262565416048477
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 1,
+    "truth_width_hz": 2.2824658782925535,
+    "model_width_hz": 3.456481684257965
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.1636815226491786,
+    "model_width_hz": 5.1695873840837265
+   }
+  ],
+  "n_rooms": 14,
+  "truth_peaks": 65,
+  "matched": 43,
+  "overlapped_dropped": 11,
+  "ratio_of_medians_by_room": [
+   1.5098769426555596,
+   1.3895361027989197,
+   1.6542512167834076
+  ],
+  "median_ratio": 1.502713047337191,
+  "frac_rooms_model_broader": 1.0,
+  "error_level_db_25_100": [
+   -15.36298926671346,
+   -16.289431122938794,
+   -14.408528125286104
+  ],
+  "truth_width_hz": 2.979255930325259,
+  "model_width_hz": 4.797766319072804
+ },
+ "CTL_150K": {
+  "rooms": [
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 3.16043791470108,
+    "model_width_hz": 7.589891225292576
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.3609238354851296,
+    "model_width_hz": 4.078059033820814
+   },
+   {
+    "n_peaks": 3,
+    "n_used": 2,
+    "truth_width_hz": 2.837950336060275,
+    "model_width_hz": 5.0223951874908375
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.8670044065823177,
+    "model_width_hz": 7.694313209867595
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 3.051616547236881,
+    "model_width_hz": 4.112864018263465
+   },
+   {
+    "n_peaks": 6,
+    "n_used": 4,
+    "truth_width_hz": 2.4939710909273387,
+    "model_width_hz": 4.533056162115737
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 2.859796003395439,
+    "model_width_hz": 4.493466642329309
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 2.9808242033824284,
+    "model_width_hz": 3.0221300800457778
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 3.077958940342838,
+    "model_width_hz": 4.650457475782458
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.7024397115226373,
+    "model_width_hz": 7.549526023103004
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.727147434411975,
+    "model_width_hz": 4.974332311701264
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 3,
+    "truth_width_hz": 2.906895313413637,
+    "model_width_hz": 5.135144784504822
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 1,
+    "truth_width_hz": 2.2824658782925535,
+    "model_width_hz": 3.3502417726547957
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.1636815226491786,
+    "model_width_hz": 4.855797849780701
+   }
+  ],
+  "n_rooms": 14,
+  "truth_peaks": 65,
+  "matched": 42,
+  "overlapped_dropped": 9,
+  "ratio_of_medians_by_room": [
+   1.4986417098185694,
+   1.3618640606454189,
+   1.6446426017521634
+  ],
+  "median_ratio": 1.4773414865856234,
+  "frac_rooms_model_broader": 1.0,
+  "error_level_db_25_100": [
+   -15.619292656580607,
+   -16.573839722077054,
+   -14.64142897327741
+  ],
+  "truth_width_hz": 2.9438597583980326,
+  "model_width_hz": 4.75312766278158
+ },
+ "RCP_150K": {
+  "rooms": [
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 3.16043791470108,
+    "model_width_hz": 8.077519255822567
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.3609238354851296,
+    "model_width_hz": 4.084909363499653
+   },
+   {
+    "n_peaks": 3,
+    "n_used": 2,
+    "truth_width_hz": 2.837950336060275,
+    "model_width_hz": 5.044408413080687
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.8670044065823177,
+    "model_width_hz": 7.422441644632217
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 3.051616547236881,
+    "model_width_hz": 4.242311832777898
+   },
+   {
+    "n_peaks": 6,
+    "n_used": 3,
+    "truth_width_hz": 2.4712426203474434,
+    "model_width_hz": 4.0493673327217925
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 2.859796003395439,
+    "model_width_hz": 4.473516882693602
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 2.9808242033824284,
+    "model_width_hz": 3.0468077323434066
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 3.077958940342838,
+    "model_width_hz": 4.660126816351359
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.7024397115226373,
+    "model_width_hz": 7.664218522325649
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.727147434411975,
+    "model_width_hz": 4.957527583593135
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 3,
+    "truth_width_hz": 2.906895313413637,
+    "model_width_hz": 5.294875663580114
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 1,
+    "truth_width_hz": 2.2824658782925535,
+    "model_width_hz": 3.40714095932607
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.1636815226491786,
+    "model_width_hz": 4.880913371400752
+   }
+  ],
+  "n_rooms": 14,
+  "truth_peaks": 65,
+  "matched": 40,
+  "overlapped_dropped": 8,
+  "ratio_of_medians_by_room": [
+   1.5101938851529684,
+   1.3673729086861035,
+   1.6674738304188992
+  ],
+  "median_ratio": 1.490671758737854,
+  "frac_rooms_model_broader": 1.0,
+  "error_level_db_25_100": [
+   -15.513831933339437,
+   -16.490116300185523,
+   -14.519502611955007
+  ],
+  "truth_width_hz": 2.9438597583980326,
+  "model_width_hz": 4.770520093876056
+ },
+ "S2X_240K": {
+  "rooms": [
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 2.633015569311473,
+    "model_width_hz": 3.0947865260588974
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.3609238354851296,
+    "model_width_hz": 4.013848401262987
+   },
+   {
+    "n_peaks": 3,
+    "n_used": 3,
+    "truth_width_hz": 2.85348323247258,
+    "model_width_hz": 6.7691577675720405
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 4.150831845038084,
+    "model_width_hz": 4.648657461974977
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 2.811001118896421,
+    "model_width_hz": 3.5428569366426457
+   },
+   {
+    "n_peaks": 6,
+    "n_used": 3,
+    "truth_width_hz": 2.4712426203474434,
+    "model_width_hz": 3.721606007795611
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 2.859796003395439,
+    "model_width_hz": 5.184818222302548
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.5328427442189123,
+    "model_width_hz": 6.573789647914666
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 3.077958940342838,
+    "model_width_hz": 5.046034670569922
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 3.1979645544461266,
+    "model_width_hz": 3.4158275049832802
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.727147434411975,
+    "model_width_hz": 4.997741517636491
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 3,
+    "truth_width_hz": 2.906895313413637,
+    "model_width_hz": 5.738360348621052
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 2.378034309254769,
+    "model_width_hz": 4.209945583984531
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.1636815226491786,
+    "model_width_hz": 5.3206722131539745
+   }
+  ],
+  "n_rooms": 14,
+  "truth_peaks": 65,
+  "matched": 39,
+  "overlapped_dropped": 9,
+  "ratio_of_medians_by_room": [
+   1.4381677942253799,
+   1.3127132780938382,
+   1.5652319214600847
+  ],
+  "median_ratio": 1.4990277224977517,
+  "frac_rooms_model_broader": 1.0,
+  "error_level_db_25_100": [
+   -15.429311593373617,
+   -16.23715077837308,
+   -14.624512153863906
+  ],
+  "truth_width_hz": 2.883345658404538,
+  "model_width_hz": 4.823199489805734
+ }
+}

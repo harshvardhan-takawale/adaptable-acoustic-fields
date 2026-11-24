@@ -3,6 +3,24 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (20:24) — D2 (D201), mechanism check on four models: the models' low-frequency peaks are about 1.5 times as broad as the truth's, in every room
+
+**Headline:** In known rooms the lowest resonance peaks (25-100 Hz) of every model are about 1.5 times as wide as the true ones: truth 2.9 Hz (half-power width), model 4.8 Hz, in all 14 rooms that have usable peaks. Broader peaks mean the model blurs the mode frequencies, which matches the faster decay seen in D1, but a broad peak can also come from extra damping, so this check alone does not separate the two.
+
+| model | truth width (median) | model width (median) | width ratio, median over rooms [95% CI over rooms] | model broader | matched peaks |
+|---|---|---|---|---|---|
+| R0_120K | 2.98 Hz | 4.80 Hz | **1.50** [1.39, 1.65] | 100% of rooms | 43 of 65 |
+| CTL_150K | 2.94 Hz | 4.75 Hz | **1.48** [1.36, 1.64] | 100% of rooms | 42 of 65 |
+| RCP_150K | 2.94 Hz | 4.77 Hz | **1.49** [1.37, 1.67] | 100% of rooms | 40 of 65 |
+| S2X_240K | 2.88 Hz | 4.82 Hz | **1.50** [1.31, 1.57] | 100% of rooms | 39 of 65 |
+
+- **How:** per room, the receiver-averaged power spectrum (off-lattice receivers) of the cached original-room render; first 10 peaks (3 dB prominence) by frequency in 25-100 Hz; each truth peak paired with the nearest model peak within 3 Hz; half-power full width by linear interpolation; a peak whose half-power points are not reached before a valley is dropped as overlapped (8-11 of 65 in these runs) and counted.
+- **A third of truth peaks have no model peak within 3 Hz** (40-43 of 65 matched): the model also places some modes at the wrong frequency.
+- **A caution about the link to D1:** if the extra width came only from higher damping, peak width and decay would change together; here the width is up about 50% while EDT at 63 Hz is down 12%. That suggests (it does not prove) that averaging over mode frequencies is part of it. The per-bin field error in 25-100 Hz is about -15 dB relative to the truth's energy (R0); the time-domain floor at 63 Hz is near -37 dB (D1; different normalisations, not comparable).
+- R1 and R1-S join at their final checkpoints.
+
+Links: [modes/d2.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/d2.json) · [p4_10_modes.py](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/scripts/p4_10_modes.py)
+
 ## 2026-11-23 (20:21) — D1 (D201), first four models: every trained model's sound dies away too fast in the original, unedited rooms, by the same amount; the cause is not yet known
 
 **Headline:** In the rooms as they are (no edit), R0, its plain continuation (CTL), the swap-only model (RCP) and the larger-corpus model (S2X) all decay faster than the truth: the early decay time (EDT, the first 10 dB) has a median error of 12-13% at 63 Hz, 22-23% at 125 Hz and 28-30% at 250 Hz in known rooms, and 21-23%, 26-27% and 29-31% in new rooms; the error is almost entirely "too fast" (bias -12% to -30%). (Listener threshold: 5% in ISO 3382-1, about 18% measured for EDT.) All four models sit on a noise floor near -27 to -38 dB, while the truth keeps falling (-71 dB at 63 Hz and -78 dB at 125 Hz); at 250 Hz the truth itself levels off at -40 dB, so T20 and T30 there are not usable for any model. Source moves, geometry edits and materials all inherit this. R1 and R1-S join at their final checkpoints.
