@@ -16,7 +16,7 @@
 
 - JNDs beside the absolute EDT errors (Rule 12, manager's note): 5% (ISO 3382-1), about 18% measured; R1-M's edited error is 21% in known rooms and 28% in new ones.
 - The per-octave slopes are uneven (0.54 at 250 Hz in-family, 0.32 at 63 Hz unseen); the pooled slope mixes them. T20 is dropped in 93% of receiver-bands (135742 of 146689) and is not used.
-- Static HF / UF at 135K are still rendering (R1-M @130K against R1 @130K: HF -0.010; judged for MC1 at +30K).
+- **Static (added 23:18), against R1 @135K:** HF 0.541 against 0.555: -0.014 [-0.020, -0.008]; UF 0.518 / 0.429 / 0.402 against 0.497 / 0.412 / 0.398: +0.021 [+0.011, +0.032] / +0.017 [+0.010, +0.025] / +0.004 [-0.007, +0.015]. MC1 (HF and UF >= R1 - 0.02) is judged at +30K.
 
 Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
 
