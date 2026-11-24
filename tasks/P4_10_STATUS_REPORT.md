@@ -3,6 +3,26 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (22:10) — I14 (R1 +30K, the final read, Source family): RS1 FAILS, RS2 FAILS, RC1 HOLDS; no extension; R1 is the base model (D201 Q28); RS3 to follow
+
+**Headline:** R1, the source-fix model, finished its 30K steps and its Source cells are scored on all 31 rooms. It can move a source far better than any earlier model, but not to the pre-registered standard: the gap between its accuracy at a moved source and at the original one is above 0.10 in all six band-and-source cells (the smallest is 0.128, the worst 0.373). It did not hurt the original room's accuracy beyond the allowed margin. R1 therefore stays at 150K, and under the manager's rule it is the base model for P4-11 and the meeting, with R0 kept as the fallback that was not needed.
+
+Off-lattice, dense receivers, 15 in-family and 16 unseen rooms, paired bootstrap over rooms (10k, seed 20261013). Static reference levels: R1 at the original source 0.909 / 0.683 / 0.571 in-family, 0.506 / 0.409 / 0.399 unseen. (Full set: the earlier reads used 8 lite rooms, so the numbers are not comparable one to one.)
+
+| moved source | in-family r | in-family gap (RS1: each <= 0.10) | unseen r | "ignore the move" (in-family / unseen) |
+|---|---|---|---|---|
+| second | 0.705 / 0.309 / 0.199 | 0.203 [0.163, 0.247] / 0.373 [0.321, 0.427] / 0.372 [0.339, 0.410] | 0.538 / 0.273 / 0.200 | 0.311 / 0.211 / 0.247 ; 0.357 / 0.204 / 0.210 |
+| third | 0.780 / 0.445 / 0.321 | 0.128 [0.110, 0.146] / 0.238 [0.216, 0.256] / 0.250 [0.234, 0.266] | 0.554 / 0.369 / 0.292 | 0.298 / 0.223 / 0.183 ; 0.332 / 0.287 / 0.208 |
+
+- **RS1 (strict, every one of the six gaps at most 0.10): FAILS** (smallest gap 0.128, worst 0.373). Unseen gaps beside (static r minus moved r; a negative gap means the moved source scores higher): second -0.031 / 0.136 / 0.199, third -0.048 / 0.040 / 0.106.
+- **RS2 (unseen moved-source r at least ignore-the-move + 0.05, every band, both sources): FAILS** at one of the six cells: second source, 200-300 Hz (-0.010 [-0.038, +0.017]); the other five are above +0.05 in the means: second +0.181 [+0.109, +0.249] / +0.069 [+0.025, +0.113], third +0.222 [+0.136, +0.313] / +0.082 [+0.052, +0.116] / +0.084 [+0.058, +0.111].
+- **RC1 (no harm at the original source): HOLDS.** HF 0.571 against CTL @150K 0.583: -0.013 [-0.019, -0.007] (limit -0.02); UF 0.506 / 0.409 / 0.399 against 0.467 / 0.376 / 0.373 (above in every band).
+- **Extension rule (D201 Q27, the same 8 lite rooms as before): NOT triggered.** Worst gap 0.366 (limit 0.15) and the mean of the six fell by 0.0127 from +20K (0.2677 to 0.2550; the rule needs 0.02 and a worst of 0.15 or less). R1 stops at 150K, its final checkpoint.
+- **Q28 (base model, D201): R1 is the base.** The fallback to R0 is not triggered: on the lite third source, R1 now reads 0.792 / 0.435 / 0.315, above its +15K values in every band (0.748 / 0.407 / 0.283), and its HF cost against CTL @150K is 0.013 (limit 0.04).
+- **Pending:** RS3 (reciprocity); the rest of the full scorecard; D1, D2 and the decay read for R1; R1's one-time read on the P4-9 confirmation set (running now, beside S2X @240K and R0 @120K; D201 Q32).
+
+Links: [verdict_R1_150K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1_150K.md) · [verdict_R1_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1_150K.json)
+
 ## 2026-11-23 (21:59) — I13 (R1-M +10K, all lite families; R1-S +25K stretch): R1-M passes its learning check and its Material accuracy now exceeds "ignore the edit" at the lowest band
 
 **Headline:** After 10K of 30K steps R1-M changes its decay time with the wall absorption at 0.48 of the true amount in known rooms (Pearson 0.78) and 0.74 in new ones (a correct model reads near 1; the +30K bar is 0.8 to 1.2). **The pre-registered learning check (decay-rate slope at least 0.3 at +10K) passes.** Its field accuracy after a material edit is 0.901 / 0.716 / 0.649 (25-100 / 100-200 / 200-300 Hz), against 0.687 / 0.493 / 0.401 for R1 at the same step and 0.882 / 0.849 / 0.826 for "ignore the edit": it beats ignoring the edit at the lowest band only.
