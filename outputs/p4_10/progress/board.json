@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 07:54",
+ "built": "2026-11-24 09:05",
  "arms": {
   "R1": [
    {
@@ -2713,9 +2713,361 @@
      }
     }
    }
-  ]
+  ],
+  "R1SM": []
  },
- "queue": [],
+ "queue": [
+  {
+   "job": "aaf_eefd",
+   "state": "COMPLETING",
+   "elapsed": "0:37",
+   "limit": "40:00",
+   "where": "quics00"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "COMPLETING",
+   "elapsed": "0:37",
+   "limit": "40:00",
+   "where": "quics00"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "COMPLETING",
+   "elapsed": "0:37",
+   "limit": "40:00",
+   "where": "quics00"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "COMPLETING",
+   "elapsed": "0:35",
+   "limit": "40:00",
+   "where": "quics00"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "COMPLETING",
+   "elapsed": "0:36",
+   "limit": "40:00",
+   "where": "quics00"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "COMPLETING",
+   "elapsed": "0:37",
+   "limit": "40:00",
+   "where": "quics00"
+  },
+  {
+   "job": "aaf_p2q",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_p2q",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_p2q",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_p2r",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "50:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_p2r",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "50:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_ebs",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "1:00:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_ebs",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "1:00:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_ebs",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "1:00:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_v5c",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(JobArrayTaskLimit)"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "2:24",
+   "limit": "2:00:00",
+   "where": "tron15"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "2:24",
+   "limit": "2:00:00",
+   "where": "tron28"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "7:54",
+   "limit": "2:00:00",
+   "where": "cml19"
+  },
+  {
+   "job": "aaf_ec",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "1:00:00",
+   "where": "tron28"
+  },
+  {
+   "job": "aaf_p2r",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "50:00",
+   "where": "cml21"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron67"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron65"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron65"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron69"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "vulcan23"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "vulcan27"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "vulcan27"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron62"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron62"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron62"
+  },
+  {
+   "job": "aaf_eefd",
+   "state": "RUNNING",
+   "elapsed": "0:39",
+   "limit": "40:00",
+   "where": "tron15"
+  },
+  {
+   "job": "aaf_ec",
+   "state": "RUNNING",
+   "elapsed": "4:06",
+   "limit": "1:00:00",
+   "where": "tron16"
+  },
+  {
+   "job": "aaf_ec",
+   "state": "RUNNING",
+   "elapsed": "4:06",
+   "limit": "1:30:00",
+   "where": "vulcan44"
+  },
+  {
+   "job": "aaf_ec",
+   "state": "RUNNING",
+   "elapsed": "4:06",
+   "limit": "1:30:00",
+   "where": "vulcan44"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "6:00",
+   "limit": "2:00:00",
+   "where": "tron23"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "6:00",
+   "limit": "2:00:00",
+   "where": "tron19"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "6:00",
+   "limit": "2:00:00",
+   "where": "tron41"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "9:49",
+   "limit": "2:00:00",
+   "where": "cml26"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "9:49",
+   "limit": "2:00:00",
+   "where": "cml25"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "9:49",
+   "limit": "2:00:00",
+   "where": "tron34"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "9:49",
+   "limit": "2:00:00",
+   "where": "cml17"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "19:17",
+   "limit": "2:00:00",
+   "where": "tron35"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "19:17",
+   "limit": "2:00:00",
+   "where": "tron38"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "19:17",
+   "limit": "2:00:00",
+   "where": "cml17"
+  },
+  {
+   "job": "aaf_eb",
+   "state": "RUNNING",
+   "elapsed": "19:17",
+   "limit": "2:00:00",
+   "where": "tron28"
+  },
+  {
+   "job": "aaf_mdfdb",
+   "state": "RUNNING",
+   "elapsed": "24:17",
+   "limit": "1:30:00",
+   "where": "vulcan23"
+  },
+  {
+   "job": "aaf_pttest",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "40:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_ptbench",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_r1sm",
+   "state": "RUNNING",
+   "elapsed": "38:26",
+   "limit": "1-00:00:00",
+   "where": "tron61"
+  }
+ ],
  "table_c": {
   "StretchU": {
    "R1_150K": {

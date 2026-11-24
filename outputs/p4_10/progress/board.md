@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 07:54 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 09:05 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** none running
+**Next reads (from each arm's training log):** R1SM: step 122400 at 0.85 s/step, next read 125000 at about 09:42 ET (posted within 1 h of it)
 
-**Running jobs:** none
+**Running jobs:** aaf_eb x14, aaf_ec x4, aaf_p2r x1, aaf_eefd x11, aaf_mdfdb x1, aaf_r1sm x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -105,6 +105,11 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1S_140K | third | 0.122 [0.098, 0.144] | 0.227 [0.192, 0.259] | 0.246 [0.228, 0.262] |
 | R1S_150K | second | 0.179 [0.138, 0.218] | 0.355 [0.280, 0.429] | 0.366 [0.321, 0.421] |
 | R1S_150K | third | 0.112 [0.087, 0.133] | 0.229 [0.201, 0.254] | 0.244 [0.229, 0.260] |
+
+## R1SM -- R1-SM (D211): MM1 slope, stretch r_delta vs R1, third source vs R1; verdict (CS1, CM1, CSrc1, CN1) only at +30K
+
+| read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
+|---|---|---|---|---|
 
 ## Table C -- latest read per model, in-family lite rooms: edited r / r_delta (25-100 / 100-200 / 200-300 Hz)
 

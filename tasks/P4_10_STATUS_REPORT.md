@@ -3,6 +3,23 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (09:00 ET digest; written 09:06) — daily digest
+
+Every P4-10 run from last night is finished, and the source-fix model (R1) stays the base model: at the new interior source in known rooms it reads 0.780 / 0.445 / 0.321 (ignoring the move 0.298 / 0.223 / 0.183), far better than before but not to the standard we set. The stretched-room model (R1-S) predicts stretch edits a little better than R1 in every band (+0.032 / +0.017 / +0.012 in known rooms; the bar was +0.05 in two bands). The materials model (R1-M) is the first that responds to a change of wall absorption: its decay rate moves in the right direction, nearly in proportion (Pearson 0.95), by about half the true size (slope 0.54; the bar was 0.8). Two models trained on a single room each get their rooms' resonance widths and early decay right (early decay time within 2%), while R1 is 1.73 times too broad even in rooms it trained on, so decay is where the next round starts. Today a combined model (stretch plus materials) is training (first checkpoint about 09:42 ET), the meeting figures V1 to V8 are being made, and the work stops at 14:30 ET.
+
+**Table B (arms' verdicts at 150K, known rooms unless marked; bars as pre-registered):**
+
+| arm | primary | no harm | extended |
+|---|---|---|---|
+| R1 (4 sources per room, swaps) | RS1 FAILS (gaps second 0.203 / 0.373 / 0.372, third 0.128 / 0.238 / 0.250; bar 0.10); RS2 FAILS (1 of 6 cells); RS3 FAILS | RC1 HOLDS (HF 0.571 against CTL 0.583) | no |
+| R1-S (+ stretched rooms) | SS1 FAILS (+0.032 / +0.017 / +0.012; bar +0.05 in 2 bands) | SC1 HOLDS (HF 0.572 against 0.571) | no |
+| R1-M (+ wall materials) | MM1 FAILS (slope 0.54, Pearson 0.95; unseen 0.66, 0.94; bar [0.8, 1.2], Pearson >= 0.8); MM2 HOLDS | MC1 HOLDS (HF 0.568 against 0.571) | no (D208 not met) |
+| R1-P (physics penalty) | gate 0d FAILS (raw / band-limited 1.49 / 1.27 / 1.36, needs 3), not launched; an exploratory re-registration (P-1) runs today | -- | -- |
+| R1-C (ray clipping) | closed (rule 10) | -- | -- |
+| R1-SM (stretch + materials) | training; verdict at +30K, after the meeting | -- | -- |
+
+Links: [board](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [manager report 3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT_3.md) · [meeting-day plan](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MEETING_DAY.md) · [meeting figures](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/FIGURE_MANIFEST.md)
+
 ## 2026-11-24 (09:01) — meeting figures V1, V2, V3, V4, V6, V7, V8 posted (D211, D213, D216)
 
 **Headline:** Seven of the eight meeting visuals are done (V5 is on a GPU). In the known showcase room the models follow a stretched room and a moved source well at 50 Hz and partly at 125 Hz. In the unseen backup room the stretch pictures at 50 Hz do not match the truth (r 0.03 to 0.23). The showcase room ranks 11th to 13th of 15 on five of the six metrics read so far and 3rd on the sixth (moved source, 100-200 Hz, where the median room is shown too), so it is not a best case.
@@ -25,23 +42,6 @@
 - **V3's reading (showcase room only):** R1-M tracks the truth at high absorption and cannot decay slowly enough at low absorption (at 125 Hz and absorption 0.10: 1.65 1/s against a true 0.98). One room, so this is an observation, not a rule; it is consistent with the manager's blur note in D211.
 - Display and scoring are separate (D213): the maps are full grids, every number is the off-lattice dense-receiver score. Parity checks passed (truth 6e-11, renders identical to the cached ones).
 - Cluster: many nodes (legacy, cml23, gammagpu) dropped out this morning. Truth runs and renders were resubmitted; R1-SM is unaffected.
-
-## 2026-11-24 (09:00 ET digest; written 08:41) — daily digest
-
-Every P4-10 run from last night is finished, and the source-fix model (R1) stays the base model: it moves a sound source far better than before, but not to the standard we set. The stretched-room model (R1-S) predicts stretch edits a little better than R1 in every band (+0.032 / +0.017 / +0.012 in known rooms; the bar was +0.05 in two bands). The materials model (R1-M) is the first that responds to a change of wall absorption: right direction, nearly proportional (Pearson 0.95), about half the true size (slope 0.54; the bar was 0.8). Two models trained on a single room reproduce their rooms' resonance widths and early decay (EDT within 2%), and the shared model does not (width ratio 1.73 in its own training rooms), so that is where the next round starts. Today, a combined model (stretch plus materials) is training, its first read is due about 10:40, and the meeting figures are being made until 14:30.
-
-**Table B (arms' verdicts at 150K, known rooms unless marked):**
-
-| arm | primary | no harm | extended |
-|---|---|---|---|
-| R1 (4 sources, swaps) | RS1 FAILS (gaps second 0.203 / 0.373 / 0.372, third 0.128 / 0.238 / 0.250; bar 0.10), RS2 FAILS (1 of 6 cells), RS3 FAILS | RC1 HOLDS (HF 0.571 against 0.583) | no |
-| R1-S (+ stretched rooms) | SS1 FAILS (+0.032 / +0.017 / +0.012; bar +0.05 in 2 bands) | SC1 HOLDS (HF 0.572 against 0.571) | no |
-| R1-M (+ wall materials) | MM1 FAILS (slope 0.54, Pearson 0.95; unseen 0.66, 0.94; bar [0.8, 1.2]), MM2 HOLDS | MC1 HOLDS (HF 0.568 against 0.571) | no |
-| R1-P (physics penalty) | gate 0d FAILS, not launched | -- | -- |
-| R1-C (ray clipping) | closed | -- | -- |
-| R1-SM (stretch + materials) | running, verdict at +30K (about 15:30) | -- | -- |
-
-Links: [manager report 3](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MANAGER_REPORT_3.md) · [board](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [meeting-day plan](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/tasks/P4_10_MEETING_DAY.md)
 
 ## 2026-11-24 (07:56) — Correction to I24 and I21; manager report 3 written
 
