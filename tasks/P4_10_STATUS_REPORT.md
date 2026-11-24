@@ -3,6 +3,22 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (01:12) — I20 (R1-M +25K, Material lite): slope 0.57 in known rooms, 0.79 in new ones; MM1 is judged at the next read
+
+**Headline:** After 25K of 30K steps R1-M changes its decay time with the wall absorption by 0.57 of the true amount in known rooms (Pearson 0.80) and 0.79 in new ones (0.83), against 0.53 and 0.75 at +20K. The bar, judged at +30K, is 0.8 to 1.2 with Pearson at least 0.8. Its accuracy after a material edit is 0.921 / 0.756 / 0.676 (25-100 / 100-200 / 200-300 Hz), which beats "ignore the edit" at 25-100 Hz only (0.882).
+
+**R1-M @145K, Material lite (16 in-family cells, 16 unseen; 48 cell-bands; JNDs 5% ISO 3382-1, about 18% measured):**
+
+| set | EDT slope (Pearson) | per octave 63 / 125 / 250 Hz | EDT error edited vs own unedited (MM2 margin) | edited r (ignore the edit) | r_delta | g_delta |
+|---|---|---|---|---|---|---|
+| in-family, +20K -> +25K | 0.53 (0.77) -> 0.57 (0.80) | 0.73 / 0.88 / 0.54 | 19.1% vs 24.9% (-5.8 points) | 0.921 / 0.756 / 0.676 (0.882 / 0.849 / 0.826) | 0.587 / 0.237 / 0.156 | 1.76 / 1.17 / 1.10 |
+| unseen, +20K -> +25K | 0.75 (0.84) -> 0.79 (0.83) | 0.49 / 0.60 / 0.59 | 26.8% vs 30.9% (-4.1 points) | 0.643 / 0.579 / 0.527 (0.898 / 0.854 / 0.828) | 0.294 / 0.155 / 0.095 | 1.15 / 1.03 / 1.05 |
+
+- T20 is dropped in 84% of receiver-bands (123724 of 146689 in-family) and is not used.
+- Its static read at 145K is still running; the +30K read follows.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-24 (00:11) — I19 (R1-M +20K, all lite families): the material response holds at 0.53 in known rooms, 0.75 in new ones; its other edits are level with R1's
 
 **Headline:** After 20K of 30K steps R1-M changes its decay time with the wall absorption by 0.53 of the true amount in known rooms (Pearson 0.77) and 0.75 in new ones (Pearson 0.84), against 0.61 and 0.77 at +15K. The in-family slope dropped 0.08 from the previous read (the lite set gives no error bar on the slope, so one dip is not a trend). Its accuracy after a material edit is 0.915 / 0.749 / 0.671 (25-100 / 100-200 / 200-300 Hz), above R1's 0.686 / 0.509 / 0.435 and above "ignore the edit" at 25-100 Hz only. Outside material edits it is level with R1 at the same step.
