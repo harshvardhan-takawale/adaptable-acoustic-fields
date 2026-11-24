@@ -5,7 +5,7 @@
 
 ## 2026-11-24 (00:11) — I19 (R1-M +20K, all lite families): the material response holds at 0.53 in known rooms, 0.75 in new ones; its other edits are level with R1's
 
-**Headline:** After 20K of 30K steps R1-M changes its decay time with the wall absorption by 0.53 of the true amount in known rooms (Pearson 0.77) and 0.75 in new ones (Pearson 0.84), against 0.61 and 0.77 at +15K. The in-family number fell slightly; the two are the same size as the read-to-read scatter, so it is not yet a trend. Its accuracy after a material edit is 0.915 / 0.749 / 0.671 (25-100 / 100-200 / 200-300 Hz), above R1's 0.686 / 0.509 / 0.435 and above "ignore the edit" at 25-100 Hz only. Outside material edits it is level with R1 at the same step.
+**Headline:** After 20K of 30K steps R1-M changes its decay time with the wall absorption by 0.53 of the true amount in known rooms (Pearson 0.77) and 0.75 in new ones (Pearson 0.84), against 0.61 and 0.77 at +15K. The in-family slope dropped 0.08 from the previous read (the lite set gives no error bar on the slope, so one dip is not a trend). Its accuracy after a material edit is 0.915 / 0.749 / 0.671 (25-100 / 100-200 / 200-300 Hz), above R1's 0.686 / 0.509 / 0.435 and above "ignore the edit" at 25-100 Hz only. Outside material edits it is level with R1 at the same step.
 
 **R1-M @140K, Material lite (16 in-family cells, 16 unseen; 48 cell-bands; D201 / D202; JNDs 5% ISO 3382-1, about 18% measured):**
 
