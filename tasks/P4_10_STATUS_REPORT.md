@@ -3,6 +3,22 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (19:14) — R0's Material decay re-scored with the D201 / D202 definitions (replaces the P-e line); R1's and R1-S's lite cells too
+
+**Headline:** We re-measured how much the models change their decay time when a wall's absorption changes, now using EDT (decay over the first 10 dB), because T30 on model fields reads a noise floor. R0 does not respond at all: EDT edit slope -0.04 (a correct model reads near 1), Pearson -0.26. The edit makes R0's decay error larger, from 23% in unedited rooms to 38% in edited ones (the bar for R1-M is at most +5 points; R0 and the source-fix model are the reference).
+
+| model | set | EDT slope (Pearson) | n cell-bands | abs. decay error, edited vs unedited (margin, points) | T20 receivers dropped by the floor rule |
+|---|---|---|---|---|---|
+| R0 @120K | in-family (full, 60 cells) | -0.04 (-0.26) | 180 | 37.8% vs 23.4% (+14.4) | 386162 of 543192 |
+| R0 @120K | unseen (full, 64 cells) | -0.09 (-0.36) | 192 | 34.8% vs 27.0% (+7.8) | 358031 of 505819 |
+| R1 @130K | in-family (lite, 16 cells) | -0.17 (-0.51) | 48 | 37.2% vs 25.0% (+12.2) | 143149 of 146689 |
+| R1-S @130K | in-family (lite, 16 cells) | -0.15 (-0.41) | 48 | 35.8% vs 25.3% (+10.5) | 145724 of 146689 |
+
+- **T20 cannot be used for R1 or R1-S:** the floor rule (a receiver-band is kept only if the model's decay clears its own floor by 10 dB at the -25 dB point) drops 98-99% of receiver-bands there, against 71% for R0. The EDT slope is the primary (MM1); the T20 slope is reported beside it and is descriptive.
+- 0 cell-bands were dropped for EDT.
+- R0's other metrics in the scorecard are unchanged (checked against the previous table: 0 differences).
+- Reading: none of these models was trained on materials. The MM2 reference for R1-M is its own unedited level, from its first Material read.
+
 ## 2026-11-23 (19:11) — Rulings received and recorded (D201); R1-M released; the decay metric is re-registered (D202); R1's other edits are slightly below R0 at +10K
 
 **Headline:** The manager answered Q26-Q32 (D201, recorded 19:05 before R1's +30K read). The materials arm (R1-M) was released and started training at 19:08:31. Decay is now measured from EDT, not T30, on model fields, and the rule for leaving out receivers whose own floor swamps the decay is written down (D202) before any R1-M number exists.
@@ -113,7 +129,7 @@ In-family 15 rooms (off-lattice; mean over rooms of each room's average over mag
 - **P-b (g_delta > 1 for Stretch-U and Wall at 100-300 Hz, in-family): HOLDS** (Stretch-U 1.65 / 1.49, Wall 1.45 / 1.45).
 - **P-c (Notch r_delta below Stretch and Wall r_delta, in-family): HOLDS.** Paired: Notch - Stretch-U -0.181 [-0.217, -0.146] / -0.261 / -0.271; - Stretch-A -0.129 [-0.166, -0.092] / -0.224 / -0.111; - Wall -0.106 [-0.140, -0.074] / -0.177 / -0.242.
 - **P-d (Source below "ignore the move" in every band): HOLDS** (0.231 / 0.083 / 0.044 against 0.305 / 0.217 / 0.215, and the clean third source).
-- **P-e (Material: g_delta near 1, decay-rate slope near 0): mostly.** g_delta 0.84 in every band (the edited render is FARTHER from the truth, not near 1). Decay-rate edit slope -0.11 with Pearson -0.64 (pooled over octaves and cells, n 180 in-family): near zero and anti-correlated with the truth (the model's small predicted change goes the wrong way). R0's corpus never varied absorption, so this is extrapolation (D200 shows its head ignores material tokens).
+- **P-e (Material: g_delta near 1, decay-rate slope near 0): [decay line replaced 2026-11-23 (19:14), D201 / D202; the T30 slope -0.11, Pearson -0.64 is withdrawn].** g_delta 0.84 in every band (the edited render is farther from the truth than the original render, not near 1). EDT-based edit slope (MM1's measure): -0.04 with Pearson -0.26 in-family (n 180 cell-bands; 63 / 125 / 250 Hz: -0.03 / -0.03 / -0.05), -0.09 with Pearson -0.36 unseen (n 192): the model does not change its decay when the absorption changes. MM2's quantity, for R0: |EDT error| edited 37.8% against 23.4% unedited, +14.4 points (bar for R1-M: at most +5); unseen 34.8% against 27.0%, +7.8 points. JNDs: 5% (ISO 3382-1), about 18% measured (EDT). T20 slope -0.12 in-family, but the floor rule (D202) drops 386162 of 543192 receiver-bands, so it is not a usable number for R0. Level-change slope 0.09 (Pearson 0.33).
 - **P-f (unseen: every family at or below R0's static unseen r): HOLDS.** Edited minus static unseen: Stretch-U -0.065 [-0.099, -0.036] / -0.055 / -0.067, Stretch-A -0.052 / -0.032 / -0.044, Wall -0.030 [-0.045, -0.015] / -0.017 / -0.024, Notch -0.004 / +0.001 / +0.001 (equal within CI), Source -0.255 / -0.270 / -0.309, Material -0.039 / -0.023 / -0.024 (all CIs below or at 0).
 - **Reading:** R0 is editable for geometry inside the family it was trained on, with a real pattern of change (r_delta up to 0.82), and degrades quickly outside it. The source and material edits are not there, which is what R1 and R1-M target. **Not yet scored:** mode-shift slope (A8), F1 figure, and the second-source/third-source split for R1 at +10K.
 

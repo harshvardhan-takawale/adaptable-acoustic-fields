@@ -92,7 +92,7 @@ Off-lattice dense receivers (edited-field r / LSD) or the common receivers (r_de
 |---|---|---|---|
 | R0_120K | 0.772 / 0.583 / 0.469 | 0.067 / 0.026 / 0.017 | 0.843 / 0.843 / 0.850 |
 | ignore the edit (original truth) | 0.911 / 0.891 / 0.880 | -- | 1 (by definition) |
-decay-rate edit slope (true -> predicted change in 1/T30) -- R0_120K: -0.11 (pooled over cells and octaves; Pearson -0.64, n 180)
+R0_120K: MM1 EDT slope -0.04 (Pearson -0.26, n 180); T20 slope -0.12 (n 118; 386162 of 543192 receiver-bands dropped by the model-floor rule); MM2 |EDT error| edited 37.8% vs unedited 23.4% (margin +14.4 points); level-change slope 0.09 (Pearson 0.33); 0 cell-bands dropped
 
 ## Material -- unseen (16 rooms)
 
@@ -100,5 +100,5 @@ decay-rate edit slope (true -> predicted change in 1/T30) -- R0_120K: -0.11 (poo
 |---|---|---|---|
 | R0_120K | 0.428 / 0.357 / 0.347 | 0.027 / -0.006 / -0.000 | 0.959 / 0.949 / 0.948 |
 | ignore the edit (original truth) | 0.921 / 0.897 / 0.884 | -- | 1 (by definition) |
-decay-rate edit slope (true -> predicted change in 1/T30) -- R0_120K: -0.15 (pooled over cells and octaves; Pearson -0.62, n 192)
+R0_120K: MM1 EDT slope -0.09 (Pearson -0.36, n 192); T20 slope -0.10 (n 126; 358031 of 505819 receiver-bands dropped by the model-floor rule); MM2 |EDT error| edited 34.8% vs unedited 27.0% (margin +7.8 points); level-change slope 0.01 (Pearson 0.03); 0 cell-bands dropped
 
