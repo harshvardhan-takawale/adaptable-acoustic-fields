@@ -1,0 +1,62 @@
+{
+ "room": "L5.36_W4.34_d1.88_w1.40",
+ "figure": "V1",
+ "frequency_hz": 125,
+ "ranks": {
+  "rank": 11,
+  "of": 15,
+  "value": 0.5943489298224449,
+  "median_room": "L6.62_W4.54_d0.68_w1.28",
+  "median_value": 0.6401834040880203
+ },
+ "scales": [
+  0.9,
+  0.95,
+  1.0,
+  1.05,
+  1.1
+ ],
+ "panels": {
+  "show_s0.900|R1-S": {
+   "r_at_125Hz": 0.49720266461372375,
+   "r_band": {
+    "25-100": 0.7312519550323486,
+    "100-200": 0.3792687952518463,
+    "200-300": 0.3935125470161438
+   }
+  },
+  "show_s0.950|R1-S": {
+   "r_at_125Hz": 0.5567442178726196,
+   "r_band": {
+    "25-100": 0.8897660374641418,
+    "100-200": 0.6297585368156433,
+    "200-300": 0.5576566457748413
+   }
+  },
+  "show_s1.000|R1-S": {
+   "r_at_125Hz": 0.37637245655059814,
+   "r_band": {
+    "25-100": 0.8763839602470398,
+    "100-200": 0.6304596066474915,
+    "200-300": 0.5734934210777283
+   }
+  },
+  "show_s1.050|R1-S": {
+   "r_at_125Hz": 0.5638537406921387,
+   "r_band": {
+    "25-100": 0.8892034888267517,
+    "100-200": 0.6801490783691406,
+    "200-300": 0.5844202637672424
+   }
+  },
+  "show_s1.100|R1-S": {
+   "r_at_125Hz": 0.8350841999053955,
+   "r_band": {
+    "25-100": 0.9001171588897705,
+    "100-200": 0.6882193088531494,
+    "200-300": 0.558870255947113
+   }
+  }
+ },
+ "caption": "Maps are drawn on a full grid (truth: FDTD, 2 cm; model: 4 cm). Every number r is the off-lattice accuracy at that frequency (spatial correlation of level, dense receivers), never read from the map.\nStretch factor s applies to both room dimensions, the notch keeps its proportion; source fixed. Known room L5.36_W4.34_d1.88_w1.40; showcase ranks 11 of 15 on R1-S stretch accuracy at 100-200 Hz (R1-S)."
+}

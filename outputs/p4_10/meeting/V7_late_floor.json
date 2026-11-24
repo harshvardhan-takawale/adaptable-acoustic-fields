@@ -1,0 +1,50 @@
+{
+ "source": "outputs/p4_10/v7/report.json",
+ "definition": "D216",
+ "R1|63|EDT": {
+  "before_pct": 14.047452573978084,
+  "after_pct": 14.049628141005218,
+  "n_receivers": 11302
+ },
+ "R1|63|T20": {
+  "before_pct": 31.78069220383193,
+  "after_pct": 32.503604700044164,
+  "n_receivers": 11297
+ },
+ "R1|63|T30": {
+  "before_pct": 30.951734487114447,
+  "after_pct": 34.862858304433686,
+  "n_receivers": 11282
+ },
+ "R1|125|EDT": {
+  "before_pct": 24.114782998700015,
+  "after_pct": 24.17688439747813,
+  "n_receivers": 11301
+ },
+ "R1|125|T20": {
+  "before_pct": 57.31615220822645,
+  "after_pct": 60.59180421562338,
+  "n_receivers": 11288
+ },
+ "R1|125|T30": {
+  "before_pct": 513.9590942773294,
+  "after_pct": 55.309453478768646,
+  "n_receivers": 11280
+ },
+ "R1|250|EDT": {
+  "before_pct": 29.551886961447682,
+  "after_pct": 29.405183868969605,
+  "n_receivers": 11015
+ },
+ "R1|250|T20": {
+  "before_pct": 52.49193916122845,
+  "after_pct": 60.29664969314369,
+  "n_receivers": 11002
+ },
+ "R1|250|T30": {
+  "before_pct": 545.7453672697671,
+  "after_pct": 55.153504574153736,
+  "n_receivers": 10993
+ },
+ "headline": "Removing the late floor does not fix the decay: R1 at 125 Hz, EDT error 24% to 24%, T20 error 57% to 61%"
+}

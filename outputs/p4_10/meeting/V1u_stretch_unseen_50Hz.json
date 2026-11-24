@@ -1,0 +1,48 @@
+{
+ "room": "C3L6.54_W4.82_NWd0.80w2.82_NEd1.84w1.88_SEd0.60w1.66",
+ "figure": "V1 unseen backup",
+ "frequency_hz": 50,
+ "panels": {
+  "unseen_s0.900|R1-S": {
+   "r_at_50Hz": 0.032670121639966965,
+   "r_band": {
+    "25-100": 0.3215334117412567,
+    "100-200": 0.4873238503932953,
+    "200-300": 0.39831361174583435
+   }
+  },
+  "unseen_s0.950|R1-S": {
+   "r_at_50Hz": 0.12503233551979065,
+   "r_band": {
+    "25-100": 0.35015279054641724,
+    "100-200": 0.4199724495410919,
+    "200-300": 0.375011146068573
+   }
+  },
+  "unseen_s1.000|R1-S": {
+   "r_at_50Hz": 0.09732876718044281,
+   "r_band": {
+    "25-100": 0.34903234243392944,
+    "100-200": 0.47021377086639404,
+    "200-300": 0.4216464161872864
+   }
+  },
+  "unseen_s1.050|R1-S": {
+   "r_at_50Hz": 0.15261700749397278,
+   "r_band": {
+    "25-100": 0.2988394796848297,
+    "100-200": 0.5080675482749939,
+    "200-300": 0.38037800788879395
+   }
+  },
+  "unseen_s1.100|R1-S": {
+   "r_at_50Hz": 0.23289358615875244,
+   "r_band": {
+    "25-100": 0.297367662191391,
+    "100-200": 0.46376651525497437,
+    "200-300": 0.3017132878303528
+   }
+  }
+ },
+ "caption": "Maps are drawn on a full grid (truth: FDTD, 2 cm; model: 4 cm). Every number r is the off-lattice accuracy at that frequency (spatial correlation of level, dense receivers), never read from the map.\nNew room, not in any training family: C3L6.54_W4.82_NWd0.80w2.82_NEd1.84w1.88_SEd0.60w1.66 (the unseen room with the median R1 static r; the lower of the two middle rooms). "
+}

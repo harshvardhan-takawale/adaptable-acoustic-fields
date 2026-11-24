@@ -1,0 +1,147 @@
+{
+ "source": "outputs/p4_10/scorecard_{R0,R1,R1S,R1M}_full.json (edited-field r, mean over rooms)",
+ "test|25-100|StretchU": {
+  "R0": 0.833214266349872,
+  "this_round_model": "R1-S",
+  "this_round": 0.862966721256574,
+  "ignore_the_edit": 0.4104997478425503
+ },
+ "test|25-100|StretchA": {
+  "R0": 0.8348156288266182,
+  "this_round_model": "R1-S",
+  "this_round": 0.8722537835439046,
+  "ignore_the_edit": 0.5140094757080078
+ },
+ "test|25-100|Wall": {
+  "R0": 0.8997496411204338,
+  "this_round_model": "R1",
+  "this_round": 0.8905708889166514,
+  "ignore_the_edit": 0.7353346059719722
+ },
+ "test|25-100|Notch": {
+  "R0": 0.9165004130866792,
+  "this_round_model": "R1",
+  "this_round": 0.9059410889943441,
+  "ignore_the_edit": 0.8852801236841414
+ },
+ "test|25-100|Source": {
+  "R0": 0.23090561827023823,
+  "this_round_model": "R1",
+  "this_round": 0.7426166534423828,
+  "ignore_the_edit": 0.3046106313665708
+ },
+ "test|25-100|Material": {
+  "R0": 0.7723391165335973,
+  "this_round_model": "R1-M",
+  "this_round": 0.8943575372298559,
+  "ignore_the_edit": 0.9106005767981211
+ },
+ "test|100-200|StretchU": {
+  "R0": 0.606384917224447,
+  "this_round_model": "R1-S",
+  "this_round": 0.6291104006270568,
+  "ignore_the_edit": 0.17061060834676028
+ },
+ "test|100-200|StretchA": {
+  "R0": 0.6133573065201442,
+  "this_round_model": "R1-S",
+  "this_round": 0.633150082329909,
+  "ignore_the_edit": 0.24983897407849628
+ },
+ "test|100-200|Wall": {
+  "R0": 0.6731478065252304,
+  "this_round_model": "R1",
+  "this_round": 0.657893604785204,
+  "ignore_the_edit": 0.4207746816178163
+ },
+ "test|100-200|Notch": {
+  "R0": 0.6968596991565492,
+  "this_round_model": "R1",
+  "this_round": 0.6809061762359406,
+  "ignore_the_edit": 0.7146429427795941
+ },
+ "test|100-200|Source": {
+  "R0": 0.08310923661726216,
+  "this_round_model": "R1",
+  "this_round": 0.37710367863376937,
+  "ignore_the_edit": 0.2171056054532528
+ },
+ "test|100-200|Material": {
+  "R0": 0.5825849155584971,
+  "this_round_model": "R1-M",
+  "this_round": 0.7128026783466339,
+  "ignore_the_edit": 0.8913668354352315
+ },
+ "unseen|25-100|StretchU": {
+  "R0": 0.40217614717160666,
+  "this_round_model": "R1-S",
+  "this_round": 0.4919947707094252,
+  "ignore_the_edit": 0.440408187918365
+ },
+ "unseen|25-100|StretchA": {
+  "R0": 0.4157067737542093,
+  "this_round_model": "R1-S",
+  "this_round": 0.49869569297879934,
+  "ignore_the_edit": 0.544278226637592
+ },
+ "unseen|25-100|Wall": {
+  "R0": 0.4380740853957832,
+  "this_round_model": "R1",
+  "this_round": 0.48276198057768244,
+  "ignore_the_edit": 0.7521511036902666
+ },
+ "unseen|25-100|Notch": {
+  "R0": 0.46398327057249844,
+  "this_round_model": "R1",
+  "this_round": 0.5034531679314872,
+  "ignore_the_edit": 0.9162441321338217
+ },
+ "unseen|25-100|Source": {
+  "R0": 0.21222486899932846,
+  "this_round_model": "R1",
+  "this_round": 0.5458007240667939,
+  "ignore_the_edit": 0.3443748243153095
+ },
+ "unseen|25-100|Material": {
+  "R0": 0.4281260506249964,
+  "this_round_model": "R1-M",
+  "this_round": 0.5576213644817472,
+  "ignore_the_edit": 0.9214951787143946
+ },
+ "unseen|100-200|StretchU": {
+  "R0": 0.325245875865221,
+  "this_round_model": "R1-S",
+  "this_round": 0.4085853898432106,
+  "ignore_the_edit": 0.15290089593812203
+ },
+ "unseen|100-200|StretchA": {
+  "R0": 0.3473517697226877,
+  "this_round_model": "R1-S",
+  "this_round": 0.40989236844082677,
+  "ignore_the_edit": 0.25484138207199675
+ },
+ "unseen|100-200|Wall": {
+  "R0": 0.3632787537450592,
+  "this_round_model": "R1",
+  "this_round": 0.3916773379314691,
+  "ignore_the_edit": 0.41304415045306087
+ },
+ "unseen|100-200|Notch": {
+  "R0": 0.38049918956433737,
+  "this_round_model": "R1",
+  "this_round": 0.4085422156689068,
+  "ignore_the_edit": 0.7599911671131849
+ },
+ "unseen|100-200|Source": {
+  "R0": 0.11016762264807767,
+  "this_round_model": "R1",
+  "this_round": 0.32096608774736524,
+  "ignore_the_edit": 0.24552906496683136
+ },
+ "unseen|100-200|Material": {
+  "R0": 0.3565764904487878,
+  "this_round_model": "R1-M",
+  "this_round": 0.4830054233316332,
+  "ignore_the_edit": 0.8973134057596326
+ }
+}
