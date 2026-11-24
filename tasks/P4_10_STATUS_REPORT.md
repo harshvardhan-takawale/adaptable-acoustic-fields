@@ -3,6 +3,25 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (11:43) — R1-SM +10K (descriptive, lite cells): it keeps each parent's gain at this step; the harm check follows
+
+**Headline:** After 10K of 30K steps the combined model is still level with its parents at the same step. Material response 0.47 (Pearson 0.81) in known rooms (R1-M 0.48 (Pearson 0.78)) and 0.70 (Pearson 0.80) in new ones (R1-M 0.74 (Pearson 0.79)); third source 0.727 / 0.410 / 0.281 (R1 0.713 / 0.391 / 0.279); stretch pattern of the change 0.797 / 0.522 / 0.331 (R1-S 0.801 / 0.539 / 0.341; 0.762 / 0.532 / 0.333 for R1). It is below R1-S by 0.017 in the middle band in known rooms, interval below zero, so CS1 (at least R1-S minus 0.01 in every band, at +30K) is not met at this step in that band. No verdict before +30K.
+
+| lite cells (8 rooms) | R1-SM | parent | difference [95% CI], 25-100 / 100-200 / 200-300 Hz |
+|---|---|---|---|
+| stretch, known rooms | 0.797 / 0.522 / 0.331 | R1-S 0.801 / 0.539 / 0.341 | -0.003 [-0.010, +0.003] / -0.017 [-0.025, -0.008] / -0.009 [-0.015, -0.004] |
+| stretch, known rooms | 0.797 / 0.522 / 0.331 | R1 0.762 / 0.532 / 0.333 | +0.035 [+0.009, +0.065] / -0.010 [-0.020, -0.000] / -0.002 [-0.009, +0.004] |
+| stretch, new rooms | 0.375 / 0.293 / 0.218 | R1-S 0.362 / 0.290 / 0.225 | +0.012 [+0.001, +0.024] / +0.003 [-0.008, +0.014] / -0.008 [-0.022, +0.004] |
+| stretch, new rooms | 0.375 / 0.293 / 0.218 | R1 0.338 / 0.266 / 0.211 | +0.037 [+0.027, +0.050] / +0.028 [+0.015, +0.037] / +0.006 [-0.012, +0.020] |
+| third source, known rooms | 0.727 / 0.410 / 0.281 | R1 0.713 / 0.391 / 0.279 | +0.014 [-0.002, +0.030] / +0.019 [+0.005, +0.032] / +0.002 [-0.008, +0.013] |
+| second source, known rooms | 0.593 / 0.265 / 0.199 | R1 0.587 / 0.265 / 0.201 | +0.005 [-0.009, +0.025] / -0.000 [-0.012, +0.013] / -0.002 [-0.014, +0.011] |
+| material response (slope), known / new | 0.47 / 0.70 | R1-M 0.48 / 0.74; R1 -0.17 | -- |
+| material edited accuracy, known rooms | 0.896 / 0.708 / 0.644 | R1-M 0.901 / 0.716 / 0.649; R1 0.687 / 0.493 / 0.401 | -- |
+
+- **Harm kill (D211: HF or any UF band more than 0.05 below R1 at the same step with the CI entirely below -0.02): not decided yet.** g2dense and unseen for this checkpoint are running; posted as soon as they land.
+- The checkpoint was ready at 10:51; this is posted 52 minutes later (no GPU started until 11:29: my own P-1 jobs had filled the 500-job limit, then the scheduler was slow; see the 11:10 notes in the handoff).
+- Numbers: [R1SM_130K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/R1SM_130K.md). +15K about 12:03.
+
 ## 2026-11-24 (11:32) — P-1 (D218), +2.5K read: the stop rule TRIGGERS on HF; R1-P(t) is cancelled at 11:30 (R1-ctl keeps running)
 
 **Headline:** The mean-value penalty lowers the wave-equation residual as intended, but it costs accuracy and makes the decay worse. After 2.5K of 10K steps R1-P(t) (R1 plus the penalty) reads HF 0.534 against R1-ctl's 0.572, a difference of -0.038 with its interval entirely below zero, and below the control in 15 of 15 known rooms. The pre-registered stop rule (HF or any UF band more than 0.02 below the control, interval entirely below zero) triggers, so the watcher cancelled the arm. I recomputed HF from the stored renders with the frozen scorer, outside the reader: 0.534 and 0.572, the same. The unseen-room accuracy is unchanged in two bands and 0.008 lower in the third.

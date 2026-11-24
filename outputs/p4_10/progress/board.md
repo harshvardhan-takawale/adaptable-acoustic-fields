@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 10:24 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 11:43 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1SM: step 128000 at 0.84 s/step, next read 130000 at about 10:52 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1SM: step 133800 at 0.84 s/step, next read 135000 at about 11:59 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_p4_5_eval x1, aaf_fit x1, aaf_ptwatch x1, aaf_backstop x1, aaf_autopub x1, aaf_unseen_ev x1, aaf_r1sm x1, aaf_r1ctl x1, aaf_r1pt x1, aaf_score_R1SM_125K x1, aaf_gather_R1SM_125K x1
+**Running jobs:** aaf_poolscore_R1SM_130K x1, aaf_motion_med x6, aaf_backstop x1, aaf_autopub x1, aaf_m4fd x2, aaf_m4gpu_p6000 x1, aaf_m4gpu_rtxa4000 x1, aaf_eerd x8, aaf_p4_5_eval x1, aaf_oof x1, aaf_r1sm x1, aaf_unseen_ev x1, aaf_g2dense x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -110,7 +110,8 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 
 | read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
 |---|---|---|---|---|
-| R1SM_125K | pending | | | |
+| R1SM_125K | 0.529 | 0.498 / 0.402 / 0.385 | -0.007 [-0.016, +0.001] | +0.015 [+0.005, +0.025] |
+| R1SM_130K | pending | | | |
 
 MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8), in-family primary; MM2 margin = median |EDT error| edited - unedited, points (bar <= +5):
 
@@ -118,6 +119,15 @@ MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slo
 |---|---|---|---|---|---|---|---|
 | R1SM_125K | in-family | 0.37 | 0.61 | 48 | 0.59 | 23% / 27% (-4.5) | 0 cells-bands; 145189 of 146689 rx-bands (T20 floor) |
 | R1SM_125K | unseen | 0.59 | 0.66 | 48 | 0.24 | 28% / 33% (-5.2) | 0 cells-bands; 126618 of 129438 rx-bands (T20 floor) |
+| R1SM_130K | in-family | 0.47 | 0.81 | 48 | 0.41 | 22% / 26% (-4.1) | 0 cells-bands; 141940 of 146689 rx-bands (T20 floor) |
+| R1SM_130K | unseen | 0.70 | 0.80 | 48 | 0.27 | 27% / 31% (-4.1) | 0 cells-bands; 123187 of 129438 rx-bands (T20 floor) |
+
+Stretch r_delta (lite cells; paired vs R1 at the same step):
+
+| read | set | level | R1 | delta 25-100 / 100-200 / 200-300 [CI] |
+|---|---|---|---|---|
+| R1SM_130K | test | 0.797 / 0.522 / 0.331 | 0.762 / 0.532 / 0.333 | +0.035 [+0.009, +0.065] / -0.010 [-0.020, -0.000] / -0.002 [-0.009, +0.004] |
+| R1SM_130K | unseen | 0.375 / 0.293 / 0.218 | 0.338 / 0.266 / 0.211 | +0.037 [+0.027, +0.050] / +0.028 [+0.015, +0.037] / +0.006 [-0.012, +0.020] |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 
@@ -125,6 +135,8 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 |---|---|---|---|---|
 | R1SM_125K | second | 0.353 [0.247, 0.461] | 0.362 [0.300, 0.423] | 0.369 [0.330, 0.416] |
 | R1SM_125K | third | 0.219 [0.170, 0.277] | 0.254 [0.210, 0.293] | 0.310 [0.292, 0.327] |
+| R1SM_130K | second | 0.302 [0.214, 0.395] | 0.366 [0.309, 0.429] | 0.340 [0.312, 0.375] |
+| R1SM_130K | third | 0.168 [0.132, 0.198] | 0.221 [0.185, 0.251] | 0.259 [0.239, 0.277] |
 
 ## Table C -- latest read per model, in-family lite rooms: edited r / r_delta (25-100 / 100-200 / 200-300 Hz)
 
@@ -133,30 +145,32 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | StretchU | R1_150K | 8 | 0.760 / 0.530 / 0.419 | 0.806 / 0.579 / 0.393 |
 | StretchU | R1M_150K | 8 | 0.768 / 0.534 / 0.425 | 0.808 / 0.571 / 0.393 |
 | StretchU | R1S_150K | 8 | 0.826 / 0.579 / 0.475 | 0.856 / 0.606 / 0.417 |
-| StretchU | R1SM_125K | 8 | 0.782 / 0.528 / 0.435 | 0.799 / 0.535 / 0.363 |
+| StretchU | R1SM_130K | 8 | 0.800 / 0.546 / 0.441 | 0.828 / 0.559 / 0.377 |
 | StretchU | R0_120K | 8 | 0.761 / 0.532 / 0.417 | 0.816 / 0.588 / 0.405 |
 | StretchA | R1_150K | 8 | 0.818 / 0.590 / 0.484 | 0.737 / 0.518 / 0.307 |
 | StretchA | R1M_150K | 8 | 0.820 / 0.588 / 0.493 | 0.734 / 0.500 / 0.302 |
 | StretchA | R1S_150K | 8 | 0.874 / 0.614 / 0.522 | 0.788 / 0.535 / 0.319 |
-| StretchA | R1SM_125K | 8 | 0.826 / 0.567 / 0.477 | 0.727 / 0.461 / 0.271 |
+| StretchA | R1SM_130K | 8 | 0.859 / 0.584 / 0.488 | 0.767 / 0.485 / 0.286 |
 | StretchA | R0_120K | 8 | 0.819 / 0.595 / 0.488 | 0.756 / 0.530 / 0.323 |
 | Wall | R1_150K | 8 | 0.899 / 0.645 / 0.548 | 0.719 / 0.472 / 0.434 |
 | Wall | R1M_150K | 8 | 0.895 / 0.638 / 0.550 | 0.709 / 0.460 / 0.431 |
 | Wall | R1S_150K | 8 | 0.900 / 0.644 / 0.557 | 0.722 / 0.473 / 0.443 |
+| Wall | R1SM_130K | 8 | 0.886 / 0.612 / 0.525 | 0.700 / 0.429 / 0.408 |
 | Wall | R0_120K | 8 | 0.909 / 0.655 / 0.555 | 0.748 / 0.485 / 0.448 |
 | Notch | R1_150K | 8 | 0.905 / 0.662 / 0.550 | 0.570 / 0.285 / 0.180 |
 | Notch | R1M_150K | 8 | 0.900 / 0.657 / 0.550 | 0.551 / 0.277 / 0.181 |
 | Notch | R1S_150K | 8 | 0.904 / 0.661 / 0.552 | 0.570 / 0.283 / 0.183 |
+| Notch | R1SM_130K | 8 | 0.890 / 0.631 / 0.528 | 0.545 / 0.257 / 0.169 |
 | Notch | R0_120K | 8 | 0.914 / 0.678 / 0.559 | 0.588 / 0.299 / 0.188 |
 | Source | R1_150K | 8 | 0.752 / 0.370 / 0.257 | 0.782 / 0.505 / 0.396 |
 | Source | R1M_150K | 8 | 0.740 / 0.375 / 0.273 | 0.769 / 0.504 / 0.404 |
 | Source | R1S_150K | 8 | 0.765 / 0.376 / 0.264 | 0.789 / 0.505 / 0.402 |
-| Source | R1SM_125K | 8 | 0.587 / 0.303 / 0.187 | 0.663 / 0.450 / 0.359 |
+| Source | R1SM_130K | 8 | 0.660 / 0.337 / 0.240 | 0.712 / 0.472 / 0.382 |
 | Source | R0_120K | 8 | 0.229 / 0.074 / 0.034 | 0.497 / 0.380 / 0.297 |
 | Material | R1_150K | 8 | 0.691 / 0.507 / 0.428 | 0.146 / 0.031 / 0.005 |
 | Material | R1M_150K | 8 | 0.922 / 0.762 / 0.683 | 0.581 / 0.242 / 0.171 |
 | Material | R1S_150K | 8 | 0.688 / 0.488 / 0.444 | 0.152 / 0.038 / 0.013 |
-| Material | R1SM_125K | 8 | 0.856 / 0.664 / 0.607 | 0.422 / 0.148 / 0.074 |
+| Material | R1SM_130K | 8 | 0.896 / 0.708 / 0.644 | 0.505 / 0.185 / 0.115 |
 | Material | R0_120K | 8 | 0.719 / 0.518 / 0.407 | 0.101 / 0.032 / 0.008 |
 
 ![F2 trajectories](F2_trajectories.png)

@@ -43,7 +43,8 @@ er = lambda m, f, gr: t3([sc[m]["{}|{}".format(f, gr)][m]["edited_r"][b][0] for 
 wall_cap = eb["families"]["Wall|L+0.3"]["bands"]["25-100"]
 mat_cap = eb["families"]["Material|all0.30"]["bands"]["25-100"]
 fl = lambda f, b="25-100": eb["families"][f]["bands"][b]["C"]  # noqa: E731
-smr = J("outputs/p4_10/progress/R1SM_125K.json")
+SMK = next(k for k in (150, 145, 140, 135, 130, 125) if Path("outputs/p4_10/progress/R1SM_{}K.json".format(k)).exists())
+smr = J("outputs/p4_10/progress/R1SM_{}K.json".format(SMK))
 def ptnum():
     import re
     t = Path("outputs/p4_10/pt/read_152K.md").read_text()
@@ -103,7 +104,7 @@ Status labels: **FINAL** (scored, verdict recorded), **PROVISIONAL** (a later pa
 | 8 | How much training per room fixes it | {L('EC_exposure')} | Fine-tuning R1 on one room: width {ecw('0 steps (R1 @150K)', 'c'):.2f} at the start, {ecw('120 steps', 'c'):.2f} after 120 steps ({ecr('120 steps', 'c')} rows in all); the shared models read {min(ecw(k) for k in ('R0 @20K', 'R0 @30K', 'R0 @60K', 'R0 @90K', 'R0 @120K', 'CTL @150K', 'R1 @150K', 'S2X @240K (2000 rooms)')):.2f} to {max(ecw(k) for k in ('R0 @20K', 'R0 @30K', 'R0 @60K', 'R0 @90K', 'R0 @120K', 'CTL @150K', 'R1 @150K', 'S2X @240K (2000 rooms)')):.2f}. | FINAL (two rooms, one seed) |
 | 9 | Capture, then edit | {L('EB_capture_then_edit')} | See section 4 before using it: this one needs care. | {EBS} |
 | 10 | How physical are the fields? | {L('P2_how_physical')} | Causality: the models' energy before the direct sound is {cau['pooled']['R0_120K']['ratio_of_means']:.2f}, {cau['pooled']['R1_150K']['ratio_of_means']:.2f}, {cau['pooled']['R1S_150K']['ratio_of_means']:.2f}, {cau['pooled']['R1M_150K']['ratio_of_means']:.2f} times the truth's (R0, R1, R1-S, R1-M); the revisit condition (2 times) is not met. Swapping source and listener costs R1 0.15 to 0.35 of accuracy (R0 0.55 to 0.75). The wave-equation error is 4 to 5 times the simulation's at 25-100 Hz (raw). | FINAL |
-| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. At +5K it reads the same as its parents: material response slope {smr['material|R1SM|test']['slope']:.2f} (R1-M {smr['material|R1M|test']['slope']:.2f}), third source {t3(smr['third_source_vs_R1']['arm'])} (R1 {t3(smr['third_source_vs_R1']['ref'])}), stretch pattern of the change {t3([smr['stretch_vs_R1S|test']['level'][b] for b in B])} (R1-S {t3([smr['stretch_vs_R1S|test']['ref_level'][b] for b in B])}). Not a verdict. A mean-value penalty (P-1) was an exploratory re-registration: its stop rule triggered at the first read (see section 5b). | P-1 FINAL, R1-SM running |
+| 11 | What is running | no figure | The combined model (R1-SM) trains to about 15:30; its verdict comes after the meeting. At +{SMK - 120}K it reads the same as its parents, with the stretch slightly behind R1-S: material response slope {smr['material|R1SM|test']['slope']:.2f} (R1-M {smr['material|R1M|test']['slope']:.2f}), third source {t3(smr['third_source_vs_R1']['arm'])} (R1 {t3(smr['third_source_vs_R1']['ref'])}), stretch pattern of the change {t3([smr['stretch_vs_R1S|test']['level'][b] for b in B])} (R1-S {t3([smr['stretch_vs_R1S|test']['ref_level'][b] for b in B])}). Not a verdict. A mean-value penalty (P-1) was an exploratory re-registration: its stop rule triggered at the first read (see section 5b). | P-1 FINAL, R1-SM running |
 | 12 | Moving the source, three recipes | {L('M1_source_three_recipes_50Hz')}, {L('M1_source_three_recipes_125Hz')} | 50 Hz: R0 {strip_r('M1_source_three_recipes_50Hz', 'R0: one source per room')}; RCP (one source plus swaps) {strip_r('M1_source_three_recipes_50Hz', 'RCP: one source, plus source-listener swaps')}; R1 {strip_r('M1_source_three_recipes_50Hz', 'R1: four sources per room, plus swaps')}. At 125 Hz all three are much weaker. | FINAL (a median-room second example for 125 Hz is rendering) |
 | 13 | Reciprocity maps | {L('M2_reciprocity_maps')} | Swap source and listener: R0's swapped map is noise, R1 keeps its 50 Hz pattern. Same room as the other showcase figures, rank 7 of 15 on R1's swapped-minus-normal accuracy. | FINAL |
 | 14 | Walk with the source moved | {L('M3_walk_moved_source')} | Source at the third position: R1 {' / '.join('{:.2f}'.format(m3['R1_r_off_lattice_dense'][b]) for b in B)}, R0 {' / '.join('{:.2f}'.format(m3['R0_r_off_lattice_dense'][b]) for b in B)}. | FINAL |
@@ -178,7 +179,7 @@ R1-P(t) (R1 plus the penalty) against its matched control R1-ctl after 2.5K of 1
 | E-C | FINAL | posted in the live log at 09:31 |
 | E-B | {EBS} | posted in the live log |
 | P-2 | FINAL | posted in the live log |
-| R1-SM +5K | FINAL (descriptive) | posted in the live log |
+| R1-SM +5K and +10K | FINAL (descriptive); the +10K harm check follows | posted in the live log |
 | R1-SM +10K, +15K, +20K, +25K | training | +10K about 10:52; +25K about 14:15, posted as after the cut-off |
 | P-1 (R1-P(t) and control) | FINAL: stopped at +2.5K by its stop rule | posted in the live log |
 | E-E (source coverage) | truth done, renders only on spare GPUs | if it runs |
