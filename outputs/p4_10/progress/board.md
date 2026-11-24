@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-23 20:48 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-23 21:06 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1: step 147800 at 0.78 s/step, next read 150000 at about 21:17 ET (posted within 1 h of it); R1M: step 127200 at 0.81 s/step, next read 130000 at about 21:26 ET (posted within 1 h of it); R1S: step 141800 at 0.82 s/step, next read 145000 at about 21:32 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1: step 149000 at 0.79 s/step, next read 150000 at about 21:19 ET (posted within 1 h of it); R1M: step 128400 at 0.81 s/step, next read 130000 at about 21:27 ET (posted within 1 h of it); R1S: step 143200 at 0.83 s/step, next read 145000 at about 21:30 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_speckle_an x1, aaf_g2dense x1, aaf_oof x1, aaf_unseen_ev x3, aaf_sc_R1M_125K x1, aaf_backstop x1, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
+**Running jobs:** aaf_backstop x1, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -14,7 +14,7 @@ Built 2026-11-23 20:48 (from JSON on disk; every read is a scored checkpoint).
 | R1_130K | 0.550 | 0.492 / 0.398 / 0.393 | -0.033 [-0.039, -0.027] | +0.025 [+0.011, +0.040] |
 | R1_135K | 0.555 | 0.497 / 0.412 / 0.398 | -0.028 [-0.035, -0.022] | +0.030 [+0.018, +0.043] |
 | R1_140K | 0.561 | 0.498 / 0.407 / 0.393 | -0.022 [-0.029, -0.016] | +0.031 [+0.018, +0.044] |
-| R1_145K | pending | | | |
+| R1_145K | 0.569 | 0.505 / 0.409 / 0.397 | -0.014 [-0.022, -0.007] | +0.038 [+0.025, +0.051] |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 
@@ -35,7 +35,14 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 
 | read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
 |---|---|---|---|---|
-| R1M_125K | pending | | | |
+| R1M_125K | 0.525 | 0.493 / 0.388 / 0.369 | -0.011 [-0.020, -0.002] | +0.010 [+0.002, +0.017] |
+
+MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8), in-family primary; MM2 margin = median |EDT error| edited - unedited, points (bar <= +5):
+
+| read | set | EDT slope | Pearson | cell-bands | T20 slope | MM2 edited / unedited | dropped |
+|---|---|---|---|---|---|---|---|
+| R1M_125K | in-family | 0.36 | 0.59 | 48 | 0.81 | 23% / 28% (-5.2) | 0 cells-bands; 142582 of 146689 rx-bands (T20 floor) |
+| R1M_125K | unseen | 0.60 | 0.68 | 48 | -0.19 | 27% / 33% (-5.8) | 0 cells-bands; 124793 of 129438 rx-bands (T20 floor) |
 
 ## R1S -- r_delta on Stretch (lite) cells, in-family, paired vs R1 at the same step (bar: +0.05, CI > 0, >= 2 of 3 bands)
 
@@ -44,7 +51,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1S_125K | 0.534 | 0.474 / 0.396 / 0.391 | -0.002 [-0.009, +0.005] | -0.009 [-0.016, -0.002] |
 | R1S_130K | 0.549 | 0.499 / 0.413 / 0.395 | -0.002 [-0.006, +0.002] | +0.006 [+0.001, +0.012] |
 | R1S_135K | 0.554 | 0.504 / 0.419 / 0.405 | -0.001 [-0.008, +0.005] | +0.007 [-0.001, +0.016] |
-| R1S_140K | pending | | | |
+| R1S_140K | 0.560 | 0.506 / 0.417 / 0.398 | -0.001 [-0.005, +0.002] | +0.008 [+0.003, +0.014] |
 
 Stretch r_delta (lite cells; paired vs R1 at the same step):
 
@@ -84,6 +91,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | Source | R1S_140K | 8 | 0.730 / 0.358 / 0.257 | 0.760 / 0.492 / 0.385 |
 | Source | R0_120K | 8 | 0.229 / 0.074 / 0.034 | 0.497 / 0.380 / 0.297 |
 | Material | R1_140K | 8 | 0.686 / 0.509 / 0.435 | 0.131 / 0.027 / -0.000 |
+| Material | R1M_125K | 8 | 0.874 / 0.688 / 0.614 | 0.438 / 0.160 / 0.081 |
 | Material | R1S_140K | 8 | 0.682 / 0.495 / 0.435 | 0.131 / 0.035 / 0.007 |
 | Material | R0_120K | 8 | 0.719 / 0.518 / 0.407 | 0.101 / 0.032 / 0.008 |
 

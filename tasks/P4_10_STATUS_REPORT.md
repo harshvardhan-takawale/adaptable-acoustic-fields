@@ -3,6 +3,28 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (21:06) — I12 (R1-M +5K, first read; static reads of R1 +25K and R1-S +20K): the materials arm is the first model that answers a material change; R1's cost at the original source is now inside the no-harm limit
+
+**Headline:** R1-M, the arm trained with per-wall absorption labels, at its first checkpoint (+5K of 30K) already changes its decay time when a wall's absorption is changed: the EDT edit slope is 0.36 in known rooms and 0.60 in new ones, against about -0.1 to -0.2 for R0 and R1 (a correct model reads near 1; the bar, read at +30K, is 0.8 to 1.2). Separately, R1's accuracy at the original source in known rooms is 0.015 below the plain continuation at 200-300 Hz, inside RC1's limit of 0.020 for the first time, and it stays ahead in unseen rooms.
+
+**R1-M @125K, Material lite cells (D201 / D202; 16 in-family cells, 48 cell-bands; 16 unseen):**
+
+| set | EDT slope (Pearson) | per octave 63 / 125 / 250 Hz | T20 slope (kept receivers) | level-change slope (Pearson) | EDT error edited vs own unedited (MM2 margin) |
+|---|---|---|---|---|---|
+| in-family | 0.36 (0.59) | 0.57 / 0.74 / 0.37 | 0.81, n 17 cell-bands (142582 of 146689 receiver-bands dropped) | 0.40 (0.50) | 22.7% vs 27.9% (-5.2) |
+| unseen | 0.60 (0.68) | 0.43 / 0.53 / 0.52 | -0.19, n 18 (124793 of 129438) | 0.42 (0.54) | 27.4% vs 33.2% (-5.8) |
+| R1 @140K (reference, no material training) | -0.10 (-0.31) | -- | -- | 0.25 (0.25) | 38.4% vs 23.5% (+14.9) |
+
+- **The T20 slope is not usable here:** the floor rule drops about 97% of receiver-bands, as for the other arms; EDT is MM1.
+- **MM2:** the edited-room error is BELOW the model's own unedited error (the bar is at most +5 points above it), so the edit adds no decay error so far. The unedited level itself, 27.9%, is above R1's (25.0% at +10K) and far above the 5% to 18% JNDs.
+- **MC1 (no harm at alpha = 0.15; read at +30K):** R1-M @125K - R1 @125K: HF -0.011 [-0.020, -0.002], UF +0.010 [+0.002, +0.017] / -0.004 / -0.007. Levels: R1-M HF 0.525, UF 0.493 / 0.388 / 0.369 (R1 @125K 0.536, 0.483 / 0.393 / 0.377).
+- The learning check (slope >= 0.3) is read at +10K (130K); this +5K read is descriptive.
+
+**R1 @145K (+25K), static:** HF 0.569, UF 0.505 / 0.409 / 0.397. Against CTL @150K: HF -0.015 [-0.022, -0.007] (RC1's limit -0.02, judged at +30K), UF +0.038 / +0.034 / +0.024. Against CTL @140K (the same step count): HF -0.013 [-0.019, -0.007]. HF cost over the reads: -0.047, -0.033, -0.028, -0.022, -0.015.
+**R1-S @140K (+20K), static, against R1 @140K:** HF -0.001 [-0.005, +0.002], UF +0.008 [+0.003, +0.014] / +0.009 / +0.006; levels HF 0.560, UF 0.506 / 0.417 / 0.398.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [F2_trajectories.png](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/F2_trajectories.png) · [P4_10_R1M.yaml](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/configs/sweep_2d_mat/P4_10_R1M.yaml)
+
 ## 2026-11-23 (20:48) — I11 (R1-S +20K, all lite families, the first read matched to R1's step): stretch edits better than R1 by 0.043 / 0.013 / 0.009; the extension baseline is recorded
 
 **Headline:** At the same training step (+20K), R1-S, which also trains on stretched rooms, predicts stretch edits better than R1 in every band (pattern-of-change r_delta +0.043 / +0.013 / +0.009 at 25-100 / 100-200 / 200-300 Hz, all three intervals above zero). The bar, read at +30K, is +0.05 in at least two bands: no band reaches it yet, and the lowest band is the closest. On everything else the two models are level, and on the materials cells R1-S is slightly below R1 at 100-200 Hz.
