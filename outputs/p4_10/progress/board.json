@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 14:20",
+ "built": "2026-11-24 14:29",
  "arms": {
   "R1": [
    {
@@ -3965,27 +3965,6 @@
    "where": "(Priority)"
   },
   {
-   "job": "aaf_unseen_ev",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "3:00:00",
-   "where": "(Priority)"
-  },
-  {
-   "job": "aaf_oof",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "3:00:00",
-   "where": "(Priority)"
-  },
-  {
-   "job": "aaf_g2dense",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "3:00:00",
-   "where": "(Priority)"
-  },
-  {
    "job": "aaf_pool_R1SM_145K",
    "state": "PENDING",
    "elapsed": "0:00",
@@ -3993,366 +3972,275 @@
    "where": "(Priority)"
   },
   {
-   "job": "aaf_p4_5_eval",
-   "state": "PENDING",
-   "elapsed": "0:00",
-   "limit": "3:00:00",
-   "where": "(Priority)"
-  },
-  {
    "job": "aaf_backstop",
    "state": "RUNNING",
-   "elapsed": "4:32:05",
+   "elapsed": "4:40:29",
    "limit": "14:00:00",
    "where": "gammagpu00"
   },
   {
    "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "5:00:32",
+   "elapsed": "5:08:56",
    "limit": "9:00:00",
    "where": "gammagpu14"
   },
   {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "5:06",
+   "limit": "3:00:00",
+   "where": "gammagpu03"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "5:06",
+   "limit": "3:00:00",
+   "where": "gammagpu01"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "5:06",
+   "limit": "3:00:00",
+   "where": "gammagpu00"
+  },
+  {
+   "job": "aaf_p4_5_eval",
+   "state": "RUNNING",
+   "elapsed": "7:03",
+   "limit": "3:00:00",
+   "where": "gammagpu06"
+  },
+  {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
+   "elapsed": "9:02",
    "limit": "30:00",
    "where": "tron63"
   },
   {
    "job": "aaf_poolscore_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
+   "elapsed": "9:02",
    "limit": "2:30:00",
    "where": "brigid16"
   },
   {
-   "job": "aaf_fit",
-   "state": "RUNNING",
-   "elapsed": "0:38",
-   "limit": "2:00:00",
-   "where": "tron58"
-  },
-  {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
+   "elapsed": "9:02",
    "limit": "30:00",
    "where": "tron62"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
-   "limit": "30:00",
-   "where": "tron62"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:38",
+   "elapsed": "9:02",
    "limit": "30:00",
    "where": "tron69"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
+   "elapsed": "9:02",
    "limit": "30:00",
    "where": "tron69"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
+   "elapsed": "9:02",
    "limit": "30:00",
    "where": "tron67"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
+   "elapsed": "9:02",
    "limit": "30:00",
    "where": "tron67"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:38",
-   "limit": "30:00",
-   "where": "tron67"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:38",
-   "limit": "30:00",
-   "where": "tron67"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:38",
-   "limit": "30:00",
-   "where": "tron67"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:38",
-   "limit": "30:00",
-   "where": "tron68"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu20"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml24"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "gammagpu01"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "gammagpu16"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu20"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu20"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu20"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu20"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "legacygpu20"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu22"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu22"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "legacygpu22"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "legacygpu22"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "legacygpu22"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "cml24"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml17"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml17"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml17"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml17"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml18"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml18"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml19"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "cml19"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "cml19"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "vulcan36"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "vulcan36"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "tron53"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "tron53"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "tron55"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "tron50"
   },
   {
    "job": "aaf_pool_R1SM_145K",
    "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "tron61"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "tron61"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
+   "elapsed": "9:05",
    "limit": "30:00",
    "where": "vulcan34"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "vulcan34"
-  },
-  {
-   "job": "aaf_pool_R1SM_145K",
-   "state": "RUNNING",
-   "elapsed": "0:41",
-   "limit": "30:00",
-   "where": "tron00"
   },
   {
    "job": "aaf_r1sm",
    "state": "RUNNING",
-   "elapsed": "5:53:24",
+   "elapsed": "6:01:48",
    "limit": "1-00:00:00",
    "where": "tron61"
   }
