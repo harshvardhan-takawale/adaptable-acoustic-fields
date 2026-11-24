@@ -3,6 +3,34 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (22:17) — I15 (R1 +30K, the rest of the full scorecard; R1-M harm kill and R1-S static): R1 improves every new-room edit over R0 and keeps its known-room edits within 0.01-0.02 of R0's
+
+**Headline:** R1's full scorecard (675 cells, all six families) is scored. Compared with the original model R0, R1 does better on every edit family in new rooms (by 0.03 to 0.05 in edited-field accuracy on stretch, wall, notch and material, at 25-100 Hz), is within about 0.02 of R0 on geometry edits in known rooms, and is far better on source moves. Its decay behaviour under material edits is unchanged from R0, as expected: R1 saw no material labels. The materials arm R1-M does no harm at its first 10K steps.
+
+R1 @150K against R0 @120K, off-lattice, 15 in-family and 16 unseen rooms, edited-field r (25-100 / 100-200 / 200-300 Hz), "ignore the edit" beside:
+
+| family | set | R1 | R0 | ignore the edit | R1 r_delta (R0) |
+|---|---|---|---|---|---|
+| Stretch-U | in-family | 0.825 / 0.599 / 0.492 | 0.833 / 0.606 / 0.493 | 0.410 / 0.171 / 0.119 | 0.801 / 0.573 / 0.478 (0.818 / 0.589 / 0.486) |
+| Stretch-U | unseen | 0.442 / 0.356 / 0.340 | 0.402 / 0.325 / 0.304 | 0.440 / 0.153 / 0.103 | 0.287 / 0.230 / 0.278 (0.253 / 0.203 / 0.249) |
+| Stretch-A | in-family | 0.832 / 0.609 / 0.494 | 0.835 / 0.613 / 0.495 | 0.514 / 0.250 / 0.281 | 0.751 / 0.536 / 0.317 (0.766 / 0.552 / 0.327) |
+| Stretch-A | unseen | 0.461 / 0.373 / 0.359 | 0.416 / 0.347 / 0.327 | 0.544 / 0.255 / 0.255 | 0.267 / 0.180 / 0.149 (0.224 / 0.164 / 0.135) |
+| Wall | in-family | 0.891 / 0.658 / 0.557 | 0.900 / 0.673 / 0.562 | 0.735 / 0.421 / 0.233 | 0.721 / 0.486 / 0.448 (0.743 / 0.506 / 0.458) |
+| Wall | unseen | 0.483 / 0.392 / 0.372 | 0.438 / 0.363 / 0.347 | 0.752 / 0.413 / 0.213 | 0.218 / 0.158 / 0.223 (0.179 / 0.144 / 0.210) |
+| Notch | in-family | 0.906 / 0.681 / 0.560 | 0.917 / 0.697 / 0.568 | 0.885 / 0.715 / 0.534 | 0.614 / 0.310 / 0.209 (0.637 / 0.328 / 0.216) |
+| Notch | unseen | 0.503 / 0.409 / 0.399 | 0.464 / 0.380 / 0.372 | 0.916 / 0.760 / 0.624 | 0.077 / 0.022 / 0.018 (0.067 / 0.019 / 0.019) |
+| Source (both positions) | in-family | 0.743 / 0.377 / 0.260 | 0.231 / 0.083 / 0.044 | 0.305 / 0.217 / 0.215 | 0.776 / 0.518 / 0.405 (0.504 / 0.391 / 0.304) |
+| Source (both positions) | unseen | 0.546 / 0.321 / 0.246 | 0.212 / 0.110 / 0.062 | 0.344 / 0.246 / 0.209 | 0.469 / 0.367 / 0.317 (0.283 / 0.253 / 0.226) |
+| Material | in-family | 0.749 / 0.567 / 0.476 | 0.772 / 0.583 / 0.469 | 0.911 / 0.891 / 0.880 | 0.094 / 0.023 / 0.017 (0.067 / 0.026 / 0.017) |
+| Material | unseen | 0.447 / 0.376 / 0.373 | 0.428 / 0.357 / 0.347 | 0.921 / 0.897 / 0.884 | 0.044 / -0.001 / -0.006 (0.027 / -0.006 / -0.000) |
+
+- **A caution read across the rows:** "ignore the edit" beats both models in several cells (Notch in both sets at 100-200 Hz in known rooms and everywhere unseen; Material in every band). Where it does, the model adds error in those cells. It is far below R1 on the source cells.
+- **R1's decay under material edits (MM1 / MM2 as re-registered), full set:** EDT slope 0.01 (Pearson 0.06) in-family, -0.05 unseen; MM2 margin +12.6 points in-family (edited 36.5% against 23.9% unedited), +7.3 unseen: as R0's (slope -0.04; margin +14.4). R1 was not trained on materials.
+- **R1-M @130K (+10K), harm kill: NOT triggered** (against R1 @130K): HF -0.010 [-0.014, -0.005], UF +0.017 [+0.006, +0.028] / +0.014 [+0.004, +0.025] / +0.003; levels HF 0.541, UF 0.509 / 0.413 / 0.396 (R1 @130K 0.550, 0.492 / 0.398 / 0.393). MC1's -0.02 limit is judged at +30K.
+- **R1-S @145K (+25K), static, against R1 @145K:** HF +0.000 [-0.004, +0.004], UF +0.003 / +0.009 / +0.006 (levels HF 0.569, UF 0.509 / 0.418 / 0.403). Descriptive.
+
+Links: [scorecard_R1_full.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1_full.md) · [scorecard_R1_full.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/scorecard_R1_full.json) · [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (22:10) — I14 (R1 +30K, the final read, Source family): RS1 FAILS, RS2 FAILS, RC1 HOLDS; no extension; R1 is the base model (D201 Q28); RS3 to follow
 
 **Headline:** R1, the source-fix model, finished its 30K steps and its Source cells are scored on all 31 rooms. It can move a source far better than any earlier model, but not to the pre-registered standard: the gap between its accuracy at a moved source and at the original one is above 0.10 in all six band-and-source cells (the smallest is 0.128, the worst 0.373). It did not hurt the original room's accuracy beyond the allowed margin. R1 therefore stays at 150K, and under the manager's rule it is the base model for P4-11 and the meeting, with R0 kept as the fallback that was not needed.
