@@ -1,5 +1,5 @@
 {
- "built": "2026-11-24 15:52",
+ "built": "2026-11-24 16:01",
  "arms": {
   "R1": [
    {
@@ -4294,63 +4294,84 @@
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "1:50",
+   "elapsed": "1:11",
    "limit": "40:00",
-   "where": "tron52"
+   "where": "vulcan36"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "1:50",
+   "elapsed": "1:11",
    "limit": "40:00",
-   "where": "tron52"
+   "where": "vulcan36"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "3:42",
-   "limit": "40:00",
-   "where": "vulcan33"
-  },
-  {
-   "job": "aaf_sc_R1SM_150K",
-   "state": "RUNNING",
-   "elapsed": "3:42",
-   "limit": "40:00",
-   "where": "vulcan33"
-  },
-  {
-   "job": "aaf_sc_R1SM_150K",
-   "state": "RUNNING",
-   "elapsed": "7:26",
+   "elapsed": "1:11",
    "limit": "40:00",
    "where": "tron59"
   },
   {
    "job": "aaf_sc_R1SM_150K",
    "state": "RUNNING",
-   "elapsed": "7:26",
+   "elapsed": "3:06",
+   "limit": "40:00",
+   "where": "gammagpu06"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "3:06",
+   "limit": "40:00",
+   "where": "gammagpu06"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "7:01",
+   "limit": "40:00",
+   "where": "vulcan35"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "10:52",
+   "limit": "40:00",
+   "where": "tron52"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "10:52",
+   "limit": "40:00",
+   "where": "tron52"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "12:44",
+   "limit": "40:00",
+   "where": "vulcan33"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "12:44",
+   "limit": "40:00",
+   "where": "vulcan33"
+  },
+  {
+   "job": "aaf_sc_R1SM_150K",
+   "state": "RUNNING",
+   "elapsed": "16:28",
    "limit": "40:00",
    "where": "clip14"
   },
   {
-   "job": "aaf_sc_R1SM_150K",
-   "state": "RUNNING",
-   "elapsed": "7:26",
-   "limit": "40:00",
-   "where": "tron56"
-  },
-  {
-   "job": "aaf_sc_R1SM_150K",
-   "state": "RUNNING",
-   "elapsed": "7:26",
-   "limit": "40:00",
-   "where": "tron55"
-  },
-  {
    "job": "aaf_autopub",
    "state": "RUNNING",
-   "elapsed": "6:32:02",
+   "elapsed": "6:41:04",
    "limit": "9:00:00",
    "where": "gammagpu14"
   }
