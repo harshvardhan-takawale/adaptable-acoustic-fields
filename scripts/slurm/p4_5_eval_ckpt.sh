@@ -15,6 +15,9 @@
 #SBATCH --output=logs/slurm/%x-%j.out
 #SBATCH --error=logs/slurm/%x-%j.err
 set -uo pipefail
+# SCRATCH GUARD (2026-11-24: some nodes lost /fs/nexus-scratch): wait up to 2 min for the automount, else requeue
+for _i in 1 2 3 4 5 6; do [ -f /fs/nexus-scratch/htakawal/miniconda3/etc/profile.d/conda.sh ] && break; sleep 20; done
+if [ ! -f /fs/nexus-scratch/htakawal/miniconda3/etc/profile.d/conda.sh ]; then echo "no scratch on $(hostname); requeueing"; scontrol requeue "$SLURM_JOB_ID" || true; sleep 5; exit 1; fi
 cd /fs/nexus-projects/multimodal_recon/adaptable-acoustic-fields
 source /fs/nexus-scratch/htakawal/miniconda3/etc/profile.d/conda.sh
 conda activate aaf
