@@ -31,8 +31,8 @@ scan() {
       else FAM=$LF; MODE=lite; CH=12; fi
       if [ "${DRY:-0}" = 1 ]; then say "DRY would launch $NAME $MODE $FAM"; continue; fi
       say "BACKSTOP $NAME $MODE $FAM (watcher did not launch it within $((AGE/60)) min of the checkpoint)"
-      bash scripts/p4_10_read.sh $NAME "$CK" "$FAM" $MODE $CH 2>&1 | tee -a $LOG
-      ( GRES=gpu:p6000:1 bash scripts/p4_9_watch_report.sh $ARM $ITER aaf_${ARM,,} outputs/p4_10/arms c > logs/p4_10_watch_report_${ARM}_$ITER.backstop.log 2>&1 < /dev/null ) &
+      if [ "$MODE" = lite ]; then bash scripts/p4_10_read_pool.sh $NAME "$CK" "$FAM" 2>&1 | tee -a $LOG; else bash scripts/p4_10_read.sh $NAME "$CK" "$FAM" $MODE $CH 2>&1 | tee -a $LOG; fi
+      ( GRES=gpu:rtxa5000:1 bash scripts/p4_9_watch_report.sh $ARM $ITER aaf_${ARM,,} outputs/p4_10/arms c > logs/p4_10_watch_report_${ARM}_$ITER.backstop.log 2>&1 < /dev/null ) &
     done
   done
 }

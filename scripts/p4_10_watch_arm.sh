@@ -19,7 +19,7 @@ for ITER in 125000 130000 135000 140000 145000 150000; do
   a=$(stat -c %s "$CK"); sleep 60; until [ "$a" = "$(stat -c %s "$CK")" ]; do a=$(stat -c %s "$CK"); sleep 30; done
   echo "$(date '+%H:%M') $NAME checkpoint ready"
   if [ "$ITER" = 150000 ]; then bash scripts/p4_10_read.sh $NAME $CK "$FF" full 16
-  elif [ "$ITER" = 130000 ] || [ "$ITER" = 140000 ]; then bash scripts/p4_10_read.sh $NAME $CK "$LA" lite 12
-  else bash scripts/p4_10_read.sh $NAME $CK "$LF" lite 12; fi
-  GRES=${GRES:-gpu:p6000:1} setsid nohup bash scripts/p4_9_watch_report.sh $ARM $ITER aaf_${ARM,,} outputs/p4_10/arms c > logs/p4_10_watch_report_${ARM}_$ITER.log 2>&1 < /dev/null &
+  elif [ "$ITER" = 130000 ] || [ "$ITER" = 140000 ]; then bash scripts/p4_10_read_pool.sh $NAME $CK "$LA"      # several GPU types race for the cells
+  else bash scripts/p4_10_read_pool.sh $NAME $CK "$LF"; fi
+  GRES=${GRES:-gpu:rtxa5000:1} setsid nohup bash scripts/p4_9_watch_report.sh $ARM $ITER aaf_${ARM,,} outputs/p4_10/arms c > logs/p4_10_watch_report_${ARM}_$ITER.log 2>&1 < /dev/null &
 done
