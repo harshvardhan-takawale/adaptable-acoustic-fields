@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 16:43 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 16:52 (from JSON on disk; every read is a scored checkpoint).
 
 **Next reads (from each arm's training log):** none running
 
-**Running jobs:** aaf_autopub x1, aaf_ss_R1SM_150K x7
+**Running jobs:** aaf_autopub x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -132,7 +132,7 @@ MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slo
 | R1SM_145K | in-family | 0.54 | 0.82 | 48 | 0.09 | 19% / 26% (-6.7) | 0 cells-bands; 116866 of 146689 rx-bands (T20 floor) |
 | R1SM_145K | unseen | 0.72 | 0.82 | 48 | 0.22 | 27% / 31% (-4.3) | 0 cells-bands; 97750 of 129438 rx-bands (T20 floor) |
 | R1SM_150K | in-family | 0.63 | 0.86 | 48 | 0.49 | 20% / 25% (-4.8) | 0 cells-bands; 115351 of 146689 rx-bands (T20 floor) |
-| R1SM_150K | unseen | 0.85 | 0.87 | 42 | -0.08 | 26% / 30% (-3.9) | 0 cells-bands; 84780 of 115052 rx-bands (T20 floor) |
+| R1SM_150K | unseen | 0.78 | 0.83 | 48 | 0.13 | 27% / 30% (-3.2) | 0 cells-bands; 95614 of 129438 rx-bands (T20 floor) |
 
 Stretch r_delta (lite cells; paired vs R1 at the same step):
 
@@ -142,7 +142,7 @@ Stretch r_delta (lite cells; paired vs R1 at the same step):
 | R1SM_130K | unseen | 0.375 / 0.293 / 0.218 | 0.338 / 0.266 / 0.211 | +0.037 [+0.027, +0.050] / +0.028 [+0.015, +0.037] / +0.006 [-0.012, +0.020] |
 | R1SM_140K | test | 0.806 / 0.544 / 0.347 | 0.771 / 0.538 / 0.344 | +0.035 [+0.009, +0.062] / +0.005 [-0.010, +0.021] / +0.003 [-0.006, +0.012] |
 | R1SM_140K | unseen | 0.391 / 0.286 / 0.226 | 0.353 / 0.269 / 0.213 | +0.038 [+0.032, +0.046] / +0.017 [+0.004, +0.032] / +0.014 [-0.005, +0.027] |
-| R1SM_150K | test | 0.820 / 0.565 / 0.366 | 0.772 / 0.548 / 0.350 | +0.049 [+0.016, +0.085] / +0.017 [-0.002, +0.038] / +0.016 [+0.005, +0.031] |
+| R1SM_150K | test | 0.815 / 0.560 / 0.360 | 0.772 / 0.548 / 0.350 | +0.044 [+0.014, +0.076] / +0.011 [-0.003, +0.025] / +0.010 [+0.004, +0.017] |
 | R1SM_150K | unseen | 0.399 / 0.305 / 0.236 | 0.361 / 0.269 / 0.212 | +0.038 [+0.027, +0.050] / +0.036 [+0.026, +0.046] / +0.024 [+0.008, +0.040] |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
@@ -174,17 +174,17 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | StretchA | R1_150K | 8 | 0.818 / 0.590 / 0.484 | 0.737 / 0.518 / 0.307 |
 | StretchA | R1M_150K | 8 | 0.820 / 0.588 / 0.493 | 0.734 / 0.500 / 0.302 |
 | StretchA | R1S_150K | 8 | 0.874 / 0.614 / 0.522 | 0.788 / 0.535 / 0.319 |
-| StretchA | R1SM_150K | 7 | 0.875 / 0.613 / 0.531 | 0.779 / 0.528 / 0.315 |
+| StretchA | R1SM_150K | 8 | 0.872 / 0.608 / 0.524 | 0.779 / 0.523 / 0.308 |
 | StretchA | R0_120K | 8 | 0.819 / 0.595 / 0.488 | 0.756 / 0.530 / 0.323 |
 | Wall | R1_150K | 8 | 0.899 / 0.645 / 0.548 | 0.719 / 0.472 / 0.434 |
 | Wall | R1M_150K | 8 | 0.895 / 0.638 / 0.550 | 0.709 / 0.460 / 0.431 |
 | Wall | R1S_150K | 8 | 0.900 / 0.644 / 0.557 | 0.722 / 0.473 / 0.443 |
-| Wall | R1SM_150K | 6 | 0.892 / 0.647 / 0.557 | 0.702 / 0.466 / 0.437 |
+| Wall | R1SM_150K | 8 | 0.897 / 0.641 / 0.555 | 0.712 / 0.463 / 0.435 |
 | Wall | R0_120K | 8 | 0.909 / 0.655 / 0.555 | 0.748 / 0.485 / 0.448 |
 | Notch | R1_150K | 8 | 0.905 / 0.662 / 0.550 | 0.570 / 0.285 / 0.180 |
 | Notch | R1M_150K | 8 | 0.900 / 0.657 / 0.550 | 0.551 / 0.277 / 0.181 |
 | Notch | R1S_150K | 8 | 0.904 / 0.661 / 0.552 | 0.570 / 0.283 / 0.183 |
-| Notch | R1SM_150K | 8 | 0.898 / 0.654 / 0.546 | 0.554 / 0.273 / 0.158 |
+| Notch | R1SM_150K | 8 | 0.899 / 0.656 / 0.549 | 0.556 / 0.279 / 0.178 |
 | Notch | R0_120K | 8 | 0.914 / 0.678 / 0.559 | 0.588 / 0.299 / 0.188 |
 | Source | R1_150K | 8 | 0.752 / 0.370 / 0.257 | 0.782 / 0.505 / 0.396 |
 | Source | R1M_150K | 8 | 0.740 / 0.375 / 0.273 | 0.769 / 0.504 / 0.404 |
