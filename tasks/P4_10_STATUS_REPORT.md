@@ -3,6 +3,36 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (20:34) — I10 (R1 +25K, source cells) and A8 (mode-shift slopes, R0, and lite sets of R1 and R1-S)
+
+**Headline:** After 25K of 30K steps R1's moved-source accuracy at the clean third source in known rooms is 0.784 / 0.425 / 0.306 (25-100 / 100-200 / 200-300 Hz), against 0.771 / 0.432 / 0.308 at +20K, and the mean of its six gaps is 0.264 (0.268 at +20K, 0.288 at +15K). The worst gap is 0.377 (second source, 100-200 Hz); the bar is 0.10 in every band at +30K. Separately, R0 predicts how room edits shift resonance frequencies about right for wall moves (slope 0.71) and stretches (0.54-0.65), and not for notches (0.25): the model moves the modes, but by too little.
+
+Off-lattice, lite rooms, 32/32 source cells. Gap = static r minus moved r; static r 0.908 / 0.665 / 0.567 in-family, 0.542 / 0.442 / 0.405 unseen.
+
+| set, source | edited r | gap |
+|---|---|---|
+| in-family, second | 0.692 / 0.288 / 0.202 | 0.216 / 0.377 / 0.364 |
+| in-family, third | 0.784 / 0.425 / 0.306 | 0.124 / 0.240 / 0.261 |
+| unseen, second | 0.562 / 0.276 / 0.208 | -0.020 / 0.166 / 0.197 |
+| unseen, third | 0.558 / 0.383 / 0.289 | -0.016 / 0.059 / 0.116 |
+
+- Extension rule (D201): the +20K baseline is worst 0.391, mean 0.2677. At +25K, worst 0.377 and mean 0.2636. Both are read at +30K (the worst must be <= 0.15 and the mean <= 0.2477). Nothing is decided before that read.
+- **Static accuracy at 145K is not in yet** (its own report is running).
+
+**A8, mode-shift slope (descriptive; the spec's first 10 peaks in 25-150 Hz of the receiver-averaged spectrum, Hungarian matched; a second reading on 25-100 Hz beside).** Predicted on true shift, pooled per family, R0 full set, lite sets for R1 and R1-S (not comparable row by row with R0's full set):
+
+| model | Stretch-U | Stretch-A | Wall | Notch |
+|---|---|---|---|---|
+| R0 in-family, 25-150 Hz: slope (Pearson; mean |error| Hz; pairs of truth peaks) | 0.65 (0.71; 1.7; 159 of 440) | 0.54 (0.56; 1.6; 160 of 440) | 0.71 (0.69; 1.0; 185 of 440) | 0.25 (0.22; 0.8; 175 of 431) |
+| R0 in-family, 25-100 Hz | 0.62 (0.71; 1.4; 130 of 260) | 0.67 (0.77; 1.1; 129 of 260) | 0.77 (0.73; 0.7; 149 of 260) | 0.45 (0.29; 0.6; 145 of 255) |
+| R0 unseen, 25-150 Hz | 0.36 (0.39; 2.3; 83 of 473) | 0.50 (0.46; 1.7; 93 of 473) | 0.29 (0.36; 1.2; 106 of 472) | 0.04 (0.06; 0.7; 112 of 454) |
+| R1 @140K, in-family lite, 25-150 Hz | 0.59 (0.58; 2.5; 26 of 122) | 0.53 (0.59; 1.6; 36 of 122) | 1.09 (0.95; 0.6; 41 of 122) | 0.31 (0.34; 0.8; 41 of 122) |
+| R1-S @135K, in-family lite, 25-150 Hz | 0.58 (0.56; 2.4; 28 of 122) | 0.49 (0.49; 1.8; 44 of 122) | -- (stretch cells only) | -- |
+
+- **Read with care.** Only 36-42% of R0's in-family truth peaks form a matched pair (the peak's place differs by > 3 Hz or the shift is > 8 Hz and is dropped), so the slope is computed on the peaks the model places roughly right, and dropping large shifts pulls the slope down. Notch edits move the peaks little (truth shift std 1.4 Hz on 25-150 Hz), so its slope is the least reliable. SS2 (the mode-shift slope against R1's) is descriptive.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md) · [a8_R0_120K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/a8_R0_120K.json) · [a8_R1_140K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/a8_R1_140K.json) · [a8_R1S_135K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/a8_R1S_135K.json)
+
 ## 2026-11-23 (20:24) — D2 (D201), mechanism check on four models: the models' low-frequency peaks are about 1.5 times as broad as the truth's, in every room
 
 **Headline:** In known rooms the lowest resonance peaks (25-100 Hz) of every model are about 1.5 times as wide as the true ones: truth 2.9 Hz (half-power width), model 4.8 Hz, in all 14 rooms that have usable peaks. Broader peaks mean the model blurs the mode frequencies, which matches the faster decay seen in D1, but a broad peak can also come from extra damping, so this check alone does not separate the two.

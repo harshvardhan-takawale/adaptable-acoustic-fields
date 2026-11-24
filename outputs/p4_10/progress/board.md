@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-23 20:16 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-23 20:33 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1: step 145200 at 0.78 s/step, next read 150000 at about 21:18 ET (posted within 1 h of it); R1M: step 124800 at 0.81 s/step, next read 125000 at about 20:18 ET (posted within 1 h of it); R1S: step 139400 at 0.83 s/step, next read 140000 at about 20:24 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1: step 146600 at 0.79 s/step, next read 150000 at about 21:18 ET (posted within 1 h of it); R1M: step 126000 at 0.81 s/step, next read 130000 at about 21:27 ET (posted within 1 h of it); R1S: step 140800 at 0.83 s/step, next read 145000 at about 21:31 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_sc_R1_145K x3, aaf_fit x1, aaf_p4_5_eval x1, aaf_g2dense x1, aaf_oof x1, aaf_unseen_ev x1, aaf_backstop x1, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
+**Running jobs:** aaf_sc_R1S_140K x16, aaf_p4_5_eval x2, aaf_g2dense x3, aaf_oof x3, aaf_unseen_ev x3, aaf_sc_R1M_125K x2, aaf_backstop x1, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -28,11 +28,14 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1_135K | third | 0.156 [0.125, 0.180] | 0.253 [0.218, 0.284] | 0.269 [0.250, 0.290] |
 | R1_140K | second | 0.236 [0.164, 0.316] | 0.391 [0.310, 0.471] | 0.366 [0.329, 0.414] |
 | R1_140K | third | 0.133 [0.103, 0.160] | 0.231 [0.194, 0.264] | 0.249 [0.232, 0.267] |
+| R1_145K | second | 0.216 [0.153, 0.287] | 0.377 [0.295, 0.456] | 0.364 [0.326, 0.417] |
+| R1_145K | third | 0.124 [0.096, 0.151] | 0.240 [0.205, 0.269] | 0.261 [0.242, 0.280] |
 
 ## R1M -- EDT decay-rate edit slope on Material (lite) cells, MM1 (D201/D202; bar: slope in [0.8, 1.2], Pearson >= 0.8)
 
 | read | HF (test 200-300) | UF 25-100 / 100-200 / 200-300 | delta HF vs ref [CI] | delta UF 25-100 [CI] |
 |---|---|---|---|---|
+| R1M_125K | pending | | | |
 
 ## R1S -- r_delta on Stretch (lite) cells, in-family, paired vs R1 at the same step (bar: +0.05, CI > 0, >= 2 of 3 bands)
 
@@ -41,6 +44,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1S_125K | 0.534 | 0.474 / 0.396 / 0.391 | -0.002 [-0.009, +0.005] | -0.009 [-0.016, -0.002] |
 | R1S_130K | 0.549 | 0.499 / 0.413 / 0.395 | -0.002 [-0.006, +0.002] | +0.006 [+0.001, +0.012] |
 | R1S_135K | 0.554 | 0.504 / 0.419 / 0.405 | -0.001 [-0.008, +0.005] | +0.007 [-0.001, +0.016] |
+| R1S_140K | pending | | | |
 
 Stretch r_delta (lite cells; paired vs R1 at the same step):
 
@@ -72,7 +76,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | Notch | R1_140K | 8 | 0.899 / 0.656 / 0.543 | 0.565 / 0.279 / 0.171 |
 | Notch | R1S_130K | 8 | 0.892 / 0.640 / 0.530 | 0.551 / 0.266 / 0.162 |
 | Notch | R0_120K | 8 | 0.914 / 0.678 / 0.559 | 0.588 / 0.299 / 0.188 |
-| Source | R1_140K | 8 | 0.720 / 0.352 / 0.250 | 0.758 / 0.493 / 0.386 |
+| Source | R1_145K | 8 | 0.738 / 0.356 / 0.254 | 0.771 / 0.495 / 0.391 |
 | Source | R1S_130K | 8 | 0.664 / 0.328 / 0.230 | 0.721 / 0.480 / 0.379 |
 | Source | R0_120K | 8 | 0.229 / 0.074 / 0.034 | 0.497 / 0.380 / 0.297 |
 | Material | R1_140K | 8 | 0.686 / 0.509 / 0.435 | 0.131 / 0.027 / -0.000 |

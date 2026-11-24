@@ -1,5 +1,5 @@
 {
- "built": "2026-11-23 20:16",
+ "built": "2026-11-23 20:33",
  "arms": {
   "R1": [
    {
@@ -441,10 +441,128 @@
    {
     "name": "R1_145K",
     "step": 145000,
-    "static": null
+    "static": null,
+    "gap": {
+     "test": {
+      "second": {
+       "25-100": [
+        0.2159879468381405,
+        0.15302343536168336,
+        0.2865202994085848
+       ],
+       "100-200": [
+        0.37664528749883175,
+        0.2946117874234915,
+        0.45625125090591606
+       ],
+       "200-300": [
+        0.36407599318772554,
+        0.3263563923537731,
+        0.4167004145681858
+       ]
+      },
+      "third": {
+       "25-100": [
+        0.12427539378404617,
+        0.09595149010419846,
+        0.15063700079917908
+       ],
+       "100-200": [
+        0.24022234231233597,
+        0.2046940558589995,
+        0.2691742760129273
+       ],
+       "200-300": [
+        0.2606791667640209,
+        0.24195656180381775,
+        0.28044260665774345
+       ]
+      }
+     },
+     "unseen": {
+      "second": {
+       "25-100": [
+        -0.019539687782526016,
+        -0.10874895751476288,
+        0.06509542828425766
+       ],
+       "100-200": [
+        0.1659810207784176,
+        0.10229318216443062,
+        0.22362741827964783
+       ],
+       "200-300": [
+        0.19744752161204815,
+        0.1110629215836525,
+        0.2838061994174495
+       ]
+      },
+      "third": {
+       "25-100": [
+        -0.015926320105791092,
+        -0.09051404148340225,
+        0.06084725260734558
+       ],
+       "100-200": [
+        0.05937634035944939,
+        0.005566220730543137,
+        0.10937423259019852
+       ],
+       "200-300": [
+        0.11597581207752228,
+        0.07155518233776093,
+        0.1620030655525624
+       ]
+      }
+     }
+    }
    }
   ],
-  "R1M": [],
+  "R1M": [
+   {
+    "name": "R1M_125K",
+    "step": 125000,
+    "static": null,
+    "material": {
+     "test": {
+      "pooled": {},
+      "bands": {},
+      "mm": {
+       "n_cells": 0,
+       "n_missing_decay": 0,
+       "bands": {},
+       "EDT": null,
+       "T20": null,
+       "level_change": null,
+       "edt_err_edit_med": NaN,
+       "edt_err_orig_med": NaN,
+       "MM2_margin_pts": NaN,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 0,
+       "n_receiver_bands_valid": 0
+      }
+     },
+     "unseen": {
+      "pooled": {},
+      "bands": {},
+      "mm": {
+       "n_cells": 0,
+       "n_missing_decay": 0,
+       "bands": {},
+       "EDT": null,
+       "T20": null,
+       "level_change": null,
+       "edt_err_edit_med": NaN,
+       "edt_err_orig_med": NaN,
+       "MM2_margin_pts": NaN,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 0,
+       "n_receiver_bands_valid": 0
+      }
+     }
+    }
+   }
+  ],
   "R1S": [
    {
     "name": "R1S_125K",
@@ -688,6 +806,12 @@
      }
     },
     "stretch": {}
+   },
+   {
+    "name": "R1S_140K",
+    "step": 140000,
+    "static": null,
+    "stretch": {}
    }
   ]
  },
@@ -700,7 +824,7 @@
    "where": "(Dependency)"
   },
   {
-   "job": "aaf_ss_R1_145K",
+   "job": "aaf_ss_R1S_140K",
    "state": "PENDING",
    "elapsed": "0:00",
    "limit": "2:00:00",
@@ -711,89 +835,243 @@
    "state": "PENDING",
    "elapsed": "0:00",
    "limit": "30:00",
-   "where": "(Priority)"
+   "where": "(Dependency)"
   },
   {
-   "job": "aaf_sc_R1_145K",
-   "state": "RUNNING",
-   "elapsed": "0:30",
-   "limit": "1:30:00",
-   "where": "cml26"
-  },
-  {
-   "job": "aaf_fit",
-   "state": "RUNNING",
-   "elapsed": "0:30",
+   "job": "aaf_ss_R1M_125K",
+   "state": "PENDING",
+   "elapsed": "0:00",
    "limit": "2:00:00",
-   "where": "legacygpu19"
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron27"
   },
   {
    "job": "aaf_p4_5_eval",
    "state": "RUNNING",
-   "elapsed": "0:30",
+   "elapsed": "9:18",
    "limit": "3:00:00",
-   "where": "legacygpu19"
+   "where": "legacygpu23"
   },
   {
    "job": "aaf_g2dense",
    "state": "RUNNING",
-   "elapsed": "0:30",
+   "elapsed": "9:18",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron30"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron32"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "clip11"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "clip11"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "clip11"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "clip11"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron24"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron25"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "vulcan44"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "vulcan44"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "cml24"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "cml24"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron39"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron38"
+  },
+  {
+   "job": "aaf_sc_R1S_140K",
+   "state": "RUNNING",
+   "elapsed": "9:18",
+   "limit": "1:30:00",
+   "where": "tron38"
+  },
+  {
+   "job": "aaf_sc_R1M_125K",
+   "state": "RUNNING",
+   "elapsed": "12:52",
+   "limit": "1:30:00",
+   "where": "tron36"
+  },
+  {
+   "job": "aaf_p4_5_eval",
+   "state": "RUNNING",
+   "elapsed": "12:52",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "12:52",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "12:52",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "12:52",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_sc_R1M_125K",
+   "state": "RUNNING",
+   "elapsed": "12:52",
+   "limit": "1:30:00",
+   "where": "gammagpu05"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "18:16",
    "limit": "3:00:00",
    "where": "legacygpu19"
   },
   {
    "job": "aaf_oof",
    "state": "RUNNING",
-   "elapsed": "0:30",
+   "elapsed": "18:16",
    "limit": "3:00:00",
    "where": "legacygpu18"
   },
   {
    "job": "aaf_unseen_ev",
    "state": "RUNNING",
-   "elapsed": "0:30",
+   "elapsed": "18:16",
    "limit": "3:00:00",
    "where": "legacygpu19"
   },
   {
-   "job": "aaf_sc_R1_145K",
-   "state": "RUNNING",
-   "elapsed": "0:30",
-   "limit": "1:30:00",
-   "where": "cml26"
-  },
-  {
-   "job": "aaf_sc_R1_145K",
-   "state": "RUNNING",
-   "elapsed": "0:30",
-   "limit": "1:30:00",
-   "where": "tron34"
-  },
-  {
    "job": "aaf_backstop",
    "state": "RUNNING",
-   "elapsed": "50:46",
+   "elapsed": "1:08:32",
    "limit": "14:00:00",
    "where": "cbcb21"
   },
   {
    "job": "aaf_r1",
    "state": "RUNNING",
-   "elapsed": "5:32:46",
+   "elapsed": "5:50:32",
    "limit": "1-00:00:00",
    "where": "tron46"
   },
   {
    "job": "aaf_r1s",
    "state": "RUNNING",
-   "elapsed": "4:32:23",
+   "elapsed": "4:50:09",
    "limit": "1-00:00:00",
    "where": "tron53"
   },
   {
    "job": "aaf_r1m",
    "state": "RUNNING",
-   "elapsed": "1:07:38",
+   "elapsed": "1:25:24",
    "limit": "1-00:00:00",
    "where": "tron53"
   }
@@ -964,16 +1242,16 @@
    }
   },
   "Source": {
-   "R1_140K": {
+   "R1_145K": {
     "edited_r": {
-     "25-100": 0.7199292909353971,
-     "100-200": 0.3523075638804585,
-     "200-300": 0.2500872923992574
+     "25-100": 0.7378577571362257,
+     "100-200": 0.3563521886244416,
+     "200-300": 0.25412901071831584
     },
     "r_delta": {
-     "25-100": 0.7575885839760303,
-     "100-200": 0.49325072579085827,
-     "200-300": 0.38623302802443504
+     "25-100": 0.7705082036554813,
+     "100-200": 0.49461085349321365,
+     "200-300": 0.3910085018724203
     },
     "n_rooms": 8
    },
