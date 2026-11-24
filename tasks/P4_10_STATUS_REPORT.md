@@ -3,6 +3,23 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (22:57) — I16 (R1-M +15K, Material lite): the material response grows to 0.61 of the true amount in known rooms
+
+**Headline:** After 15K of 30K steps R1-M changes its decay time with the wall absorption by 0.61 of the true amount in known rooms (Pearson 0.84; 0.48 at +10K, 0.36 at +5K) and 0.77 in new ones (0.83). The bar, judged at +30K, is 0.8 to 1.2 with Pearson at least 0.8. Its accuracy after a material edit is 0.913 / 0.742 / 0.649, above "ignore the edit" at 25-100 Hz (0.882) only.
+
+**R1-M @135K, Material lite (16 in-family cells, 16 unseen; 48 cell-bands; D201 / D202):**
+
+| set | EDT slope (Pearson) | per octave 63 / 125 / 250 Hz | EDT error edited vs own unedited (MM2 margin) | edited r (ignore the edit) | r_delta | g_delta |
+|---|---|---|---|---|---|---|
+| in-family | 0.61 (0.84) | 0.61 / 0.84 / 0.54 | 21.1% vs 26.2% (-5.1 points) | 0.913 / 0.742 / 0.649 (0.882 / 0.849 / 0.826) | 0.569 / 0.221 / 0.127 | 1.70 / 1.13 / 1.05 |
+| unseen | 0.77 (0.83) | 0.32 / 0.67 / 0.52 | 28.5% vs 31.7% (-3.2 points) | 0.635 / 0.581 / 0.525 (0.898 / 0.854 / 0.828) | 0.281 / 0.149 / 0.082 | 1.16 / 1.05 / 1.05 |
+
+- JNDs beside the absolute EDT errors (Rule 12, manager's note): 5% (ISO 3382-1), about 18% measured; R1-M's edited error is 21% in known rooms and 28% in new ones.
+- The per-octave slopes are uneven (0.54 at 250 Hz in-family, 0.32 at 63 Hz unseen); the pooled slope mixes them. T20 is dropped in 93% of receiver-bands (135742 of 146689) and is not used.
+- Static HF / UF at 135K are still rendering (R1-M @130K against R1 @130K: HF -0.010; judged for MC1 at +30K).
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (22:49) — R1's one-time confirmation read (P4-9 set, D201 Q32): R1 beats R0 in every band, beats S2X only at 25-100 Hz
 
 **Headline:** On the 16 new rooms that no model was tuned on, R1 scores 0.644 / 0.469 / 0.416 (25-100 / 100-200 / 200-300 Hz) against R0's 0.607 / 0.447 / 0.400 and S2X's 0.605 / 0.466 / 0.430. R1 is ahead of R0 by 0.037 / 0.022 / 0.015 (all intervals above zero), ahead of S2X by 0.039 at the lowest band and level with it above. This read was run once, at R1's final checkpoint, as pre-registered; no P4-10 choice is made from it.

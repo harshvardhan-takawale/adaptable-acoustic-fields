@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-23 22:17 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-23 22:57 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1M: step 133800 at 0.81 s/step, next read 135000 at about 22:33 ET (posted within 1 h of it); R1S: step 148200 at 0.83 s/step, next read 150000 at about 22:42 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1M: step 136800 at 0.81 s/step, next read 140000 at about 23:40 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_confirm_R1 x1, aaf_recip_R1 x1, aaf_backstop x1, aaf_r1s x1, aaf_r1m x1
+**Running jobs:** aaf_sc_R1S_150K x24, aaf_p4_5_eval x1, aaf_g2dense x2, aaf_oof x2, aaf_unseen_ev x2, aaf_backstop x1, aaf_r1m x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -40,6 +40,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 |---|---|---|---|---|
 | R1M_125K | 0.525 | 0.493 / 0.388 / 0.369 | -0.011 [-0.020, -0.002] | +0.010 [+0.002, +0.017] |
 | R1M_130K | 0.541 | 0.509 / 0.413 / 0.396 | -0.010 [-0.014, -0.005] | +0.017 [+0.006, +0.028] |
+| R1M_135K | pending | | | |
 
 MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8), in-family primary; MM2 margin = median |EDT error| edited - unedited, points (bar <= +5):
 
@@ -49,6 +50,8 @@ MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slo
 | R1M_125K | unseen | 0.60 | 0.68 | 48 | -0.19 | 27% / 33% (-5.8) | 0 cells-bands; 124793 of 129438 rx-bands (T20 floor) |
 | R1M_130K | in-family | 0.48 | 0.78 | 48 | 0.29 | 21% / 26% (-5.2) | 0 cells-bands; 139866 of 146689 rx-bands (T20 floor) |
 | R1M_130K | unseen | 0.74 | 0.79 | 48 | 0.19 | 27% / 33% (-5.8) | 0 cells-bands; 121540 of 129438 rx-bands (T20 floor) |
+| R1M_135K | in-family | 0.61 | 0.84 | 48 | 0.36 | 21% / 26% (-5.1) | 0 cells-bands; 135742 of 146689 rx-bands (T20 floor) |
+| R1M_135K | unseen | 0.77 | 0.83 | 48 | 0.13 | 28% / 32% (-3.2) | 0 cells-bands; 114345 of 129438 rx-bands (T20 floor) |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 
@@ -66,6 +69,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1S_135K | 0.554 | 0.504 / 0.419 / 0.405 | -0.001 [-0.008, +0.005] | +0.007 [-0.001, +0.016] |
 | R1S_140K | 0.560 | 0.506 / 0.417 / 0.398 | -0.001 [-0.005, +0.002] | +0.008 [+0.003, +0.014] |
 | R1S_145K | 0.569 | 0.509 / 0.418 / 0.403 | +0.000 [-0.004, +0.004] | +0.003 [-0.006, +0.014] |
+| R1S_150K | pending | | | |
 
 Stretch r_delta (lite cells; paired vs R1 at the same step):
 
@@ -110,7 +114,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | Source | R1S_140K | 8 | 0.730 / 0.358 / 0.257 | 0.760 / 0.492 / 0.385 |
 | Source | R0_120K | 8 | 0.229 / 0.074 / 0.034 | 0.497 / 0.380 / 0.297 |
 | Material | R1_150K | 8 | 0.691 / 0.507 / 0.428 | 0.146 / 0.031 / 0.005 |
-| Material | R1M_130K | 8 | 0.901 / 0.716 / 0.649 | 0.535 / 0.195 / 0.114 |
+| Material | R1M_135K | 8 | 0.913 / 0.742 / 0.649 | 0.569 / 0.221 / 0.127 |
 | Material | R1S_140K | 8 | 0.682 / 0.495 / 0.435 | 0.131 / 0.035 / 0.007 |
 | Material | R0_120K | 8 | 0.719 / 0.518 / 0.407 | 0.101 / 0.032 / 0.008 |
 

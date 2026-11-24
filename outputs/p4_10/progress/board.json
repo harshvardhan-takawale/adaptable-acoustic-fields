@@ -1,5 +1,5 @@
 {
- "built": "2026-11-23 22:17",
+ "built": "2026-11-23 22:57",
  "arms": {
   "R1": [
    {
@@ -1125,6 +1125,175 @@
       }
      }
     }
+   },
+   {
+    "name": "R1M_135K",
+    "step": 135000,
+    "static": null,
+    "material": {
+     "test": {
+      "pooled": {
+       "slope": 0.607465765349052,
+       "pearson": 0.8410088702935276,
+       "n": 48
+      },
+      "bands": {
+       "63": {
+        "slope": 0.6118773054495412,
+        "pearson": 0.763897862392458,
+        "n": 16
+       },
+       "125": {
+        "slope": 0.844583939565927,
+        "pearson": 0.7749914032536335,
+        "n": 16
+       },
+       "250": {
+        "slope": 0.5415213227896736,
+        "pearson": 0.7645779054446948,
+        "n": 16
+       }
+      },
+      "mm": {
+       "n_cells": 16,
+       "n_missing_decay": 0,
+       "bands": {
+        "63": {
+         "EDT": {
+          "slope": 0.6118773054495412,
+          "pearson": 0.763897862392458,
+          "n": 16
+         },
+         "T20": {
+          "slope": 0.35631622032928334,
+          "pearson": 0.3333833033478928,
+          "n": 16
+         }
+        },
+        "125": {
+         "EDT": {
+          "slope": 0.844583939565927,
+          "pearson": 0.7749914032536335,
+          "n": 16
+         },
+         "T20": null
+        },
+        "250": {
+         "EDT": {
+          "slope": 0.5415213227896736,
+          "pearson": 0.7645779054446948,
+          "n": 16
+         },
+         "T20": null
+        }
+       },
+       "EDT": {
+        "slope": 0.607465765349052,
+        "pearson": 0.8410088702935276,
+        "n": 48
+       },
+       "T20": {
+        "slope": 0.35631622032928334,
+        "pearson": 0.3333833033478928,
+        "n": 16
+       },
+       "level_change": {
+        "slope": 0.4055167395460917,
+        "pearson": 0.5160278257803124,
+        "n": 48
+       },
+       "edt_err_edit_med": 0.21131959637671344,
+       "edt_err_orig_med": 0.2619585150499876,
+       "MM2_margin_pts": -0.050638918673274136,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 135742,
+       "n_receiver_bands_valid": 146689
+      }
+     },
+     "unseen": {
+      "pooled": {
+       "slope": 0.7702600483836429,
+       "pearson": 0.8268401414253039,
+       "n": 48
+      },
+      "bands": {
+       "63": {
+        "slope": 0.3207041781795956,
+        "pearson": 0.38272763571408214,
+        "n": 16
+       },
+       "125": {
+        "slope": 0.6661550752573231,
+        "pearson": 0.8643395990340054,
+        "n": 16
+       },
+       "250": {
+        "slope": 0.5173365423126399,
+        "pearson": 0.6163794094586091,
+        "n": 16
+       }
+      },
+      "mm": {
+       "n_cells": 16,
+       "n_missing_decay": 0,
+       "bands": {
+        "63": {
+         "EDT": {
+          "slope": 0.3207041781795956,
+          "pearson": 0.38272763571408214,
+          "n": 16
+         },
+         "T20": {
+          "slope": 0.19479232190520732,
+          "pearson": 0.21743489075826727,
+          "n": 16
+         }
+        },
+        "125": {
+         "EDT": {
+          "slope": 0.6661550752573231,
+          "pearson": 0.8643395990340054,
+          "n": 16
+         },
+         "T20": {
+          "slope": 0.19158778983748184,
+          "pearson": 0.17433167912390002,
+          "n": 14
+         }
+        },
+        "250": {
+         "EDT": {
+          "slope": 0.5173365423126399,
+          "pearson": 0.6163794094586091,
+          "n": 16
+         },
+         "T20": null
+        }
+       },
+       "EDT": {
+        "slope": 0.7702600483836429,
+        "pearson": 0.8268401414253039,
+        "n": 48
+       },
+       "T20": {
+        "slope": 0.12989060064171776,
+        "pearson": 0.11414063802898596,
+        "n": 30
+       },
+       "level_change": {
+        "slope": 0.4266596368410581,
+        "pearson": 0.6631126421120263,
+        "n": 48
+       },
+       "edt_err_edit_med": 0.2848519349316136,
+       "edt_err_orig_med": 0.3173247907482317,
+       "MM2_margin_pts": -0.03247285581661813,
+       "n_dropped_cells_bands": 0,
+       "n_t20_receiver_bands_dropped": 114345,
+       "n_receiver_bands_valid": 129438
+      }
+     }
+    }
    }
   ],
   "R1S": [
@@ -1577,42 +1746,272 @@
      }
     },
     "stretch": {}
+   },
+   {
+    "name": "R1S_150K",
+    "step": 150000,
+    "static": null,
+    "stretch": {}
    }
   ]
  },
  "queue": [
   {
-   "job": "aaf_confirm_R1",
-   "state": "RUNNING",
-   "elapsed": "5:14",
-   "limit": "2:30:00",
-   "where": "legacygpu19"
+   "job": "aaf_sc_R1S_150K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "1:30:00",
+   "where": "(JobArrayTaskLimit)"
   },
   {
-   "job": "aaf_recip_R1",
-   "state": "RUNNING",
-   "elapsed": "18:02",
+   "job": "aaf_e1_fdtd",
+   "state": "PENDING",
+   "elapsed": "0:00",
    "limit": "2:00:00",
-   "where": "legacygpu19"
+   "where": "(Priority)"
+  },
+  {
+   "job": "aaf_board",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "30:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_ss_R1S_150K",
+   "state": "PENDING",
+   "elapsed": "0:00",
+   "limit": "2:00:00",
+   "where": "(Dependency)"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "11:24",
+   "limit": "1:30:00",
+   "where": "vulcan40"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "11:24",
+   "limit": "1:30:00",
+   "where": "tron21"
+  },
+  {
+   "job": "aaf_p4_5_eval",
+   "state": "RUNNING",
+   "elapsed": "12:59",
+   "limit": "3:00:00",
+   "where": "legacygpu24"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "12:59",
+   "limit": "3:00:00",
+   "where": "legacygpu24"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "12:59",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "12:59",
+   "limit": "3:00:00",
+   "where": "legacygpu23"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "cml17"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "cml24"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "gammagpu05"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "gammagpu05"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron24"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron34"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron33"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "vulcan39"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "vulcan40"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "vulcan40"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "vulcan40"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "vulcan40"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "cml19"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron16"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron17"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron40"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron41"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron10"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron11"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron13"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron14"
+  },
+  {
+   "job": "aaf_sc_R1S_150K",
+   "state": "RUNNING",
+   "elapsed": "13:00",
+   "limit": "1:30:00",
+   "where": "tron12"
+  },
+  {
+   "job": "aaf_g2dense",
+   "state": "RUNNING",
+   "elapsed": "21:05",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_oof",
+   "state": "RUNNING",
+   "elapsed": "21:05",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
+  },
+  {
+   "job": "aaf_unseen_ev",
+   "state": "RUNNING",
+   "elapsed": "21:05",
+   "limit": "3:00:00",
+   "where": "legacygpu18"
   },
   {
    "job": "aaf_backstop",
    "state": "RUNNING",
-   "elapsed": "2:52:12",
+   "elapsed": "3:32:27",
    "limit": "14:00:00",
    "where": "cbcb21"
   },
   {
-   "job": "aaf_r1s",
-   "state": "RUNNING",
-   "elapsed": "6:33:49",
-   "limit": "1-00:00:00",
-   "where": "tron53"
-  },
-  {
    "job": "aaf_r1m",
    "state": "RUNNING",
-   "elapsed": "3:09:04",
+   "elapsed": "3:49:19",
    "limit": "1-00:00:00",
    "where": "tron53"
   }
@@ -1902,16 +2301,16 @@
     },
     "n_rooms": 8
    },
-   "R1M_130K": {
+   "R1M_135K": {
     "edited_r": {
-     "25-100": 0.9009880349040031,
-     "100-200": 0.7156818173825741,
-     "200-300": 0.6491983123123646
+     "25-100": 0.9133760742843151,
+     "100-200": 0.7418379932641983,
+     "200-300": 0.6487833745777607
     },
     "r_delta": {
-     "25-100": 0.5347912851721048,
-     "100-200": 0.19524880591779947,
-     "200-300": 0.11428368336055428
+     "25-100": 0.569435603916645,
+     "100-200": 0.22104816790670156,
+     "200-300": 0.12739451532252133
     },
     "n_rooms": 8
    },
