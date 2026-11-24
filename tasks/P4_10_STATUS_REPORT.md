@@ -3,6 +3,25 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (23:33) — I17 (R1-S +30K, the final read of the stretched-room arm): SS1 FAILS, SC1 HOLDS, no extension; no arm is extended
+
+**Headline:** The arm that trains on stretched rooms (R1-S) finished its 30K steps. It predicts stretch edits a little better than R1 at the same step, in every band, but not by the +0.05 in two bands the pre-registration asks for: +0.032 / +0.017 / +0.012 (25-100 / 100-200 / 200-300 Hz) in known rooms, every interval above zero. Its accuracy at the original source is unchanged, so it does no harm. Its gain did not grow enough in the last 10K steps to extend the run, and no other arm extends either, so R1 stays at 150K.
+
+Off-lattice, full set (15 in-family and 16 unseen rooms), Stretch-U and Stretch-A pooled per room, paired bootstrap 10k.
+
+| stretch r_delta | R1-S @150K | R1 @150K | R1-S - R1 [95% CI] |
+|---|---|---|---|
+| in-family (SS1) | 0.808 / 0.571 / 0.410 | 0.776 / 0.554 / 0.398 | +0.032 [+0.018, +0.047] / +0.017 [+0.010, +0.025] / +0.012 [+0.007, +0.018] |
+| unseen (descriptive) | 0.313 / 0.231 / 0.236 | 0.277 / 0.205 / 0.213 | +0.036 [+0.024, +0.050] / +0.026 [+0.020, +0.032] / +0.022 [+0.016, +0.029] |
+
+- **SS1 (+0.05 with CI above zero in at least 2 of 3 bands): FAILS** (0 of 3 bands at +0.05; all three intervals are above zero).
+- **SC1 (HF and each UF band >= R1 - 0.02): HOLDS.** HF 0.572 against 0.571: +0.001 [-0.003, +0.004].
+- **Extension rule (D201 Q27; 8 lite rooms):** second-best band +0.0225 (>= 0.00, met), band mean +0.0304 against +0.0215 at +20K: rise +0.0089, needs +0.02: **not triggered.** R1 is therefore not continued either.
+- **Base model (Q28): stays R1.** R1-S fails its primary, so it does not become the base (Q28: an arm must pass its primary and its no-harm bar).
+- **Against R0 in known rooms** R1-S is not ahead above 100 Hz (at +15K -0.013 / -0.017); that comparison is at 135K, not at the final read.
+
+Links: [verdict_R1S_150K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1S_150K.md) · [verdict_R1S_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1S_150K.json)
+
 ## 2026-11-23 (22:57) — I16 (R1-M +15K, Material lite): the material response grows to 0.61 of the true amount in known rooms
 
 **Headline:** After 15K of 30K steps R1-M changes its decay time with the wall absorption by 0.61 of the true amount in known rooms (Pearson 0.84; 0.48 at +10K, 0.36 at +5K) and 0.77 in new ones (0.83). The bar, judged at +30K, is 0.8 to 1.2 with Pearson at least 0.8. Its accuracy after a material edit is 0.913 / 0.742 / 0.649, above "ignore the edit" at 25-100 Hz (0.882) only.
