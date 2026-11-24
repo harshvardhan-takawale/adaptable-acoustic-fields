@@ -59,8 +59,9 @@ def figures():
     add(["V6_why_decay_is_off"], "V6 Why decay is off", lambda: "In one room the one-room model's resonances are {:.2f} times the truth's width and its early decay is right; the shared model's are {:.2f} times the width. Both keep a late floor.".format(J(M / "V6_why_decay_is_off.json")["width_ratio"]["S-1"], J(M / "V6_why_decay_is_off.json")["width_ratio"]["R1"]))
     add(["V7_late_floor"], "V7 The late floor under standard compensation", lambda: (lambda g: "Removing the late floor does not fix R1's decay at 125 Hz: EDT error {:.0f}% to {:.0f}%, T20 {:.0f}% to {:.0f}%, T30 {:.0f}% to {:.0f}% (only T30's artefact goes away). The one-room models pass the same method.".format(*(100 * g[k][0] for k in ("EDT_before", "EDT_after", "T20_before", "T20_after", "T30_before", "T30_after"))))(J("outputs/p4_10/v7/report.json")["groups"]["in-family 15|R1|125"]))
     add(["V8_scorecards"], "V8 Scorecards", lambda: "Largest gains over R0 this round: Source and Material; 'ignore the edit' still beats this round's model for Material everywhere.")
-    for nm, lab in (("EB_capture_then_edit", "E-B Capture then edit"), ("EC_exposure", "E-C Per-room training against decay"), ("P2_how_physical", "P-2 How physical are our fields?")):
-        add([nm], lab, lambda: None)
+    add(["EC_exposure"], "E-C Per-room training against decay (two rooms)", lambda: (lambda t: "Fine-tuning R1 on one room takes the resonance width from {:.2f} to {:.2f} times the truth after 120 steps; R0 @120K stays at {:.2f}.".format(t[("c", "0 steps (R1 @150K)")], t[("c", "120 steps")], t[("a", "R0 @120K")]))({(x["traj"], x["label"]): x["width_mean_both"] for x in J("outputs/p4_10/ec/report.json")["table"]}))
+    add(["EB_capture_then_edit"], "E-B Capture then edit", lambda: (lambda e: "{} of 16 rooms: CE1 {}; but a captured model with no edit already scores {:.2f} (Wall) on the survival scale, and interpolating the microphones scores as high on Wall and Material (see section 4 of the presentation report).".format(e["n_rooms"], "; ".join("{} {}".format(k.split("|")[0], "holds" if v["holds"] else "fails") for k, v in e["CE1"].items()), e["families"]["Wall|L+0.3"]["bands"]["25-100"]["not_edited_on_C"]["value"]))(J("outputs/p4_10/eb/report.json")))
+    add(["P2_how_physical"], "P-2 How physical are our fields?", lambda: None)
     return out
 
 

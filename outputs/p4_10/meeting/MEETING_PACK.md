@@ -1,6 +1,6 @@
-# MEETING PACK (built 2026-11-24 09:14 ET)
+# MEETING PACK (built 2026-11-24 09:58 ET)
 
-Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at build time. Triples are 25-100 / 100-200 / 200-300 Hz; r is the off-lattice accuracy from the frozen scorer. **This copy was built automatically by a Slurm job and has not been reviewed by the agent.**
+Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at build time. Triples are 25-100 / 100-200 / 200-300 Hz; r is the off-lattice accuracy from the frozen scorer.
 
 ## 1. Figures
 
@@ -19,6 +19,8 @@ Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at buil
 - **V6 Why decay is off** [V6_why_decay_is_off](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V6_why_decay_is_off.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V6_why_decay_is_off.json)): In one room the one-room model's resonances are 1.00 times the truth's width and its early decay is right; the shared model's are 1.34 times the width. Both keep a late floor.
 - **V7 The late floor under standard compensation** [V7_late_floor](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V7_late_floor.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V7_late_floor.json)): Removing the late floor does not fix R1's decay at 125 Hz: EDT error 24% to 24%, T20 57% to 61%, T30 514% to 55% (only T30's artefact goes away). The one-room models pass the same method.
 - **V8 Scorecards** [V8_scorecards](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V8_scorecards.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/V8_scorecards.json)): Largest gains over R0 this round: Source and Material; 'ignore the edit' still beats this round's model for Material everywhere.
+- **E-C Per-room training against decay (two rooms)** [EC_exposure](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EC_exposure.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EC_exposure.json)): Fine-tuning R1 on one room takes the resonance width from 1.40 to 1.04 times the truth after 120 steps; R0 @120K stays at 1.44.
+- **E-B Capture then edit** [EB_capture_then_edit](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.png) ([json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/EB_capture_then_edit.json)): 15 of 16 rooms: CE1 StretchU fails; Wall holds; Material holds; but a captured model with no edit already scores 0.58 (Wall) on the survival scale, and interpolating the microphones scores as high on Wall and Material (see section 4 of the presentation report).
 
 PDF copies sit beside every PNG. Figures of 2026-11-24 00:00-04:00 (F1, F2, F3, F4, F5, F7) are in the [manifest](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/meeting/FIGURE_MANIFEST.md); F3, F4 and F5 are superseded by V1-V4 (the lattice gaps in F3 / F4 are gone).
 
@@ -61,4 +63,4 @@ PDF copies sit beside every PNG. Figures of 2026-11-24 00:00-04:00 (F1, F2, F3, 
 
 - Cluster: many nodes (legacy, cml23, gammagpu) went down this morning; truth runs and renders were resubmitted. No result was lost.
 - R1-SM trains to +30K after the meeting; its verdict is not in this pack.
-- Not finished at build time: E-B Capture then edit; E-C Per-room training against decay; P-2 How physical are our fields?
+- Not finished at build time: P-2 How physical are our fields?
