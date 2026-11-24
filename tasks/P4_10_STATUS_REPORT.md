@@ -3,6 +3,30 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (02:46) — I21 (R1-M +30K, the final Material cells; the full card follows): MM1 FAILS (slope 0.54, not 0.8), MM2 and MC1 HOLD, no extension
+
+**Headline:** The arm trained on per-wall absorption (R1-M) finished its 30K steps. When a wall's absorption is changed, its decay time changes in the right direction and in strict proportion (Pearson 0.95), but by only 0.54 of the true amount in known rooms and 0.66 in new ones; the bar asks for 0.8 to 1.2. It adds no decay error beyond its own baseline and does no harm at the original material, so those two rules hold. R1-M is not extended. R0 and R1 read about 0.0 (no response) on the same measure.
+
+**R1-M @150K, full Material set (60 in-family cells, 64 unseen; 180 and 192 cell-bands; D201 / D202; off-lattice; no cell-bands dropped):**
+
+| | in-family | unseen |
+|---|---|---|
+| **MM1** EDT edit slope (Pearson) | **0.54 (0.95)** (bar [0.8, 1.2] with Pearson >= 0.8: **FAILS** on the slope) | 0.66 (0.94) |
+| per octave 63 / 125 / 250 Hz | 0.48 / 0.58 / 0.54 | 0.48 / 0.77 / 0.59 |
+| **MM2** edited vs own unedited |EDT error| (limit: at most +5 points) | 22.5% vs 24.6% (-2.1 points): **HOLDS** | 29.0% vs 29.4% (-0.4 points) |
+| level-change slope (Pearson), descriptive | 0.45 (0.96) | 0.44 (0.96) |
+| T20 slope (kept receivers only; 129 of 180 cell-bands had a usable T20) | 0.17 (0.46); 429477 of 543192 receiver-bands dropped by the floor rule | 0.43 (0.81); 370742 of 505819 dropped |
+
+- **Reading of MM1:** the response is linear (Pearson 0.95) and about half the true size, in every octave. The shortfall is the same in unseen rooms.
+- **MM2 absolute levels and JNDs (manager's note, D206):** 22.5% in known rooms and 29.0% in new ones after the edit, against 5% (ISO 3382-1) and about 18% measured for a listener; the unedited error is of the same size, so this bar cannot show that the field is close to the truth.
+- **MC1 (no harm at alpha = 0.15, HF and each UF band >= R1 @150K - 0.02): HOLDS.** HF 0.568 against 0.571: -0.003 [-0.007, +0.001]; UF 0.522 / 0.429 / 0.407 against 0.506 / 0.409 / 0.399 (above in every band).
+- **Learning check (+10K) passed, harm kill not triggered (earlier reads). Extension reading (D208): not met** (lite slope 0.62, Pearson 0.85; the reading needs a slope of at least 0.75). R1 has not been extended either, so nothing is.
+- **Q28:** R1 stays the base; R1-M fails its primary (MM1).
+- R1 @150K and R0 on the same full Material cells: EDT slope 0.01 / -0.04 and MM2 margins +12.6 / +14.4 points (both about 24% unedited), so R1-M is the first arm that responds.
+- Not yet posted: the other families of R1-M's full card (scoring now), D1, D2 and A8 for R1-M.
+
+Links: [verdict_R1M_150K.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1M_150K.md) · [verdict_R1M_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/verdict_R1M_150K.json) · [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-24 (01:12) — I20 (R1-M +25K, Material lite): slope 0.57 in known rooms, 0.79 in new ones; MM1 is judged at the next read
 
 **Headline:** After 25K of 30K steps R1-M changes its decay time with the wall absorption by 0.57 of the true amount in known rooms (Pearson 0.80) and 0.79 in new ones (0.83), against 0.53 and 0.75 at +20K. The bar, judged at +30K, is 0.8 to 1.2 with Pearson at least 0.8. Its accuracy after a material edit is 0.921 / 0.756 / 0.676 (25-100 / 100-200 / 200-300 Hz), which beats "ignore the edit" at 25-100 Hz only (0.882).
