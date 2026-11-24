@@ -628,5 +628,105 @@
   ],
   "truth_width_hz": 2.8869498599979773,
   "model_width_hz": 4.621190414626836
+ },
+ "R1M_150K": {
+  "rooms": [
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.348658227669986,
+    "model_width_hz": 6.666204606539759
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 3.3609238354851296,
+    "model_width_hz": 4.198837601655109
+   },
+   {
+    "n_peaks": 3,
+    "n_used": 3,
+    "truth_width_hz": 2.85348323247258,
+    "model_width_hz": 7.32085397432914
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 4.150831845038084,
+    "model_width_hz": 5.336814617336658
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 2,
+    "truth_width_hz": 2.811001118896421,
+    "model_width_hz": 3.6113741465869285
+   },
+   {
+    "n_peaks": 6,
+    "n_used": 3,
+    "truth_width_hz": 2.4712426203474434,
+    "model_width_hz": 4.728869615094174
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 2.859796003395439,
+    "model_width_hz": 4.74384150640198
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 2.9808242033824284,
+    "model_width_hz": 3.373361692044403
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 2,
+    "truth_width_hz": 3.077958940342838,
+    "model_width_hz": 4.766995725578212
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 3.1979645544461266,
+    "model_width_hz": 3.6191843617885944
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 3,
+    "truth_width_hz": 2.727147434411975,
+    "model_width_hz": 5.7865155482400805
+   },
+   {
+    "n_peaks": 5,
+    "n_used": 3,
+    "truth_width_hz": 2.906895313413637,
+    "model_width_hz": 5.821947745709855
+   },
+   {
+    "n_peaks": 4,
+    "n_used": 1,
+    "truth_width_hz": 2.7951832481964374,
+    "model_width_hz": 3.1361899769476302
+   }
+  ],
+  "n_rooms": 13,
+  "truth_peaks": 65,
+  "matched": 32,
+  "overlapped_dropped": 5,
+  "ratio_of_medians_by_room": [
+   1.452547199434104,
+   1.307974363621816,
+   1.5997849830862083
+  ],
+  "median_ratio": 1.4699212809653404,
+  "frac_rooms_model_broader": 1.0,
+  "error_level_db_25_100": [
+   -13.913588523864746,
+   -14.71779009103775,
+   -13.093794157107672
+  ],
+  "truth_width_hz": 2.906895313413637,
+  "model_width_hz": 4.74384150640198
  }
 }

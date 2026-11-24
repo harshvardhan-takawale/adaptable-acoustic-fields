@@ -3,6 +3,14 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-24 (02:59) — R1-M's D1, D2 and A8 at its final checkpoint: its unedited decay is a little worse than R1's; mode-shift slopes are similar
+
+**Headline:** R1-M's sound decays too fast by 18% / 25% / 34% in known rooms (63 / 125 / 250 Hz), a little worse than R1's 14% / 24% / 30%, and its peaks are 1.47 times as broad as the truth (R1 1.40). So learning materials did not fix the decay problem; the original rooms got slightly worse. Mode-shift slopes after edits are similar to the other arms'.
+
+**D1 (R1-M @150K, off-lattice receivers at least 1 m from the source; EDT error (bias) at 63 / 125 / 250 Hz):** in-family 18.2% (-18.0) / 25.3% (-24.0) / 33.7% (-33.3); unseen 24.8% / 29.5% / 35.7%. R1 in-family 14.1% / 24.2% / 29.6%, R0 12.6% / 23.1% / 28.3%. Floor (model): -35 / -30 / -28 dB in-family, similar to R1 (-35 / -29 / -27). **D2:** peak width 1.47 times the truth's (R1-M 13 rooms, 32 of 65 peaks matched; R1 1.40 on 13 rooms, R1-S 1.43 on 14). **A8 (mode-shift slope, full geometry cells, 25-150 Hz):** R1-M / R1 / R1-S in-family Stretch-U 0.67 / 0.60 / 0.69, Stretch-A 0.68 / 0.58 / 0.52, Wall 0.67 / 0.60 / 0.68, Notch 0.46 / 0.30 / 0.40; unseen Stretch-U 0.58 / 0.51 / 0.70, Stretch-A 0.49 / 0.49 / 0.38, Wall 0.59 / 0.65 / 0.51, Notch -0.09 / -0.01 / 0.13. Descriptive.
+
+Links: [d1/report.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/d1/report.md) · [modes/d2.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/d2.json) · [a8_R1M_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/modes/a8_R1M_150K.json)
+
 ## 2026-11-24 (02:54) — I22 (R1-M +30K, the full scorecard): better material edits than any other model, but on the full set still below "ignore the edit"; other edits level with R1
 
 **Headline:** The full scorecard of the materials arm is in (675 cells). On wall-absorption edits R1-M scores 0.894 / 0.713 / 0.618 (25-100 / 100-200 / 200-300 Hz) in known rooms, against 0.749 / 0.567 / 0.476 for R1, and its pattern-of-change score (r_delta) is 4.7 to 7.8 times R1's in known rooms. **But "ignore the edit" still scores 0.911 / 0.891 / 0.880 on the same full set, so R1-M is below it in every band.** (The earlier reads on 8 lite rooms had it above at the lowest band; the full set does not.) On all other edit families it is level with R1.
