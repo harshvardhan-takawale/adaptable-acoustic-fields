@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-23 19:35 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-23 19:56 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1: step 142000 at 0.78 s/step, next read 145000 at about 20:14 ET (posted within 1 h of it); R1M: step 121800 at 0.79 s/step, next read 125000 at about 20:17 ET (posted within 1 h of it); R1S: step 136600 at 0.83 s/step, next read 140000 at about 20:22 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1: step 143800 at 0.78 s/step, next read 145000 at about 20:12 ET (posted within 1 h of it); R1M: step 123400 at 0.81 s/step, next read 125000 at about 20:18 ET (posted within 1 h of it); R1S: step 138000 at 0.82 s/step, next read 140000 at about 20:24 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_board x1, aaf_0d_render x1, aaf_backstop x1, aaf_sc_R1S_135K x5, aaf_p4_5_eval x1, aaf_g2dense x2, aaf_oof x2, aaf_unseen_ev x2, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
+**Running jobs:** aaf_speckle_an x1, aaf_backstop x1, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -13,7 +13,7 @@ Built 2026-11-23 19:35 (from JSON on disk; every read is a scored checkpoint).
 | R1_125K | 0.536 | 0.483 / 0.393 / 0.377 | -0.047 [-0.054, -0.041] | +0.016 [+0.003, +0.028] |
 | R1_130K | 0.550 | 0.492 / 0.398 / 0.393 | -0.033 [-0.039, -0.027] | +0.025 [+0.011, +0.040] |
 | R1_135K | 0.555 | 0.497 / 0.412 / 0.398 | -0.028 [-0.035, -0.022] | +0.030 [+0.018, +0.043] |
-| R1_140K | pending | | | |
+| R1_140K | 0.561 | 0.498 / 0.407 / 0.393 | -0.022 [-0.029, -0.016] | +0.031 [+0.018, +0.044] |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 

@@ -3,6 +3,16 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (19:56) — I8, static part (R1 @+20K): R1's cost at the original source is now 0.022 at 200-300 Hz; R1-S @+15K's read slips, new ETA about 20:25
+
+**Headline:** R1's accuracy at the original source in known rooms is 0.022 below the plain continuation (CTL @150K) at 200-300 Hz, down from 0.047, 0.033 and 0.028 at +5K, +10K and +15K; the no-harm rule (RC1, judged at +30K) allows 0.020. Unseen rooms are still ahead in every band.
+
+- **R1 @140K:** HF 0.561 (0.555 at +15K), UF 0.498 / 0.407 / 0.393; test r 0.905 / 0.675 / 0.561. Against CTL @150K: HF -0.022 [-0.029, -0.016]; UF +0.031 [+0.018, +0.044] / +0.032 [+0.021, +0.044] / +0.020 [+0.009, +0.032]. Against CTL @140K (matched step): HF -0.020 [-0.026, -0.015]. (CTL @150K HF 0.583, UF 0.467 / 0.376 / 0.373; R0 @120K HF 0.582, UF 0.468 / 0.380 / 0.371.)
+- **Change R1 @140K - @130K:** HF +0.011 [+0.006, +0.016], UF 25-100 +0.006 [+0.001, +0.011]. Nothing is concluded for RC1 before +30K.
+- **Slip, R1-S @135K (+15K):** one render task ran slowly (tron36), was requeued to another node with no file loss (its 55 finished predictions and 15 original-room renders were checked and are intact). The read is expected at about 20:25 instead of 20:13.
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (19:42) — R1-P's gate (0d) FAILS: R1-P will not be launched (D205)
 
 **Headline:** We tested, without training, whether a physics-based penalty could improve the model's fields: the mean-value identity for waves says a field's average over a small circle equals a known multiple of its centre value. The model's raw field breaks this identity only 1.3 to 1.5 times as much as its smoothed (band-limited) version, not the 3 times the pre-registered gate requires, so the planned penalty would have almost nothing to remove. R1-P is not launched.

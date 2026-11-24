@@ -1,5 +1,5 @@
 {
- "built": "2026-11-23 19:35",
+ "built": "2026-11-23 19:56",
  "arms": {
   "R1": [
    {
@@ -332,7 +332,37 @@
    {
     "name": "R1_140K",
     "step": 140000,
-    "static": null,
+    "static": {
+     "HF": 0.5611697534720103,
+     "UF": {
+      "25-100": 0.49790353024621026,
+      "100-200": 0.40729264084859473,
+      "200-300": 0.39291689731187573
+     },
+     "delta_vs_ref": {
+      "HF": [
+       -0.022221126159032187,
+       -0.028916095495224,
+       -0.0158290678759416
+      ],
+      "UF_25-100": [
+       0.030928768201646795,
+       0.018413973849503492,
+       0.04419199374512487
+      ],
+      "UF_100-200": [
+       0.0316758509370435,
+       0.020690575829222686,
+       0.04430349527678026
+      ],
+      "UF_200-300": [
+       0.020036397204017363,
+       0.008871019439880903,
+       0.031753875737097384
+      ],
+      "ref": "CTL_150K"
+     }
+    },
     "gap": {
      "test": {
       "second": {
@@ -628,11 +658,11 @@
  },
  "queue": [
   {
-   "job": "aaf_0d_score",
+   "job": "aaf_sc_R1S_135K",
    "state": "PENDING",
    "elapsed": "0:00",
-   "limit": "30:00",
-   "where": "(Dependency)"
+   "limit": "1:30:00",
+   "where": "(BeginTime)"
   },
   {
    "job": "aaf_board",
@@ -649,128 +679,37 @@
    "where": "(Dependency)"
   },
   {
-   "job": "aaf_board",
+   "job": "aaf_speckle_an",
    "state": "RUNNING",
-   "elapsed": "0:08",
-   "limit": "30:00",
-   "where": "brigid16"
-  },
-  {
-   "job": "aaf_0d_render",
-   "state": "RUNNING",
-   "elapsed": "8:07",
-   "limit": "1:30:00",
-   "where": "vulcan39"
+   "elapsed": "9:34",
+   "limit": "3:00:00",
+   "where": "legacygpu19"
   },
   {
    "job": "aaf_backstop",
    "state": "RUNNING",
-   "elapsed": "10:05",
+   "elapsed": "31:19",
    "limit": "14:00:00",
    "where": "cbcb21"
   },
   {
-   "job": "aaf_sc_R1S_135K",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "1:30:00",
-   "where": "tron34"
-  },
-  {
-   "job": "aaf_p4_5_eval",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "3:00:00",
-   "where": "legacygpu23"
-  },
-  {
-   "job": "aaf_g2dense",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "3:00:00",
-   "where": "legacygpu23"
-  },
-  {
-   "job": "aaf_oof",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "3:00:00",
-   "where": "legacygpu23"
-  },
-  {
-   "job": "aaf_unseen_ev",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "3:00:00",
-   "where": "legacygpu23"
-  },
-  {
-   "job": "aaf_sc_R1S_135K",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "1:30:00",
-   "where": "tron36"
-  },
-  {
-   "job": "aaf_sc_R1S_135K",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "1:30:00",
-   "where": "tron35"
-  },
-  {
-   "job": "aaf_sc_R1S_135K",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "1:30:00",
-   "where": "tron35"
-  },
-  {
-   "job": "aaf_sc_R1S_135K",
-   "state": "RUNNING",
-   "elapsed": "18:03",
-   "limit": "1:30:00",
-   "where": "tron35"
-  },
-  {
-   "job": "aaf_g2dense",
-   "state": "RUNNING",
-   "elapsed": "24:00",
-   "limit": "3:00:00",
-   "where": "legacygpu18"
-  },
-  {
-   "job": "aaf_oof",
-   "state": "RUNNING",
-   "elapsed": "24:00",
-   "limit": "3:00:00",
-   "where": "legacygpu18"
-  },
-  {
-   "job": "aaf_unseen_ev",
-   "state": "RUNNING",
-   "elapsed": "24:00",
-   "limit": "3:00:00",
-   "where": "legacygpu18"
-  },
-  {
    "job": "aaf_r1",
    "state": "RUNNING",
-   "elapsed": "4:52:05",
+   "elapsed": "5:13:19",
    "limit": "1-00:00:00",
    "where": "tron46"
   },
   {
    "job": "aaf_r1s",
    "state": "RUNNING",
-   "elapsed": "3:51:42",
+   "elapsed": "4:12:56",
    "limit": "1-00:00:00",
    "where": "tron53"
   },
   {
    "job": "aaf_r1m",
    "state": "RUNNING",
-   "elapsed": "26:57",
+   "elapsed": "48:11",
    "limit": "1-00:00:00",
    "where": "tron53"
   }
