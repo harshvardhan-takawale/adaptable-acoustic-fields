@@ -57,7 +57,7 @@ Verdict files: [verdict_R1_150K.md](https://raw.githubusercontent.com/harshvardh
 | +20K | 0.814 / 0.551 / 0.353 (0.771 / 0.538 / 0.344) | +0.043 [+0.020, +0.066] / +0.013 [+0.004, +0.022] / +0.009 [+0.004, +0.014] | +0.0215 |
 | +25K (descriptive; R1 is at +20K) | 0.823 / 0.557 / 0.364 | +0.051 / +0.019 / +0.021 | - |
 
-SS1's bar (+0.05 in 2 of 3 bands at +30K) is not met at +20K. Unseen +20K: +0.029 / +0.019 / +0.016. Static accuracy is level with R1 (HF -0.002 / -0.001 / -0.001 / 0.000 at +10K / +15K / +20K / +25K; UF up by 0.003 to 0.015). **Extension baseline recorded at +20K (D201): band-mean +0.0215; needs >= +0.0415 and the second-best band >= 0.00 at +30K.** Against R0, R1-S is not ahead in-family above 100 Hz (at +15K -0.013 and -0.017) but is ahead in new rooms (+0.053 / +0.045 / +0.030).
+SS1's bar (+0.05 in 2 of 3 bands at +30K) is not met at +20K. Unseen +20K: +0.029 / +0.019 / +0.016. Static accuracy is level with R1 (HF -0.002 / -0.001 / -0.001 / 0.000 at +10K / +15K / +20K / +25K; UF up by 0.002 to 0.015). **Extension baseline recorded at +20K (D201): band-mean +0.0215; needs >= +0.0415 and the second-best band >= 0.00 at +30K.** Against R0, R1-S is not ahead in-family above 100 Hz (at +15K -0.013 and -0.017) but is ahead in new rooms (+0.053 / +0.045 / +0.030).
 
 ## 4. R1-M (per-wall materials), the first reads (Material lite cells, EDT-based, D202)
 
@@ -71,7 +71,7 @@ SS1's bar (+0.05 in 2 of 3 bands at +30K) is not met at +20K. Unseen +20K: +0.02
 - **MM1 (primary; slope in [0.8, 1.2], Pearson >= 0.8) is judged at +30K.** At +10K in-family per octave 63 / 125 / 250 Hz the slopes are 0.66 / 0.76 / 0.40. The +10K learning check (slope >= 0.3) PASSES; the harm kill is NOT triggered.
 - **MM2 passes easily for a reason to note:** the unedited error is 26-33% of EDT (JND 5% ISO, 18% measured), so an edited error no more than 5 points above it is a low bar. The edited error is below the unedited one. MM2 as written cannot show the absolute level.
 - After a material edit R1-M beats "ignore the edit" in-family only at 25-100 Hz (0.901 against 0.882); above 100 Hz ignoring still wins (0.849 / 0.826), and in unseen rooms everywhere (0.616 / 0.560 / 0.519 against 0.898 / 0.854 / 0.828).
-- T20 is not usable for any model: the floor rule drops 71% of receiver-bands for R0 and about 95-98% for R1, R1-S and R1-M.
+- T20 is not usable for any model: the floor rule drops 71% of receiver-bands for R0 and about 95-99% for R1, R1-S and R1-M.
 
 ## 5. Decay is a model problem: D1 and D2 (D201 Q26)
 
