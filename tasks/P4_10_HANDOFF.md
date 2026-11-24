@@ -10,7 +10,7 @@ All arms are final (R1, R1-S, R1-M at 150K); no arm was extended; R1-P's gate (0
 
 ## To do (in order)
 1. **Daily digest at 09:00 ET on 2026-11-24** at the top of `tasks/P4_10_STATUS_REPORT.md`: 3-5 plain sentences the user can forward plus Table B (the arms' verdicts).
-2. **Figures** (`outputs/p4_10/meeting/`, PNG allowed in .gitignore): F1 (R0's scorecard by family and band, with ignore-the-edit and m1 marks), F3 (moved-source maps, truth / R0 / RCP / R1, 50 and 200 Hz), F4 (a stretch edit, truth vs R1 vs R1-S delta, and the mode-shift plot), F5 (material edit, Schroeder decays truth / R1 / R1-M), F7 (the scorecard after), with a FIGURE_MANIFEST.md. F2 exists; F6 is void (R1-P not launched). Predictions: `/fs/nexus-scratch/htakawal/aaf_p410/pred/<model>/`, truth: `.../truth/`.
+2. **Figures: done** (F1, F2, F3, F4, F5, F7 in `outputs/p4_10/meeting/` and `outputs/p4_10/progress/F2_trajectories.png`; F6 void; `outputs/p4_10/meeting/FIGURE_MANIFEST.md`). Remaining only if asked: a capture-then-edit step (2f, lowest priority).
 3. **Manager-facing**: `tasks/CHUNK_P4_10_RESULTS.md` (written), the OPEN_QUESTIONS items (Q24, Q25, Q33, Q17, Q15); Q33 (meeting date) is the user's answer.
 4. If the manager asks for anything after the final report, treat it as a new D-entry before running numbers.
 
