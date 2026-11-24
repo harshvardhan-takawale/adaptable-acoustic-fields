@@ -18,7 +18,7 @@
 
 - **Pre-set reading (D207):** S-1 at the truth's width (<= 1.15): yes (1.00). R1's training rooms still broad (>= 1.30): yes (1.73). So the broadening comes from sharing one model across rooms (Q25), not from the loss or the representation, which the single-room models have too.
 - **Caveats.** (1) S-1 is 2 rooms, each with 5-6 matched peaks, and each trained for 10K steps with about 83 times R0's per-room exposure (D185): sharing and exposure per room are not separated here, which is Q25's open part. (2) R1's training rooms match only 36 of 63 truth peaks within 3 Hz (57%; per-room 1-4 peaks), so each room's ratio rests on few peaks (per-room values 1.06 to 2.46). (3) The S-1 floor is still -31 to -36 dB, similar to R1's; R1's is -26 to -35 (the truth's is -41 to -77): single-room training does not remove the late floor.
-- R1 is broad in its own training rooms, so this is not a transfer problem; the training rooms (mean 1.73) are no better than the in-family test rooms (1.40), which are a different room family.
+- R1 is broad in its own training rooms, so this is not a transfer problem: the training rooms' ratio (mean 1.73, median 1.67) is above the in-family test rooms' (mean 1.44, median 1.40; a different room family).
 
 ### E2. Reciprocal averaging on R1 (zero training; Source cells, all 31 rooms; frozen scorer)
 
