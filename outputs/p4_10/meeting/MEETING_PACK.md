@@ -1,6 +1,6 @@
-# MEETING PACK (built 2026-11-24 12:59 ET)
+# MEETING PACK (built 2026-11-24 14:08 ET)
 
-Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at build time. Triples are 25-100 / 100-200 / 200-300 Hz; r is the off-lattice accuracy from the frozen scorer.
+Meeting 2026-11-24 about 16:00 ET. Every number is read from a JSON file at build time. Triples are 25-100 / 100-200 / 200-300 Hz; r is the off-lattice accuracy from the frozen scorer. **This copy was built automatically by a Slurm job and has not been reviewed by the agent.**
 
 ## 1. Figures
 

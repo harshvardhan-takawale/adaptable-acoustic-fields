@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-24 12:58 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-24 14:08 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1SM: step 139200 at 0.83 s/step, next read 140000 at about 13:09 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1SM: step 144400 at 0.83 s/step, next read 145000 at about 14:16 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_backstop x1, aaf_autopub x1, aaf_r1sm x1, aaf_smread x1
+**Running jobs:** aaf_backstop x1, aaf_autopub x1, aaf_r1sm x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -113,6 +113,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1SM_125K | 0.529 | 0.498 / 0.402 / 0.385 | -0.007 [-0.016, +0.001] | +0.015 [+0.005, +0.025] |
 | R1SM_130K | 0.541 | 0.515 / 0.421 / 0.401 | -0.010 [-0.015, -0.004] | +0.023 [+0.014, +0.032] |
 | R1SM_135K | pending | | | |
+| R1SM_140K | 0.555 | 0.524 / 0.423 / 0.407 | -0.006 [-0.013, -0.000] | +0.026 [+0.015, +0.036] |
 
 MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slope in [0.8, 1.2], Pearson >= 0.8), in-family primary; MM2 margin = median |EDT error| edited - unedited, points (bar <= +5):
 
@@ -124,6 +125,8 @@ MM1 (re-registered D201 / D202): EDT edit slope on Material lite cells (bar: slo
 | R1SM_130K | unseen | 0.70 | 0.80 | 48 | 0.27 | 27% / 31% (-4.1) | 0 cells-bands; 123187 of 129438 rx-bands (T20 floor) |
 | R1SM_135K | in-family | 0.55 | 0.80 | 48 | 0.24 | 21% / 27% (-5.8) | 0 cells-bands; 138793 of 146689 rx-bands (T20 floor) |
 | R1SM_135K | unseen | 0.79 | 0.82 | 48 | -0.04 | 29% / 31% (-2.7) | 0 cells-bands; 119155 of 129438 rx-bands (T20 floor) |
+| R1SM_140K | in-family | 0.53 | 0.79 | 48 | -0.08 | 20% / 26% (-5.9) | 0 cells-bands; 131340 of 146689 rx-bands (T20 floor) |
+| R1SM_140K | unseen | 0.70 | 0.80 | 48 | 0.20 | 28% / 31% (-3.4) | 0 cells-bands; 108109 of 129438 rx-bands (T20 floor) |
 
 Stretch r_delta (lite cells; paired vs R1 at the same step):
 
@@ -131,6 +134,8 @@ Stretch r_delta (lite cells; paired vs R1 at the same step):
 |---|---|---|---|---|
 | R1SM_130K | test | 0.797 / 0.522 / 0.331 | 0.762 / 0.532 / 0.333 | +0.035 [+0.009, +0.065] / -0.010 [-0.020, -0.000] / -0.002 [-0.009, +0.004] |
 | R1SM_130K | unseen | 0.375 / 0.293 / 0.218 | 0.338 / 0.266 / 0.211 | +0.037 [+0.027, +0.050] / +0.028 [+0.015, +0.037] / +0.006 [-0.012, +0.020] |
+| R1SM_140K | test | 0.806 / 0.544 / 0.347 | 0.771 / 0.538 / 0.344 | +0.035 [+0.009, +0.062] / +0.005 [-0.010, +0.021] / +0.003 [-0.006, +0.012] |
+| R1SM_140K | unseen | 0.391 / 0.286 / 0.226 | 0.353 / 0.269 / 0.213 | +0.038 [+0.032, +0.046] / +0.017 [+0.004, +0.032] / +0.014 [-0.005, +0.027] |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 
@@ -142,6 +147,8 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | R1SM_130K | third | 0.168 [0.132, 0.198] | 0.221 [0.185, 0.251] | 0.259 [0.239, 0.277] |
 | R1SM_135K | second | 0.260 [0.180, 0.349] | 0.357 [0.293, 0.421] | 0.338 [0.306, 0.383] |
 | R1SM_135K | third | 0.136 [0.103, 0.163] | 0.218 [0.177, 0.253] | 0.242 [0.222, 0.261] |
+| R1SM_140K | second | 0.226 [0.168, 0.287] | 0.369 [0.295, 0.442] | 0.355 [0.321, 0.399] |
+| R1SM_140K | third | 0.128 [0.100, 0.152] | 0.215 [0.185, 0.242] | 0.236 [0.218, 0.252] |
 
 ## Table C -- latest read per model, in-family lite rooms: edited r / r_delta (25-100 / 100-200 / 200-300 Hz)
 
@@ -150,32 +157,32 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | StretchU | R1_150K | 8 | 0.760 / 0.530 / 0.419 | 0.806 / 0.579 / 0.393 |
 | StretchU | R1M_150K | 8 | 0.768 / 0.534 / 0.425 | 0.808 / 0.571 / 0.393 |
 | StretchU | R1S_150K | 8 | 0.826 / 0.579 / 0.475 | 0.856 / 0.606 / 0.417 |
-| StretchU | R1SM_135K | 8 | 0.809 / 0.553 / 0.451 | 0.829 / 0.570 / 0.378 |
+| StretchU | R1SM_140K | 8 | 0.818 / 0.560 / 0.462 | 0.843 / 0.582 / 0.398 |
 | StretchU | R0_120K | 8 | 0.761 / 0.532 / 0.417 | 0.816 / 0.588 / 0.405 |
 | StretchA | R1_150K | 8 | 0.818 / 0.590 / 0.484 | 0.737 / 0.518 / 0.307 |
 | StretchA | R1M_150K | 8 | 0.820 / 0.588 / 0.493 | 0.734 / 0.500 / 0.302 |
 | StretchA | R1S_150K | 8 | 0.874 / 0.614 / 0.522 | 0.788 / 0.535 / 0.319 |
-| StretchA | R1SM_135K | 8 | 0.859 / 0.588 / 0.497 | 0.761 / 0.492 / 0.284 |
+| StretchA | R1SM_140K | 8 | 0.864 / 0.594 / 0.511 | 0.769 / 0.505 / 0.296 |
 | StretchA | R0_120K | 8 | 0.819 / 0.595 / 0.488 | 0.756 / 0.530 / 0.323 |
 | Wall | R1_150K | 8 | 0.899 / 0.645 / 0.548 | 0.719 / 0.472 / 0.434 |
 | Wall | R1M_150K | 8 | 0.895 / 0.638 / 0.550 | 0.709 / 0.460 / 0.431 |
 | Wall | R1S_150K | 8 | 0.900 / 0.644 / 0.557 | 0.722 / 0.473 / 0.443 |
-| Wall | R1SM_130K | 8 | 0.886 / 0.612 / 0.525 | 0.700 / 0.429 / 0.408 |
+| Wall | R1SM_140K | 8 | 0.889 / 0.630 / 0.543 | 0.702 / 0.452 / 0.421 |
 | Wall | R0_120K | 8 | 0.909 / 0.655 / 0.555 | 0.748 / 0.485 / 0.448 |
 | Notch | R1_150K | 8 | 0.905 / 0.662 / 0.550 | 0.570 / 0.285 / 0.180 |
 | Notch | R1M_150K | 8 | 0.900 / 0.657 / 0.550 | 0.551 / 0.277 / 0.181 |
 | Notch | R1S_150K | 8 | 0.904 / 0.661 / 0.552 | 0.570 / 0.283 / 0.183 |
-| Notch | R1SM_130K | 8 | 0.890 / 0.631 / 0.528 | 0.545 / 0.257 / 0.169 |
+| Notch | R1SM_140K | 8 | 0.891 / 0.651 / 0.540 | 0.551 / 0.273 / 0.176 |
 | Notch | R0_120K | 8 | 0.914 / 0.678 / 0.559 | 0.588 / 0.299 / 0.188 |
 | Source | R1_150K | 8 | 0.752 / 0.370 / 0.257 | 0.782 / 0.505 / 0.396 |
 | Source | R1M_150K | 8 | 0.740 / 0.375 / 0.273 | 0.769 / 0.504 / 0.404 |
 | Source | R1S_150K | 8 | 0.765 / 0.376 / 0.264 | 0.789 / 0.505 / 0.402 |
-| Source | R1SM_135K | 8 | 0.690 / 0.351 / 0.248 | 0.730 / 0.482 / 0.384 |
+| Source | R1SM_140K | 8 | 0.720 / 0.359 / 0.256 | 0.753 / 0.490 / 0.388 |
 | Source | R0_120K | 8 | 0.229 / 0.074 / 0.034 | 0.497 / 0.380 / 0.297 |
 | Material | R1_150K | 8 | 0.691 / 0.507 / 0.428 | 0.146 / 0.031 / 0.005 |
 | Material | R1M_150K | 8 | 0.922 / 0.762 / 0.683 | 0.581 / 0.242 / 0.171 |
 | Material | R1S_150K | 8 | 0.688 / 0.488 / 0.444 | 0.152 / 0.038 / 0.013 |
-| Material | R1SM_135K | 8 | 0.901 / 0.725 / 0.649 | 0.514 / 0.198 / 0.126 |
+| Material | R1SM_140K | 8 | 0.910 / 0.743 / 0.665 | 0.542 / 0.208 / 0.148 |
 | Material | R0_120K | 8 | 0.719 / 0.518 / 0.407 | 0.101 / 0.032 / 0.008 |
 
 ![F2 trajectories](F2_trajectories.png)
