@@ -20,7 +20,7 @@ Off-lattice, raw, unseen rooms (8 U + 8 C3), manifest sha 688e319f18f6dd32 (froz
 
 - Rooms where R1 is better than R0: 13 / 12 / 11 of 16; than S2X: 14 / 8 / 7 of 16.
 - By family (R1 / R0 / S2X): U 0.662 / 0.459 / 0.452, 0.643 / 0.447 / 0.445, 0.636 / 0.464 / 0.461; C3 0.626 / 0.479 / 0.379, 0.570 / 0.447 / 0.356, 0.573 / 0.469 / 0.399.
-- The frozen-set picture was R1 ahead of S2X at 25-100 Hz (0.506 against 0.495) and level or below at higher bands, so the fresh rooms agree.
+- On the frozen unseen set R1 was ahead of S2X at 25-100 Hz (0.506 against 0.495) and level at 100-200 and 200-300 Hz (0.409 and 0.399 against 0.403 and 0.398); the fresh rooms agree at the lowest band and 100-200 Hz, and show S2X ahead at 200-300 Hz by a margin whose interval includes zero.
 
 Links: [R1_150K.json](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_9/confirm/R1_150K.json)
 
