@@ -3,6 +3,26 @@
 **Pre-registration:** D195 (spec, verbatim; also `tasks/P4_10_SPEC.md`), D196 (progress contract), D197 (amendments A1-A14), D198 (edit manifest frozen), D199 (per-edge absorption validated). The P4-9 erratum (D194) corrects a premise the spec inherited.
 **Board:** [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md). One dated entry per read, newest first, entry times from `date`. Raw links checked for 200.
 
+## 2026-11-23 (20:16) — I9 (R1-S +15K, stretch cells and static): stretch edits still improving; no matched R1 read at this step, so descriptive only
+
+**Headline:** After 15K of 30K steps, the arm that also trains on stretched rooms (R1-S) scores 0.808 / 0.546 / 0.347 (25-100 / 100-200 / 200-300 Hz) on stretch r_delta in known rooms, against 0.801 / 0.539 / 0.341 at +10K. R1 has no stretch cells at this step, so there is no paired comparison at the same step until +20K. Beside R1's neighbouring reads it is ahead by 0.037 to 0.046 in the lowest band and by 0.003 to 0.014 above. **Against R0, R1-S is not ahead in known rooms above 100 Hz (-0.013 and -0.017); part of its lead over R1 is R1's own shortfall against R0.**
+
+Off-lattice, lite rooms (8 in-family, 8 unseen), 62/62 cells, paired bootstrap 10k. Stretch-U and Stretch-A pooled per room.
+
+| reference (in-family r_delta) | R1-S @135K | reference | difference [95% CI] |
+|---|---|---|---|
+| R1 @130K (a step behind; not matched) | 0.808 / 0.546 / 0.347 | 0.762 / 0.532 / 0.333 | +0.046 [+0.019, +0.076] / +0.014 [+0.003, +0.024] / +0.014 [+0.006, +0.020] |
+| R1 @140K (a step ahead; not matched) | 0.808 / 0.546 / 0.347 | 0.771 / 0.538 / 0.344 | +0.037 [+0.014, +0.060] / +0.008 [-0.009, +0.023] / +0.003 [-0.004, +0.011] |
+| **R0 @120K (the original model)** | 0.808 / 0.546 / 0.347 | 0.786 / 0.559 / 0.364 | +0.023 [-0.009, +0.058] / -0.013 [-0.031, +0.005] / -0.017 [-0.027, -0.007] |
+
+- **Unseen rooms:** 0.373 / 0.288 / 0.225 (R1 @140K 0.353 / 0.269 / 0.213; R0 0.319 / 0.243 / 0.195). Against R0: +0.053 [+0.035, +0.074] / +0.045 [+0.035, +0.053] / +0.030 [+0.022, +0.038], so in unseen rooms the gain over R0 is real.
+- **SS1's bar is on R1-S - R1 at +30K; nothing is decided here.**
+- **Static (R1-S @135K):** HF 0.554, UF 0.504 / 0.419 / 0.405, level with R1 @135K: HF -0.001 [-0.008, +0.005], UF +0.007 [-0.001, +0.016] / +0.007 [+0.001, +0.014] / +0.006 [+0.000, +0.013] (R1 0.555 and 0.497 / 0.412 / 0.398). Against CTL @150K, HF -0.030 [-0.038, -0.021].
+- **The read was late by the 1 h rule:** its render had a slow node; posted 20:16 against a 20:13 deadline (announced at 19:56).
+- **R1's +25K read (145K) is rendering; R1-M's first read (125K) comes next.**
+
+Links: [board.md](https://raw.githubusercontent.com/harshvardhan-takawale/adaptable-acoustic-fields/main/outputs/p4_10/progress/board.md)
+
 ## 2026-11-23 (19:56) — I8, static part (R1 @+20K): R1's cost at the original source is now 0.022 at 200-300 Hz; R1-S @+15K's read slips, new ETA about 20:25
 
 **Headline:** R1's accuracy at the original source in known rooms is 0.022 below the plain continuation (CTL @150K) at 200-300 Hz, down from 0.047, 0.033 and 0.028 at +5K, +10K and +15K; the no-harm rule (RC1, judged at +30K) allows 0.020. Unseen rooms are still ahead in every band.

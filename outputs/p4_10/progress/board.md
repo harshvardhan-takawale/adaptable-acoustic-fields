@@ -1,10 +1,10 @@
 # P4-10 progress board
 
-Built 2026-11-23 19:56 (from JSON on disk; every read is a scored checkpoint).
+Built 2026-11-23 20:16 (from JSON on disk; every read is a scored checkpoint).
 
-**Next reads (from each arm's training log):** R1: step 143800 at 0.78 s/step, next read 145000 at about 20:12 ET (posted within 1 h of it); R1M: step 123400 at 0.81 s/step, next read 125000 at about 20:18 ET (posted within 1 h of it); R1S: step 138000 at 0.82 s/step, next read 140000 at about 20:24 ET (posted within 1 h of it)
+**Next reads (from each arm's training log):** R1: step 145200 at 0.78 s/step, next read 150000 at about 21:18 ET (posted within 1 h of it); R1M: step 124800 at 0.81 s/step, next read 125000 at about 20:18 ET (posted within 1 h of it); R1S: step 139400 at 0.83 s/step, next read 140000 at about 20:24 ET (posted within 1 h of it)
 
-**Running jobs:** aaf_speckle_an x1, aaf_backstop x1, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
+**Running jobs:** aaf_sc_R1_145K x3, aaf_fit x1, aaf_p4_5_eval x1, aaf_g2dense x1, aaf_oof x1, aaf_unseen_ev x1, aaf_backstop x1, aaf_r1 x1, aaf_r1s x1, aaf_r1m x1
 
 ## R1 -- in-family moved-source gap, band mean, second and third source (bar: each band <= 0.10)
 
@@ -14,6 +14,7 @@ Built 2026-11-23 19:56 (from JSON on disk; every read is a scored checkpoint).
 | R1_130K | 0.550 | 0.492 / 0.398 / 0.393 | -0.033 [-0.039, -0.027] | +0.025 [+0.011, +0.040] |
 | R1_135K | 0.555 | 0.497 / 0.412 / 0.398 | -0.028 [-0.035, -0.022] | +0.030 [+0.018, +0.043] |
 | R1_140K | 0.561 | 0.498 / 0.407 / 0.393 | -0.022 [-0.029, -0.016] | +0.031 [+0.018, +0.044] |
+| R1_145K | pending | | | |
 
 Moved-source gap = static r on the original room - r at the moved source (in-family lite rooms; lower is better). Bar: <= 0.10 in every band.
 
@@ -39,7 +40,7 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 |---|---|---|---|---|
 | R1S_125K | 0.534 | 0.474 / 0.396 / 0.391 | -0.002 [-0.009, +0.005] | -0.009 [-0.016, -0.002] |
 | R1S_130K | 0.549 | 0.499 / 0.413 / 0.395 | -0.002 [-0.006, +0.002] | +0.006 [+0.001, +0.012] |
-| R1S_135K | pending | | | |
+| R1S_135K | 0.554 | 0.504 / 0.419 / 0.405 | -0.001 [-0.008, +0.005] | +0.007 [-0.001, +0.016] |
 
 Stretch r_delta (lite cells; paired vs R1 at the same step):
 
@@ -60,10 +61,10 @@ Moved-source gap = static r on the original room - r at the moved source (in-fam
 | family | model | n rooms | edited r | r_delta |
 |---|---|---|---|---|
 | StretchU | R1_140K | 8 | 0.758 / 0.524 / 0.407 | 0.804 / 0.570 / 0.383 |
-| StretchU | R1S_130K | 8 | 0.798 / 0.549 / 0.447 | 0.830 / 0.574 / 0.388 |
+| StretchU | R1S_135K | 8 | 0.813 / 0.563 / 0.458 | 0.841 / 0.585 / 0.395 |
 | StretchU | R0_120K | 8 | 0.761 / 0.532 / 0.417 | 0.816 / 0.588 / 0.405 |
 | StretchA | R1_140K | 8 | 0.817 / 0.584 / 0.481 | 0.738 / 0.507 / 0.304 |
-| StretchA | R1S_130K | 8 | 0.856 / 0.587 / 0.498 | 0.771 / 0.504 / 0.293 |
+| StretchA | R1S_135K | 8 | 0.864 / 0.596 / 0.504 | 0.776 / 0.508 / 0.300 |
 | StretchA | R0_120K | 8 | 0.819 / 0.595 / 0.488 | 0.756 / 0.530 / 0.323 |
 | Wall | R1_140K | 8 | 0.895 / 0.639 / 0.544 | 0.715 / 0.462 / 0.427 |
 | Wall | R1S_130K | 8 | 0.884 / 0.618 / 0.532 | 0.705 / 0.444 / 0.414 |
