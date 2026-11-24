@@ -26,5 +26,9 @@
   "median_room": "L5.68_W4.22_d1.42_w1.84",
   "median_value": 0.7834620475769043
  },
- "caption": "Arrows: direction of the steady energy flow (unit length). Truth: FDTD, 2 cm. Model: gradient of the band-limited field. Direction agreement = mean cosine over off-lattice receivers at least 0.5 m from the source. In-family (held-out) room L5.36_W4.34_d1.88_w1.40; showcase ranks 12 of 15 on R1's third-source accuracy at 25-100 Hz (the direction agreement itself has no 15-room rank: no per-room truth gradients exist for a moved source)."
+ "caption": "Arrows: direction of the steady energy flow (unit length). Truth: FDTD, 2 cm. Model: gradient of the band-limited field. Direction agreement = mean cosine over off-lattice receivers at least 0.5 m from the source. At this position the source radiates little at 50 Hz (net outward flow 0.15 m around it 0.068, against 0.990 at the original source), so the arrows show mostly circulating energy. In-family (held-out) room L5.36_W4.34_d1.88_w1.40; showcase ranks 12 of 15 on R1's third-source accuracy at 25-100 Hz (the direction agreement has no 15-room rank: no per-room truth gradients exist for a moved source).",
+ "net_outward_flow_at_0.15m": {
+  "show_s1.000": 0.9899201016741029,
+  "show_p11": 0.06797511985893998
+ }
 }

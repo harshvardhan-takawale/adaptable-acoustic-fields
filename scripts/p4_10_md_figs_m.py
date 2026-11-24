@@ -32,14 +32,14 @@ def src_family():
     return out
 
 
-def m1():
+def m1(POS=POS, room=SHOW, tag="", fs=(50, 125), note=None, ranks_key="V2|R1|third source r|"):
     R = A.ranks()
     fam = src_family()
-    for f in (50, 125):
+    for f in fs:
         fig = new(16, 9)
         n, m = len(POS), len(ROWS)
         gs = fig.add_gridspec(m, n, left=0.105, right=0.915, top=0.885, bottom=0.185, wspace=0.03, hspace=0.21)
-        meta = {"figure": "M1", "room": SHOW, "frequency_hz": f, "positions": [CASE[k]["src"] for k in POS], "source_family_r_15_in_family_rooms_25-100|100-200|200-300": {LONG[k]: v for k, v in fam.items()}, "panels": {},
+        meta = {"figure": "M1" + (" second example" if tag else ""), "room": room, "frequency_hz": f, "positions": [CASE[k]["src"] for k in POS], "source_family_r_15_in_family_rooms_25-100|100-200|200-300": {LONG[k]: v for k, v in fam.items()}, "panels": {},
                 "ranks": R["V2|R1|third source r|" + A.BAND_OF[f]]}
         Lm, Wm = max(CASE[k]["L"] for k in POS), max(CASE[k]["W"] for k in POS)
         im = None
@@ -58,12 +58,20 @@ def m1():
                     badge(ax, "r = {:.2f}".format(s["r_at_{}Hz".format(f)]))
                     meta["panels"]["{}|{}".format(k, LONG[who])] = s
         colorbar(fig, im)
-        fig.suptitle("Moving the source: three ways to train it, {} Hz".format(f), fontsize=20, x=0.02, ha="left", y=0.975, fontweight="bold")
-        cp = ("Maps: full grid (truth FDTD 2 cm, models 4 cm). r = off-lattice accuracy at that frequency, never read from the map. In-family (held-out) room {}; {} on R1's third-source accuracy at {} Hz.\nSource-family accuracy over the 15 in-family rooms "
-              "at 25-100 Hz: R0 {:.3f}, RCP {:.3f}, R1 {:.3f}.").format(SHOW, rk(R, "V2|R1|third source r|" + A.BAND_OF[f]), A.BAND_OF[f], fam["R0_120K"][0], fam["RCP_150K"][0], fam["R1_150K"][0])
+        fig.suptitle(("Second example, the median room: " if tag else "") + "Moving the source: three ways to train it, {} Hz".format(f), fontsize=20, x=0.02, ha="left", y=0.975, fontweight="bold")
+        sel = note or "{} on R1's third-source accuracy at {} Hz".format(rk(R, ranks_key + A.BAND_OF[f]), A.BAND_OF[f])
+        cp = "Maps: full grid (truth FDTD 2 cm, models 4 cm). r = off-lattice accuracy at that frequency, never read from the map. In-family (held-out) room {}; {}.\nSource-family accuracy over the 15 in-family rooms at 25-100 Hz: R0 {:.3f}, RCP {:.3f}, R1 {:.3f}.".format(
+            room, sel, fam["R0_120K"][0], fam["RCP_150K"][0], fam["R1_150K"][0])
         caption(fig, cp)
         meta["caption"] = cp
-        save(fig, "M1_source_three_recipes_{}Hz".format(f), meta)
+        save(fig, "M1{}_source_three_recipes_{}Hz".format(tag, f), meta)
+
+
+def m1m():
+    """second example at 125 Hz (D211's selection rule: the showcase ranks 3 of 15 there)"""
+    from scripts.p4_10_md import MED125
+    pos = ["med_p{:02d}".format(i) for i in STRIP_P]
+    m1(pos, MED125, "m", (125,), "the median room on R1's third-source accuracy at 100-200 Hz (the showcase ranks 3 of 15 there)")
 
 
 def swap(m):
@@ -148,7 +156,7 @@ def m3():
         ax = fig.add_subplot(gs[1, j])
         for nm, col in (("truth", COL["truth"]), ("R1", COL["R1"]), ("R0", COL["R0"])):
             ax.plot(fr[lo:hi], M[nm][q], color=col, lw=2.1, label=nm)
-        ax.set_ylim(-45, 8)
+        ax.set_ylim(-45, 18)
         ax.set_xlim(25, 300)
         ax.set_title("walk position x = {:.1f} m".format(x[q]), loc="left", fontsize=15)
         ax.set_xlabel("frequency (Hz)")
@@ -176,6 +184,27 @@ def intensity(p, g):
     return -np.imag(np.conj(p)[:, None] * g)
 
 
+FLUX = {}
+
+
+def outward_flux(key, R=0.15):
+    """mean outward component of the truth's active intensity on a circle of radius R around the source, 50 Hz"""
+    t, c = truth(key), CASE[key]
+    src = np.array(c["src"])
+    ij = {(int(a), int(b)): k for k, (a, b) in enumerate(t["gij"])}
+    H = t["Hg"][:, 0]
+    out = []
+    for a in np.linspace(0, 2 * np.pi, 72, endpoint=False):
+        p = src + R * np.array([np.cos(a), np.sin(a)])
+        i, j = int(round(p[0] / 0.02)), int(round(p[1] / 0.02))
+        q = [ij.get(v) for v in ((i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1), (i, j))]
+        if None in q:
+            continue
+        g = np.array([(H[q[0]] - H[q[1]]) / 0.04, (H[q[2]] - H[q[3]]) / 0.04])
+        out.append(float(-np.imag(np.conj(H[q[4]]) * g) @ np.array([np.cos(a), np.sin(a)])))
+    return float(np.mean(out))
+
+
 def m5():
     import math
 
@@ -183,6 +212,8 @@ def m5():
     from scripts.p4_9_dir_zeroshot import lattice_grad
     R = A.ranks()
     key, f = "show_p11", 50
+    for k_ in ("show_s1.000", key):
+        FLUX[k_] = outward_flux(k_)
     b, bi = FB[f], BINS.index(FB[f])
     c, t = CASE[key], truth(key)
     L, W = c["L"], c["W"]
@@ -239,9 +270,10 @@ def m5():
     colorbar(fig, im, rect=(0.93, 0.24, 0.012, 0.5))
     fig.suptitle("Where the sound energy flows, source moved to the third position, {} Hz".format(f), fontsize=20, x=0.02, ha="left", y=0.965, fontweight="bold")
     cp = ("Arrows: direction of the steady energy flow (unit length). Truth: FDTD, 2 cm. Model: gradient of the band-limited field. Direction agreement = mean cosine over off-lattice receivers at least 0.5 m from the source. "
-          "In-family (held-out) room {}; {} on R1's third-source accuracy at 25-100 Hz (the direction agreement itself has no 15-room rank: no per-room truth gradients exist for a moved source).").format(SHOW, rk(R, "V2|R1|third source r|25-100"))
+          "At this position the source radiates little at 50 Hz (net outward flow 0.15 m around it {:.3f}, against {:.3f} at the original source), so the arrows show mostly circulating energy. In-family (held-out) room {}; {} on R1's third-source accuracy at 25-100 Hz (the direction agreement has no 15-room rank: no per-room truth gradients exist for a moved source).").format(FLUX[key], FLUX["show_s1.000"], SHOW, rk(R, "V2|R1|third source r|25-100"))
     caption(fig, cp)
     meta["caption"] = cp
+    meta["net_outward_flow_at_0.15m"] = dict(FLUX)
     save(fig, "M5_energy_flow_moved_source", meta)
 
 

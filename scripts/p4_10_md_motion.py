@@ -20,6 +20,7 @@ def jobs():
     out = [("normal", "RCP_150K", "show_s1.000" if i == 0 else "show_p{:02d}".format(i)) for i in STRIP_P]
     out += [("swap", m, "show_s1.000") for m in ("R0_120K", "R1_150K")]
     out += [("path", m, "show_p11") for m in ("R1_150K", "R0_120K")]
+    out += [("normal", "RCP_150K", "med_p{:02d}".format(i)) for i in STRIP_P]      # D221 amendment: the showcase ranks 3 of 15 at 125 Hz, so M1 gets the median room too
     return out
 
 
